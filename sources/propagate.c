@@ -631,6 +631,7 @@ static double pbarPropRate(double ek)
     kd= (2.*h*Gtot/Kdif    + 2.*kv);
     if(kd)
     { int nn;
+      knL= (0.5)*M_PI;
       if(kd>0) nn=1; else nn=0; 		
       for(i=0; i<10; ++i) knL = nn*M_PI - atan(2.*knL/(kd*L_dif));
     } else knL= (0.5)*M_PI;

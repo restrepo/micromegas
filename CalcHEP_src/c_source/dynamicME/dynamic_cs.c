@@ -372,7 +372,7 @@ txtList  makeDecayList(char * pname, int nx)
   FILE *f;
   txtList List=NULL;
 
-printf("asks 2->%d for %s\n",nx,pname);
+printf("asks 1->%d for %s\n",nx,pname);
   pname2lib(pname,lname);
   sprintf(fnameL,"dList_%s_%dx",lname,nx);
   fnameG=malloc(strlen(libDir)+50);

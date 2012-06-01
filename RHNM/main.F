@@ -30,7 +30,7 @@ C     and recoil energy distibution for various nuclei
 C#define DECAYS
     /* Calculation of cross sections and branchings */
 
-#define CROSS_SECTIONS
+C#define CROSS_SECTIONS
 C     Calculate cross sections and widths for
 C      reactions specified by the user
  
@@ -322,13 +322,13 @@ C     pname = "H";
       write(*,fmt="('H->',I1,'*x :  total width ',1PE8.2,'[GeV]')")
      >dim,width
       write(*,*)'and Branchings:'
-      call printTxtList(txtL,6);
+      call printTxtList(txtL,6)
 
       width=pWidth('l',txtL,dim)
       write(*,fmt="('l->',I1,'*x :  total width ',1PE8.2,'[GeV]')")
      >dim,width
       write(*,*)'and Branchings:'
-      call printTxtList(txtL,6);
+      call printTxtList(txtL,6)
 
       write(*,fmt="('Br(e,Ne,nl)=',F4.2)") findBr(txtL,"e,Ne,nl")
 
@@ -337,7 +337,7 @@ C   pname = "Zp";
       write(*,fmt="('~o2->',I1,'*x :  total width ',1PE8.2,'[GeV]')")
      >dim,width
       write(*,*)'and Branchings:'
-      call printTxtList(txtL,6);
+      call printTxtList(txtL,6)
 #endif
 
 #ifdef CROSS_SECTIONS

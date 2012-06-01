@@ -194,8 +194,6 @@ int nmssmEWSB(void)
      V(Mq2),V(Mq3),V(Mu2),V(Mu3),V(Md2),V(Md3),V(At),V(Ab),V(Al),V(mu),
      V(LambdQ),V(KappaQ),V(aLmbdQ),V(aKappQ));
 
-printf("ewsbNMSSM finishes\n");
-
    if(delFiles) system("rm -f  inp.dat spectr.dat omega.dat decay.dat out.dat");
    if(err) return err;
    FillVal(0);

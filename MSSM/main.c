@@ -3,7 +3,7 @@
    in micrOMEGAs, to use another code define the path 
    to the corresponding package in lib/Makefile
 =====================================*/ 
-#define RGE suspect
+#define RGE  suspect
      /* choose 'suspect','isajet','softSusy','spheno'*/
 
 /*=========   SUSY scenario  ==========
@@ -12,7 +12,7 @@
 =======================================*/
 #define SUGRA 
 /*#define AMSB  */
-/*#define EWSB   */
+/*#define EWSB */ 
 
 /*====== Modules ===============
    Keys to switch on 
@@ -67,7 +67,7 @@
 /*===== end of Modules  ======*/
 
 /*===== Options ========*/
-/* #define SHOWPLOTS */
+/*#define SHOWPLOTS */
      /* Display  graphical plots on the screen */ 
 
 /*===== End of DEFINE  settings ===== */
@@ -247,10 +247,11 @@ int main(int argc,char** argv)
 #endif
 
 #ifdef CONSTRAINTS
-{ printf("\n\n==== Physical Constraints: =====\n"); 
+{ double SMbsg;
+  printf("\n\n==== Physical Constraints: =====\n"); 
   printf("deltartho=%.2E\n",deltarho());
   printf("gmuon=%.2E\n", gmuon());
-  printf("bsgnlo=%.2E\n", bsgnlo());
+  printf("bsgnlo=%.2E ", bsgnlo(&SMbsg)); printf("( SM %.2E )\n",SMbsg);
 
 /*
   if(callSuperIsoSLHA()==0)
@@ -349,11 +350,10 @@ printf("\n==== Indirect detection =======\n");
 
   if(SpE)
   { 
-
     posiFluxTab(Emin, sigmaV, SpE, FluxE);
     if(SMmev>0)  solarModulation(SMmev,0.0005,FluxE,FluxE);    
 #ifdef SHOWPLOTS     
-    displaySpectrum(SpE,"positron flux [cm^2 s sr GeV]^{-1}" ,Emin,Mcdm,1);
+    displaySpectrum(FluxE,"positron flux [cm^2 s sr GeV]^{-1}" ,Emin,Mcdm,1);
 #endif
     printf("Positron flux  =  %.2E[cm^2 sr s GeV]^{-1} for E=%.1f[GeV] \n",
     SpectdNdE(Etest, FluxE),  Etest); 

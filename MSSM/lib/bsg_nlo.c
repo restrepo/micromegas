@@ -96,7 +96,7 @@ static double Li2(double z)
 	+x8*x4*x/13./13.+x8*x4*x*x/14./14.+x8*x4*x*x*x/225.+x8*x8/16./16.);
 		}	
 	}
-/* Definitions of function , see  Degrassi et al., JHEP12(2000) 009 Eq. 2.4*/
+/* Definitions of function, see  Degrassi et al., JHEP12(2000) 009 Eq. 2.4*/
 				
 static double F71(double x)
 	{double x1=(x-1);
@@ -250,7 +250,6 @@ static double alps6(double mu, double mz, double alpsmz)
 
 double deltaMb(void)
 {
-/*-----------------------------------------------------------*/
 	double xtw,ytw;
 	double beta0,beta1,g0m,g1m,mb;
 		
@@ -263,34 +262,33 @@ double deltaMb(void)
 	double mub,mubar,del;
 
 #ifdef DEBUG
-       double eps_b,eps_bp,eps_tps;
-       struct read_param_tag param;
+    double eps_b,eps_bp,eps_tps;
+    struct read_param_tag param;
 
 	double al3Wb=0.548; /* alpha_s(MW)/alpha_s(Mb) */
-        double x,y;
+    double x,y;
 	double br,br_old;
 	int err=0;
 	double phsp,lamsl, r=0.316;     /* mc/mb */
 	double z0=.0841; /* z0=.0841 (mc/mb)^2=.29^2 Ratio of pole masses*/
 //	double z1=.22*.22;/*z1=.0484; *(mc/mb)^2=.22^2*  MSbar running mc(mb) */
-        double z1=.29*.29; /* Change the value to reproduce NNLO result */
+    double z1=.29*.29; /* Change the value to reproduce NNLO result */
 	double c7_epsb,c8_epsb,c7_epsbh,c8_epsbh;
 	double c7_chi_mw, c7_su, c8_chi_mw, c8_su;
 	double c2_sum,c7_hp_mw, c8_hp_mw, eta_h;
-        double eta_s;
-        double c70_w,c80_w,c20,c2_tum
+    double eta_s;
+    double c70_w,c80_w,c20,c2_tum
 	double c71Hw,c81Hw,c71_w_sm,c81_w_sm;
 	double c80_mu,c70_mu,c71_w,c81_w,c71_sum,c81_tum,c71_wmu;
 	double c7em_mu,cem8_mu,cem2_mu;
-        double kap,rer2,rer8,r7,
+    double kap,rer2,rer8,r7,
 	double K77,K27,K78,K22,K88,K28,kslem_mub;
 	double kap1,ga77,g27,g87,S_mub,facbsg,bsg_lo,Knlo,bsg_nlo;
-        double c70suw,c80suw,c78_sm_tbcorr,c78_hp_tbcorr;
-        double c7_hp, c8_hp,c7_mw_old, c8_mw_old;
-        double  c7_mw, c7_mb, c8_mw;
+    double c70suw,c80suw,c78_sm_tbcorr,c78_hp_tbcorr;
+    double c7_hp, c8_hp,c7_mw_old, c8_mw_old;
+    double  c7_mw, c7_mb, c8_mw;
 	double test1,test2,test3;
 	double B22,B27,B77,B28,B78,B88,D27,D28,D77,D88,D78,D87;
-	double a7,a8,ac,b8,bc,d7,d8,dc,e70,e80,ec,e71,e81;
 #endif
 	double eps_b, eps_bp, eps_tps;
 	struct read_param_tag param;
@@ -438,19 +436,19 @@ if(!dMQcorrections) return 0;
 
 
     
-double bsgnlo_(void)
+double bsgnlo_(double * SMbsg)
 {
 	double x,xtw,ytw;
 #ifdef DEBUG
 	double al3Wb=0.548; /* alpha_s(MW)/alpha_s(Mb) */
-        double y;
+    double y;
 	double br,br_old;
 	int err=0;
 	double phsp,lamsl, r=0.316;     /* mc/mb */
 #endif	
 	double z0=.0841; /* z0=.0841 (mc/mb)^2=.29^2*/
 //	double z1=.22*.22;/*z1=.0484; *(mc/mb)^2=.22^2*/
-        double z1=.29*.29;	
+    double z1=.29*.29;	
 	double beta0,beta1,g0m,g1m,mb,mcPole;
 		
 	double c7_epsb,c8_epsb,c7_epsbh,c8_epsbh;
@@ -458,24 +456,24 @@ double bsgnlo_(void)
 	double c7_hp_mw, c8_hp_mw, eta_h,alpshp,alpsmz;
 	double c2_sum;
 	double alpssu,mtp,mtmt,mtmw,mtsu,ytmt,eta_s;
-
+    double bsg_nlo_sm;
 		
 	double alpsmt,alpsmw,delmt,mtmw2,eta_wmu;
 	double c70smw,c70Hw,c70_w,c80smw,c80Hw,c80_w,c20,c2_tum;
-	double c71Hw,c81Hw,c71_w_sm,c81_w_sm;
+	double c71Hw,c81Hw,c71_w_sm,c81_w_sm,c71sm_w,c81sm_w,c7emsm_mu;
+	double c70sm_mu,c80sm_mu,c71sm_wmu,bsg_lo_sm;
 	double c80_mu,c70_mu,c71_w,c81_w,c71_sum,c81_tum,c71_wmu;
 	double c7em_mu,cem8_mu,cem2_mu;
 	double kap,rer2,rer8,r7,mub,mubar,del;
 	double K77,K27,K78,K22,K88,K28,kslem_mub;
 	double kap1,ga77,g27,g87,S_mub,facbsg,bsg_lo,Knlo,bsg_nlo;
 #ifdef DEBUG
-        double c70suw,c80suw,c78_sm_tbcorr,c78_hp_tbcorr;
-        double c7_hp, c8_hp,c7_mw_old, c8_mw_old;
-        double  c7_mw, c7_mb, c8_mw;
+    double c70suw,c80suw,c78_sm_tbcorr,c78_hp_tbcorr;
+    double c7_hp, c8_hp,c7_mw_old, c8_mw_old;
+    double  c7_mw, c7_mb, c8_mw;
 	double test1,test2,test3;
 	double B22,B27,B77,B28,B78,B88,D27,D28,D77,D88,D78,D87;
 #endif
-	double a7,a8,ac,b8,bc,d7,d8,dc,e70,e80,ec,e71,e81;
 	double eps_b, eps_bp, eps_tps;
 	struct read_param_tag param;
 	
@@ -493,7 +491,7 @@ double bsgnlo_(void)
 	sb=sin(b);
 	cb=cos(b);
 //	mb=MbPole;
-        mcPole=sqrt(z0)*MbPole;
+    mcPole=sqrt(z0)*MbPole;
 	mb=findValW("MbMb");
 	mtp=findValW("Mtp");
 	beta0=23./3.;
@@ -514,7 +512,7 @@ double bsgnlo_(void)
 /* Evolution of alpha_s with 5 flavors*/	
 	alpsmt=alps(mtp,param.MZ,alpsmz);
 	alpsmw=alps(param.MW,param.MZ,alpsmz);
-		delmt=alpsmt*g0m*(g1m/g0m-beta1/beta0)*(alpsmw/alpsmt-1.0)/8.0/beta0/M_PI;
+    delmt=alpsmt*g0m*(g1m/g0m-beta1/beta0)*(alpsmw/alpsmt-1.0)/8.0/beta0/M_PI;
 		
 	mtmw=mtp*(1-4*alpsmt/3./M_PI)*pow(alpsmw/alpsmt,12./23.)*(1.+delmt);
 	mtmw2=mtp*mtp*(1-8.*alpsmt/3./M_PI)*pow(alpsmw/alpsmt,24./23.)
@@ -529,8 +527,7 @@ double bsgnlo_(void)
 	      /sqrt(1.+9.*ytmt*ytmt/(8.*M_PI*alpsmt)*
 	      (pow(alpssu/alpsmt,1.0/7.0)-1.));
 	yt=mtsu/sq2/param.MW*param.ee/param.sw/sb;
-/*	yt=mtsu/sq2/param.MW/param.sw/sb*.3134;
-*/	
+	
 	eta_wmu=alpsmw/alps(mub,param.MZ,alpsmz);
 
 
@@ -543,9 +540,7 @@ double bsgnlo_(void)
 
 /* Calculates the eps_b eps_b' ..*/	
 	calc_eps(&param, &eps_b, &eps_bp, &eps_tps);
-/*	printf("eps_b=%.2E\n",1-eps_b*(1+1./param.tb/param.tb)*param.tb);	
-        printf("eps_b=%E\n",eps_b);
-*/
+
 /* Large tan beta corrections to SM and Higgs*/	
 	c7_epsb=(eps_b-eps_bp)/(1.+eps_b*param.tb)*param.tb*F72(xtw);
 	c7_epsbh=-(eps_tps+eps_b)*param.tb/(1.+eps_b*param.tb)*F72(ytw);
@@ -578,11 +573,7 @@ double bsgnlo_(void)
 
 	c70_w=c70smw+c7_epsb+c70Hw+c7_chi_mw;
 	c80_w=c80smw+c8_epsb+c80Hw+c8_chi_mw;
-/*
-%gb only sm
-	c70_w=c70smw;
-	c80_w=c80smw;
-*/		
+		
 	c20=(pow(eta_wmu,(-12./23.))+pow(eta_wmu,(6./23.)))/2.;
 		
 	c2_sum= 626126.0/272277.0*pow(eta_wmu,14.0/23.0)
@@ -604,13 +595,13 @@ double bsgnlo_(void)
 	c70_mu=c70_w*pow(eta_wmu,(16./23.))+8.*(pow(eta_wmu,(14./23.))								
 	-pow(eta_wmu,(16./23.)))*c80_w/3.+c2_sum;
 	
-	a7=pow(eta_wmu,(16./23.))*c70smw;
-	a8=c80smw*8.*(pow(eta_wmu,(14./23.))-pow(eta_wmu,(16./23.)))/3.;
-	ac=c2_sum;
-	b8=c80smw*pow(eta_wmu,(14./23.));
-	bc=313063./363036.*pow(eta_wmu,(14./23.))+c2_tum;
-
 	
+
+/* Runnning from mw to mub  : SM only */
+	c80sm_mu=(c80smw+313063./363036.)*pow(eta_wmu,(14./23.))+c2_tum;
+	c70sm_mu=c70smw*pow(eta_wmu,(16./23.))+8.*(pow(eta_wmu,(14./23.))								
+	-pow(eta_wmu,(16./23.)))*c80smw/3.+c2_sum;
+		
 /* NLO Standard model*/	
 	
 	x=xtw;			
@@ -619,7 +610,6 @@ double bsgnlo_(void)
 		+(6.*x*x*x*x+46.*x*x*x-28*x*x)*log(x)*log(x)/3./pow((x-1.),5.);
 	c71_w+=(-102.*pow(x,5.)-588.*x*x*x*x-2262.*x*x*x+3244.*x*x-1364.*x+208.)
 	*log(x)/81./pow((x-1),5.);
-
 	c71_w+=(1646.*x*x*x*x+12205.*x*x*x-10740.*x*x+2509.*x-436.)/486./
 	pow((x-1.),4.);
 
@@ -642,12 +632,10 @@ double bsgnlo_(void)
 	c71_w+=c71Hw;
 	c81_w+=c81Hw;
 	
-	c71_sum= (4661194/816831.*eta_wmu*E7(xtw)-17.3023+14.8088*eta_wmu)
-								*pow(eta_wmu,14.0/23.0)
-		+(-8516/2217.*eta_wmu*E7(xtw)+8.5027-10.8090*eta_wmu)
-			*pow(eta_wmu,16.0/23.0)
-+(                    4.5508-.8740*eta_wmu)*pow(eta_wmu,6.0/23.0)
-+(			.7519+.4218*eta_wmu)*pow(eta_wmu,-12.0/23.0)
+	c71_sum= (4661194/816831.*eta_wmu*E7(xtw)-17.3023+14.8088*eta_wmu)*pow(eta_wmu,14.0/23.0)
+		+(-8516/2217.*eta_wmu*E7(xtw)+8.5027-10.8090*eta_wmu)*pow(eta_wmu,16.0/23.0)
++(4.5508-.8740*eta_wmu)*pow(eta_wmu,6.0/23.0)
++(0.7519+.4218*eta_wmu)*pow(eta_wmu,-12.0/23.0)
 +(-1.9043*eta_wmu*E7(xtw)+2.0040-2.9347*eta_wmu)*pow(eta_wmu,0.4086)
 +(-.1008*eta_wmu*E7(xtw)+.7476+.3971*eta_wmu)*pow(eta_wmu,-0.423)
 +(.1216*eta_wmu*E7(xtw)-.5385+.1600*eta_wmu)*pow(eta_wmu,-0.8994)
@@ -657,7 +645,14 @@ double bsgnlo_(void)
 		 -7164416/357075. *pow(eta_wmu,14./23.)
 		 +256868/14283.*pow(eta_wmu,37./23.)
 		 -6698884/357075. *pow(eta_wmu,39./23.);
+		 
+/* SM, running from Mw to mub*/
 
+	c71sm_wmu=c71_w_sm*pow(eta_wmu,39/23.)+
+		8.*(pow(eta_wmu,37/23.)-pow(eta_wmu,39/23.))*c81_w/3.
+		+c71_sum+c81_tum*c80smw+
+		37208.*(pow(eta_wmu,39/23.)-pow(eta_wmu,16/23.))*c70smw/4761.;
+/* end SM*/
 
 /* SM+Higgs, running from Mw to mub*/
 
@@ -666,11 +661,7 @@ double bsgnlo_(void)
 		+c71_sum+c81_tum*c80_w+
 		37208.*(pow(eta_wmu,39/23.)-pow(eta_wmu,16/23.))*c70_w/4761.;
 	
-	e70=c70smw*37208.*(pow(eta_wmu,39/23.)-pow(eta_wmu,16/23.))/4761.;
-	e71=c71_w_sm*pow(eta_wmu,39/23.);
-	e80=c80smw*c81_tum;
-	e81=c81_w_sm*8.*(pow(eta_wmu,37/23.)-pow(eta_wmu,39/23.))/3.;
-	ec=c71_sum;
+	
 	
 /*e-m corrections Formula 11 in Kagan-Neubert hep-ph/9805303, here c70_w and
 c80_w contains SM+HIGGS+SUSY*/
@@ -689,11 +680,11 @@ c80_w contains SM+HIGGS+SUSY*/
 			-704/1725. *pow(eta_wmu,16./23.);
 	c7em_mu=(32/75.*pow(eta_wmu,-9/23.)-40/69.*pow(eta_wmu,-7/23.)
 	+88/575.*pow(eta_wmu,16/23.))*c70_w+cem8_mu*c80_w+cem2_mu;
+
+/* sm only*/	
+	c7emsm_mu=(32/75.*pow(eta_wmu,-9/23.)-40/69.*pow(eta_wmu,-7/23.)
+	+88/575.*pow(eta_wmu,16/23.))*c70smw+cem8_mu*c80smw+cem2_mu;
 	
-	d7=(32/75.*pow(eta_wmu,-9/23.)-40/69.*pow(eta_wmu,-7/23.)
-	+88/575.*pow(eta_wmu,16/23.))*c70smw;
-	d8=cem8_mu*c80smw;
-	dc=cem2_mu;
 	
 
 /**  The  K_ij functions */
@@ -729,30 +720,41 @@ c80_w contains SM+HIGGS+SUSY*/
 		
 /*	K22=alps(mub,MZ,alpsmz)*f22(z0,del)/M_PI;*/
 	K22=alps(mub,param.MZ,alpsmz)*f22(z1)/M_PI;
-
-	
 	K88=alps(mub,param.MZ,alpsmz)*f88(del,mbs)/M_PI;
 	K28=alps(mub,param.MZ,alpsmz)*(-f27(z1))/3./M_PI;
 
 	kslem_mub=2.*alps(mub,param.MZ,alpsmz)*log(param.MW/mub)/M_PI;
 	
-	
-	
 	facbsg=6.*Br_BXenu*alphem*ckmf/M_PI/Csl;
-	bsg_lo=facbsg*(c70_mu*c70_mu);
+/* SM only*/
+    bsg_lo_sm=facbsg*(c70sm_mu*c70sm_mu);
+    Knlo=K22*c20*c20+ K77*c70sm_mu*c70sm_mu+K88*c80sm_mu*c80sm_mu+K27*c20*c70sm_mu 
+	 +K28*c20*c80sm_mu+K78*c70sm_mu*c80sm_mu
+	 +S_mub*alps(mub,param.MZ,alpsmz)*c71sm_wmu*c70sm_mu/2./M_PI
+	 +S_mub*alphem*(2*c7em_mu*c70sm_mu-c70sm_mu*c70sm_mu*kslem_mub)/
+	 alps(mub,param.MZ,alpsmz);
+	 if(SMbsg) *SMbsg=facbsg*Knlo;	
+	 
+//	 printf("SM: bsg_lo=%.5e Knlo=%.5e bsg_nlo=%.4e\n",bsg_lo_sm,Knlo,bsg_nlo);
+	 
 
-	Knlo=K22*c20*c20+ K77*c70_mu*c70_mu+K88*c80_mu*c80_mu+K27*c20*c70_mu 
+/* SM+Higgs+SUSY */
+
+	bsg_lo=facbsg*(c70_mu*c70_mu);
+    Knlo=K22*c20*c20+ K77*c70_mu*c70_mu+K88*c80_mu*c80_mu+K27*c20*c70_mu 
 	 +K28*c20*c80_mu+K78*c70_mu*c80_mu
 	 +S_mub*alps(mub,param.MZ,alpsmz)*c71_wmu*c70_mu/2./M_PI
 	 +S_mub*alphem*(2*c7em_mu*c70_mu-c70_mu*c70_mu*kslem_mub)/
 	 alps(mub,param.MZ,alpsmz);
 	 
 	 
-	
+//	printf("bsg_lo=%.5e Knlo=%.5e\n",bsg_lo,Knlo);
+//	printf("c70=%.5e c80=%.5e\n",c70_w,c80_w);
+//	printf("c71=%.5e c81_sm=%.5e c81=%.5e\n",c71_w,c81_w_sm,c81_w);
 	 
 	bsg_nlo=facbsg*Knlo;	
 	
-	return bsg_nlo; /* -0.45E-4 ;  with  NNLO contribution */
+	return bsg_nlo; 
 }
 
 
@@ -806,8 +808,6 @@ void calc_eps(struct read_param_tag* param, double *eps_b, double *eps_bp, doubl
 /*	*eps_b-=1.0/3.0*alpssu/M_PI/param->tb*(B1(param->mglu*param->mglu/q/q,param->msb[1]*param->msb[1]/q/q)+	
 		B1(param->mglu*param->mglu/q/q,param->msb[2]*param->msb[2]/q/q));
 */
-
- 	
 		
 	if(fabs(param->mu*param->mu/param->m2/param->m2-1)<.01)
 	{*eps_b+=alphew/param->sw/param->sw/4.0/M_PI*(-param->mu*param->m2)*
@@ -848,7 +848,6 @@ void calc_eps(struct read_param_tag* param, double *eps_b, double *eps_bp, doubl
 			);
 					
 		
-		
 
 	if(fabs(param->mu*param->mu/param->m2/param->m2-1)<.01)
 	{*eps_bp+=alphew/param->sw/param->sw/4.0/M_PI*(-param->mu*param->m2)*
@@ -888,12 +887,7 @@ void calc_eps(struct read_param_tag* param, double *eps_b, double *eps_bp, doubl
 	   +ST*ST*SB*SB*H2(mst[2]*mst[2]/mn[i]/mn[i],msb[1]*msb[1]/mn[i]/mn[i])
 			);
 */
-
-/*	eps_tps=-2.0/3.0*alpssu/M_PI*(mu+At/tb)/mglu*(
-		CT*CT*H2(mst[2]*mst[2]/mglu/mglu,mss[1]*mss[1]/mglu/mglu)
-	   +ST*ST*H2(mst[1]*mst[1]/mglu/mglu,mss[1]*mss[1]/mglu/mglu)
-			);
-*/			
+			
 
 	*eps_tps=-2.0/3.0*alpssu/M_PI*(param->mu+param->At/param->tb)/param->mglu*(
 		CT*CT*H2(param->mst[2]*param->mst[2]/param->mglu/param->mglu,param->mss[1]*param->mss[1]/param->mglu/param->mglu)
@@ -979,11 +973,18 @@ int read_prm(struct read_param_tag* param)
 {
 	int err=0;
 	
-	param->MW=80.423;
+	/*param->MW=80.423;
 	param->MZ=91.1876;
         param->ee=sqrt(4*M_PI*0.00781653);
 	param->sw=0.48076;
-
+   */ 
+    err+=findVal("MZ",&param->MZ);
+    { double alfEMZ;   
+      err+=findVal("alfEMZ",&alfEMZ); 
+      param->ee=sqrt(alfEMZ*4*M_PI);
+    }  
+    err+=findVal("SW",&param->sw);
+    param->MW=findValW("MZ")*sqrt(1-param->sw*param->sw);
 	err+=findVal("Mtp",&param->Mt);
 	err+=findVal("MHc",&param->Mhc);
 	err+=findVal("tb",&param->tb);
@@ -999,7 +1000,6 @@ int read_prm(struct read_param_tag* param)
 	err+=findVal("Zv12",&(param->V[1][2]));
 	err+=findVal("Zv21",&(param->V[2][1]));
 	err+=findVal("Zv22",&(param->V[2][2]));
-
 	err+=findVal("Zu11",&(param->U[1][1]));
 	err+=findVal("Zu12",&(param->U[1][2]));
 	err+=findVal("Zu21",&(param->U[2][1]));

@@ -39,7 +39,7 @@ C================ end of Modules  ======
 
 C===== Options ========
 
-#define SHOWPLOTS
+C#define SHOWPLOTS
 C     Display  graphical plots on the screen
 
 C===== End of DEFINE  settings ===== 
@@ -320,13 +320,13 @@ C      pname = "H";
       write(*,fmt="('H->',I1,'*x :  total width ',1PE8.2,'[GeV]')")
      >dim,width
       write(*,*)'and Branchings:'
-      call printTxtList(txtL,6);
+      call printTxtList(txtL,6)
 
       width=pWidth('e3',txtL,dim)
       write(*,fmt="('e3->',I1,'*x :  total width ',1PE8.2,'[GeV]')")
      >dim,width
       write(*,*)'and Branchings:'
-      call printTxtList(txtL,6);
+      call printTxtList(txtL,6)
       write(*,fmt="('Br(e1,N1,n3)=',F4.2)") findBr(txtL,"e1,N1,n3")
 
 C      pname = "~W+";
@@ -334,7 +334,7 @@ C      pname = "~W+";
       write(*,fmt="('~W+->',I1,'*x :  total width ',1PE8.2,'[GeV]')")
      >dim,width
       write(*,*)'and Branchings:'
-      call printTxtList(txtL,6);
+      call printTxtList(txtL,6)
 
 
 #endif

@@ -26,7 +26,8 @@ int System( char * format, ...)
    va_list args;
    char command[STRSIZ];
    int err;
-      
+   
+   fflush(NULL);    
    va_start(args,format);
    vsprintf(command,format,args);
    va_end(args);

@@ -82,7 +82,7 @@ C! local  Parameters
       integer I
 C Variables      
       INTEGER err
-      REAL*8 Omega,OmegaAppr,Xf,val
+      REAL*8 Omega,OmegaAppr,Xf,val,SMbsg
       REAL*8  gMG1,gMG2,gMG3,gAl,gAt,gAb,gMHu,gMHd,
      > gMl2,gMl3,gMr2,gMr3,gMq2,gMq3,gMu2,gMu3,gMd2,gMd3
       INTEGER  narg 
@@ -332,7 +332,8 @@ C      CALL printVar(6)
       write(*,*) '==== Physical Constraints: ====='
       write(*,fmt='(A,3x, 1PE8.2)') 'deltartho=', deltarho()
       write(*,fmt='(A,3x, 1PE8.2)') 'gmuon='    , gmuon()
-      write(*,fmt='(A,3x, 1PE8.2)') 'bsgnlo='   , bsgnlo()
+      write(*,fmt='(A,3x, 1PE8.2)') 'bsgnlo='   , bsgnlo(SMbsg)
+      write(*,fmt='(10x,A,3x, 1PE8.2)') 'bsg_SM='   , SMbsg
       write(*,fmt='(A,3x, 1PE8.2)') 'bsmumu='   , bsmumu()
       if(MassLimits().eq.0)  write(*,*) 'MassLimits OK'
 #endif
@@ -542,13 +543,13 @@ C      pname = "h";
       write(*,fmt="('h->',I1,'*x :  total width ',1PE8.2,'[GeV]')")
      >dim,width
       write(*,*)'and Branchings:'
-      call printTxtList(txtL,6);
+      call printTxtList(txtL,6)
 
       width=pWidth('l',txtL,dim)
       write(*,fmt="('l->',I1,'*x :  total width ',1PE8.2,'[GeV]')")
      >dim,width
       write(*,*)'and Branchings:'
-      call printTxtList(txtL,6);
+      call printTxtList(txtL,6)
 
       write(*,fmt="('Br(e,Ne,nl)=',F4.2)") findBr(txtL,"e,Ne,nl")
 
@@ -557,7 +558,7 @@ C   pname = "~o2";
       write(*,fmt="('~o2->',I1,'*x :  total width ',1PE8.2,'[GeV]')")
      >dim,width
       write(*,*)'and Branchings:'
-      call printTxtList(txtL,6);
+      call printTxtList(txtL,6)
 
 #endif
 

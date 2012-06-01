@@ -76,7 +76,6 @@ int main(int argc,char** argv)
   err=sortOddParticles(cdmName);
   if(err) { printf("Can't calculate %s\n",cdmName); return 1;}
 
-printf("ok1\n");
   
   qNumbers(cdmName,&spin2, &charge3, &cdim);
   printf("\nDark matter candidate is '%s' with spin=%d/2 \n",

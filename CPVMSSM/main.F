@@ -336,13 +336,13 @@ C     pname = "h1";
       write(*,fmt="('h1->',I1,'*x :  total width ',1PE8.2,'[GeV]')")
      >dim,width
       write(*,*)'and Branchings:'
-      call printTxtList(txtL,6);
+      call printTxtList(txtL,6)
 
       width=pWidth('l',txtL,dim)
       write(*,fmt="('l->',I1,'*x :  total width ',1PE8.2,'[GeV]')")
      >dim,width
       write(*,*)'and Branchings:'
-      call printTxtList(txtL,6);
+      call printTxtList(txtL,6)
 
       write(*,fmt="('Br(e,Ne,nl)=',F4.2)") findBr(txtL,"e,Ne,nl")
 
@@ -351,7 +351,7 @@ C   pname = "~o2";
       write(*,fmt="('~o2->',I1,'*x :  total width ',1PE8.2,'[GeV]')")
      >dim,width
       write(*,*)'and Branchings:'
-      call printTxtList(txtL,6);
+      call printTxtList(txtL,6)
 
 #endif
 

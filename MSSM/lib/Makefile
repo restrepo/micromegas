@@ -1,5 +1,5 @@
 
-SPHENO   = $(HOME)/Packages/SPheno3.0.beta50/bin
+SPHENO   = $(HOME)/Packages/SPheno3.1.3/bin
 SOFTSUSY = $(HOME)/Packages/softsusy-3.1.6
 ISAJET   = $(HOME)/Packages/Isajet
 CERNLIB  = $(HOME)/Packages/cern/pro/lib

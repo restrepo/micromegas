@@ -163,7 +163,7 @@ printf("\n==== Indirect detection =======\n");
      double fi=0.1,dfi=0.05; /* angle of sight and 1/2 of cone angle in [rad] */ 
 
      gammaFluxTab(fi,dfi, sigmaV, SpA, FluxA);     
-    printf("Photon flux for angle of sight f=%.2f[rad]\n"
+    printf("Photon flux for angle of sight f=%.2f[rad] "
      "and spherical region described by cone with angle %.2f[rad]\n",fi,2*dfi);
 
 #ifdef SHOWPLOTS

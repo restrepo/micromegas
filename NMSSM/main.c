@@ -52,7 +52,7 @@
 /*===== end of Modules  ======*/
 
 /*===== Options ========*/
-#define SHOWPLOTS
+/* #define SHOWPLOTS */
      /* Display  graphical plots on the screen */ 
 
 /*===== End of DEFINE  settings ===== */
@@ -173,17 +173,11 @@ int main(int argc,char** argv)
   printf("\n=== MASSES OF HIGGS AND SUSY PARTICLES: ===\n");
   printHiggs(stdout);
   printMasses(stdout,1);
-  printf("Td3=%E\n", findValW("Td3"));
-  printf("MsRun(Mh1)=%E\n", MqRun(findValW("Ms2GeV"),findValW("Mh1")));
-   slhaDecayPrint("h1",stdout);
 }
 #endif
 
 #ifdef CONSTRAINTS
 { double constr0,constrM, constrP;
-  printf("Warnings from NMSSMTools:\n");
-  nw=slhaWarnings(stdout);
-  if(nw==0) printf("  .....  none.\n");
 
   printf("\n\n==== Physical Constraints: =====\n");
 
@@ -242,36 +236,6 @@ printf("\n==== Indirect detection =======\n");
                        4-print cross sections             
     */
   printf("sigmav=%.2E[cm^3/s]\n",sigmaV);  
-{
-double Ntot,Xtot, xsum=0;
-spectrInfo(0.01,SpA,&Ntot,&Xtot);
-printf("Gamma: %E %E\n", Ntot,Xtot);
-
-xsum=Xtot;
-
-spectrInfo(0.01,SpP,&Ntot,&Xtot);     
-printf("protons: %E %E\n", Ntot,Xtot);
-xsum+=2*Xtot;
-
-spectrInfo(0.01,SpE,&Ntot,&Xtot);   
-printf("electrons: %E %E\n", Ntot,Xtot);
-
-xsum+=2*Xtot;
-
-spectrInfo(0.01,SpNe,&Ntot,&Xtot);
-printf("Ne: %E %E\n", Ntot,Xtot);
-xsum+=2*Xtot;
-spectrInfo(0.01,SpNm,&Ntot,&Xtot);
-printf("Nm: %E %E\n", Ntot,Xtot);
-xsum+=2*Xtot;
-spectrInfo(0.01,SpNl,&Ntot,&Xtot);
-printf("Nl: %E %E\n", Ntot,Xtot);
-xsum+=2*Xtot;
-
-printf("xsum=%E\n",xsum);
-
-
-}
 
   if(SpA)
   { 
@@ -280,8 +244,6 @@ printf("xsum=%E\n",xsum);
      gammaFluxTab(fi,dfi, sigmaV, SpA,  FluxA);
      printf("Photon flux  for angle of sight f=%.2f[rad]\n"
      "and spherical region described by cone with angle %.2f[rad]\n",fi,2*dfi);
-
-displaySpectrum(SpA,"initial antiprotons",Emin*.01,Mcdm,1);
      
 #ifdef SHOWPLOTS
      sprintf(txt,"Photon flux[cm^2 s GeV]^{1} at f=%.2f[rad], cone angle %.2f[rad]",fi,2*dfi);

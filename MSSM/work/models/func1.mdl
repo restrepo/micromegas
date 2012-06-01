@@ -1,7 +1,7 @@
 MSSM12c(diretDet)
  Constraints 
    Name |> Expression                                                                                                                                                      <|
-  QCDok |initQCD(alfSMZ,1.4,MbMb,Mtp)
+  QCDok |initQCD(alfSMZ,McMc,MbMb,Mtp)
   MbSM  |MbEff(Q)*one(QCDok)
   Mt    |MtEff(Q)*one(QCDok)
   Mc    |McEff(Q)*one(QCDok)

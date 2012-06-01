@@ -80,7 +80,7 @@ extern double deltarho_(void);
 extern double gmuon_(void);
 extern double gmuonold_(void);
 extern int    masslimits_(void);
-extern double bsgnlo_(void);
+extern double bsgnlo_(double *SMbsg);
 extern double bsmumu_(void);
 extern double btaunu_(void);
 extern double deltaMb(void);

@@ -40,7 +40,7 @@ double saveSM(double MbMb,double Mtp,double SW,double alfSMZ,double alfEMZ,doubl
 double  dMb(double ok)     {return deltaMb();    }
 double  deltarho(double ok){ return deltarho_(); } 
 double  gmuon(double ok)   { return  gmuon_();   }
-double  bsgnlo(double ok)  { return  bsgnlo_();  }
+double  bsgnlo(double ok)  { return  bsgnlo_(NULL);  }
 double  bsmumu(double ok)  { return  bsmumu_();  }
 double  masslimits(double ok) {return masslimits_();}
 

@@ -12,7 +12,8 @@ MsSM    |0.199        | s-quark mass
   SW    |0.481        |sin of the Weinberg angle (PDG-96)
   MZ    |91.1884      |Z mass
   Ml    |1.777        |mass of tau lepton
-  MbMb  |4.23         |b-quark mass
+  MbMb  |4.23         |b-running  mass Mb(Mb)
+  McMc  |1.4          |Mc running mass Mc(Mc)
   Mtp   |171.4        |top quark mass
   MH3   |300          |Mass of CP-odd Higgs
   Mh    |0            |

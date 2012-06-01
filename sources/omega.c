@@ -943,7 +943,7 @@ double darkOmega(double * Xf, int Fast, double Beps)
   
   if(Z1<=1) Z1=1.1;
 
-  Yt=  darkOmega1(&Xt, Z1, (Z1-1)/5,Fast, Beps); 
+  Yt=  darkOmega1(&Xt, Z1, (Z1-1)/5,Fast, Beps);
   if(Yt<0||FError) {return -1;}
   Xf1=Xt;
   for(i=0; ;i++)
@@ -954,7 +954,7 @@ double darkOmega(double * Xf, int Fast, double Beps)
     
     if(Xt>X2*0.999999) continue; 
     y=Yt;
-    if(odeint(&y,1 , Xt , X2 , 1.E-3, (X2-Xt)/2, &XderivLn)){return -1;} 
+    if(odeint(&y,1 , Xt , X2 , 1.E-3, (X2-Xt)/2, &XderivLn)){ printf("problem in solving diff.equation\n");      return -1;} 
     Yt=y;
     Xt=X2;
   }

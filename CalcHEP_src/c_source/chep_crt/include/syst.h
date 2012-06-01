@@ -2,7 +2,7 @@
 #define __SYST_
 
 #ifndef STRSIZ
-#define STRSIZ 2048
+#define STRSIZ 3048
 #endif
 
 

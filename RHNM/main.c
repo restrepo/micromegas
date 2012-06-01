@@ -32,10 +32,10 @@
       /* Calculate number of events for 1kg*day 
          and recoil energy distibution for various nuclei
       */
-#define DECAYS
+/*#define DECAYS*/
     /* Calculate decay widths and branchings  */
 
-#define CROSS_SECTIONS 
+/*#define CROSS_SECTIONS */
       /* Calculate cross sections and widths for 
          reactions specified by the user
       */

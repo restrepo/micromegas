@@ -23,7 +23,7 @@ void FillVal(int mode)
   { sprintf(name,"Zu%d%d",i,j);assignValW(name,slhaVal("UMIX",Q,2,i,j));
     sprintf(name,"Zv%d%d",i,j);assignValW(name,slhaVal("VMIX",Q,2,i,j));
   }
-   
+
   for(k=0;k<3;k++)
   { double M[3];
     for(i=1;i<=2;i++) 
@@ -37,7 +37,6 @@ void FillVal(int mode)
     }  
   }   
   assignValW("alpha", slhaVal("ALPHA",Q,0));
-  
   if(mode>0)
   { int MGok[3];
     
@@ -64,7 +63,6 @@ void FillVal(int mode)
       assignValW("MG2",mg2);
     }
   }
-  
   if(mode==2)
   {
     assignValW("alfSMZ",slhaVal("SMINPUTS",Q,1,3) );
@@ -72,9 +70,8 @@ void FillVal(int mode)
     assignValW("Mtp",   slhaVal("SMINPUTS",Q,1,6) );
     assignValW("Ml",    slhaVal("SMINPUTS",Q,1,7) );
   }
-   
-  assignValW("dMb",deltaMb());
-  assignValW("dMs",deltaMs());
-  assignValW("dMd",deltaMd());    
+     assignValW("dMb",deltaMb());
+     assignValW("dMs",deltaMs());
+     assignValW("dMd",deltaMd());    
 }
 

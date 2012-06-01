@@ -735,11 +735,11 @@ printf("energy conservation:0=%E=%E\n",  (E1+Eg+sqrt(pow(p2+2*dp,2)+m2*m2))/2/Mc
     {  double tab2[NZ]; 
        int N3=stdPDG(pdg[0]), N4=stdPDG(pdg[1]);
 
-       if(PrintOn )
-       { char txt[100];
-         sprintf(txt,"%s,%s -> %s %s", N[0],N[1],N[2],N[3]);
-         printf("  %-20.20s  %.2E\n",txt,v_cs[k]*2.9979E-26);
-       }
+//       if(PrintOn )
+//       { char txt[100];
+//         sprintf(txt,"%s,%s -> %s %s", N[0],N[1],N[2],N[3]);
+//         printf("  %-20.20s  %.2E\n",txt,v_cs[k]*2.9979E-26);
+//       }
        
        vSigmaCh=realloc(vSigmaCh, (nAnCh+2)*sizeof(aChannel));
        vSigmaCh[nAnCh].weight=v_cs[k];
@@ -877,7 +877,7 @@ double calcSpectrum(int key, double *Sg,double*Se, double*Sp, double*Sne,double*
 
 
   vcs*=2.9979E-26;
-
+printf("==================================\n");
   if(PrintOn )
   { int i=0;
     char txt[100]; 

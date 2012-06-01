@@ -5,7 +5,7 @@ endif
 cpsuperh.exe: libcpsuperh.a cpsuperh2.f ../HiggsBound/libHB.a
 	$(FC) $(FFLAGS) -o cpsuperh.exe cpsuperh2.f libcpsuperh.a ../HiggsBound/libHB.a
 
-OBJ = $(notdir $(subst .f,.o,$(wildcard *.f)))
+OBJ = $(notdir $(subst .f,.o,$(filter-out cpsuperh2.f,$(wildcard *.f))))
 libcpsuperh.a:$(OBJ)
 
 libcpsuperh.a:libcpsuperh.a($(OBJ))

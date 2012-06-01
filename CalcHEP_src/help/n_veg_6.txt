@@ -1,0 +1,23 @@
+ 1 2 51 
+ It launches Monte Carlo integration. The results
+of integration are displayed on the screen and 
+stored in files. 
+  In general two cycles of  adaptive Monte Carlo 
+program VEGAS are launched. In i-th cycle Vegas 
+is called 'nSess_i' times with a permision to 
+evaluate integrand 'nCalls_i' times.
+   It is assumed that at the first cycle  Vegas
+improves integration grid and can produce not valid
+results at first steps. The user can see monitor 
+the process of grid convergence via 'Error' column
+on the screen.
+  If nSess_2 !=0,  we forget all obtained results 
+and start next nSess_2 Vegas sessions to obtain 
+new  statistics. 
+  The second cycle mainly is included for batch 
+calculations. In interactive session the user can 
+launch only the first cycle setting 'nSess_2=0' 
+and using 'Clear Statistics' menu function.  
+  If accuracy of integration is not sufficient,
+the user can set 'nSess_2=0' and call 
+'Start integration' again to continue Monte Carlo. 

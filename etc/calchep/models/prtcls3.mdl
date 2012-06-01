@@ -1,0 +1,9 @@
+Yukawa
+ Particles 
+ Full  name  | P | aP| number |2*spin| mass |width |color|aux|>      LaTeX(A)<|>     LaTeX(A+)      <|
+s0           |s0 |s0 |0       |0     |MAUX  |0     |1    |*  |S0              |S0
+q1           |q1 |Q1 |       1|1     |Mq    |0     |3    |   |q               |Q
+~f           |~f |~f |     100|1     |MX    |0     |1    |   |~f              |~F
+t0           |t0 |t0 |       0|2     |MAUX  |0     |1    |*  |                |
+sq           |~sq|~SQ|     100|0     |MSQ   |0     |3    |   |                |
+======================================================================================================

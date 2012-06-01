@@ -1,0 +1,10 @@
+Toy
+ Particles 
+ Full  name  | P | aP| number |2*spin| mass |width |color|aux|>      LaTeX(A)      <|>     LaTeX(A+)      <|
+gluon        |G  |G  |      21|2     |0     |0     |8    |G  |g                     |g
+  quark      |q  |Q  |       5|1     |Mq    |0     |3    |   |u                     |\bar{u}
+neutralino 1 |~o1|~o1| 1000022|1     |MNE1  |0     |1    |   |\chi^0_1              |\chi^0_1
+  squark R   |~qR|~QR| 1000002|0     |Msq   |0     |3    |   |(uR)                  |(UR)
+im particle  |~00|~00|       0|0     |Maux  |0     |8    |*  |(00)                  |(00)
+(G G ~UL ~uL)|~0X|~0Y|       0|2     |Maux  |0     |3    |*  |(0X)                  |(0Y)
+============================================================================================================

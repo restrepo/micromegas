@@ -1,0 +1,11 @@
+1 12 51 3
+  If during the generation program finds a 
+point where  function exceeds the maximum 
+detected before taking into account  the factor 
+written in the item 2 of this menu, then it 
+rebuilds  weight function for sub-cubes. Just 
+before it  CaclHEP can launch procedure for search
+new  maximum by the simplex method starting from 
+the detected point. Here the uses can specify 
+the number of steps for such search. 
+  Zero is a legal input.

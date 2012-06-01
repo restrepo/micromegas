@@ -1,0 +1,20 @@
+C!   Types of Fortran functions
+C    See details in lib/pmodel.h
+*-----------------------------
+      external suspectEwsbMSSM,isajetEwsbMSSM,suspectSUGRA,isajetSUGRA,
+     >         softSusySUGRA,sphenoSUGRA,suspectAMSB,isajetAMSB,
+     >         softsusyAMSB,sphenoAMSB,readLesH,writeLesH,masslimits,
+     >         readVarMSSM, lesHinput,loopgamma
+ 
+      integer  suspectEwsbMSSM,isajetEwsbMSSM,suspectSUGRA,isajetSUGRA,
+     >         softSusySUGRA,sphenoSUGRA,suspectAMSB,isajetAMSB,
+     >         softsusyAMSB,sphenoAMSB,readLesH,writeLesH,masslimits,
+     >         readVarMSSM,lesHinput,loopgamma
+      external deltarho,gmuon,bsgnlo,bsmumu,deltaMb
+      real*8   deltarho,gmuon,bsgnlo,bsmumu,deltaMb
+
+C subroutines:o1Contents,delFiles
+      external qBox
+      real*8  qBox 
+      
+*-------------------------------

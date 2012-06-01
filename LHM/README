@@ -1,0 +1,12 @@
+1. ============  read  ../README ===========
+
+3. ======= Special citations ========
+Implementation of the model in CalcHEP was done by 
+
+  %\cite{Belyaev:2006jh}
+  \bibitem{Belyaev:2006jh}
+  A.~Belyaev, C.~R.~Chen, K.~Tobe and C.~P.~Yuan,
+  %`Phenomenology of littlest Higgs model with T-parity: Including effects  of
+  %T-odd fermions,''
+  Phys.\ Rev.\  D {\bf 74} (2006) 115020
+  [arXiv:hep-ph/0609179].

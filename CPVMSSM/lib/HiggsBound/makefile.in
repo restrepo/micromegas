@@ -1,0 +1,107 @@
+#  HiggsBounds library
+HIGGSBOUNDS=-L$(HBLIBDIR) -lHB
+
+
+#-------------------------------------------------------------------
+#>> Please edit this part according to your needs (see README file).
+
+#  Libraries needed for some of the example programs
+#  (provide values for: FHDIR and CPSHDIR)
+#
+#  The libraries are NOT needed to compile "HiggsBounds" or the 
+#  library "libHB.a". If you don't want to compile 
+#  "example_programs/HBwithFH" or "example_programs/HBwithCPsuperH"
+#  you don't need to specify FHDIR or CPSHDIR.
+
+# location of FeynHiggs installation:
+FHDIR=$(HOME)/Packages/FeynHiggs-2.6.5/x86_64-linux
+
+# location of CPsuperH2 installation:
+CPSHDIR=$(HOME)/Packages/CPsuperH2
+
+
+#  Fortran command & compiler flags (chose one or add your own)
+#a)   GNU compiler: g77
+#FC77=g77
+#COMPILERFLAGS= -O0 -ffixed-line-length-none -w -g -DG77VERSION
+
+# b)  GNU compiler: gfortran          
+FC77=gfortran
+COMPILERFLAGS= -O0 -ffixed-line-length-none -w -g -DG77VERSION
+
+
+# c)  Portland Group Inc. compiler: pgf77
+#FC77=pgf77
+#COMPILERFLAGS= -O0 -Mextend -r8 -Mbounds -Ktrap=fp
+
+F77FLAGS= $(COMPILERFLAGS) -I. -DINSTDIR=\"$(THEINSTDIR)\"
+# -DVERBOSE -DDEBUG
+
+#<< Please edit this part according to your needs (see README file).
+#-------------------------------------------------------------------
+
+FEYNHIGGS=-I$(FHDIR)/include -L$(FHDIR)/lib -lFH
+CPSUPERH=-L$(CPSHDIR) -lcpsuperh2
+
+
+COMMONINCLUDEFILES= TEV-bound.F LEP-bound.F analyses-descriptions.h \
+   tables-nhmax.F tables-tev_cb.h tables-lep_cb.h \
+   cs-ratios/Tevatron.R_H_bb.h cs-ratios/Tevatron.R_H_gg.h \
+   cs-ratios/Tevatron.R_HWp_csb.h cs-ratios/Tevatron.R_HWm_dub.h \
+   cs-ratios/Tevatron.R_HWm_scb.h cs-ratios/Tevatron.R_HWp_udb.h \
+   cs-ratios/Tevatron.R_HZ_bbb.h cs-ratios/Tevatron.R_HZ_ccb.h \
+   cs-ratios/Tevatron.R_HZ_ddb.h cs-ratios/Tevatron.R_HZ_ssb.h \
+   cs-ratios/Tevatron.R_HZ_uub.h theory_BRfunctions.F \
+   theory_XS_SM_functions.f Tevatron.sigma_bg_Hb.h \
+   Tevatron.sigma_bg_Hb.ptmin15.etamax2.h \
+   Tevatron.sigma_bg_Hb.ptmin20.etamax2.5.h
+    
+default: HiggsBounds libHB
+
+libHB: libHB.a
+
+ex: example_programs/example-SM_vs_4thGen \
+    example_programs/HBwithFH \
+    example_programs/HBwithCPsuperH
+    
+all: HiggsBounds libHB ex    
+
+
+HiggsBounds: f77main.o utils.o 
+	$(FC77) $(F77FLAGS) -o HiggsBounds f77main.o utils.o 
+
+f77main.o :f77main.F $(COMMONINCLUDEFILES) input.F 
+	$(FC77) $(F77FLAGS) -c f77main.F
+	
+libHB.a : utils.o f77subroutines.o 
+	ar rcs libHB.a f77subroutines.o utils.o
+	
+utils.o : utils.f
+	$(FC77) $(F77FLAGS) -c utils.f
+
+f77subroutines.o : f77subroutines.F $(COMMONINCLUDEFILES)
+	$(FC77) $(F77FLAGS) -c f77subroutines.F
+
+# example programs
+example_programs/example-SM_vs_4thGen: example_programs/example-SM_vs_4thGen.F libHB.a
+	 $(FC77) $(F77FLAGS) example_programs/example-SM_vs_4thGen.F $(HIGGSBOUNDS)\
+                  -o example_programs/example-SM_vs_4thGen
+
+example_programs/HBwithFH: example_programs/HBwithFH.F libHB.a
+	$(FC77) $(F77FLAGS) example_programs/HBwithFH.F $(HIGGSBOUNDS) $(FEYNHIGGS) \
+        -o example_programs/HBwithFH
+	    
+example_programs/HBwithCPsuperH: example_programs/HBwithCPsuperH.f libHB.a
+	$(FC77) $(F77FLAGS) example_programs/HBwithCPsuperH.f $(HIGGSBOUNDS) $(CPSUPERH) \
+        -o example_programs/HBwithCPsuperH
+
+	
+.PHONY : clean veryclean
+clean :
+	rm -f *.o
+veryclean :
+	rm -f *.o HiggsBounds libHB.a \
+             example_programs/example-SM_vs_4thGen \
+             example_programs/HBwithFH \
+             example_programs/HBwithCPsuperH
+    

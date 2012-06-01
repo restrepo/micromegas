@@ -1,0 +1,9 @@
+ 1 12 51 
+   Position ON/OFF  forbids/permits  to Vegas to 
+ improve integration  grid. 
+   The option ON  is needed mainly  to save event 
+ generator prepared before, because it based on the
+ current grid.
+   OFF is restored automaticaly after each Vegas 
+ session.
+     

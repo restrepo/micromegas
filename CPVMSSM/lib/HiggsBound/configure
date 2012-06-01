@@ -1,0 +1,7 @@
+#!/bin/sh
+echo "# environment variables" > makefile
+echo "THEINSTDIR=$PWD" >> makefile
+echo "HBLIBDIR=$PWD" >> makefile
+
+cat makefile.in >> makefile
+

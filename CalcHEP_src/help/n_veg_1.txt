@@ -1,0 +1,3 @@
+1 12 51 3
+       The  number of calls of Vegas at the
+first cycle of Monte Carlo integration. 

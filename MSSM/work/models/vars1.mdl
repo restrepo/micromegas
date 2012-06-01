@@ -1,0 +1,128 @@
+MSSM12c
+ Variables 
+   Name | Value       |>  Comment                                   <|
+ alfEMZ |0.0078180608 |Electromagnetic coupling constant (<->1/127.9)
+Au      |0            | %new
+Ad      |0            | %new
+Muq     |0.0056       | u-quark mass
+MdSM    |0.0099       | d-quark mass
+MsSM    |0.199        | s-quark mass
+  alfSMZ|0.1172       |Strong coupling constant
+  Q     |100          | Scale
+  SW    |0.481        |sin of the Weinberg angle (PDG-96)
+  MZ    |91.1884      |Z mass
+  Ml    |1.777        |mass of tau lepton
+  MbMb  |4.23         |b-quark mass
+  Mtp   |171.4        |top quark mass
+  MH3   |300          |Mass of CP-odd Higgs
+  Mh    |0            |
+  MHH   |0            |
+  MHc   |0            |Mass of charged Higgs
+  tb    |10           |Tangent beta
+  alpha |-1.5708      |
+  mu    |1000         |MSSM mu parameter
+  Am    |0            |mu soft trilitear coupling
+  Al    |0            |sTau soft coupling
+  Ab    |0            |Bottom soft coupling
+  At    |0            |Top soft coupling
+  MNE1  |109.408      |
+  MNE2  |197.367      |
+  MNE3  |-1002.83     |
+  MNE4  |1006.05      |
+  MC1   |197.349      |1st chargino mass
+  MC2   |1006.96      |2nd chargino mass
+  MSG   |1000         |mass of gluino
+  MSne  |997.96       |e-sneutrino mass
+  MSnm  |997.96       |mu-sneutrino mass
+  MSnl  |997.96       |tau-sneutrino mass
+  MSeL  |1000.91      |light selectron mass
+  MSeR  |1001.13      |heavy selectron mass
+  MSmL  |1000.48      |light smuon mass
+  MSmR  |1001.56      |heavy smuon mass
+  MSl1  |992.104      |light stau mass
+  MSl2  |1009.86      |heavy stau mass
+  MSuL  |998.569      |
+  MSuR  |999.392      |
+  MSsL  |1001.73      |
+  MSsR  |1000.3       |
+  MSt1  |1002.72      |
+  MSt2  |1017.59      |
+  MSdL  |1001.73      |
+  MSdR  |1000.3       |
+  MScL  |998.564      |
+  MScR  |999.399      |
+  MSb1  |988.435      |
+  MSb2  |1013.45      |
+  Zn11  |-0.998875    |
+  Zn21  |-0.0161542   |
+  Zn31  |0.0245659    |
+  Zn41  |-0.0371933   |
+  Zn12  |0.0121998    |
+  Zn22  |-0.996056    |
+  Zn32  |-0.0423356   |
+  Zn42  |0.0770154    |
+  Zn13  |-0.0448619   |
+  Zn23  |0.0837557    |
+  Zn33  |-0.705039    |
+  Zn43  |0.702775     |
+  Zn14  |0.00929306   |
+  Zn24  |-0.0244238   |
+  Zn34  |-0.707477    |
+  Zn44  |-0.706253    |
+  Zu11  |0.99288      |
+  Zu21  |0.119122     |
+  Zu12  |-0.119122    |
+  Zu22  |0.99288      |
+  Zv11  |0.999394     |
+  Zv21  |0.0348075    |
+  Zv12  |-0.0348075   |
+  Zv22  |0.999394     |
+  Zl11  |0.00929306   |
+  Zl21  |-0.0244238   |
+  Zl12  |-0.707477    |
+  Zl22  |-0.706253    |
+  Zt11  |0.99288      |
+  Zt21  |0.119122     |
+  Zt12  |-0.119122    |
+  Zt22  |0.99288      |
+  Zb11  |0.999394     |
+  Zb21  |0.0348075    |
+  Zb12  |-0.0348075   |
+  Zb22  |0.999394     |
+  dMb   |0            |deltaMb
+  dMs   |0            |deltaMs
+  dMd   |0            |deltaMd
+  MG1   |110          |MSSM M1 (U(1)) soft parameter
+  MG2   |200          |MSSM M2 (SU(2)) soft parameter
+  MG3   |300          |mass of gluino
+  Ml1   |1000         |Left slepton doublet mass (1st generations)
+  Ml2   |1000         |Left slepton doublet mass (2nd generations)
+  Ml3   |1000         |Left slepton doublet mass (3rd generations)
+  Mr1   |1000         |Right slepton singlet mass (1st generations)
+  Mr2   |1000         |Right slepton singlet mass (2nd generations)
+  Mr3   |1000         |Right slepton singlet mass (3rd generations)
+  Mq1   |1000         |Left squarks doublet mass (1st generation)
+  Mq2   |1000         |Left squarks doublet mass (2nd generation)
+  Mq3   |1000         |Left squarks doublet mass (3rd generation)
+  Mu1   |1000         |Right up squarks singlet mass (1st generation)
+  Mu2   |1000         |Right up squarks singlet mass (2nd generation)
+  Mu3   |1000         |Right up squarks singlet mass (3rd generation)
+  Md1   |1000         |Right down squarks singlet mass (1st generatio
+  Md2   |1000         |Right down squarks singlet mass (2nd generatio
+  Md3   |1000         |Right down squarks singlet mass (3rd generatio
+  QSUSY |0            |Parameter of SLHA not used in the model
+    gY  |0            | -----
+    g2  |0            | -----
+    g3  |0            | -----
+    Yt  |0            | -----
+    Yb  |0            | -----
+    Yl  |0            | -----
+    tb_Q|0            | -----
+ vev    |0            | -----
+ mA_2   |0            | -----
+ mH1_2  |0            | -----
+ mH2_2  |0            | -----
+  wt    |1.7524       |width of top quark
+  wZ    |2.4944       |Z-boson width
+  wW    |2.08895      |W-boson width
+======================================================================

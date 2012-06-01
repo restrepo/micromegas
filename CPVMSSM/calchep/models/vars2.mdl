@@ -1,0 +1,86 @@
+CPV-MSSM/CPSH
+ Variables 
+  Name | Value       |>  Comment                                   <|
+ alfSMZ|0.1172       |alpha_QCD(MZ)
+ Mtp   |175          |top quark pole mass
+ MbMb  |4.2          |Mb(Mb) running mass
+ McMc  |1.3          |Mc(Mc) running mass
+ MsSM  |0.2          |
+ Muq   |0.01         |
+ MdSM  |0.01         |
+ GG    |1.117        |Drived by CalcHEP
+ Q     |100          |QCD scale
+ EE    |0.31333      |Electromagnetic coupling constant (<->1/128)
+ SW    |0.474        |sin of the Weinberg angle (PDG-94,"on-shell")
+ Ml    |1.777        |mass of tau-lepton
+ MHc   |200          |Charged Higgs Mass
+ aMu   |100          ||mu|
+ fiMu  |100          |phase of mu in Degrees
+ aM1   |193          |
+ aM2   |400          |
+ aM3   |5000         |
+ fiM1  |0            |
+ fiM2  |0            |
+ fiM3  |0            |
+ Ml1   |800          |ML1
+ Ml2   |800          |ML2
+ Ml3   |802.65       |ML3
+ Mr1   |800          |MR1
+ Mr2   |800          |MR2
+ Mr3   |804.23       |MR3
+ aAt   |100          |
+ fiAt  |100          |
+ aAb   |100          |
+ fiAb  |100          |
+ aAl   |100          |
+ fiAl  |100          |
+ Mq1   |800          |
+ Mq2   |700          |
+ Mq3   |600          |
+ Mu1   |800          |
+ Mu2   |800          |
+ Mu3   |800          |
+ Md1   |800          |
+ Md2   |800          |
+ Md3   |800          |
+ Au    |0            |
+ Ad    |0            |
+ wt    |1.442        |width of top quark
+ wZ    |2.502        |Z-boson width
+ wW    |2.094        |W-boson width
+ MG1   |0            |
+ MG2   |0            |
+ MZ    |91.187       |Z mass
+ Maux  |1            |mass of aux particles
+ tb    |10           |Tangent beta
+ aAe   |100          |
+ fiAe  |100          |
+  wC1  |           0 |
+  wC2  |           0 |
+  wNE1 |           0 |
+  wNE2 |           0 |
+  wNE3 |           0 |
+  wNE4 |           0 |
+  wSG  |           0 |
+  wSeL |           0 |
+  wSeR |           0 |
+  wSmL |           0 |
+  wSmR |           0 |
+  wSl1 |           0 |
+  wSl2 |           0 |
+  wSne |           0 |
+  wSnm |           0 |
+  wSnl |           0 |
+  wSuL |           0 |
+  wSuR |           0 |
+  wSdL |           0 |
+  wSdR |           0 |
+  wScL |           0 |
+  wScR |           0 |
+  wSsL |           0 |
+  wSsR |           0 |
+  wSt1 |           0 |
+  wSt2 |           0 |
+  wSb1 |           0 |
+  wSb2 |           0 |
+=====================================================================

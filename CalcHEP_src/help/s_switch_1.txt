@@ -1,0 +1,9 @@
+2 2 50 Conservation low 
+  If the switch is set "ON" then energy-momentum 
+conservation low for incoming and outgoing 
+particles is substituted at the level of symbolic 
+calculation. Usually, but not always, it leads to 
+more compact  expressions in comparing with the 
+"OFF" setting.  
+  In the time of numeric calculation   the 
+conservation low is satisfied anyway.

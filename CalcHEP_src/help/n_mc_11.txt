@@ -1,0 +1,15 @@
+2 5 50
+  This function launches Simpson evaluation of
+the total cross section. It is available only for
+the 2->2 type of reaction. Convolution of matrix
+element with parton distribution is not available
+for this function. 
+   Except of integral evaluation the subsequent
+sub-menus allows the user to  set precision of 
+integral evaluation and display a differential 
+cross section as a function of cosine of the  
+center-of-mass angle. Also this function provides 
+the user with a possibility to display dependence
+of total cross section as a function of any 
+parameter  involved in evaluations.  
+ 

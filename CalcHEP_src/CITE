@@ -1,0 +1,34 @@
+                 CalcHEP WWW site:
+http://theory.sinp.msu.ru/~pukhov/calchep.html
+
+                References and Contributions. 
+The kernel of the package was written  by Alexander Pukhov
+
+   A.Pukhov et al, Preprint INP MSU 98-41/542,arXiv:hep-ph/9908288
+   A.Pukhov e-Print Archive: hep-ph/0412191
+
+The package contains  some codes written by CompHEP group people, whose
+names are included in hep-ph/9908288:
+
+V.Ilyin    : num/4_vector.c,num/strfun/sf_epa.c,num/strfun/sf_lsr.c;
+D.Kovalenko: num/kininpt.c,num/regfunal.c;
+A.Kryukov  : symb/colorf.c,chep_crt/edittab.c;
+V.Edneral  : symb/diagram/diaprins.c,symb/diagram/drawdiag.c,chep_crt/crt.c;
+A.Semenov  : chep_crt/xwin/X11_crt0.c;
+
+Corresponding code is  included in the CalcHEP package with permission 
+of the authors.
+
+Calchep also contains:     
+*) Monte Carlo integration program  Vegas written by G.Lepage.
+*) "Photons is proton" structure function implemented by M.Vander Donckt.
+
+The BS models were created in collaboration with 
+     G.Belanger, A.Belyaev, F.Boudjema, A.Semenov
+These model are accompanied with the corresponding references that you 
+can find in CITE files disposed in  <model>.tgz  archives  distributed 
+separately. For the downloaded models you can find corresponding 
+information in 'Libraries' item of the model file. 
+
+       This text is stored in the file  $CALCHEP/CITE
+              Press the 'Esc' key to continue.

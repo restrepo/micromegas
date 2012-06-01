@@ -1,0 +1,82 @@
+3 7 75
+  Here you have to specify  distributions, which will be filled during the
+ Monte Carlo sessions. The distributions show  you  dependence of 
+ cross section on one or two physical observables. In the last  case the 
+ user has to fill  all 6 columns. If only first free columns are filled
+ it is treated as a request for normal one-parameter distribution.
+ 
+  The 'Min' and 'Max' colunms  have to define range of changing of  tested
+ observable. Some numbers are expected in these colunms. The 'Parameter'
+ colunm specify the observable parameter. 
+  
+ For collision processes there are 3 special 'observables' which can not
+ be measured in practics, but could clarify phase space measure:
+   E1,E2 - energies of first and second  incoming particles;
+   M12   - CMS energy of incoming particles.
+
+ Other observables can be defined by the following formulae
+     KeyCharacter( name1, ....) or  
+     KeyCharacter^( name1, ....) or KeyCharacter_( name1, ....)
+ where name1, name2, name3 present names of outgoing particles involved 
+ in the process. For example, M(u,D) corresponds to total mass of 
+ {u,D} quark pair.  The  available KeyCharacters are presented below:
+
+  A  - Angle  in degree unit.  
+  C  - Cosine of angle   
+  J  - Jet cone angle    
+  E  - Energy of the particle set
+  M  - Mass of the particle set 
+  P  - Cosine of angle between first particle in the list and 
+       direction of boosting of all particle set in the rest frame of 
+       particles set. 
+  T  - Transverse momentum P_t  of the particle set 
+  S  - Squared mass
+  Y  - Rapidity of particle set.
+  N  - Pseudo-rapidity of particle set.
+  Z  - transverce energy
+  U  - user defined function 
+
+In general 'A','C'  have  2 arguments. But in case of collision  
+these functions with one argument designate angle between
+the given particle and first (in the list) incoming particle.
+
+One can use here names of particles which are involved in others 
+subprocesses. But for given Monte Carlo session CalcHEP fills only 
+distributions related to the current subprocess.
+ 
+Sometimes the list of outgoing particles contans identical ones
+like  in the case of "e,E->A,A" process. For such subprocess 
+E(A) distribution  sums  cross sections for both gammas. 
+If there are identical particles in the output  list of  subprocess then
+all possibilities to realize the functions will be tested and summed.
+The '^'/'_'  modifiers following to KeyCharacter force the function 
+to choose only the highest/lowest value correspondingly. 
+
+One can type 'Jet' instead of particles name. CalcHEP  interprets 
+it as one of 5 quarks of gluon. Summation over all possible 
+substitution will be realized.
+
+ User defined distributions also can be applied. They are specified by 
+ 'U<character_set>'. The list of particles is not expected after this
+ name. CalcHEP will call  
+          usrfun("<character_set>")
+ For example 
+   'Uabc'   leads to call usrfun("abs")
+ Originally CalcHEP contains a dummy version of 'usrfun' which leads to 
+ stop of n_calchep execution. An object file or library with a code of 
+ usrfun has to be written in table 'Libraries' which is a part of model
+ specication. As well one can use the "Edit linker" option of CalcHEP 
+ symbolic session. An approach to particle momenta and their names 
+ needed to write 'usrfun' are explained in CalcHEP manual. 
+   
+ To see the  plots use "Display Distributions" menu function.
+ After end of each Monte Carlo session calchep save generated 
+ distributions in 'result/distr_#' file where # designates session number.
+ One can display them later on by the 
+       $CALCHEP/bin/show_distr  result/distr_# 
+ function.
+ As well as 
+        $CALCHEP/bin/sum_distr   distr_1 distr_2 ... >sum
+ is intended for summation of distributions generated in different 
+ subprocesses.
+ 

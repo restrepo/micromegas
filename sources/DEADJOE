@@ -1,0 +1,47 @@
+
+*** These modified files were found in JOE when it aborted on Sat May 28 03:07:59 2011
+*** JOE was aborted by UNIX signal 1
+
+*** File '(Unnamed)'
+
+
+*** File '(Unnamed)'
+461
+I3
+pp
+mNN
+polint4
+ maxTauTab
+,
+,
+polint3_
+polint4_
+
+*** File '(Unnamed)'
+sigma
+vSigma
+\n
+\n
+,
+,
+\n
+T= 
+polint3
+polint4
+geff
+aRate
+sigma
+aRate
+
+*** File '(Unnamed)'
+sigmaT.c
+sigmaT.c
+sigmaT.c
+main.c
+suspect2_lha.out
+sigmaT.c
+../sources/tools.c
+~/t.t
+sigmaT.c
+sigmaT.c
+omega.c

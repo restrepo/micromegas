@@ -1,0 +1,21 @@
+:
+
+if( test -r session.dat) then
+   testStr=`grep Max\( session.dat|grep :`
+   if(test "$testStr" != "Max(0):" ) then 
+     echo $testStr
+     echo Generator is already prepared!
+     exit 201
+   fi
+fi 
+   
+if(test $# -ne 3) then
+   echo ERROR!. $0 need three parameters:
+   echo "     1. number of cubes;" 
+   echo "     2. number of calls for a cube for random search."
+   echo "     3. number of steps for a cube Simplex search." 
+   exit 200
+else 
+   ./n_calchep -blind [[[[[[[[[{{$1{[{$2{[{$3{[{}0
+   err=$?; if(test $err -ne 0) then exit $err; fi
+fi 

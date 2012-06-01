@@ -1,0 +1,37 @@
+                          SDECAY INPUT FILE
+                          -----------------
+
+* Input parameters: SuSpect2-SLHA format (1) or any SLHA format (0):
+0
+
+* Choice of the output, SLHA format (1) or simple (0):
+1
+
+* Include (1) or not (0) the QCD corrections to the 2-body decay widths:
+1
+
+* Include (1) or not (0) the multi-body decays for inos, stops and sbottoms:
+1
+
+* Include (1) or not (0) the loop induced decays for the gluino, 
+  the neutralinos and stop1:
+1
+
+* Include (1) or not (0) the SUSY decays of the top quark:
+1
+
+* Include (1) or not (0) the possible decays of the NLSP in GMSB models:
+  (ichoice(1) has to be set 11 in suspect2.in.)
+0
+
+* Scheme in which the running alphas and quark masses are calculated:
+  (If QCD corrections are included, the DR_bar scheme has to be used.) 
+  1 (DR_bar scheme) and 0 (MS_bar scheme).
+1
+
+* Scale at which the scale dependent couplings are calculated: 
+  1: EWSB scale, 2: mass of the decaying sparticle, 3: user choice
+1
+
+* Scale of the couplings if chosen by the user (in GeV):
+100.D0

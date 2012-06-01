@@ -1,0 +1,17 @@
+Toy
+ Variables 
+   Name | Value       |>  Comment                                   <|
+     EE |0.31223      |Electromagnetic coupling constant (<->1/127.9)
+     Eq |0.666666     |  0.66666  for u and -0.33333 for d
+ alfSMZ |0.1172       |
+Mq      |1            | quark mass
+   Q    |100          |
+  MNE1  |100          |
+  SW    |0.481        |sin of the Weinberg angle (PDG-96)
+  MZ    |91.1884      |Z mass
+  MbMb  |4.23         |b-quark mass
+  Mtp   |171.4        |top quark mass
+  Msq   |105          |
+  Maux  |1            |
+  k     |0            |
+======================================================================

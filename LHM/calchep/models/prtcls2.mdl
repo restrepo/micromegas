@@ -1,0 +1,42 @@
+Littlest Higgs-T
+ Particles 
+ Full  name  | P | aP| number |2*spin| mass |width |color|aux|>      LaTeX(A)      <|>     LaTeX(A+)      <|
+photon heavy |~A |~A |    1021|2     |MAH   |0     |1    |   |(A)                   |(A)
+W boson      |W+ |W- |      24|2     |MWL   |wW    |1    |   |W+                    |W-
+W heavy      |~W+|~W-|    1024|2     |MWH   |wWh   |1    |   |(W+)                  |(W-)
+photon       |A  |A  |      22|2     |0     |0     |1    |G  |A                     |A
+Z boson      |Z  |Z  |      23|2     |MZL   |wZ    |1    |   |Z                     |Z
+Z heavy      |~Z |~Z |    1023|2     |MZH   |wZh   |1    |   |(Z)                   |(Z)
+gluon        |G  |G  |      21|2     |0     |0     |8    |G  |G                     |G
+H  higgs     |H  |H  |      35|0     |MH    |!wh   |1    |   |H                     |H
+P0  higgs    |~P0|~P0|    1035|0     |MH3   |0     |1    |   |(P0)                  |(P0)
+pp higgs     |~PS|~PS|    1036|0     |MH3   |0     |1    |   |(PS)                  |(PS)
+p+  higgs    |~P+|~P-|    1037|0     |MH3   |0     |1    |   |(P+)                  |(P-)
+p++  higgs   |~++|~--|    1038|0     |MH3   |0     |1    |   |(++)                  |(--)
+neutrino     |n1 |N1 |      12|1     |0     |0     |1    |   |n1                    |N1
+electron     |e1 |E1 |      11|1     |0     |0     |1    |   |e1                    |E1
+mu-neutrino  |n2 |N2 |      14|1     |0     |0     |1    |   |n2                    |N2
+muon         |e2 |E2 |      13|1     |Mm    |0     |1    |   |e2                    |E2
+tau-neutrino |n3 |N3 |      16|1     |0     |0     |1    |   |n3                    |N3
+tau-lepton   |e3 |E3 |      15|1     |Ml    |0     |1    |   |e3                    |E3
+u-quark      |u  |U  |       2|1     |0     |0     |3    |   |u                     |U
+d-quark      |d  |D  |       1|1     |0     |0     |3    |   |d                     |D
+c-quark      |c  |C  |       4|1     |Mc    |0     |3    |   |c                     |C
+s-quark      |s  |S  |       3|1     |Ms    |0     |3    |   |s                     |S
+t-quark      |t  |T  |       6|1     |Mt    |wtop  |3    |   |t                     |T
+b-quark      |b  |B  |       5|1     |Mb    |0     |3    |   |b                     |B
+tp-quark     |tp |Tp |    1006|1     |Mtp   |!wtp  |3    |   |tp                    |Tp
+nue-todd     |~n1|~N1|    2012|1     |Mno   |!wtn1 |1    |   |(n1)                  |(N1)
+numu-todd    |~n2|~N2|    2014|1     |Mno   |!wtn2 |1    |   |(n2)                  |(N2)
+nutau-todd   |~n3|~N3|    2016|1     |Mno   |!wtn3 |1    |   |(n3)                  |(N3)
+ele-todd     |~e1|~E1|    2011|1     |Mlo   |!wtl1 |1    |   |(e1)                  |(E1)
+muon-todd    |~e2|~E2|    2013|1     |Mlo   |!wtl2 |1    |   |(e2)                  |(E2)
+tau-todd     |~e3|~E3|    2015|1     |Mlo   |!wtl3 |1    |   |(e3)                  |(E3)
+u-todd       |~u |~U |    2002|1     |Muo   |!wtu  |3    |   |(u)                   |(U)
+d-todd       |~d |~D |    2001|1     |Mdo   |!wtd  |3    |   |(d)                   |(D)
+c-todd       |~c |~C |    2004|1     |Muo   |!wtc  |3    |   |(c)                   |(C)
+s-todd       |~s |~S |    2003|1     |Mdo   |!wts  |3    |   |(s)                   |(S)
+b-todd       |~b |~B |    2005|1     |Mdo   |!wtb  |3    |   |(b)                   |(B)
+T2-todd      |~t2|~T2|    4006|1     |Muo   |!wtt1 |3    |   |(t2)                  |(T2)
+T1-todd      |~t1|~T1|    3006|1     |Mt1   |!wt12 |3    |   |(t1)                  |(T1)
+============================================================================================================

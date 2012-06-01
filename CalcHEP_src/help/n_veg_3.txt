@@ -1,0 +1,8 @@
+1 12 51 3
+   The  number of calls of Vegas at the second 
+cycle of Monte Carlo integration. 
+   The second cycle mainly is needed for batch 
+calculations. For interactive calculation it is
+more convenient set nSess_2=0 and use 
+'Clear Statistics' function to avoid wrong 
+results generated at first Vegas sessions. 

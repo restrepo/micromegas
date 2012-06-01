@@ -1,0 +1,38 @@
+ewsbMSSM
+ Variables
+  Name | Value       |>  Comment                                   <|
+ alfEMZ|0.0078180608 |MS-BAR electromagnetic alpha(MZ)
+ alfSMZ|0.1172       |Srtong  alpha at MZ
+ GG    |1.238        |Running strong coupling
+ SW    |0.481        |MS-BAR sin of the Weinberg angle
+ Q     |100          | Scale for calculation of quark masses
+ MZ    |91.1884      |Z mass
+ Ml    |1.777        |mass of tau lepton
+ MbMb  |4.23         |b-quark mass
+ Mtp   |171.4        |top quark mass
+ tb    |7            |Tangent beta
+ MG1   |39           |
+ MG2   |75.0         |
+ MG3   |252          |
+ Am    |-166         |
+ Al    |-166         |
+ At    |-232         |
+ Ab    |-405         |
+ MH3   |192          |
+ mu    |162          |
+ Ml2   |122          |
+ Ml3   |122          |
+ Mr2   |107          |
+ Mr3   |107          |
+ Mq2   |255          |
+ Mq3   |225          |
+ Mu2   |250          |
+ Mu3   |180          |
+ Md2   |250          |
+ Md3   |250          |
+*slhaON|-1           |
+ Maux  |1            |mass of aux particles
+ wt    |1.59         |
+ wZ    |2.49444      |
+ wW    |2.08895      |
+=====================================================================

@@ -1,0 +1,25 @@
+:
+
+if(test $# -ne 0) then 
+   echo  Error! $0 - input parameters are not expected. 
+   exit 1
+fi
+
+./n_calchep -blind  "[[[[[[[[{[[[[[{0" 1>/dev/null 2>/dev/null
+err=$?
+
+res=0
+
+if(test $err -eq 0) then 
+  n=`grep Session_number session.dat`
+  n=`echo $n|cut -f2 -d" "`
+  res=`grep "< >"  prt_$n |tail -1`
+  res=`echo $res| cut -f3 -d" "`
+fi 
+
+if(test $err -eq 123) then   #energy too small 
+  err=0
+fi
+
+echo $res
+exit $err

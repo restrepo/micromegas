@@ -1,0 +1,18 @@
+Basic Operators
+ Lagrangian 
+P1   |P2   |P3   |P4   |>   Factor              <|> dLagrangian/ dA(p1) dA(p2) dA(p3)    <|
+~S   |~s   |s0   |     |2*2*MX                   |Seven
+~S   |~s   |v0   |     |-2                       |Sodd*(p1.m3-p2.m3)
+~F   |~f   |s0   |     |2*Seven                  |1
+~F   |~f   |v0   |     |2*Sodd                   |G(m3)
+~F   |~f   |v5   |     |2*Veven                  |G5*G(m3)
+~F   |~f   |v0.t |     |-2*Vodd*(i/2)/2          |G(m3)*G(M3)-G(M3)*G(m3)
+~V   |~v   |s0   |     |2*2*MX*Seven             |m1.m2
+~V   |~v   |v0   |     |-2*Sodd                  |m1.m2*(p1-p2).m3
+~V   |~v   |v5   |     |2*Veven*Sqrt2*Sqrt3      |i*eps(m1,m2,p1-p2,m3)
+~V   |~v   |v5.t |     |2*i*Vodd*Sqrt3*MX/Sqrt2  |m3.m1*M3.m2-M3.m1*m3.m2
+Q1   |q1   |s0   |     |MAUX*MAUX                |1
+Q1   |q1   |v0   |     |-MAUX*MAUX               |G(m3)
+Q1   |q1   |v5   |     |-MAUX*MAUX               |G5*G(m3)
+Q1   |q1   |v0.t |     |i/2                      |G(m3)*G(M3)-G(M3)*G(m3)
+===========================================================================================

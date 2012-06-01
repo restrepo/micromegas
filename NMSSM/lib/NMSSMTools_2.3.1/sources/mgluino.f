@@ -1,0 +1,60 @@
+	SUBROUTINE GLUINO(PAR)
+
+* Subroutine to compute the gluino pole mass MGL, taking into account
+* gluon/gluino, quark/squark loops as in BMPZ (Bagger et al., 
+* hep-ph/9606211), with thanks to S. Kraml.
+* It is assumed that the input parameter PAR(22) = M3 is the running
+* DRbar gluino mass at the scale Q2.
+* The auxiliary functions B0 and B1 are defined in aux.f
+
+	IMPLICIT NONE
+
+	DOUBLE PRECISION PAR(*)
+	DOUBLE PRECISION MGL,MCH(2),U(2,2),V(2,2),MNEU(5),N(5,5)
+	DOUBLE PRECISION ALSMZ,ALEMMZ,GF,g1,g2,S2TW,PI,Q2
+	DOUBLE PRECISION MS,MC,MB,MBP,MT,MTAU,MMUON,MZ,MW
+	DOUBLE PRECISION MUR,MUL,MDR,MDL,MLR,MLL,MNL
+	DOUBLE PRECISION MST1,MST2,MSB1,MSB2,MSL1,MSL2,MSNT
+	DOUBLE PRECISION CST,CSB,CSL,MSMU1,MSMU2,MSMUNT,CSMU
+	DOUBLE PRECISION S2T,S2B,ALSMT,ALSQ
+	DOUBLE PRECISION MGL2,DMG,DMQ,R,B0,B1
+
+	COMMON/GAUGE/ALSMZ,ALEMMZ,GF,g1,g2,S2TW
+	COMMON/SMSPEC/MS,MC,MB,MBP,MT,MTAU,MMUON,MZ,MW
+	COMMON/SUSYSPEC/MGL,MCH,U,V,MNEU,N
+	COMMON/SFSPEC/MUR,MUL,MDR,MDL,MLR,MLL,MNL,
+     C		MST1,MST2,MSB1,MSB2,MSL1,MSL2,MSNT,
+     C		CST,CSB,CSL,MSMU1,MSMU2,MSMUNT,CSMU
+	COMMON/RENSCALE/Q2
+	
+	PI=4.D0*DATAN(1.D0)
+	MGL=PAR(22)
+	MGL2=MGL**2
+	ALSMT=ALSMZ/(1.D0+23.D0/(12.D0*PI)*ALSMZ*DLOG(MT**2/MZ**2))
+	ALSQ=ALSMT/(1.D0+7.D0*ALSMT/(4.D0*pi)*DLOG(Q2/MT**2))
+	S2T=2.D0*CST*DSQRT(1.D0-CST**2)
+	S2B=2.D0*CSB*DSQRT(1.D0-CSB**2)
+	R=0d0 ! 1=MSbar, 0=DRbar scheme
+
+c  gluon/gluino correction, eq.(22) of BMPZ, 
+c  plus possible shift to MSbar
+
+	DMG= 3.D0*(2.D0*B0(MGL2,MGL2,0.D0,Q2)-B1(MGL2,MGL2,0.D0,Q2)
+     C	     -R/2.D0)
+
+c  quark-squark loops, eq.(D.44) of BMPZ
+
+	DMQ= 2.D0*(B1(MGL2,0.D0,MUL**2,Q2) + B1(MGL2,0.D0,MUR**2,Q2)
+     C         + B1(MGL2,0.D0,MDL**2,Q2) + B1(MGL2,0.D0,MDR**2,Q2))
+     C         + B1(MGL2,MT**2,MST1**2,Q2) + B1(MGL2,MT**2,MST2**2,Q2)
+     C         + B1(MGL2,MB**2,MSB1**2,Q2) + B1(MGL2,MB**2,MSB2**2,Q2)
+     C	       + MT/MGL*S2T*(B0(MGL2,MT**2,MST1**2,Q2)
+     C	       + B0(MGL2,MT**2,MST2**2,Q2))
+     C	       + MB/MGL*S2B*(B0(MGL2,MB**2,MSB1**2,Q2)
+     C	       + B0(MGL2,MB**2,MSB2**2,Q2))
+
+	MGL=MGL/(1.D0-ALSQ/(2.D0*PI)*(DMG-DMQ/2.D0))
+
+	END
+
+

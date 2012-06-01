@@ -1,0 +1,195 @@
+	SUBROUTINE RGESINV(PAR,IFAIL)
+
+*   Subroutine to integrate the RGEs for all 21 soft terms
+*   from MGUT down to Q2 = M_SUSY, through a call of the
+*   subroutine ODEINTS that is part of the file integs.f
+*   The same beta functions as for RGES are used.
+*
+*   It uses COMMON/SOFTGUT, COMMON/AKGUT and COMMON/MSGUT for the 
+*   soft terms at MGUT, and COMMON/GUTCOUP for the gauge/Yukawa 
+*   couplings at MGUT.
+*
+*   The output (soft terms at Q2) is written into PAR(*) and
+*   COMMON/SUSYMH/MH1,MH2,MSS
+*
+*********************************************************************** 
+
+	IMPLICIT NONE
+
+	INTEGER IFAIL,NN,I
+	PARAMETER (NN=30)
+
+	DOUBLE PRECISION PAR(*),EPS,X1,X2,Y(NN),PI
+	DOUBLE PRECISION MGUT,g1s,g2s,g3s,HTOPS,HBOTS,HTAUS
+	DOUBLE PRECISION Q2,COEF,M0,M12,A0,AKGUT,MSGUT
+	DOUBLE PRECISION G1GUT,G2GUT,G3GUT,LGUT,KGUT
+	DOUBLE PRECISION HTOPGUT,HBOTGUT,HTAUGUT
+	DOUBLE PRECISION MS,MC,MB,MBP,MT,MTAU,MMUON,MZ,MW
+	DOUBLE PRECISION MH1,MH2,MSS,MHDGUT,MHUGUT,ALGUT
+	DOUBLE PRECISION M1GUT,M2GUT,M3GUT
+
+	COMMON/MGUT/MGUT
+	COMMON/SUSYCOUP/g1s,g2s,g3s,HTOPS,HBOTS,HTAUS
+	COMMON/RENSCALE/Q2
+	COMMON/GUTCOUP/G1GUT,G2GUT,G3GUT,LGUT,KGUT,HTOPGUT,
+     C        HBOTGUT,HTAUGUT
+	COMMON/SOFTGUT/M0,M12,A0
+	COMMON/AKGUT/AKGUT
+	COMMON/MSGUT/MSGUT
+	COMMON/SMSPEC/MS,MC,MB,MBP,MT,MTAU,MMUON,MZ,MW
+	COMMON/SUSYMH/MH1,MH2,MSS
+	COMMON/MHGUT/MHDGUT,MHUGUT,ALGUT
+	COMMON/MGGUT/M1GUT,M2GUT,M3GUT
+
+	EXTERNAL DERIVSS,RKQSS
+
+	EPS=1.D-8
+	PI=4.D0*DATAN(1.D0)
+	COEF=1.D0/(16.D0*PI**2)
+
+* Definition of the couplings squared Y(I) at MGUT
+
+	Y(1)=g1GUT
+	Y(2)=g2GUT
+	Y(3)=g3GUT
+	Y(4)=LGUT
+	Y(5)=KGUT
+	Y(6)=HTOPGUT
+	Y(7)=HBOTGUT
+	Y(8)=HTAUGUT
+	
+* Input values for the soft terms at MGUT:
+	
+	Y(9)=M1GUT
+	Y(10)=M2GUT
+	Y(11)=M3GUT
+	IF(ALGUT.NE.0.D0 .OR. AKGUT.NE.0.D0)THEN
+	 Y(12)=ALGUT
+	 Y(13)=AKGUT
+	ELSE
+	 Y(12)=EPS
+	 Y(13)=EPS
+	ENDIF
+	Y(14)=A0
+	Y(15)=A0
+	Y(16)=A0
+	Y(17)=MHUGUT
+	Y(18)=MHDGUT
+	Y(19)=MSGUT
+	DO I=20,29
+	  Y(I)=M0**2
+	ENDDO
+	Y(30)=A0
+
+	X1=COEF*DLOG(MGUT**2/Q2)
+	X2=0.D0
+
+	!PRINT*,"CALL RGESINV"
+	!PRINT*,""
+	!PRINT*,"MGUT =",MGUT
+	!PRINT*,"G1GUT =",5.D0/3.D0*Y(1)
+	!PRINT*,"G2GUT =",Y(2)
+	!PRINT*,"G3GUT =",Y(3)
+	!PRINT*,"LGUT =",Y(4)
+	!PRINT*,"KGUT =",Y(5)
+	!PRINT*,"HTGUT =",Y(6)
+	!PRINT*,"HBGUT =",Y(7)
+	!PRINT*,"HLGUT =",Y(8)
+	!PRINT*,"M1GUT =",Y(9)
+	!PRINT*,"M2GUT =",Y(10)
+	!PRINT*,"M3GUT =",Y(11)
+	!PRINT*,"ALGUT =",Y(12)
+	!PRINT*,"AKGUT =",Y(13)
+	!PRINT*,"ATOPGUT =",Y(14)
+	!PRINT*,"ABOTGUT =",Y(15)
+	!PRINT*,"ATAUGUT =",Y(16)
+	!PRINT*,"AMUGUT =",Y(30)
+	!PRINT*,"MHUGUT =",Y(17)
+	!PRINT*,"MHDGUT =",Y(18)
+	!PRINT*,"MSGUT =",Y(19)
+	!PRINT*,"MQ3GUT =",Y(20)
+	!PRINT*,"MU3GUT =",Y(21)
+	!PRINT*,"MD3GUT =",Y(22)
+	!PRINT*,"MQGUT =",Y(23)
+	!PRINT*,"MUGUT =",Y(24)
+	!PRINT*,"MDGUT =",Y(25)
+	!PRINT*,"ML3GUT =",Y(26)
+	!PRINT*,"ME3GUT =",Y(27)
+	!PRINT*,"MLGUT =",Y(28)
+	!PRINT*,"MEGUT =",Y(29)
+	!PRINT*,""
+
+	CALL ODEINTS(Y,NN,X1,X2,EPS,DERIVSS,RKQSS,IFAIL)
+
+	!PRINT*,"MSUSY =",DSQRT(Q2)
+	!PRINT*,"G1 =",5.D0/3.D0*Y(1)
+	!PRINT*,"G2 =",Y(2)
+	!PRINT*,"G3 =",Y(3)
+	!PRINT*,"L =",Y(4)
+	!PRINT*,"K =",Y(5)
+	!PRINT*,"HT =",Y(6)
+	!PRINT*,"HB =",Y(7)
+	!PRINT*,"HL =",Y(8)
+	!PRINT*,"M1 =",Y(9)
+	!PRINT*,"M2 =",Y(10)
+	!PRINT*,"M3 =",Y(11)
+	!PRINT*,"AL =",Y(12)
+	!PRINT*,"AK =",Y(13)
+	!PRINT*,"ATOP =",Y(14)
+	!PRINT*,"ABOT =",Y(15)
+	!PRINT*,"ATAU =",Y(16)
+	!PRINT*,"AMUON =",Y(30)
+	!PRINT*,"MHU =",Y(17)
+	!PRINT*,"MHD =",Y(18)
+	!PRINT*,"MS =",Y(19)
+	!PRINT*,"MQ3 =",Y(20)
+	!PRINT*,"MU3 =",Y(21)
+	!PRINT*,"MD3 =",Y(22)
+	!PRINT*,"MQ =",Y(23)
+	!PRINT*,"MU =",Y(24)
+	!PRINT*,"MD =",Y(25)
+	!PRINT*,"ML3 =",Y(26)
+	!PRINT*,"ME3 =",Y(27)
+	!PRINT*,"ML =",Y(28)
+	!PRINT*,"ME =",Y(29)
+	!PRINT*,""
+
+	IF(IFAIL.NE.0)THEN
+	 !PRINT*,"IFAIL =",IFAIL
+	 !PRINT*,""
+	 !PRINT*,""
+	 IFAIL=13
+	 RETURN
+	ENDIF
+	!PRINT*,""
+
+* SOFT TERMS AT THE SUSY SCALE
+
+	PAR(5)=Y(12)
+	PAR(6)=Y(13)
+	PAR(7)=Y(20)
+	PAR(8)=Y(21)
+	PAR(9)=Y(22)
+	PAR(10)=Y(26)
+	PAR(11)=Y(27)
+	PAR(12)=Y(14)
+	PAR(13)=Y(15)
+	PAR(14)=Y(16)
+	PAR(15)=Y(23)
+	PAR(16)=Y(24)
+	PAR(17)=Y(25)
+	PAR(18)=Y(28)
+	PAR(19)=Y(29)
+	PAR(20)=Y(9)
+	PAR(21)=Y(10)
+	PAR(22)=Y(11)
+	PAR(24)=Y(30)
+
+* MH1, MH2 AND MSS at Q2 are stored in COMMON/SUSYMH:
+	
+	MH1=Y(17)
+	MH2=Y(18)
+	MSS=Y(19)
+
+	END
+

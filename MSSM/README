@@ -1,0 +1,88 @@
+1. ============  read  ../README ===========
+
+2.=================== Spectrum Calculation ======================
+By default we use SuSpect-2.40 for RGE solution and calculation of particle
+spectrum. To use other RGE codes such as  SPHENO or SOFTSUSY the corresponding
+variables have to be defined in lib/Makefile. These variables have to contain
+the path to the executable program of the corresponding package. 
+For example, 
+    SOFTSUSY=$HOME/softsusy 
+    SPHENO=$HOME/SPheno3.0.beta50/bin
+We use the SLHA file interface to pass data from the RGE code to micrOMEGAs.
+We also support an interface with ISAJET despite the fact that ISAJET does not 
+have a complete SLHA interface. To this end one has to define the paths to the
+Isajet and CERNlib libraries via the ISAJET and CERNLIB  variables 
+in   lib/Makefile.  After that  
+       make -C lib isajet_slha 
+will generate the lib/isajet_slha  file needed for the micrOMEGAs/ISAJET
+interface. For Isajet versions before 7.79 add the flag -Dlt779 to $(FC) compiler. 
+Often computers contain two different Fortran compilers f77(g77)
+and gfortran which are not compatible. Please check that
+CERNlib/Isajet/micrOMEGAs are compiled with the same compiler.
+
+3.  main.c/main.F are  standard main programs for micrOMEGAs and contain 
+all options of micrOMEGAs. Note that these options can be switched 
+ON/OFF by defining the variables near the top of the main file:
+
+#define MASSES_INFO      
+#define CONSTRAINTS     
+#define OMEGA            
+#define INDIRECT_DETECTION  
+/*#define RESET_FORMFACTORS*/
+#define CDM_NUCLEON 
+/* #define TEST_Direct_Detection */
+/*#define CDM_NUCLEUS */
+/*#define DECAYS */
+/* #define CROSS_SECTIONS */
+/* #define SHOWPLOTS */
+The names of variables should be self-explanatory.
+    
+The name of the RGE package is defined by the variable 'RGE'
+possible values of this variable are 'suspect','isajet','softSusy','spheno'.
+See item 2 above.
+
+The MSSM scenario is also specified  by 'define', possible scenarios are SUGRA, AMSB, or EWSB.
+If none of these are defined the program will read the MSSM parameters from an 
+SLHA file  whose name should be passed to the program as a parameter.
+In general, if you launch  ./main without parameters the program 
+writes on the screen  which parameters are expected. 
+ 
+4. Example files 
+    a) cycle2.c and cycle5.c  are test programs which should reproduce 
+       Table_2 and Table_5 in Comput.Phys.Commun.180:747-767,2009.
+       (arXiv:0803.2360). 
+    b) mssm1.par is a file with EWSB parameters which is called from cycle2.c.
+       It also can by used  with main.c/main.F.
+       mssm2.par is another sample input file for EWSB parameters.
+    c)  model1.slha and  model2.slha are SLHA input files used in
+      arXiv:1004.1092. See section "Examples and results", Table4, Figures
+     3,5,6.  To use such input file (SLHA) the user has to 
+     comment all RGE definition in main.c(F)
+/* #define SUGRA */
+/* #define AMSB  */
+/* #define EWSB  */
+     recompile the program 
+                 make main=main.c 
+     and launch it with   
+                 ./main model2.slha 
+
+
+5. The directory nngg contains the code for calculating the loop-induced cross sections
+  ~o1,~o1 -> A,Z and ~o1,~o1->A,A 
+This code is rather cumbersome. So, it is not compiled by default. 
+If you need such cross sections  launch 'make' inside this directory.
+or 
+              make -C nngg
+After compilation the corresponding cross section can be obtained by 
+the 'loopGamma' function call written in main.c(F). 
+   
+6.======= Special citation ========
+If you use SuSpect please cite
+
+%\cite{Djouadi:2002ze}
+\bibitem{Djouadi:2002ze}
+A.~Djouadi, J.~L.~Kneur and G.~Moultaka,
+%``SuSpect: A Fortran code for the supersymmetric and Higgs particle spectrum in
+%the MSSM,''
+arXiv:hep-ph/0211331.
+

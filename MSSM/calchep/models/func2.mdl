@@ -1,0 +1,595 @@
+sugra&AMSB MSSM
+ Constraints 
+  Name |> Expression                                                                                                                                                     <|
+ gMG1  |mhf       % for minimal SUGRA
+ gMG2  |mhf       % for minimal SUGRA
+ gMG3  |mhf       % for minimal SUGRA
+ gAl   |a0        % for minimal SUGRA
+ gAt   |a0        % for minimal SUGRA
+ gAb   |a0        % for minimal SUGRA
+ gHu   |mZero     % for minimal SUGRA
+ gHd   |mZero     % for minimal SUGRA
+ gMl1  |mZero     % for minimal SUGRA
+ gMl3  |mZero     % for minimal SUGRA
+ gMr1  |mZero     % for minimal SUGRA
+ gMr3  |mZero     % for minimal SUGRA
+ gMq1  |mZero     % for minimal SUGRA
+ gMq3  |mZero     % for minimal SUGRA
+ gMu1  |mZero     % for minimal SUGRA
+ gMu3  |mZero     % for minimal SUGRA
+ gMd1  |mZero     % for minimal SUGRA
+ gMd3  |mZero     % for minimal SUGRA
+ mssmOk|suspectSUGRAc(tb,gMG1,gMG2,gMG3,gAl,gAt,gAb,sgn,gHu,gHd,gMl1,gMl3,gMr1,gMr3,gMq1,gMq3,gMu1,gMu3,gMd1,gMd3)
+%WARNIN|!  KEEP '*' before mssmOk
+%mssmOk|isajetSUGRAc(tb,gMG1,gMG2,gMG3,gAl,gAt,gAb,sgn,gHu,gHd,gMl1,gMl3,gMr1,gMr3,gMq1,gMq3,gMu1,gMu3,gMd1,gMd3)
+%mssmOk|sphenoSUGRAc(tb,gMG1,gMG2,gMG3,gAl,gAt,gAb,sgn,gHu,gHd,gMl1,gMl3,gMr1,gMr3,gMq1,gMq3,gMu1,gMu3,gMd1,gMd3)
+%mssmOk|softSusySUGRAc(tb,gMG1,gMG2,gMG3,gAl,gAt,gAb,sgn,gHu,gHd,gMl1,gMl3,gMr1,gMr3,gMq1,gMq3,gMu1,gMu3,gMd1,gMd3)
+%mssmOk|suspectAMSBc(mZero,mGrav,tb,sgn)
+%mssmOk|isajetAMSBc(mZero,mGrav,tb,sgn)
+%mssmOk|sphenoAMSBc(mZero,mGrav,tb,sgn)
+%mssmOk|softSusyAMSBc(mZero,mGrav,tb,sgn)
+ *slha |if(slhaON,slha(mssmOk),-1)
+ Mb    |MbEff(Q)
+ Mt    |MtEff(Q)
+*SC    |sqrt(alphaQCD(Q)*12.566371)   % Used for width calculations with Q=Mass
+ MSt1  |slhaVal("MASS",0.,1,1000006)
+ MSt2  |slhaVal("MASS",0.,1,2000006)
+QSUSY  |sqrt(MSt1*MSt2)
+ mu    |slhaVal("HMIX",QSUSY,1,1)
+ Am    |if(slhaValExists("Ae",2,2,2),slhaVal("Ae",QSUSY,2,2,2),slhaVal("Ae",QSUSY,2,3,3))
+ Al    |slhaVal("Ae",QSUSY,2,3,3)
+ Ab    |slhaVal("Ad",QSUSY,2,3,3)
+ At    |slhaVal("Au",QSUSY,2,3,3)
+ Mh    |slhaVal("MASS",QSUSY,1,25)
+ MH3   |slhaVal("MASS",QSUSY,1,36)
+ MHH   |slhaVal("MASS",QSUSY,1,35)
+ MHc   |slhaVal("MASS",QSUSY,1,37)
+ alpha |slhaVal("ALPHA",QSUSY,0)
+ MNE1  |slhaVal("MASS",QSUSY,1,1000022)
+ MNE2  |slhaVal("MASS",QSUSY,1,1000023)
+ MNE3  |slhaVal("MASS",QSUSY,1,1000025)
+ MNE4  |slhaVal("MASS",QSUSY,1,1000035)
+ MC1   |slhaVal("MASS",QSUSY,1,1000024)
+ MC2   |slhaVal("MASS",QSUSY,1,1000037)
+ MSG   |slhaVal("MASS",QSUSY,1,1000021)
+ MSne  |slhaVal("MASS",QSUSY,1,1000012)
+ MSnm  |slhaVal("MASS",QSUSY,1,1000014)
+ MSnl  |slhaVal("MASS",QSUSY,1,1000016)
+ MSeL  |slhaVal("MASS",QSUSY,1,1000011)
+ MSeR  |slhaVal("MASS",QSUSY,1,2000011)
+ MSmL  |slhaVal("MASS",QSUSY,1,1000013)
+ MSmR  |slhaVal("MASS",QSUSY,1,2000013)
+ MSl1  |slhaVal("MASS",QSUSY,1,1000015)
+ MSl2  |slhaVal("MASS",QSUSY,1,2000015)
+ MSdL  |slhaVal("MASS",QSUSY,1,1000001)
+ MSdR  |slhaVal("MASS",QSUSY,1,2000001)
+ MSuL  |slhaVal("MASS",QSUSY,1,1000002)
+ MSuR  |slhaVal("MASS",QSUSY,1,2000002)
+ MSsL  |slhaVal("MASS",QSUSY,1,1000003)
+ MSsR  |slhaVal("MASS",QSUSY,1,2000003)
+ MScL  |slhaVal("MASS",QSUSY,1,1000004)
+ MScR  |slhaVal("MASS",QSUSY,1,2000004)
+ MSb1  |slhaVal("MASS",QSUSY,1,1000005)
+ MSb2  |slhaVal("MASS",QSUSY,1,2000005)
+ Zn11  |slhaVal("NMIX",QSUSY,2,1,1)
+ Zn21  |slhaVal("NMIX",QSUSY,2,2,1)
+ Zn31  |slhaVal("NMIX",QSUSY,2,3,1)
+ Zn41  |slhaVal("NMIX",QSUSY,2,4,1)
+ Zn12  |slhaVal("NMIX",QSUSY,2,1,2)
+ Zn22  |slhaVal("NMIX",QSUSY,2,2,2)
+ Zn32  |slhaVal("NMIX",QSUSY,2,3,2)
+ Zn42  |slhaVal("NMIX",QSUSY,2,4,2)
+ Zn13  |slhaVal("NMIX",QSUSY,2,1,3)
+ Zn23  |slhaVal("NMIX",QSUSY,2,2,3)
+ Zn33  |slhaVal("NMIX",QSUSY,2,3,3)
+ Zn43  |slhaVal("NMIX",QSUSY,2,4,3)
+ Zn14  |slhaVal("NMIX",QSUSY,2,1,4)
+ Zn24  |slhaVal("NMIX",QSUSY,2,2,4)
+ Zn34  |slhaVal("NMIX",QSUSY,2,3,4)
+ Zn44  |slhaVal("NMIX",QSUSY,2,4,4)
+ Zu11  |slhaVal("UMIX",QSUSY,2,1,1)
+ Zu21  |slhaVal("UMIX",QSUSY,2,2,1)
+ Zu12  |slhaVal("UMIX",QSUSY,2,1,2)
+ Zu22  |slhaVal("UMIX",QSUSY,2,2,2)
+ Zv11  |slhaVal("VMIX",QSUSY,2,1,1)
+ Zv21  |slhaVal("VMIX",QSUSY,2,2,1)
+ Zv12  |slhaVal("VMIX",QSUSY,2,1,2)
+ Zv22  |slhaVal("VMIX",QSUSY,2,2,2)
+ Zl11  |slhaVal("STAUMIX",QSUSY,2,1,1)
+ Zl12  |slhaVal("STAUMIX",QSUSY,2,1,2)
+ Zl21  |-Zl12
+ Zl22  |Zl11
+ Zt11  |slhaVal("STOPMIX",QSUSY,2,1,1)
+ Zt12  |slhaVal("STOPMIX",QSUSY,2,1,2)
+ Zt21  |-Zt12
+ Zt22  |Zt11
+ Zb11  |slhaVal("SBOTMIX",QSUSY,2,1,1)
+ Zb12  |slhaVal("SBOTMIX",QSUSY,2,1,2)
+ Zb21  |-Zb12
+ Zb22  |Zb11
+ EE    |sqrt(16*atan(1.)*alfEMZ)
+ CW    |sqrt(1-SW^2)
+ C2W   |CW^2-SW^2
+ MW    |MZ*CW
+ ta    |tan(alpha)
+ MG1   |slhaVal("MSOFT",QSUSY,1,1)
+ MG2   |slhaVal("MSOFT",QSUSY,1,2)
+ drho  |deltarho(mssmOk)
+ gmuon |  gmuon(mssmOk)
+ bsgLNO|  bsgnlo(mssmOk)
+ bsmumu|  bsmumu(mssmOk)
+ LEPlim| masslimits(mssmOk)
+ dMb   |if(dMbOn,dMb(mssmOk),0.)
+ MbH   |Mb*(1+dMb*ta/tb)/(1+dMb)
+ MbH3  |Mb*(1-dMb/tb^2)/(1+dMb)
+ MbHl  |Mb*(1-dMb/ta/tb)/(1+dMb)
+ sb    |tb/sqrt(1+tb^2)
+ cb    |sqrt(1-sb^2)
+ c2b   |cb^2-sb^2
+ ca    |cos(alpha)
+ sa    |-sqrt(1-ca^2)
+ s2a   |2*sa*ca
+ c2a   |ca^2-sa^2
+ sapb  |sa*cb+ca*sb
+ samb  |sa*cb-ca*sb
+ capb  |ca*cb-sa*sb
+ camb  |ca*cb+sa*sb
+  w8s3 |8*SW^2-3
+  w2s3 |2*SW^2-3
+  w4s3 |4*SW^2-3
+  w4s1 |4*SW^2-1
+  absb |Ab*sb*Mb   +cb*mu*Mb
+  abca |Ab*ca*Mb   -mu*sa*Mb
+  absa |Ab*sa*Mb   +ca*mu*Mb
+  alsb |Al*sb*Ml   +cb*mu*Ml
+  alca |Al*ca*Ml   -mu*sa*Ml
+  alsa |Al*sa*Ml   +ca*mu*Ml
+  atcb |At*cb*Mt   +mu*sb*Mt
+  atca |At*ca*Mt   +mu*sa*Mt
+  atsa |At*sa*Mt   -ca*mu*Mt
+  wh   | aWidth("h")
+  wHh  | aWidth("H")
+  wH3  | aWidth("H3")
+  wHc  | aWidth("H+")
+  wSG  | aWidth("~g")
+  wC1  | aWidth("~1+")
+  wC2  | aWidth("~2+")
+  wNE1 | aWidth("~o1")
+  wNE2 | aWidth("~o2")
+  wNE3 | aWidth("~o3")
+  wNE4 | aWidth("~o4")
+  wSeL | aWidth("~eL")
+  wSeR | aWidth("~eR")
+  wSne | aWidth("~ne")
+  wSmL | aWidth("~mL")
+  wSmR | aWidth("~mR")
+  wSnm | aWidth("~nm")
+  wSl1 | aWidth("~l1")
+  wSl2 | aWidth("~l2")
+  wSnl | aWidth("~nl")
+  wSdL | aWidth("~dL")
+  wSdR | aWidth("~dR")
+  wSuL | aWidth("~uL")
+  wSuR | aWidth("~uR")
+  wSsL | aWidth("~sL")
+  wSsR | aWidth("~sR")
+  wScL | aWidth("~cL")
+  wScR | aWidth("~cR")
+  wSb1 | aWidth("~b1")
+  wSb2 | aWidth("~b2")
+  wSt1 | aWidth("~t1")
+  wSt2 | aWidth("~t2")
+  GSbbZ|3*Mb*CW/(MW*SW^2)
+  GSttZ|3*Mt*CW/(2*SW^2*MW)
+ GStbWr|-Mt/MW
+ GStbWl|Mb/MW
+ GSe1Ne|(MSeL^2- MSne^2)/MW
+ GSm1Nm|(MSmL^2- MSnm^2)/MW
+ GSl1Nl|(MSl1^2- MSnl^2)/MW
+ GSl2Nl|(MSl2^2- MSnl^2)/MW
+ GSdLUL|(MSdL^2- MSuL^2)/MW
+ GSsLC1|(MSsL^2- MScL^2)/MW
+ GSb1T1|(MSb1^2- MSt1^2)/MW
+ GSb1T2|(MSb1^2- MSt2^2)/MW
+ GSb2T1|(MSb2^2- MSt1^2)/MW
+ GSb2T2|(MSb2^2- MSt2^2)/MW
+ GSB1b2|(MSb1^2- MSb2^2)/MZ
+ GSL1l2|(MSl1^2- MSl2^2)/MZ
+ GST1t2|(MSt1^2- MSt2^2)/MZ
+ GSo1o1|(MNE1+ MNE1)/MZ
+ GSo1o2|(MNE1+ MNE2)/MZ
+ GSo1o3|(MNE1+ MNE3)/MZ
+ GSo1o4|(MNE1+ MNE4)/MZ
+ GSo2o2|(MNE2+ MNE2)/MZ
+ GSo2o3|(MNE2+ MNE3)/MZ
+ GSo2o4|(MNE2+ MNE4)/MZ
+ GSo3o3|(MNE3+ MNE3)/MZ
+ GSo3o4|(MNE3+ MNE4)/MZ
+ GSo4o4|(MNE4+ MNE4)/MZ
+ aa1971|w2s3/(2*SW^2)
+ aa0153|w4s3/(4*SW^2)
+ aa0154|-C2W/(2*SW^2)
+ aa0001|(Mt*Sqrt2*Zv12*Zt12-2*MW*sb*Zv11*Zt11)*cb
+ aa0003|(Mt*Sqrt2*Zv12*Zt22-2*MW*sb*Zv11*Zt21)*cb
+ aa0005|(Mt*Sqrt2*Zv22*Zt12-2*MW*sb*Zv21*Zt11)*cb
+ aa0007|(Mt*Sqrt2*Zv22*Zt22-2*MW*sb*Zv21*Zt21)*cb
+ aa0002|Mb*sb*Sqrt2*Zu12*Zt11
+ aa0004|Mb*sb*Sqrt2*Zu12*Zt21
+ aa0006|Mb*sb*Sqrt2*Zu22*Zt11
+ aa0008|Mb*sb*Sqrt2*Zu22*Zt21
+ aa0011|-(2*cb*MW*SW*Zb12*Zn11+3*CW*Mb*Zb11*Zn13)
+ aa0015|-(2*cb*MW*SW*Zb22*Zn11+3*CW*Mb*Zb21*Zn13)
+ aa0019|-(2*cb*MW*SW*Zb12*Zn21+3*CW*Mb*Zb11*Zn23)
+ aa0023|-(2*cb*MW*SW*Zb22*Zn21+3*CW*Mb*Zb21*Zn23)
+ aa0027|-(2*cb*MW*SW*Zb12*Zn31+3*CW*Mb*Zb11*Zn33)
+ aa0031|-(2*cb*MW*SW*Zb22*Zn31+3*CW*Mb*Zb21*Zn33)
+ aa0035|-(2*cb*MW*SW*Zb12*Zn41+3*CW*Mb*Zb11*Zn43)
+ aa0039|-(2*cb*MW*SW*Zb22*Zn41+3*CW*Mb*Zb21*Zn43)
+ aa0009|(3*CW*Zn12-SW*Zn11)*cb*MW*Zb11-3*CW*Mb*Zb12*Zn13
+ aa0013|(3*CW*Zn12-SW*Zn11)*cb*MW*Zb21-3*CW*Mb*Zb22*Zn13
+ aa0017|(3*CW*Zn22-SW*Zn21)*cb*MW*Zb11-3*CW*Mb*Zb12*Zn23
+ aa0021|(3*CW*Zn22-SW*Zn21)*cb*MW*Zb21-3*CW*Mb*Zb22*Zn23
+ aa0025|(3*CW*Zn32-SW*Zn31)*cb*MW*Zb11-3*CW*Mb*Zb12*Zn33
+ aa0029|(3*CW*Zn32-SW*Zn31)*cb*MW*Zb21-3*CW*Mb*Zb22*Zn33
+ aa0033|(3*CW*Zn42-SW*Zn41)*cb*MW*Zb11-3*CW*Mb*Zb12*Zn43
+ aa0037|(3*CW*Zn42-SW*Zn41)*cb*MW*Zb21-3*CW*Mb*Zb22*Zn43
+ vv0073|3*CW*Zn12-SW*Zn11
+ vv0075|3*CW*Zn22-SW*Zn21
+ vv0077|3*CW*Zn32-SW*Zn31
+ vv0079|3*CW*Zn42-SW*Zn41
+ vv0081|CW*Zn12+SW*Zn11
+ vv0085|CW*Zn22+SW*Zn21
+ vv0089|CW*Zn32+SW*Zn31
+ vv0093|CW*Zn42+SW*Zn41
+ vv0099|cb*MHH^2*sa^3-MH3^2*samb^2*sapb+ca^3*MHH^2*sb
+ vv0105|2*(3*ca*sa+cb*sb)*MH3^2-(Mh^2+2*MHH^2)*s2a
+ vv0111|2*(MH3+MHc)*(MH3-MHc)*camb*cb*sb+c2b*MH3^2*samb-(ca*sb^3+cb^3*sa)*MHH^2
+ vv0115|(MHc+MHH)*(MHc-MHH)
+ vv0125|(MH3+MHH)*(MH3-MHH)
+ vv0240|(MH3+MHc)*(MH3-MHc)
+ vv0244|(Mh+MHc)*(Mh-MHc)
+ vv0333|(Mh+MH3)*(Mh-MH3)
+ vv1847|(Mh+MHH)*(Mh-MHH)
+ vv0123|-((ca*sb^3+cb^3*sa)*MHH^2-c2b*MH3^2*samb)
+ vv0131|2*(3*ca*sa-cb*sb)*MH3^2-(2*Mh^2+MHH^2)*s2a
+ vv0237|-((2*(MH3+MHc)*(MH3-MHc)*cb*samb-Mh^2*sa*sb^2)*sb-(c2b*camb*MH3^2-ca*cb^3*Mh^2))
+ vv0331|-((ca*cb^3-sa*sb^3)*Mh^2-c2b*camb*MH3^2)
+ aa0361|2*cb*MW*Zv11
+ aa0362|-Ml*Sqrt2*Zu12
+ aa0363|2*cb*MW*Zv21
+ aa0364|-Ml*Sqrt2*Zu22
+ aa0365|(CW*Zn12+SW*Zn11)*cb*MW*Zl11-CW*Ml*Zl12*Zn13
+ aa0369|(CW*Zn12+SW*Zn11)*cb*MW*Zl21-CW*Ml*Zl22*Zn13
+ aa0373|(CW*Zn22+SW*Zn21)*cb*MW*Zl11-CW*Ml*Zl12*Zn23
+ aa0377|(CW*Zn22+SW*Zn21)*cb*MW*Zl21-CW*Ml*Zl22*Zn23
+ aa0381|(CW*Zn32+SW*Zn31)*cb*MW*Zl11-CW*Ml*Zl12*Zn33
+ aa0385|(CW*Zn32+SW*Zn31)*cb*MW*Zl21-CW*Ml*Zl22*Zn33
+ aa0389|(CW*Zn42+SW*Zn41)*cb*MW*Zl11-CW*Ml*Zl12*Zn43
+ aa0393|(CW*Zn42+SW*Zn41)*cb*MW*Zl21-CW*Ml*Zl22*Zn43
+ aa0367|-(2*cb*MW*SW*Zl12*Zn11+CW*Ml*Zl11*Zn13)
+ aa0371|-(2*cb*MW*SW*Zl22*Zn11+CW*Ml*Zl21*Zn13)
+ aa0375|-(2*cb*MW*SW*Zl12*Zn21+CW*Ml*Zl11*Zn23)
+ aa0379|-(2*cb*MW*SW*Zl22*Zn21+CW*Ml*Zl21*Zn23)
+ aa0383|-(2*cb*MW*SW*Zl12*Zn31+CW*Ml*Zl11*Zn33)
+ aa0387|-(2*cb*MW*SW*Zl22*Zn31+CW*Ml*Zl21*Zn33)
+ aa0391|-(2*cb*MW*SW*Zl12*Zn41+CW*Ml*Zl11*Zn43)
+ aa0395|-(2*cb*MW*SW*Zl22*Zn41+CW*Ml*Zl21*Zn43)
+ vv0429|-(CW*Zn12-SW*Zn11)
+ vv0431|-(CW*Zn22-SW*Zn21)
+ vv0433|-(CW*Zn32-SW*Zn31)
+ vv0435|-(CW*Zn42-SW*Zn41)
+ vv0437|-(2*cb*MW*Zl11*Zu11-Ml*Sqrt2*Zl12*Zu12)
+ vv0439|-(2*cb*MW*Zl21*Zu11-Ml*Sqrt2*Zl22*Zu12)
+ vv0441|-(2*cb*MW*Zl11*Zu21-Ml*Sqrt2*Zl12*Zu22)
+ vv0443|-(2*cb*MW*Zl21*Zu21-Ml*Sqrt2*Zl22*Zu22)
+ aa0485|-(2*cb*MW*Zb11*Zu11-Mb*Sqrt2*Zb12*Zu12)*sb
+ aa0487|-(2*cb*MW*Zb21*Zu11-Mb*Sqrt2*Zb22*Zu12)*sb
+ aa0489|-(2*cb*MW*Zb11*Zu21-Mb*Sqrt2*Zb12*Zu22)*sb
+ aa0491|-(2*cb*MW*Zb21*Zu21-Mb*Sqrt2*Zb22*Zu22)*sb
+ aa0486|cb*Mt*Sqrt2*Zb11*Zv12
+ aa0488|cb*Mt*Sqrt2*Zb21*Zv12
+ aa0490|cb*Mt*Sqrt2*Zb11*Zv22
+ aa0492|cb*Mt*Sqrt2*Zb21*Zv22
+ aa0493|3*(Mt*Zn14*Zt12+MW*sb*Zn12*Zt11)*CW+MW*sb*SW*Zn11*Zt11
+ aa0497|3*(Mt*Zn14*Zt22+MW*sb*Zn12*Zt21)*CW+MW*sb*SW*Zn11*Zt21
+ aa0501|3*(Mt*Zn24*Zt12+MW*sb*Zn22*Zt11)*CW+MW*sb*SW*Zn21*Zt11
+ aa0505|3*(Mt*Zn24*Zt22+MW*sb*Zn22*Zt21)*CW+MW*sb*SW*Zn21*Zt21
+ aa0509|3*(Mt*Zn34*Zt12+MW*sb*Zn32*Zt11)*CW+MW*sb*SW*Zn31*Zt11
+ aa0513|3*(Mt*Zn34*Zt22+MW*sb*Zn32*Zt21)*CW+MW*sb*SW*Zn31*Zt21
+ aa0517|3*(Mt*Zn44*Zt12+MW*sb*Zn42*Zt11)*CW+MW*sb*SW*Zn41*Zt11
+ aa0521|3*(Mt*Zn44*Zt22+MW*sb*Zn42*Zt21)*CW+MW*sb*SW*Zn41*Zt21
+ aa0495|3*CW*Mt*Zn14*Zt11-4*MW*sb*SW*Zn11*Zt12
+ aa0499|3*CW*Mt*Zn14*Zt21-4*MW*sb*SW*Zn11*Zt22
+ aa0503|3*CW*Mt*Zn24*Zt11-4*MW*sb*SW*Zn21*Zt12
+ aa0507|3*CW*Mt*Zn24*Zt21-4*MW*sb*SW*Zn21*Zt22
+ aa0511|3*CW*Mt*Zn34*Zt11-4*MW*sb*SW*Zn31*Zt12
+ aa0515|3*CW*Mt*Zn34*Zt21-4*MW*sb*SW*Zn31*Zt22
+ aa0519|3*CW*Mt*Zn44*Zt11-4*MW*sb*SW*Zn41*Zt12
+ aa0523|3*CW*Mt*Zn44*Zt21-4*MW*sb*SW*Zn41*Zt22
+ vv0041|3*CW*Zn12+SW*Zn11
+ vv0049|3*CW*Zn22+SW*Zn21
+ vv0057|3*CW*Zn32+SW*Zn31
+ vv0065|3*CW*Zn42+SW*Zn41
+ vv0609|-(2*SW^2-3*Zb11^2)
+ vv0613|-(2*SW^2-3*Zb21^2)
+ vv0633|-(2*SW^2-Zl11^2)
+ vv0637|-(2*SW^2-Zl21^2)
+ vv0649|-(4*SW^2-3*Zt11^2)
+ vv0653|-(4*SW^2-3*Zt21^2)
+ vv0785|camb^2*capb*MH3^2+Mh^2*sa^3*sb-ca^3*cb*Mh^2
+ vv1019|-(Zb11^2-2)
+ vv1025|Zb11^2+1
+ vv1059|(Zt11+2*Zt12)*(Zt11-2*Zt12)
+ vv1065|(Zt21+2*Zt22)*(Zt21-2*Zt22)
+ vv1043|-(3*Zl11^2-2)
+ vv1049|3*Zl11^2-1
+ aa1067|-((Sqrt2*Zu12*Zn12-2*Zu11*Zn13)*CW+Sqrt2*SW*Zu12*Zn11)*sb
+ aa1069| ((Sqrt2*Zn12*Zv12+2*Zn14*Zv11)*CW+Sqrt2*SW*Zn11*Zv12)*cb
+ aa1079|-((Sqrt2*Zu12*Zn22-2*Zu11*Zn23)*CW+Sqrt2*SW*Zu12*Zn21)*sb
+ aa1081| ((Sqrt2*Zn22*Zv12+2*Zn24*Zv11)*CW+Sqrt2*SW*Zn21*Zv12)*cb
+ aa1091|-((Sqrt2*Zu12*Zn32-2*Zu11*Zn33)*CW+Sqrt2*SW*Zu12*Zn31)*sb
+ aa1093| ((Sqrt2*Zn32*Zv12+2*Zn34*Zv11)*CW+Sqrt2*SW*Zn31*Zv12)*cb
+ aa1103|-((Sqrt2*Zu12*Zn42-2*Zu11*Zn43)*CW+Sqrt2*SW*Zu12*Zn41)*sb
+ aa1105| ((Sqrt2*Zn42*Zv12+2*Zn44*Zv11)*CW+Sqrt2*SW*Zn41*Zv12)*cb
+ aa1071|Sqrt2*Zu12*Zn13+2*Zu11*Zn12
+ aa1083|Sqrt2*Zu12*Zn23+2*Zu11*Zn22
+ aa1095|Sqrt2*Zu12*Zn33+2*Zu11*Zn32
+ aa1107|Sqrt2*Zu12*Zn43+2*Zu11*Zn42
+ aa1073|-(Sqrt2*Zn14*Zv12-2*Zn12*Zv11)
+ aa1085|-(Sqrt2*Zn24*Zv12-2*Zn22*Zv11)
+ aa1097|-(Sqrt2*Zn34*Zv12-2*Zn32*Zv11)
+ aa1109|-(Sqrt2*Zn44*Zv12-2*Zn42*Zv11)
+ aa1211|Sqrt2*Zu22*Zn13+2*Zu21*Zn12
+ aa1223|Sqrt2*Zu22*Zn23+2*Zu21*Zn22
+ aa1235|Sqrt2*Zu22*Zn33+2*Zu21*Zn32
+ aa1247|Sqrt2*Zu22*Zn43+2*Zu21*Zn42
+ aa1213|-(Sqrt2*Zn14*Zv22-2*Zn12*Zv21)
+ aa1225|-(Sqrt2*Zn24*Zv22-2*Zn22*Zv21)
+ aa1237|-(Sqrt2*Zn34*Zv22-2*Zn32*Zv21)
+ aa1249|-(Sqrt2*Zn44*Zv22-2*Zn42*Zv21)
+ vv1127|-(ca*Zu12*Zv11+sa*Zu11*Zv12)
+ vv1129|-(cb*Zu11*Zv12+sb*Zu12*Zv11)
+ aa1131|2*Zu11^2+Zu12^2-2*SW^2
+ aa1133|2*Zv11^2+Zv12^2-2*SW^2
+ vv1137|-(ca*Zu11*Zv12-sa*Zu12*Zv11)
+ aa1139|ca*Zu12*Zv21+sa*Zu11*Zv22
+ aa1141|ca*Zu22*Zv11+sa*Zu21*Zv12
+ aa1143|cb*Zu11*Zv22+sb*Zu12*Zv21
+ aa1145|-(cb*Zu21*Zv12+sb*Zu22*Zv11)
+ aa1147|2*Zu11*Zu21+Zu12*Zu22
+ aa1149|2*Zv11*Zv21+Zv12*Zv22
+ aa1155|-(ca*Zu11*Zv22-sa*Zu12*Zv21)
+ aa1157|-(ca*Zu21*Zv12-sa*Zu22*Zv11)
+ aa1207|-((Sqrt2*Zu22*Zn12-2*Zu21*Zn13)*CW+Sqrt2*SW*Zu22*Zn11)*sb
+ aa1209|((Sqrt2*Zn12*Zv22+2*Zn14*Zv21)*CW+Sqrt2*SW*Zn11*Zv22)*cb
+ aa1219|-((Sqrt2*Zu22*Zn22-2*Zu21*Zn23)*CW+Sqrt2*SW*Zu22*Zn21)*sb
+ aa1221|((Sqrt2*Zn22*Zv22+2*Zn24*Zv21)*CW+Sqrt2*SW*Zn21*Zv22)*cb
+ aa1231|-((Sqrt2*Zu22*Zn32-2*Zu21*Zn33)*CW+Sqrt2*SW*Zu22*Zn31)*sb
+ aa1233|((Sqrt2*Zn32*Zv22+2*Zn34*Zv21)*CW+Sqrt2*SW*Zn31*Zv22)*cb
+ aa1243|-((Sqrt2*Zu22*Zn42-2*Zu21*Zn43)*CW+Sqrt2*SW*Zu22*Zn41)*sb
+ aa1245|((Sqrt2*Zn42*Zv22+2*Zn44*Zv21)*CW+Sqrt2*SW*Zn41*Zv22)*cb
+ vv1287|-(ca*Zu22*Zv21+sa*Zu21*Zv22)
+ vv1289|-(cb*Zu21*Zv22+sb*Zu22*Zv21)
+ aa1291|2*Zu21^2+Zu22^2-2*SW^2
+ aa1293|2*Zv21^2+Zv22^2-2*SW^2
+ vv1297|-(ca*Zu21*Zv22-sa*Zu22*Zv21)
+ vv1353|(Zn13+Zn14)*(Zn13-Zn14)
+ vv1433|(Zn23+Zn24)*(Zn23-Zn24)
+ vv1491|(Zn33+Zn34)*(Zn33-Zn34)
+ vv1527|(Zn43+Zn44)*(Zn43-Zn44)
+ vv1348|-(ca*Zn13-sa*Zn14)*(CW*Zn12-SW*Zn11)
+ vv1351|(cb*Zn14-sb*Zn13)*(CW*Zn12-SW*Zn11)
+ vv1359|(ca*Zn14+sa*Zn13)*(CW*Zn12-SW*Zn11)
+ vv1428|-(ca*Zn23-sa*Zn24)*(CW*Zn22-SW*Zn21)
+ vv1431|(cb*Zn24-sb*Zn23)*(CW*Zn22-SW*Zn21)
+ vv1439|(ca*Zn24+sa*Zn23)*(CW*Zn22-SW*Zn21)
+ vv1486|-(ca*Zn33-sa*Zn34)*(CW*Zn32-SW*Zn31)
+ vv1489|(cb*Zn34-sb*Zn33)*(CW*Zn32-SW*Zn31)
+ vv1497|(ca*Zn34+sa*Zn33)*(CW*Zn32-SW*Zn31)
+ vv1522|-(ca*Zn43-sa*Zn44)*(CW*Zn42-SW*Zn41)
+ vv1525|(cb*Zn44-sb*Zn43)*(CW*Zn42-SW*Zn41)
+ vv1533|(ca*Zn44+sa*Zn43)*(CW*Zn42-SW*Zn41)
+ vv1371|Zn13*Zn23-Zn14*Zn24
+ vv1393|Zn13*Zn33-Zn14*Zn34
+ vv1415|Zn13*Zn43-Zn14*Zn44
+ vv1451|Zn23*Zn33-Zn24*Zn34
+ vv1473|Zn23*Zn43-Zn24*Zn44
+ vv1509|Zn33*Zn43-Zn34*Zn44
+ vv1364|  ((Zn11*Zn23+Zn21*Zn13)*SW-(Zn12*Zn23+Zn22*Zn13)*CW)*ca-((Zn11*Zn24+Zn21*Zn14)*SW-(Zn12*Zn24+Zn22*Zn14)*CW)*sa
+ vv1369|  ((Zn11*Zn23+Zn21*Zn13)*SW-(Zn12*Zn23+Zn22*Zn13)*CW)*sb-((Zn11*Zn24+Zn21*Zn14)*SW-(Zn12*Zn24+Zn22*Zn14)*CW)*cb
+ vv1381|-(((Zn11*Zn23+Zn21*Zn13)*SW-(Zn12*Zn23+Zn22*Zn13)*CW)*sa+((Zn11*Zn24+Zn21*Zn14)*SW-(Zn12*Zn24+Zn22*Zn14)*CW)*ca)
+ vv1386|  ((Zn11*Zn33+Zn31*Zn13)*SW-(Zn12*Zn33+Zn32*Zn13)*CW)*ca-((Zn11*Zn34+Zn31*Zn14)*SW-(Zn12*Zn34+Zn32*Zn14)*CW)*sa
+ vv1391|  ((Zn11*Zn33+Zn31*Zn13)*SW-(Zn12*Zn33+Zn32*Zn13)*CW)*sb-((Zn11*Zn34+Zn31*Zn14)*SW-(Zn12*Zn34+Zn32*Zn14)*CW)*cb
+ vv1403|-(((Zn11*Zn33+Zn31*Zn13)*SW-(Zn12*Zn33+Zn32*Zn13)*CW)*sa+((Zn11*Zn34+Zn31*Zn14)*SW-(Zn12*Zn34+Zn32*Zn14)*CW)*ca)
+ vv1408|  ((Zn11*Zn43+Zn41*Zn13)*SW-(Zn12*Zn43+Zn42*Zn13)*CW)*ca-((Zn11*Zn44+Zn41*Zn14)*SW-(Zn12*Zn44+Zn42*Zn14)*CW)*sa
+ vv1413|  ((Zn11*Zn43+Zn41*Zn13)*SW-(Zn12*Zn43+Zn42*Zn13)*CW)*sb-((Zn11*Zn44+Zn41*Zn14)*SW-(Zn12*Zn44+Zn42*Zn14)*CW)*cb
+ vv1425|-(((Zn11*Zn43+Zn41*Zn13)*SW-(Zn12*Zn43+Zn42*Zn13)*CW)*sa+((Zn11*Zn44+Zn41*Zn14)*SW-(Zn12*Zn44+Zn42*Zn14)*CW)*ca)
+ vv1444|  ((Zn21*Zn33+Zn31*Zn23)*SW-(Zn22*Zn33+Zn32*Zn23)*CW)*ca-((Zn21*Zn34+Zn31*Zn24)*SW-(Zn22*Zn34+Zn32*Zn24)*CW)*sa
+ vv1449|  ((Zn21*Zn33+Zn31*Zn23)*SW-(Zn22*Zn33+Zn32*Zn23)*CW)*sb-((Zn21*Zn34+Zn31*Zn24)*SW-(Zn22*Zn34+Zn32*Zn24)*CW)*cb
+ vv1461|-(((Zn21*Zn33+Zn31*Zn23)*SW-(Zn22*Zn33+Zn32*Zn23)*CW)*sa+((Zn21*Zn34+Zn31*Zn24)*SW-(Zn22*Zn34+Zn32*Zn24)*CW)*ca)
+ vv1466|  ((Zn21*Zn43+Zn41*Zn23)*SW-(Zn22*Zn43+Zn42*Zn23)*CW)*ca-((Zn21*Zn44+Zn41*Zn24)*SW-(Zn22*Zn44+Zn42*Zn24)*CW)*sa
+ vv1471|  ((Zn21*Zn43+Zn41*Zn23)*SW-(Zn22*Zn43+Zn42*Zn23)*CW)*sb-((Zn21*Zn44+Zn41*Zn24)*SW-(Zn22*Zn44+Zn42*Zn24)*CW)*cb
+ vv1483|-(((Zn21*Zn43+Zn41*Zn23)*SW-(Zn22*Zn43+Zn42*Zn23)*CW)*sa+((Zn21*Zn44+Zn41*Zn24)*SW-(Zn22*Zn44+Zn42*Zn24)*CW)*ca)
+ vv1502|  ((Zn31*Zn43+Zn41*Zn33)*SW-(Zn32*Zn43+Zn42*Zn33)*CW)*ca-((Zn31*Zn44+Zn41*Zn34)*SW-(Zn32*Zn44+Zn42*Zn34)*CW)*sa
+ vv1507|  ((Zn31*Zn43+Zn41*Zn33)*SW-(Zn32*Zn43+Zn42*Zn33)*CW)*sb-((Zn31*Zn44+Zn41*Zn34)*SW-(Zn32*Zn44+Zn42*Zn34)*CW)*cb
+ vv1519|-(((Zn31*Zn43+Zn41*Zn33)*SW-(Zn32*Zn43+Zn42*Zn33)*CW)*sa+((Zn31*Zn44+Zn41*Zn34)*SW-(Zn32*Zn44+Zn42*Zn34)*CW)*ca)
+ vv1567|4*SW^2-3*Zt11^2
+ vv1569|4*SW^2-3*Zt21^2
+ vv1573|4*(ca^3*sb+cb*sa^3)^2*MHH^2+(Mh*s2a+2*MH3*sapb)*(Mh*s2a-2*MH3*sapb)*samb^2
+ vv1578|2*(cb*MHH^2*sa^3-MH3^2*sapb)+camb*Mh^2*s2a+2*ca^3*MHH^2*sb
+ vv1589|2*((4*(MH3+MHc)*(MH3-MHc)*camb^2*cb^2+Mh^2*s2a*sa*samb*sb)*sb^2+(2*c2b*MH3^2*sapb-ca*cb^3*Mh^2*s2a)*samb)-((samb^2+3*sapb^2)*samb^2+2*cb*s2a*sb)*MHH^2
+ vv1595|-(2*(cb*MHH^2*sa^3-MH3^2*sapb+ca^3*MHH^2*sb)+(4*(MH3+MHc)*(MH3-MHc)*cb*sb+Mh^2*s2a)*camb)
+ vv1610|2*(2*c2b*MH3^2*sapb-ca*cb^3*Mh^2*s2a+Mh^2*s2a*sa*sb^3)*samb-((samb^2+3*sapb^2)*samb^2+2*cb*s2a*sb)*MHH^2
+ vv1614|-(2*(cb*MHH^2*sa^3-MH3^2*sapb)+camb*Mh^2*s2a+2*ca^3*MHH^2*sb)
+ vv1620|(4*(MH3+MHc)*(MH3-MHc)*cb*sb+Mh^2*s2a)*samb^2-2*(ca^3*sb+cb*sa^3)*camb*MHH^2
+ vv1624|-(2*camb*cb*MHH^2*sa^3-Mh^2*s2a*samb^2+2*ca^3*camb*MHH^2*sb)
+ vv1633|-(2*(2*(capb*Mh^2*s2a*samb+cb^2*MH3^2*sb^2)+camb*Mh^2*s2a*sapb-6*ca^2*MH3^2*sa^2)+((2*cb*sb+3*s2a*samb^2)*MHH^2-3*Mh^2*s2a*samb^2)*s2a)
+ vv1636|-((4*SW^2*Zb11^2-2*SW^2-3*Zb11^2)*c2a*cb^2*MW^2+6*ca^2*CW^2*Mb^2)
+ vv1643|(4*SW^2*Zb11^2-2*SW^2-3*Zb11^2+3)*c2a*cb^2*MW^2-6*ca^2*CW^2*Mb^2
+ vv1664|  (C2W*Zl11^2    +2*SW^2*Zl21^2)*c2a*cb^2*MW^2-2*ca^2*CW^2*Ml^2
+ vv1671|-((C2W*Zl11^2-C2W-2*SW^2*Zl11^2)*c2a*cb^2*MW^2+2*ca^2*CW^2*Ml^2)
+ vv1684|  (8*SW^2*Zt11^2-4*SW^2-3*Zt11^2  )*c2a*MW^2*sb^2-6*CW^2*Mt^2*sa^2
+ vv1691|-((8*SW^2*Zt11^2-4*SW^2-3*Zt11^2+3)*c2a*MW^2*sb^2+6*CW^2*Mt^2*sa^2)
+ vv1701|(c2b*MH3^2-cb^3*MHH^2*sa*samb-(camb*cb^3*Mh^2+MHH^2*samb*sb^3)*ca)*s2a-(4*(MH3+MHc)*(MH3-MHc)*cb^2*samb-Mh^2*s2a*sa*sb)*camb*sb^2
+ vv1715|-((camb^2*Mh^2+MHH^2*samb^2)*s2a+2*(MH3+MHc)*(MH3-MHc)*c2a*c2b*cb*sb+2*(4*(MH3+MHc)*(MH3-MHc)*cb^2*sb^2-MH3^2)*ca*sa)
+ vv1721|ca*Ml^2*sb-cb^2*MW^2*sapb
+ vv1730|((cb*Mt^2*sa-MW^2*sapb*sb^2)*cb*Zb11*Zt11+camb*Mb*Mt*sb*Zb12*Zt12)*cb+ca*Mb^2*sb^3*Zb11*Zt11
+ vv1733|((cb*Mt^2*sa-MW^2*sapb*sb^2)*cb*Zb21*Zt11+camb*Mb*Mt*sb*Zb22*Zt12)*cb+ca*Mb^2*sb^3*Zb21*Zt11
+ vv1736|((cb*Mt^2*sa-MW^2*sapb*sb^2)*cb*Zb11*Zt21+camb*Mb*Mt*sb*Zb12*Zt22)*cb+ca*Mb^2*sb^3*Zb11*Zt21
+ vv1739|((cb*Mt^2*sa-MW^2*sapb*sb^2)*cb*Zb21*Zt21+camb*Mb*Mt*sb*Zb22*Zt22)*cb+ca*Mb^2*sb^3*Zb21*Zt21
+ vv1785|(camb*Mh^2*sb^3-cb^3*MHH^2*samb)*sa+c2b*MH3^2-(camb*cb^3*Mh^2+MHH^2*samb*sb^3)*ca
+ vv1789|-((camb^2*Mh^2+MHH^2*samb^2)*s2a-2*ca*MH3^2*sa)
+ vv1795|((Mh+MHH)*(Mh-MHH)*s2a+4*(MH3+MHc)*(MH3-MHc)*cb*sb)*camb
+ vv1801|-(ca*Ml^2-capb*cb*MW^2)
+ vv1810|-((ca*Mb^2-capb*cb*MW^2)*sb*Zb11*Zt11-(cb*Mt*sa*Zb11*Zt11-Mb*samb*Zb12*Zt12)*Mt)
+ vv1813|-((ca*Mb^2-capb*cb*MW^2)*sb*Zb21*Zt11-(cb*Mt*sa*Zb21*Zt11-Mb*samb*Zb22*Zt12)*Mt)
+ vv1816|-((ca*Mb^2-capb*cb*MW^2)*sb*Zb11*Zt21-(cb*Mt*sa*Zb11*Zt21-Mb*samb*Zb12*Zt22)*Mt)
+ vv1819|-((ca*Mb^2-capb*cb*MW^2)*sb*Zb21*Zt21-(cb*Mt*sa*Zb21*Zt21-Mb*samb*Zb22*Zt22)*Mt)
+ vv1852|2*Mh^2*sa^3*sb-MHH^2*s2a*samb+2*capb*MH3^2-2*ca^3*cb*Mh^2
+ vv1855|(4*SW^2*Zb11^2-2*SW^2-3*Zb11^2)*cb^2*MW^2+3*CW^2*Mb^2
+ vv1862|-((4*SW^2*Zb11^2-2*SW^2-3*Zb11^2+3)*cb^2*MW^2-3*CW^2*Mb^2)
+ vv1883|2*cb^2*MW^2*SW^2*Zl11^2-2*cb^2*MW^2*SW^2+CW^2*Ml^2-C2W*cb^2*MW^2*Zl11^2
+ vv1890|C2W*cb^2*MW^2*Zl11^2-C2W*cb^2*MW^2-2*cb^2*MW^2*SW^2*Zl11^2+CW^2*Ml^2
+ vv1903|-((8*SW^2*Zt11^2-4*SW^2-3*Zt11^2)*MW^2*sb^2+3*CW^2*Mt^2)
+ vv1910|(8*SW^2*Zt11^2-4*SW^2-3*Zt11^2+3)*MW^2*sb^2-3*CW^2*Mt^2
+ vv1914|2*(Mh+MHH)*(Mh-MHH)*ca*cb^3*sa*sb^3+c2b^2*MH3^2-(cb^6*MHH^2+Mh^2*sb^6)*sa^2-(cb^6*Mh^2+MHH^2*sb^6)*ca^2
+ vv1918|(camb*Mh^2*sb^3-cb^3*MHH^2*samb)*sa+c2b*MH3^2-(camb*cb^3*Mh^2+MHH^2*samb*sb^3)*ca
+ vv1921|(MH3+MHH*samb)*(MH3-MHH*samb)-camb^2*Mh^2
+ vv1939|-(2*(2*cb^2*Mh^2-MH3^2)*cb*sb+(4*cb*samb^2*sb+s2a)*MHH^2-2*(c2b*ca+2*cb*sa*sb)*c2b*Mh^2*sa)
+ vv1945|-((camb*MHH^2*sb^3-cb^3*Mh^2*samb)*ca-2*(MH3+MHc)*(MH3-MHc)*cb*sb+(camb*cb^3*MHH^2+Mh^2*samb*sb^3)*sa)
+ vv1956|(8*(MH3+MHc)*(MH3-MHc)*cb^2*sb^2-(samb^2+3*sapb^2)*Mh^2)*samb^2-4*c2a*c2b*Mh^2-2*((ca*sb^3+cb^3*sa)*MHH^2*s2a-2*c2b*capb*MH3^2)*camb
+ vv1959|-((2*(Zb11^2+1)*SW^2-3*Zb11^2)*c2b*cb^2*MW^2*sb^2+6*(cb^4*Mt^2*Zb11^2-Mb^2*sb^4*Zb11^2+Mb^2*sb^4)*CW^2)
+ vv1962|-(6*(cb^2*Mt+Mb*sb^2)*(cb^2*Mt-Mb*sb^2)*CW^2+(2*SW^2-3)*c2b*cb^2*MW^2*sb^2)*Zb11*Zb21
+ vv1968|6*(cb^4*Mt^2*Zb11^2-cb^4*Mt^2-Mb^2*sb^4*Zb11^2)*CW^2+(2*SW^2*Zb11^2-4*SW^2-3*Zb11^2+3)*c2b*cb^2*MW^2*sb^2
+ vv1993|2*c2b*cb^2*MW^2*SW^2*Zl11^2-2*c2b*cb^2*MW^2*SW^2+c2b*cb^2*MW^2*Zl11^2+2*CW^2*Ml^2*sb^2*Zl11^2-2*CW^2*Ml^2*sb^2
+ vv1996|((2*SW^2+1)*c2b*cb^2*MW^2+2*CW^2*Ml^2*sb^2)*Zl11*Zl21
+ vv2002|-((2*SW^2*Zl11^2+Zl11^2-1)*c2b*cb^2*MW^2+2*CW^2*Ml^2*sb^2*Zl11^2)
+ vv2016|-(c2b*C2W*cb^2*MW^2+2*CW^2*Ml^2*sb^2)
+ vv2023|-((2*(Zt11^2-2)*SW^2+3*Zt11^2)*c2b*cb^2*MW^2*sb^2-6*(cb^4*Mt^2*Zt11^2-cb^4*Mt^2-Mb^2*sb^4*Zt11^2)*CW^2)
+ vv2026|(6*(cb^2*Mt+Mb*sb^2)*(cb^2*Mt-Mb*sb^2)*CW^2-(2*SW^2+3)*c2b*cb^2*MW^2*sb^2)*Zt11*Zt21
+ vv2032|-(6*(cb^4*Mt^2*Zt11^2-Mb^2*sb^4*Zt11^2+Mb^2*sb^4)*CW^2-(2*SW^2*Zt11^2+2*SW^2+3*Zt11^2-3)*c2b*cb^2*MW^2*sb^2)
+ vv2043|(MHc+MHH*samb)*(MHc-MHH*samb)-camb^2*Mh^2
+ vv2052|c2b*cb^2*MW^2+Ml^2*sb^2
+ vv2061|c2b*cb^2*MW^2*sb^2-cb^4*Mt^2+Mb^2*sb^4
+ vv2083|(2*Mh^2*sa^3*sb-MHH^2*s2a*samb+2*capb*MH3^2-2*ca^3*cb*Mh^2+4*(MH3+MHc)*(MH3-MHc)*cb*samb*sb)*camb
+ vv2086|-(3*cb^2*CW^2*Mt^2*Zb11^2+2*cb^2*MW^2*sb^2*SW^2*Zb11^2+2*cb^2*MW^2*sb^2*SW^2-3*cb^2*MW^2*sb^2*Zb11^2+3*CW^2*Mb^2*sb^2*Zb11^2-3*CW^2*Mb^2*sb^2)
+ vv2089|-(((2*SW^2-3)*MW^2*sb^2+3*CW^2*Mt^2)*cb^2+3*CW^2*Mb^2*sb^2)*Zb11*Zb21
+ vv2095|(3*CW^2*Mt^2*Zb11^2-3*CW^2*Mt^2+2*MW^2*sb^2*SW^2*Zb11^2-4*MW^2*sb^2*SW^2-3*MW^2*sb^2*Zb11^2+3*MW^2*sb^2)*cb^2+3*CW^2*Mb^2*sb^2*Zb11^2
+ vv2118|2*cb^2*MW^2*SW^2*Zl11^2-2*cb^2*MW^2*SW^2+cb^2*MW^2*Zl11^2-CW^2*Ml^2*Zl11^2+CW^2*Ml^2
+ vv2121|((2*SW^2+1)*cb^2*MW^2-CW^2*Ml^2)*Zl11*Zl21
+ vv2127|-((2*SW^2*Zl11^2-Zl21^2)*cb^2*MW^2-CW^2*Ml^2*Zl11^2)
+ vv2141|-(C2W*cb^2*MW^2-CW^2*Ml^2)
+ vv2148|3*cb^2*CW^2*Mt^2*Zt11^2-3*cb^2*CW^2*Mt^2-2*cb^2*MW^2*sb^2*SW^2*Zt11^2+4*cb^2*MW^2*sb^2*SW^2-3*cb^2*MW^2*sb^2*Zt11^2+3*CW^2*Mb^2*sb^2*Zt11^2
+ vv2151|-(((2*SW^2+3)*MW^2*sb^2-3*CW^2*Mt^2)*cb^2-3*CW^2*Mb^2*sb^2)*Zt11*Zt21
+ vv2157|-(3*cb^2*CW^2*Mt^2*Zt11^2+(-2*(cb*MW*SW*Zt11)^2-2*(cb*MW*SW)^2-3*(cb*MW*Zt11)^2+3*(cb*MW)^2+3*(CW*Mb*Zt11)^2-3*CW^2*Mb^2)*sb^2)
+ vv2163|2*cb^2*MW^2-Ml^2
+ vv2172|-((Mb*sb^2*Zb11*Zt11-Mt*Zb12*Zt12)*Mb+(Mt^2-2*MW^2*sb^2)*cb^2*Zb11*Zt11)
+ vv2175|-((Mb*sb^2*Zb21*Zt11-Mt*Zb22*Zt12)*Mb+(Mt^2-2*MW^2*sb^2)*cb^2*Zb21*Zt11)
+ vv2178|-((Mb*sb^2*Zb11*Zt21-Mt*Zb12*Zt22)*Mb+(Mt^2-2*MW^2*sb^2)*cb^2*Zb11*Zt21)
+ vv2181|-((Mb*sb^2*Zb21*Zt21-Mt*Zb22*Zt22)*Mb+(Mt^2-2*MW^2*sb^2)*cb^2*Zb21*Zt21)
+ vv2187|-(capb*cb^2*MW^2+Ml^2*sa*sb)
+ vv2196|(ca*cb*Mt^2-capb*MW^2*sb^2)*cb^2*Zb11*Zt11-(cb*Mt*samb*Zb12*Zt12+Mb*sa*sb^2*Zb11*Zt11)*Mb*sb
+ vv2199|(ca*cb*Mt^2-capb*MW^2*sb^2)*cb^2*Zb21*Zt11-(cb*Mt*samb*Zb22*Zt12+Mb*sa*sb^2*Zb21*Zt11)*Mb*sb
+ vv2202|(ca*cb*Mt^2-capb*MW^2*sb^2)*cb^2*Zb11*Zt21-(cb*Mt*samb*Zb12*Zt22+Mb*sa*sb^2*Zb11*Zt21)*Mb*sb
+ vv2205|(ca*cb*Mt^2-capb*MW^2*sb^2)*cb^2*Zb21*Zt21-(cb*Mt*samb*Zb22*Zt22+Mb*sa*sb^2*Zb21*Zt21)*Mb*sb
+ vv2383|3*(2*(Mh+MHH)*(Mh-MHH)*ca*cb^3*sa*sb^3+c2b^2*MH3^2-(cb^6*MHH^2+Mh^2*sb^6)*sa^2-(cb^6*Mh^2+MHH^2*sb^6)*ca^2)
+ vv2387|3*((camb*Mh^2*sb^3-cb^3*MHH^2*samb)*sa+c2b*MH3^2-(camb*cb^3*Mh^2+MHH^2*samb*sb^3)*ca)
+ vv2399|2*((3*Mh^2*samb^2+2*MH3^2)*cb*sb+2*capb*Mh^2*samb-camb*Mh^2*sapb)-(6*cb*samb^2*sb+s2a)*MHH^2
+ vv2408|-(2*((ca*sb^3+cb^3*sa)*MHH^2*s2a-2*c2b*capb*MH3^2)*camb+((samb^2+3*sapb^2)*samb^2+4*c2a*c2b)*Mh^2)
+ vv2411|(4*SW^2*Zb11^2-2*SW^2-3*Zb11^2)*c2b*cb^2*MW^2-6*CW^2*Mb^2*sb^2
+ vv2414|(4*SW^2-3)*c2b*Zb11*Zb21
+ vv2539|(4*SW^2-3)*cb*Zb11*Zb21
+ vv2420|-((4*SW^2*Zb11^2-2*SW^2-3*Zb11^2+3)*c2b*cb^2*MW^2+6*CW^2*Mb^2*sb^2)
+ vv2445|-((C2W*Zl11^2-2*SW^2*Zl11^2+2*SW^2)*c2b*cb^2*MW^2+2*CW^2*Ml^2*sb^2)
+ vv2452|(C2W*Zl11^2-C2W-2*SW^2*Zl11^2)*c2b*cb^2*MW^2-2*CW^2*Ml^2*sb^2
+ vv2467|-((8*SW^2*Zt11^2-4*SW^2-3*Zt11^2)*c2b*MW^2*sb^2+6*cb^2*CW^2*Mt^2)
+ vv2476|(8*SW^2*Zt11^2-4*SW^2-3*Zt11^2+3)*c2b*MW^2*sb^2-6*cb^2*CW^2*Mt^2
+ vv2495|-((Mb*sb^2*Zb11*Zt11+Mt*Zb12*Zt12)*Mb+(Mt^2-2*MW^2*sb^2)*cb^2*Zb11*Zt11)
+ vv2498|-((Mb*sb^2*Zb21*Zt11+Mt*Zb22*Zt12)*Mb+(Mt^2-2*MW^2*sb^2)*cb^2*Zb21*Zt11)
+ vv2501|-((Mb*sb^2*Zb11*Zt21+Mt*Zb12*Zt22)*Mb+(Mt^2-2*MW^2*sb^2)*cb^2*Zb11*Zt21)
+ vv2504|-((Mb*sb^2*Zb21*Zt21+Mt*Zb22*Zt22)*Mb+(Mt^2-2*MW^2*sb^2)*cb^2*Zb21*Zt21)
+ vv2594|-(camb^2*MHH^2+Mh^2*samb^2)
+ vv2602|(4*(MH3+MHc)*(MH3-MHc)*cb*sb-MHH^2*s2a)*camb^2+2*(ca^3*cb-sa^3*sb)*Mh^2*samb
+ vv2606|(2*(Zb11^2+1)*SW^2-3*Zb11^2)*c2b*MW^2+6*(Mb^2*Zb11^2-Mb^2-Mt^2*Zb11^2)*CW^2
+ vv2610|(6*(Mb+Mt)*(Mb-Mt)*CW^2+(2*SW^2-3)*c2b*MW^2)*Zb11*Zb21
+ vv2618|-(6*(Mb^2*Zb11^2-Mt^2*Zb11^2+Mt^2)*CW^2+(2*SW^2*Zb11^2-4*SW^2-3*Zb11^2+3)*c2b*MW^2)
+ vv2643|-(2*c2b*MW^2*SW^2*Zl11^2-2*c2b*MW^2*SW^2+c2b*MW^2*Zl11^2-2*CW^2*Ml^2*Zl11^2+2*CW^2*Ml^2)
+ vv2646|-((2*SW^2+1)*c2b*MW^2-2*CW^2*Ml^2)*Zl11*Zl21
+ vv2652|(2*SW^2*Zl11^2+Zl11^2-1)*c2b*MW^2-2*CW^2*Ml^2*Zl11^2
+ vv2666|c2b*C2W*MW^2-2*CW^2*Ml^2
+ vv2675|(2*(Zt11^2-2)*SW^2+3*Zt11^2)*c2b*MW^2-6*(Mb^2*Zt11^2-Mt^2*Zt11^2+Mt^2)*CW^2
+ vv2679|-(6*(Mb+Mt)*(Mb-Mt)*CW^2-(2*SW^2+3)*c2b*MW^2)*Zt11*Zt21
+ vv2687|6*(Mb^2*Zt11^2-Mb^2-Mt^2*Zt11^2)*CW^2-(2*SW^2*Zt11^2+2*SW^2+3*Zt11^2-3)*c2b*MW^2
+ vv2695|-(c2b*MW^2-Ml^2)
+ vv2704|(Mb+Mt)*(Mb-Mt)-c2b*MW^2
+ vv2719|-(cb*MW^2*sapb-Ml^2*sa)
+ vv2728|(ca*cb*Mt*Zb11*Zt11-camb*Mb*Zb12*Zt12)*Mt-(cb*MW^2*sapb-Mb^2*sa)*sb*Zb11*Zt11
+ vv2731|(ca*cb*Mt*Zb21*Zt11-camb*Mb*Zb22*Zt12)*Mt-(cb*MW^2*sapb-Mb^2*sa)*sb*Zb21*Zt11
+ vv2734|(ca*cb*Mt*Zb11*Zt21-camb*Mb*Zb12*Zt22)*Mt-(cb*MW^2*sapb-Mb^2*sa)*sb*Zb11*Zt21
+ vv2737|(ca*cb*Mt*Zb21*Zt21-camb*Mb*Zb22*Zt22)*Mt-(cb*MW^2*sapb-Mb^2*sa)*sb*Zb21*Zt21
+ vv2787|4*SW^4-12*SW^2*Zb11^2+9*Zb11^2
+ vv2789|3*(4*SW^2-3)*Zb21*Zb12+4*SW^4
+ vv2805|4*SW^4-4*SW^2*Zl11^2+Zl11^2
+ vv2807|4*SW^4+4*SW^2*Zl11^2-4*SW^2-Zl11^2+1
+ vv2813|16*SW^4-24*SW^2*Zt11^2+9*Zt11^2
+ vv2815|3*(8*SW^2-3)*Zt21*Zt12+16*SW^4
+ vv2817|-3*(camb^2*MHH^2+Mh^2*samb^2)
+ vv2821|-(camb^2*MHH^2*s2a+2*Mh^2*sa^3*samb*sb-2*ca^3*cb*Mh^2*samb)
+ vv2824|-((4*SW^2*Zb11^2-2*SW^2-3*Zb11^2)*c2b*MW^2+6*CW^2*Mb^2)
+ vv2833|(4*SW^2*Zb11^2-2*SW^2-3*Zb11^2+3)*c2b*MW^2-6*CW^2*Mb^2
+ vv2858|(C2W*Zl11^2-2*SW^2*Zl11^2+2*SW^2)*c2b*MW^2-2*CW^2*Ml^2
+ vv2865|-((C2W*Zl11^2-C2W-2*SW^2*Zl11^2)*c2b*MW^2+2*CW^2*Ml^2)
+ vv2880|(8*SW^2*Zt11^2-4*SW^2-3*Zt11^2)*c2b*MW^2-6*CW^2*Mt^2
+ vv2889|-((8*SW^2*Zt11^2-4*SW^2-3*Zt11^2+3)*c2b*MW^2+6*CW^2*Mt^2)
+ vv2895|-3*(4*(ca^3*cb-sa^3*sb)^2*Mh^2-(2*capb*MH3+MHH*s2a)*(2*capb*MH3-MHH*s2a)*camb^2)
+ vv2898|  (4*SW^2*Zb11^2-2*SW^2-3*Zb11^2)*c2a*cb^2*MW^2-6*CW^2*Mb^2*sa^2
+ vv2905|-((4*SW^2*Zb11^2-2*SW^2-3*Zb11^2+3)*c2a*cb^2*MW^2+6*CW^2*Mb^2*sa^2)
+ vv2926|-((C2W*Zl11^2-2*SW^2*Zl11^2+2*SW^2)*c2a*cb^2*MW^2+2*CW^2*Ml^2*sa^2)
+ vv2933|(C2W*Zl11^2-C2W-2*SW^2*Zl11^2)*c2a*cb^2*MW^2-2*CW^2*Ml^2*sa^2
+ vv2946|-((8*SW^2*Zt11^2-4*SW^2-3*Zt11^2)*c2a*MW^2*sb^2+6*ca^2*CW^2*Mt^2)
+ vv2953|(8*SW^2*Zt11^2-4*SW^2-3*Zt11^2+3)*c2a*MW^2*sb^2-6*ca^2*CW^2*Mt^2
+ vv0135|6*(abca*Zb11*Zb21-ca*Mb^2)*CW^2-(4*SW^2*Zb11^2-2*SW^2-3*Zb11^2)*capb*cb*MW^2
+ vv0140|-((4*SW^2-3)*capb*cb*MW^2*Zb11*Zb21+3*(2*Zb11^2-1)*abca*CW^2)
+ vv0149|-(6*(abca*Zb11*Zb21+ca*Mb^2)*CW^2-(4*SW^2*Zb11^2-2*SW^2-3*Zb11^2+3)*capb*cb*MW^2)
+ vv0181|-(2*(ca*CW^2*Ml^2+capb*cb*MW^2*SW^2*Zl11^2-capb*cb*MW^2*SW^2)-C2W*capb*cb*MW^2*Zl11^2-2*alca*CW^2*Zl11*Zl21)
+ vv0185|(C2W-2*SW^2)*capb*cb*MW^2*Zl11*Zl21-(2*Zl11^2-1)*alca*CW^2
+ vv0193|-(2*(ca*CW^2*Ml^2-capb*cb*MW^2*SW^2*Zl11^2)+(Zl11+1)*(Zl11-1)*C2W*capb*cb*MW^2+2*alca*CW^2*Zl11*Zl21)
+ vv0215|6*(atsa*Zt11*Zt21-Mt^2*sa)*CW^2+(8*SW^2*Zt11^2-4*SW^2-3*Zt11^2)*capb*MW^2*sb
+ vv0220|(8*SW^2-3)*capb*MW^2*sb*Zt11*Zt21-3*(2*Zt11^2-1)*atsa*CW^2
+ vv0229|-(6*(atsa*Zt11*Zt21+Mt^2*sa)*CW^2+(8*SW^2*Zt11^2-4*SW^2-3*Zt11^2+3)*capb*MW^2*sb)
+ vv0253|-((2*cb^2*MW^2-Ml^2)*sb*Zl11-alsb*Zl12)
+ vv0256|-((2*cb^2*MW^2-Ml^2)*sb*Zl21-alsb*Zl22)
+ vv0267|(Mb*sb^2*Zb11*Zt11+Mt*Zb12*Zt12)*Mb+(Mt^2-2*MW^2*sb^2)*cb^2*Zb11*Zt11+atcb*cb*Zb11*Zt12+absb*sb*Zb12*Zt11
+ vv0272|(Mb*sb^2*Zb21*Zt11+Mt*Zb22*Zt12)*Mb+(Mt^2-2*MW^2*sb^2)*cb^2*Zb21*Zt11+atcb*cb*Zb21*Zt12+absb*sb*Zb22*Zt11
+ vv0277|(Mb*sb^2*Zb11*Zt21+Mt*Zb12*Zt22)*Mb+(Mt^2-2*MW^2*sb^2)*cb^2*Zb11*Zt21+atcb*cb*Zb11*Zt22+absb*sb*Zb12*Zt21
+ vv0282|(Mb*sb^2*Zb21*Zt21+Mt*Zb22*Zt22)*Mb+(Mt^2-2*MW^2*sb^2)*cb^2*Zb21*Zt21+atcb*cb*Zb21*Zt22+absb*sb*Zb22*Zt21
+ vv0789|-(6*(absa*Zb11*Zb21-Mb^2*sa)*CW^2-(4*SW^2*Zb11^2-2*SW^2-3*Zb11^2)*cb*MW^2*sapb)
+ vv0793|(4*SW^2-3)*cb*MW^2*sapb*Zb11*Zb21+3*(2*Zb11^2-1)*absa*CW^2
+ vv0801|6*(absa*Zb11*Zb21+Mb^2*sa)*CW^2-(4*SW^2*Zb11^2-2*SW^2-3*Zb11^2+3)*cb*MW^2*sapb
+ vv0829|2*(cb*MW^2*sapb*SW^2*Zl11^2-cb*MW^2*sapb*SW^2+CW^2*Ml^2*sa)-C2W*cb*MW^2*sapb*Zl11^2-2*alsa*CW^2*Zl11*Zl21
+ vv0833|-((C2W-2*SW^2)*cb*MW^2*sapb*Zl11*Zl21-(2*Zl11^2-1)*alsa*CW^2)
+ vv0841|-(2*(cb*MW^2*sapb*SW^2*Zl11^2-CW^2*Ml^2*sa)-(Zl11+1)*(Zl11-1)*C2W*cb*MW^2*sapb-2*alsa*CW^2*Zl11*Zl21)
+ vv0861|6*(atca*Zt11*Zt21-ca*Mt^2)*CW^2-(8*SW^2*Zt11^2-4*SW^2-3*Zt11^2)*MW^2*sapb*sb
+ vv0873|-(6*(atca*Zt11*Zt21+ca*Mt^2)*CW^2-(8*SW^2*Zt11^2-4*SW^2-3*Zt11^2+3)*MW^2*sapb*sb)
+ vv0865|-((8*SW^2-3)*MW^2*sapb*sb*Zt11*Zt21+3*(2*Zt11^2-1)*atca*CW^2)
+ aa1075|(aa1073*MC1-aa1071*MNE1)/MW
+ aa1087|(aa1085*MC1-aa1083*MNE2)/MW
+ aa1099|(aa1097*MC1-aa1095*MNE3)/MW
+ aa1111|(aa1109*MC1-aa1107*MNE4)/MW
+ aa1077|(aa1071*MC1-aa1073*MNE1)/MW
+ aa1089|(aa1083*MC1-aa1085*MNE2)/MW
+ aa1101|(aa1095*MC1-aa1097*MNE3)/MW
+ aa1113|(aa1107*MC1-aa1109*MNE4)/MW
+ aa1215|(aa1213*MC2-aa1211*MNE1)/MW
+ aa1227|(aa1225*MC2-aa1223*MNE2)/MW
+ aa1239|(aa1237*MC2-aa1235*MNE3)/MW
+ aa1251|(aa1249*MC2-aa1247*MNE4)/MW
+ aa1217|(aa1211*MC2-aa1213*MNE1)/MW
+ aa1229|(aa1223*MC2-aa1225*MNE2)/MW
+ aa1241|(aa1235*MC2-aa1237*MNE3)/MW
+ aa1253|(aa1247*MC2-aa1249*MNE4)/MW
+ aa1135|(aa1131-aa1133)*2*MC1/MZ
+ aa1295|(aa1291-aa1293)*2*MC2/MZ
+ aa1151|(aa1149*MC1-aa1147*MC2)/MZ
+ aa1153|(aa1147*MC1-aa1149*MC2)/MZ
+===========================================================================================================================================================================

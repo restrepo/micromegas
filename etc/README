@@ -1,0 +1,37 @@
+
+This directory does not present a physical model.
+It contains  auxiliary  codes and models which where 
+used to prepare micrOMEGAs_2.2. In particular
+1) calchep/ directory contains toy models which allow to check 
+    a) a model with  basic operators;
+    b) a model with twist-2 operator;
+    c) a model with WINP-quark-squark  Yukawa interaction
+2) work/models contains a toy model which allow to check squark 
+co-annihilation. In particular one can see that if Msq-Mlsp <10 GeV then 
+co-annihilation ~q,~Q -> G,G puts Relic below WMAP. In its turn it means 
+that twist-2 and box diagrams are not so important in direct detection
+business.
+   main.c and data1.par are tools to play with this toy model. 
+
+3) I1test.c gives a possibility to check a factor which comes from box
+diagrams. It demonstrates that  this factor is about [1- 0.5*Mq/(Msq-Mne)].
+Compile it by 
+        make main=I1test.c
+Usage 
+       ./I1test Mq Msq Mne
+4) Twist2.c - test of Twist2 DD cross sections calculated by loop and 
+tree level approachs. Needs two parameters mne and msq.
+
+5) sdGauss.c - calculate table of effective  Gauss radius as a function 
+of A^(1/3). 
+
+6) sd_comp.tab.c compare results obtained by Fermi density and against  one 
+   obtained with special SD form factors. 
+    THIS FUNCTION SHOULD BE MOVED to ../MSSM for compilation.
+
+7) SD_FF_test.c - for visual testing of SD form factors.
+8) DD_ALL.c for testing  Direct Detection signals in different experiments.
+9) nucleusRecoil.c  calculates number of events for different nuclei.
+   Input parameters are Mwimp and proton/neutron SI/SD cross sections.
+10) antiprotonNorm.c - compares numerical solution of antiproton propagation 
+with analitic formuyla in case of Vc=0 and delta(r) source of DM.

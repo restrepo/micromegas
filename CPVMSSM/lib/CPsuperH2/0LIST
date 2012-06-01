@@ -1,0 +1,55 @@
+(0) 14/Dec/2007: The second version CPsuperH2.0 released
+
+(1) 29/Apr/2008: b to s gamma calculation improved
+
+(2) 13/Aug/2008: EDMs included, see arXiv:0808.1819
+
+    *Dear Users: If you don't need EDMs, commenting out the 
+                 subroutine FILLEDMS in "cpsuperh2.f" may 
+                 significantly decrease computer running time
+
+(3) 03/Oct/2008: The 2-loop Higgs-mediated contribution to 
+                 the quark CEDMs corrected
+
+(4) 28/Apr/2009: 
+
+    (4)-1 : The signs of the fermionic 2-loop Higgs-mediated 
+            contributions to EDMs and CEDMs have been corrected
+
+    (4)-2 : The array SSPARA_H has been extended to include 
+            the A terms of first two generations
+
+    (4)-3 : The subroutine FILLMUON (fillmuon.f) has been added 
+            for the calculations of the electric and anomalous 
+            magnetic dipole moments of the muon, see arXiv:0904.4352
+
+    (4)-4 : The obsolete subroutine HiggsEDM (higgsedm.f) has 
+            been removed
+
+(5) 10/Jun/2009: cpsuperh2.f, fillcoupl2.f and fillgambr2.f improved
+
+     (5)-1 : The arguments of the subrourine FILLGAMBR2 is extended
+             to included SMPARA_H and SSPARA_H arrays
+
+     (5)-2 : IFLAG_H(56)=2 for tachyonic third-generation squarks
+             IFLAG_H(56)=3 for tachyonic first two-generation squarks
+
+     (5)-3 : When the tan_beta-enhanced threshold corrections are 
+             encoded in the down-type quark Yukawa coulings in a
+             form of h_q = (h_q)^0 / (1 + Delta_q tan_beta)
+
+             CAUX_H(10): complex Delta_b
+             CAUX_H(11): complex Delta_s
+             CAUX_H(12): complex h_s(mt^pole) 
+   
+     (5)-4 : Top-quark decays are calculated including the leading-order
+             QCD corrections and the threshold corrections. The results 
+             are stored as follows
+
+             RAUX_H(50): Gamma(t -> W  b)
+             RAUX_H(51): Gamma(t -> H+ b)
+             RAUX_H(52): Br(t -> W  b)
+             RAUX_H(53): Br(t -> H+ b)
+ 
+     (5)-5 : RAUX_H(101) is moved in to the subroutine FILLDPHG 
+

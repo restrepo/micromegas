@@ -1,0 +1,65 @@
+ 3 9 72
+  This table  apples cuts on the phase space. A phase space function
+ is described in the first column. Its limits are defined and the second
+ and the third columns. If one of these fields is empty then a one-side
+ cut is applied. 
+  The phase space function is defined by its name which characterize 
+ type of cut and a particle list for which the cut is applied. 
+ For example, "T(u)" means  transverse momentum  of 'u'-quark; 
+ T(u,D) means summary transverse momentum of quark pair.
+ The following  cut functions are available:
+  A  - Angle  in degree units;
+  C  - Cosine of angle;
+  J  - Jet cone angle;
+  E  - Energy of the particle set;
+  M  - Mass of the particle set;
+  P  - Cosine in the rest frame of pair;
+  T  - Transverse momentum P_t  of the particle set;
+  Y  - Rapidity of  particle set. 
+  N  - Pseudo-rapidity of particle set.
+  Z  - Transverse energy
+ Generaly 'A','C' have 2 arguments. But in case of  collision functions
+ 'A' and 'C' with one argument designate angle between the given 
+ particle and first (in the list) incoming particle.
+   One can construct cuts  using names  of particles which are involved 
+ in others  subprocess. For a diven Monte Carlo session cuts which are
+ applied for particles which are absensent in the session will be 
+ignored.    
+  
+  Sometimes the list of outgoing particles contans identical ones
+ like  in the case of "e,E->A,A,A" process. For such subprocess 
+ E(A) cut  is applied to all  gammas. 
+
+ One can add '^'/'_' modifier for function name. If process contains 
+ identical particles such functions choose maximum/minimum values. 
+In general cut 
+
+ Parameter  |> Min bound <|> Max bound <|
+E(A)        |   20        |  100
+
+works like 
+
+ Parameter  |> Min bound <|> Max bound <|
+  E^(A)     |             |   100 
+  E_(A)     |  20         |   
+ 
+ One can type 'Jet' instead of particles name. CalcHEP  interprets 
+ it as one of 5 quarks of gluon. 
+
+ AM User defined cut also can be applied. They are specified by 
+ 'U<character_set>'. The list of particles is not expected after this
+ name. CalcHEP will call use 
+          usrfun("<character_set>")
+ For example 
+   'Uabc'   leads to call usrfun("abc")
+ Originally CalcHEP contains a dummy version of 'usrfun' which leads to 
+ stop of n_calchep execution. An object file or library with a code of
+ usrfun has to be written in table 'Libraries' which specify the model.
+ As well one can use the "Edit linker" option of CalcHEP symbolic
+ session. The approach to particle momenta and their names needed to 
+ write 'usrfun' are explained in CalcHEP manual.
+
+ The parameter  limits van be defined  by an algebraic formula, which
+ contains numbers and identifiers enumerated in the "Model parameters"
+ menu. Parentheses  "()" and  operation "+,-,/,*,**,sqrt()" are also
+ permitted.

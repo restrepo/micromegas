@@ -1,0 +1,12 @@
+2 5 50
+  This function prepare and launches Event 
+Generator. The events generated are written
+into the text file results/event_N.txt,
+where N is a session number. See help 
+for next level menus. 
+  The efficiency of generator should be 
+much better if before launching of generator
+the user starts Vegas integration and  
+prepares  by this way an appropriate phase
+space  grid.
+   

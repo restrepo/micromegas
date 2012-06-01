@@ -1,0 +1,34 @@
+1. ============  read  ../README ===========
+
+2. ============ Spectrum calculation =======
+ We rely on CPsuperH for computing the spectrum
+ and HiggsBounds for accelerator constraints
+  
+3. ======= Special citations ========
+
+%\cite{Belanger:2006qa}
+\bibitem{Belanger:2006qa}
+G.~Belanger, F.~Boudjema, S.~Kraml, A.~Pukhov and A.~Semenov,
+%``Relic density of neutralino dark matter in the MSSM with CP violation,''
+arXiv:hep-ph/0604150.
+
+CPsuperH:
+
+%\cite{Lee:2003nt}
+\bibitem{Lee:2003nt}
+J.~S.~Lee, A.~Pilaftsis, M.~Carena, S.~Y.~Choi, M.~Drees, J.~R.~Ellis and C.~E.~M.~Wagner,
+%``CPsuperH: A computational tool for Higgs phenomenology in the minimal
+%supersymmetric standard model with explicit CP violation,''
+Comput.\ Phys.\ Commun.\  {\bf 156} (2004) 283
+[arXiv:hep-ph/0307377].
+
+
+HiggsBounds
+%\cite{Bechtle:2008jh}
+\bibitem{Bechtle:2008jh}
+  P.~Bechtle, O.~Brein, S.~Heinemeyer, G.~Weiglein and K.~E.~Williams,
+  %`HiggsBounds: Confronting Arbitrary Higgs Sectors with Exclusion Bounds
+  %from
+  %LEP and the Tevatron,''
+  Comput.\ Phys.\ Commun.\  {\bf 181} (2010) 138
+  [arXiv:0811.4169 [hep-ph]].

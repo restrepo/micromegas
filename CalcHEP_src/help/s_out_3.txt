@@ -1,0 +1,8 @@
+5 5 55  C-compiler
+  It allows to change the list of auxiliary libraries
+which are passed to  the linker. For instance, it could
+be the libraries which support the work of model. Other
+example is the attaching CERN PDFLIB to the code.
+In this case you have to add a record  like 
+   -L/cern/pro/lib -lpdflib804 -lmathlib -lpacklib  
+  Your improvements will be saved on the disk. 

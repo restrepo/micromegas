@@ -1,0 +1,27 @@
+:
+  echo "Remove all generated files? (Y/N)"
+  read answer
+  if(test  $answer = Y -o $answer = y  ) then
+    echo OK!
+  else
+    echo cleaning is refused!
+    exit 0
+  fi 
+
+  if(test -x "`which gmake`") then
+     MAKE=gmake
+  else
+     MAKE=make
+  fi
+  export MAKE
+
+  for Dir in * 
+  do 
+    if(test -d $Dir ) then 
+       $MAKE -C $Dir clean
+    fi
+  done
+
+
+  
+  exit 0

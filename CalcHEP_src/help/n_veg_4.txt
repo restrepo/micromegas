@@ -1,0 +1,4 @@
+ 1 12 51 5
+ It sets the number of integrand evaluations per
+iteration at the second cycle. The real number of 
+evaluations can be smaller than the value defined.

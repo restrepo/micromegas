@@ -1,0 +1,43 @@
+ # File generated with HiggsBounds 1.1.0 (FORTRAN77 version)
+ # HiggsBounds command used:
+ #   HiggsBounds LandT effC 1 
+ #
+ # column description:
+ #   0 : line id of input
+ #   i : Higgs boson masses Mh(i) (i=1,...,  1)
+ #   2 : scenario allowed flag (1: allowed, 0: excluded, -1: unphysical)
+ #   3 : most sensitive channel (see files: Key_LEP-tables, Key_TEV-tables)
+ #   4 : ratio [sig x BR]_model/[sig x BR]_limit (<1: allowed, >1: excluded)
+ #   5 : number of Higgs bosons combined in most sensitive channel
+ # columns :
+ #    0        1           2    3        4           5
+ #
+      1     90.0000        0    1     5.23467        1
+      2     95.0000        0    1     3.73696        1
+      3     100.000        0    1     3.60509        1
+      4     105.000        0    1     3.83532        1
+      5     110.000        0    1     3.03116        1
+      6     115.000        1    1    0.640111        1
+      7     120.000        1    1    0.367489        1
+      8     125.000        1   49    0.215841        1
+      9     130.000        1   49    0.235042        1
+     10     135.000        1   49    0.246849        1
+     11     140.000        1   49    0.272027        1
+     12     145.000        1   35    0.358797        1
+     13     150.000        1   35    0.417674        1
+     14     155.000        1   47    0.709334        1
+     15     160.000        0   47     1.00412        1
+     16     165.000        0   47     1.16047        1
+     17     170.000        1   34    0.998697        1
+     18     175.000        1   47    0.908545        1
+     19     180.000        1   47    0.832801        1
+     20     185.000        1   47    0.588021        1
+     21     190.000        1   47    0.499999        1
+     22     195.000        1   47    0.384303        1
+     23     200.000        1   47    0.303030        1
+ # channel numbers used in this file
+ #    1:  e+ e- -> H(1) Z, H(1) -> b b
+ #   34: p p-bar -> H(1) + X, CDF & D0 SM combined (CDF note 9465, D0 note 5754)
+ #   35: p p-bar -> H(1) + X -> W W + X, CDF with 4.8 fb^-1 (CDF note 9887)
+ #   47: p p-bar -> H(1) + X, CDF & D0 SM combined for m_H >= 155 GeV (CDF note 9713, D0 note 5889)
+ #   49: p p-bar -> H(1) + X, SM combined (CDF note 9897)

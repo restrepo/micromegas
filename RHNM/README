@@ -1,0 +1,10 @@
+1. ============  read  ../README ===========
+
+3. ======= Special citations ========
+
+  %\cite{Belanger:2007dx}
+  \bibitem{Belanger:2007dx}
+  G.~Belanger, A.~Pukhov and G.~Servant,
+  %`Dirac Neutrino Dark Matter,''
+  arXiv:0706.0526 [hep-ph].
+  %%CITATION = ARXIV:0706.0526;%%

@@ -1,0 +1,7 @@
+Standard Model
+Libraries
+External libraries  and citation                                      <|
+% To switch on CERN PDFLIB uncomment the line below,
+% improving path to CERNLIB if it needs
+% -L/cern/pro/lib -lpdflib804 -lmathlib -lpacklib  $lFort
+========================================================================

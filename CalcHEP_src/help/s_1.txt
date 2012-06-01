@@ -1,0 +1,16 @@
+ 1 4 52   Model menu  
+   This is a list of available physical models.
+Select a model for the further work. CalcHEP is 
+distributed with 2 built-in models. They are SM
+with full CKM matrix and version (SM') with 
+diagonal CKM ( d' and s' quarks are used instead
+of d and s). The Cabibbo angle is taken into 
+account by modification of parton distributions
+ with is switched on by PDG codes of d' and s' 
+quarks.   
+ 
+   Other  models are distributed separately and 
+can be added to the list by means of the 
+"IMPORT OF MODELS" menu function. Original 
+versions of built-in models can be restored by the 
+this  way too. 

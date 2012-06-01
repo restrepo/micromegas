@@ -1,0 +1,434 @@
+!*************************************************************************
+! This file is part of
+!
+!       HiggsBounds 1.2.0
+!
+! by Philip Bechtle, Oliver Brein, Sven Heinemyer, Georg Weiglein
+!    and Karina E. Williams.
+!
+!  Journal Reference: e-Print: arXiv:0811.4169 [hep-ph], submitted to CPC.
+!  Web site: http://www.ippp.dur.ac.uk/HiggsBounds
+!
+!10/09/2009
+!*************************************************************************
+
+Contents of the present directory are part of the program package 
+	
+	HiggsBounds version 1.1.0
+
+Copyright 2009 Philip Bechtle, Oliver Brein, Sven Heinemeyer, Georg Weiglein 
+               and Karina E. Williams.
+
+This is the FORTRAN 77 version of the code, written by Oliver Brein.
+In case of problems/questions/etc. with this code version, 
+please contact: oliver.brein@durham.ac.uk
+June 24, 2009
+
+* Journal Reference:
+  Philip Bechtle, Oliver Brein, Sven Heinemeyer, Georg Weiglein, 
+  Karina E. Williams,
+  HiggsBounds: Confronting Arbitrary Higgs Sectors 
+  with Exclusion Bounds from LEP and the Tevatron,
+  e-Print: arXiv:0811.4169 [hep-ph], submitted to CPC.
+
+* Web site: http://www.ippp.dur.ac.uk/HiggsBounds
+
+Please have a look at the above paper for detailed information
+on the program.
+
+* Software License:
+  HiggsBounds is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  HiggsBounds is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with HiggsBounds.  If not, see <http://www.gnu.org/licenses/>.
+
+
+
+* What the program does:
+------------------------
+
+HiggsBounds tests theoretical predictions of models 
+with arbitrary Higgs sectors against the exclusion bounds
+obtained from the Higgs searches at LEP and the Tevatron.
+The included experimental information comprises exclusion bounds 
+at 95% C.L. on topological cross sections. In order to determine 
+which search topology has the highest exclusion power, the program 
+also includes, for each topology, information from the experiments 
+on the expected exclusion bound, which would have been observed in 
+case of a pure background distribution. Using the predictions of 
+the desired model provided by the user as input, HiggsBounds
+determines the most sensitive channel and tests whether the
+considered parameter point is excluded at the 95% C.L.
+
+
+
+* How to use HiggsBounds:
+-------------------------
+
+The code can be invoked on the command line using the command
+	
+	HiggsBounds <options>
+
+and a subroutine version of the code can be used in other codes
+by linking the library
+
+	libHB.a .
+
+An online version version can be reached via the URL:
+
+	http://www.ippp.dur.ac.uk/HiggsBounds
+
+By running HiggsBounds without options, more detailed 
+information on how to invoke it will be displayed.
+
+
+
+* Additional requirements:
+--------------------------
+
+The program "HiggsBounds" and the FORTRAN library "libHB.a" do not
+need to link to other libraries.
+
+The sample program "HBwithFH" demonstrating the use of HiggsBounds
+in connection with FeynHiggs needs to link to:
+
+	libFH.a (FeynHiggs 2.6.4).
+
+The sample program "HBwithCPsuperH" demonstrating the use of HiggsBounds
+in connection with CPsuperH needs to link to:
+
+         libcpsuperh2.a (CPsuperH 2.0).
+ 
+
+
+* How to install HiggsBounds:
+-----------------------------
+
+1. You have to edit the file makefile.in in the following way:
+
+   a) You have to specify the command which invokes your FORTRAN 77 compiler
+      		e.g. FC = g77 for the GNU g77 compiler
+      and the appropriate flags
+		e.g. COMPILERFLAGS = -O0 -ffixed-line-length-none -w -g -DG77VERSION
+	        for the GNU g77 compiler.
+      It is important that the compiler is set such that code with line lengths 
+      longer than 79 characters is accepted. 
+      The preprocessor quantities G77VERSION, VERBOSE, DEBUG
+      affect the code if they are defined with the -D option.
+
+      G77VERSION: if defined, FORMAT statements for the output are
+                  selected such as they are needed by g77 or gfortran.
+
+      VERBOSE, DEBUG: give more output, if defined.
+
+   b) If you are going to use the sample programs 
+      "HBwithFH" and "HBwithCPsuperH", 
+      you have to specify the environment variables which tell the linker
+      where to find the additional libraries:
+
+      - For FeynHiggs specify:
+		FHDIR (e.g. $(HOME)/Packages/FeynHiggs-2.6.4/i486-linux)
+
+      - For CPsuperH specify:
+		CPSHDIR (e.g. $(HOME)/Packages/CPsuperH2)
+	
+2. After this changes enter on the command line
+	
+	./configure
+
+   and then
+
+	make
+
+   This will generate the program "HiggsBounds" and the library "libHB.a"
+   You can also enter:
+
+	make libHB : This will only generate "libHB.a".
+	make ex  : This will generate the three example programs.
+
+			HBwithFH, 
+			HBwithCPsuperH,
+			example-SM_vs_4thGen,
+
+		   in the subdirectory ./example_programs/ .
+	make all : This will generate all programs and "libHB.a".
+
+
+
+* sample runs :
+---------------
+
+1. Sample runs with sample input data:
+   Enter on the command-line:
+	
+	HiggsBounds LandT part 3 example_data/HB_randomtest50points_
+   or
+	HiggsBounds LandT effC 1 example_data/SM_sample-data/
+
+   The output of one of these test runs will be in the two files:
+	example_data/HB_randomtest50points_HiggsBounds_results.dat
+	example_data/HB_randomtest50points_Key.dat
+   or
+	example_data/SM_sample-data/HiggsBounds_results.dat
+	example_data/SM_sample-data/Key.dat
+   
+   Those files can be compared with the corresponding files with
+   the additional suffix "-for-comparison".
+
+   More sample input data than mentioned here is available in 
+   the directory "example_data/".
+
+
+2. Sample program "HBwithFH" in directory "example_programs/":
+   program, showing the usage of HiggsBounds together with FeynHiggs.
+
+   Change to the directory "example_programs/" and enter on the 
+   command-line:
+
+		HBwithFH
+
+   The output of the program is to screen.
+
+
+3. Sample program "HBwithCPsuperH" in directory "example_programs/":
+   program, showing the usage of HiggsBounds together with CPsuperH. 
+   The executable "HBwithCPsuperH" requires an input stream.
+   The file "HBwithCPsuperH.input" can be used as input stream.
+
+   Change to the directory "example_programs/" and enter on the 
+   command-line:
+
+		HBwithCPsuperH < HBwithCPsuperH.input
+
+   The output of the program is to screen.
+
+
+4. Sample program "example-SM_vs_4thGen" in directory "example_programs/":
+   program, demonstrating how to obtain with HiggsBounds exclusion plots 
+   for the Standard Model and a simple 4th-Generation Model, like Fig. 5 
+   in the Journal Reference.
+
+   Change to the directory "example_programs/" and enter on the
+   command-line:
+		
+	example-SM_vs_4thGen
+
+   The output of the program is in three files:
+		example-4thGen-results.dat
+		example-SM-results.dat
+		Key.dat
+   Those files can be compared with the corresponding files with
+   the additional suffix "-for-comparison".
+
+
+
+* Description of the files: (see also the codes themselves)
+---------------------------
+
+configure : 
+	- sets the environment variables THEINSTDIR and HBLIBDIR
+	  statically to the current working directory and
+	  generates the makefile.
+	This is to make sure that (after installation) HiggsBounds 
+	will know where the exclusion data etc. resides in the system.
+
+makefile.in : 
+	- input to configure.
+	The setting of environment variables in this file has to be 
+	adjusted to match the users programming environment. 
+	See detailed description under "How to install it" above.
+
+f77main.F :
+	- contains the main program of the command line program "HiggsBounds"	
+	- subroutines and functions in this file (names should indicate
+	  their purpose):
+		subroutine write_HiggsBounds_info()
+		subroutine calc_HiggsBounds(..)
+        	subroutine check_input_sanity(..)
+		subroutine parse_commandline(..)
+        	subroutine open_output_file(..)
+		subroutine determine_topology_flags(..)
+        	subroutine determine_output_channel_number(..)
+        	subroutine det_chan_n_expid_from_output_chan(..)
+		subroutine write_table_key(..)
+		subroutine write_output_channel(..)
+
+f77subroutines.F :
+	- contains the key subroutines for the Fortran library version of
+	  the code. In order to use it, the user has to link the library 
+	  "libHB.a" to his code and can use one of the three subroutines,
+		 run_HiggsBounds_effC(..), run_HiggsBounds_part(..),
+		 run_HiggsBounds_hadr(..),
+	  to call HiggsBounds within his code.
+	- subroutines and functions in this file (names should indicate
+	  their purpose):
+	        subroutine run_HiggsBounds_effC(..)
+	        subroutine run_HiggsBounds_part(..)
+	        subroutine run_HiggsBounds_hadr(..)
+	        subroutine initialize_HiggsBounds(..)
+	        subroutine finish_HiggsBounds()
+	        subroutine write_HiggsBounds_info()
+       		subroutine determine_topology_flags(..)
+	        subroutine check_input_sanity(..)
+	        subroutine determine_output_channel_number(..)
+	        subroutine write_table_key(..)
+
+tables-nhmax.F :
+	- contains a set of definitions of preprocessor variables, e.g.
+	  NHMAX (the maximum number of Higgs bosons), etc.
+	  In particular, the user may edit the settings of 
+		NHMAX, delta_Mh_TEV, delta_Mh_LEP, EPS_SM_LIKENESS. 
+	  However, for the g77-version of the code (i.e. if G77VERSION 
+	  is defined during compilation), output routines are not designed 
+          for NHMAX > 10.
+	  	
+input.F :
+	- contains all subroutines for reading input files.
+	- subroutines and functions in this file (names should indicate
+          their purpose):
+	        subroutine initialize_filestatus()
+	        subroutine read_MH_GammaTot(..)
+	        subroutine read_BR_1H(..)
+	        subroutine read_BR_2H(..)
+	        subroutine read_LEP_HZ_CS_ratios(..)
+	        subroutine read_LEP_2H_CS_ratios(..)
+	        subroutine read_TEV_H_0jet_partCS_ratios(..)
+	        subroutine read_TEV_H_1jet_partCS_ratios(..)
+	        subroutine read_TEV_H_vbf_hadCS_ratios(..)
+	        subroutine read_TEV_HW_partCS_ratios(..)
+	        subroutine read_TEV_HZ_partCS_ratios(..)
+	        subroutine read_TEV_1H_hadCS_ratios(..)
+	        subroutine read_couplings_sq_ratios(..)
+	        subroutine read_additional_data(..)
+	        subroutine determine_columns_from_line(..)
+	        subroutine output_vector(..)
+	        subroutine output_matrix(..)
+
+LEP-bound.F (tables-lep_cb.h, LEPtables/* ) : 
+	- contains all subroutines and functions needed for checking
+	  exclusion bounds according to LEP analyses.
+	- The data of the LEP analyses is read in from files residing 
+	  in the folder "./LEPtables/".
+	- The data is stored in common blocks which are defined in the 
+	  file "tables-lep_cb.h".
+	- subroutines and functions in this file (names should indicate
+          their purpose):
+		subroutine initialize_LEP_tables(..)
+		subroutine check_LEP_bound(..) : 
+			master routine for checking bounds from LEP analyses
+		subroutine check_LEP_bound1(..) : 
+			checking bounds depending on one Higgs mass
+		subroutine check_LEP_bound2(..) :
+			checking bounds depending on two Higgs masses
+		integer function findj(..)
+		integer function findi(..)
+		integer function LEP_reaction_number(..)
+		subroutine write_LEP_channel(..)
+		subroutine get_1d_LEPtable_data(..)
+		subroutine get_2d_LEPtable_data(..)
+
+TEV-bound.F (tables-tev_cb.h, TEVtables/* ) : 
+	- contains all subroutines and functions needed for checking
+	  exclusion bounds according to Tevatron (CDF/D0) analyses.
+	- The data of the Tevatron analyses is read in from files residing 
+	  in the folder "./TEVtables/".
+	- The data is stored in common blocks which are defined in the 
+	  file "tables-tev_cb.h".
+	- subroutines and functions in this file (names should indicate
+          their purpose):
+		subroutine initialize_TEV_tables(..)
+		subroutine check_TEV_bound(..)
+		subroutine check_TEV_bound1(..)
+		subroutine calc_CS_and_BR_from_couplings(..)
+		subroutine calc_hadCS_from_partCS(..)
+		subroutine check_SM_likeness(..)
+		integer function TEV_reaction_number(..)
+		subroutine write_TEV_channel(..)
+		subroutine get_1d_TEVtable_data(..)
+
+theory_BRfunctions.F (SM_decay_data_cb.h, SMBRs/* ) :
+	- contains functions to calculate the SM predictions
+	  for the total decay width and several decay branching ratios
+	  of the Higgs boson as a function of the Higgs mass Mh in GeV
+	  according to HDECAY 3.303.
+	- subroutines and functions in this file (names should indicate
+          their purpose):
+	       subroutine initialize_SM_decay_data()
+	       double precision function SMGamma_h(Mh)
+	       double precision function SMBR_HWW(Mh)
+	       double precision function SMBR_Hbb(Mh)
+	       double precision function SMBR_Htautau(Mh)
+	       double precision function SMBR_Hgamgam(Mh)
+	       double precision function SMBR_Hgg(Mh)
+	       double precision function SMBR_HZgam(Mh)
+	       double precision function SMBR_HZZ(Mh)
+	       double precision function SMBR_Htoptop(Mh)
+	       double precision function SMBR_Hcc(Mh)
+	       double precision function SMBR_Hss(Mh)
+	       double precision function SMBR_Hmumu(Mh)
+
+theory_XS_SM_functions.f :
+	- contains functions to calculate the SM predictions    
+          for hadronic Higgs production cross sections in pikobarn
+	  as a function of the Higgs mass Mh in GeV, according to
+	  the TEV4LHC Working Group.
+	- subroutines and functions in this file (names should indicate
+          their purpose):
+	       function SMCS_tev_pp_qq_HW(Mh)
+	       function SMCS_tev_pp_qq_HZ(Mh)
+	       function SMCS_tev_pp_gg_H(Mh)
+	       function SMCS_tev_pp_bb_H(Mh)
+	       function SMCS_tev_pp_vbf_H(Mh)
+
+Tevatron.sigma_bg_Hb.h, 
+Tevatron.sigma_bg_Hb.ptmin15.etamax2.h,
+Tevatron.sigma_bg_Hb.ptmin20.etamax2.5.h :
+	- each file contains one function:
+		double precision function SMCS_tev_pp_bg_Hb(Mh),
+		double precision function SMCS_tev_pp_bg_Hb_c1(Mh),
+		double precision function SMCS_tev_pp_bg_Hb_c2(Mh),
+	  respectively.
+	- The functions evaluate the cross section prediction for 
+	  sigma(pp-bar -> b g -> H b) in pikobarn as a function of the 
+	  Higgs mass Mh in GeV with the following cuts on the kinematical 
+	  variables of the b-quark:
+		none (SMCS_tev_pp_bg_Hb),
+		pt_min > 15 GeV, |eta| < 2 (SMCS_tev_pp_bg_Hb_c1),
+		pt_min > 20 GeV, |eta| < 2.5 (SMCS_tev_pp_bg_Hb_c2).
+
+cs-ratios/Tevatron.R_*.h :
+	- several files containing functions to calculate the SM predictions    
+          for ratios of hadronic Higgs production cross section 
+  	  (see Journal Reference for details) as a function of the 
+	  Higgs mass Mh in GeV.
+	- subroutines and functions in those files (names should indicate
+          their purpose):
+
+utils.f :
+	- some utility functions which are used by the other routines
+
+example_programs/HBwithFH.F :
+	- code for the sample program, showing the usage of HiggsBounds 
+	  together with FeynHiggs.
+
+example_programs/HBwithCPsuperH.f :
+	- code for the sample program, showing the usage of HiggsBounds 
+          together with CPsuperH.
+
+example_programs/example-SM_vs_4thGen.F :
+	- code for the sample program, demonstrating how to obtain 
+          with HiggsBounds exclusion plots for the Standard Model and a 
+          simple 4th-Generation Model, like Fig. 5 in the Journal Reference.
+
+
+example_data/* :
+	- the directory contains several files with sample input data 
+          and some files with the expected output of a HiggsBounds run.

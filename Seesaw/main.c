@@ -7,7 +7,7 @@
   /* Display information about mass spectrum  */
 #define OMEGA            
   /* Calculate relic density and display contribution of  individual channels */
-#define INDIRECT_DETECTION  
+/*#define INDIRECT_DETECTION*/  
   /* Compute spectra of gamma/positron/antiprotons/neutrinos for DM annihilation; 
      Calculate <sigma*v>;
      Integrate gamma signal over DM galactic squared density for given line 
@@ -20,7 +20,7 @@
     DM velocity distribution,
     A-dependence of Fermi-dencity
   */     
-#define CDM_NUCLEON     
+/*#define CDM_NUCLEON*/     
   /* Calculate amplitudes and cross-sections for  CDM-mucleon collisions */  
 
 /*#define CDM_NUCLEUS*/      

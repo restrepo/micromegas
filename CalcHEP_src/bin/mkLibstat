@@ -1,5 +1,5 @@
 : 
-  CALCHEP=  
+  CALCHEP=/home/restrepo/prog/micromegas/micrOMEGAS/CalcHEP_src 
 #-------------------- 
 
 if(test $# -ne 1) then

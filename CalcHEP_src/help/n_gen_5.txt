@@ -1,2 +1,0 @@
-1 12 51 3
-  Return to search of maxima.

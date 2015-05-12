@@ -1,3 +1,0 @@
-
-so_generated/$(lib):  models/*$(model).mdl newProcess
-	@ if(test -r   so_generated/$(lib) ) then   rm  -f so_generated/$(lib); echo rm so_generated/$(lib); fi

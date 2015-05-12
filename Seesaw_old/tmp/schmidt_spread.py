@@ -1,1 +1,0 @@
-../schmidt_spread.py

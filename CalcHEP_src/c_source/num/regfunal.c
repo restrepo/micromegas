@@ -98,7 +98,7 @@ static void regfun_0_(int factOnly, int itype, int nsing,
     }
 
     for (i = 1; i <= nsing; ++i) {
-	if (ityp == 1 || ityp == 2 && singar[i-1].width == 0.) 
+	if (ityp == 1 || (ityp == 2 && singar[i-1].width == 0.)) 
 	{
 	    if (singar[i-1].pos >= xmin && singar[i-1].pos <= xmax) 
 	    {

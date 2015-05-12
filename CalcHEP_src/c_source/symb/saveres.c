@@ -94,10 +94,7 @@ void  saveanaliticresult(poly rnum,poly factn,poly factd, vcsect vcs, int nFile)
    savevardef();
    savepoly(rnum);
 
-
    cr.denompos = ftell(archiv);
-   
-
    calcdenominators(vcs );   
 
    FWRITE1(denrno,archiv);   /*  number of demominatirs  */

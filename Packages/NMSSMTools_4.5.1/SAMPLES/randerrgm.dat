@@ -1,0 +1,28 @@
+Number of points:                       
+
+  scanned                                      100
+  l, tan(beta) or mu=0                           0
+  no electroweak symmetry breaking               3
+  with mh1^2 or ma1^2 or mhc^2 < 0               2
+  with m_sfermion^2 < 0                          4
+  violating phenomenological constraints        84
+  RGE integration problem                        0
+  convergence problem                            0
+
+Remaining good points                            7
+
+Parameter ranges for good points:       
+
+     MSUSYEFF:      0.4000E+05     0.4000E+05
+        MMESS:      0.1000E+08     0.1000E+08
+         TANB:      0.1092E+01     0.1679E+01
+       LAMBDA:      0.5595E+00     0.9557E+00
+      ALAMBDA:      0.0000E+00     0.0000E+00
+        MUEFF:      0.5354E+03     0.1317E+04
+          (MU is not an input parameter)
+        KAPPA:      0.4675E+00     0.5501E+00
+       (KAPPA is not an input parameter)
+          XIF:      0.5000E+05     0.5000E+05
+         MS^2:     -0.7240E-05     0.1676E-03
+          XIS:     -0.7557E+10    -0.1795E+09
+         (XIS is not an input parameter)

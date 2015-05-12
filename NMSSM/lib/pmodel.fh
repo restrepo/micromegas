@@ -1,10 +1,8 @@
 
 C to declare  types  of Fortran routines
 
-      integer nmhWarn, nmssmEWSB, nmssmSUGRA, readVarNMSSM, readSLHA
+      integer nmhWarn, nmssmEWSB, nmssmSUGRA, readVarNMSSM, readSLHA, HBblocks
       real*8 bsgnlo, deltamd, deltams, bsmumu, btaunu, gmuon  
       
-      integer switch(4)
-      common/switches/switch
-
-#define delFiles switch(1)    
+      integer loopGamma
+      external loopGamma

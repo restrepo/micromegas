@@ -6,7 +6,7 @@
 #include<math.h>
 #include<string.h>
 
-int p_lsr__(long pNum) { if(pNum==22) return 1; else return 0;}
+int p_lsr__(int * pNum) { if(pNum[0]==22 && pNum[1]==0) return 1; else return 0;}
 
 int mc_lsr__(int i) {return 22;}
 void n_lsr__(int i, char *name) { strcpy(name,"Laser photons");}
@@ -16,7 +16,7 @@ int r_lsr__(int i, char *name)
 
 int i_lsr__(int i, double* be, double * mass) { *be=1.; *mass=0.; return 1;}
 
-int m_lsr__(int i) {return 1;}
+int m_lsr__(int i,int*pString) {return 1;}
 
 double c_lsr__(int i, double x, double q)
 {

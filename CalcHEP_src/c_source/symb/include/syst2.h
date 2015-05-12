@@ -3,7 +3,7 @@
 
 #include"syst.h"
 
-#define SSTRLEN 300
+#define SSTRLEN 3000
 typedef char shortstr[SSTRLEN];
 
 extern void    revers(void *  * list);

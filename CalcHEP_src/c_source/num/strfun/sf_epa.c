@@ -3,7 +3,6 @@
 */
 #include"interface.h"
 #include"sf_epa.h"
-#include "const.h"
 #include "crt_util.h"
 #include<math.h>
 
@@ -19,7 +18,7 @@
 /*   V.M.Budnev et al., Phys.Rep. 15C (1975) 181          * */
 /* ********************************************************* */
 
-int p_epa__(long pNum){ if(pNum==22) return 1; else return 0; } 
+int p_epa__(int *pNum){ if(pNum[0]==22 && pNum[1]==0 ) return 1; else return 0; } 
  
 
 void n_epa__(int i,char * name)
@@ -68,7 +67,7 @@ int mc_epa__(int i)
   }
 }
 
-int m_epa__(int i)
+int m_epa__(int i, int * pString)
 {   
     void * pscr = NULL;
     i--;

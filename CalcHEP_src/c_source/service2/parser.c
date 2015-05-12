@@ -56,7 +56,8 @@ static void * readSmplTerm(void)
    void * s_res=NULL;
    int n=0;                                                                      
    void * tmp_arg[MAXFUN];                                                       
-
+   char ch;
+   
    skip();
    if(source[count] == '(') 
    { 
@@ -65,8 +66,8 @@ static void * readSmplTerm(void)
       {if(source[count] != ')')  rderrcode = braketexpected; else count++;}
       return s_res;
    }
-    
-   if(!isalnum(source[count])&& source[count]!='"') {rderrcode=unexpectedcharacter; return NULL;}
+   ch=source[count]; 
+   if(!isalnum(ch)&& ch!='_'  && ch!='"') {rderrcode=unexpectedcharacter; return NULL;}
 
    m1 = count; 
    if(isdigit(source[count]))
@@ -85,7 +86,7 @@ static void * readSmplTerm(void)
    }                 
    else if(source[count]=='"') 
    {count++; while(count-m1<=ILEN &&  (source[count]!='"' || source[count-1]=='\\') ) count++; count++;} 
-   else {count++; while(isalnum(source[count])) count++;}
+   else {count++; while(isalnum(source[count])||source[count]=='_') count++;}
 
    len=count-m1;
    if(len>ILEN) {rderrcode=toolongidentifier; return NULL;} 

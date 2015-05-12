@@ -85,4 +85,6 @@ extern void proccessName(decayDiagram a, char * txt );
 
 extern void  decompose( vcsect vcs,  vampl *left,  vampl * right);
 
+extern void printDiagram(vampl * vlist);
+extern void printCsDiagram(vcsect * vlist);
 #endif

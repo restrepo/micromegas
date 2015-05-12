@@ -68,7 +68,7 @@ static blockStr* blockList=NULL;
 static decayStr* decayList=NULL;
 static qNumberStr*qNumberList=NULL;
 
-static char*Warnings=NULL;
+/*static*/ char*Warnings=NULL;
 static int nWarnings=0;
 static char creator[StrLn],version[StrLn];
 
@@ -686,7 +686,7 @@ double  slhaValFormat(char * Block, double Q, char * format)
   long double complex val[3];
   int found[3]={0,0,0};
 
-  if(strlen(Block)>19) {FError=1; return 0;}
+  if(strlen(Block)>=BlckLn) {FError=1; return 0;}
       
   for(i=0; Block[i];i++)  BLOCK[i]=toupper(Block[i]);
   BLOCK[i]=0;
@@ -695,18 +695,23 @@ double  slhaValFormat(char * Block, double Q, char * format)
   { 
   
   if(strcmp(BLOCK,blck->name)==0)
-  {  
+  {  char format_[BlckLn +4];
      int pos;
      if(blck->scale < 0)    { if(found[0]) continue; else pos=0;}
      else if(blck->scale<Q) { if(found[1] && scale[1]>blck->scale) continue; else pos=1;}
      else                   { if(found[2] && scale[2]<blck->scale) continue; else pos=2;}
 
      dr=blck->dataList;
+     sprintf(format_," %s %%s",format);
      for(;dr;dr=dr->next)
      { int err;
        double v;
-       err=sscanf(dr->body,format,&v);
-       if(err==1) { found[pos]=1; scale[pos]=blck->scale; val[pos]=v; break; }
+       char body_[StrLn+3];
+       char buff[StrLn];
+       sprintf(body_,"%s #",dr->body);
+       err=sscanf(body_,format_,&v,buff);
+       if(err==2 && strcmp(buff,"#")==0) 
+       { found[pos]=1; scale[pos]=blck->scale; val[pos]=v; slhaComment=dr->txt;  break; }
      }  
   }
   }
@@ -721,6 +726,41 @@ double  slhaValFormat(char * Block, double Q, char * format)
   return  (val[1]*log(scale[2]/Q)+val[2]*log(Q/scale[1]))/log(scale[2]/scale[1]);  
 }
 
+int   slhaSTRFormat(char * Block, char * format, char *txt)
+{ 
+  int keys[KeyMLn];
+  int i;
+  char BLOCK[BlckLn];
+  blockStr* blck=blockList;
+  blockRec * dr;
+
+  if(strlen(Block)>=BlckLn) {FError=1; return 0;}
+      
+  for(i=0; Block[i];i++)  BLOCK[i]=toupper(Block[i]);
+  BLOCK[i]=0;
+
+  for(blck=blockList;  blck; blck=blck->next)
+  { 
+  
+  if(strcmp(BLOCK,blck->name)==0)
+  {  char format_[BlckLn +4];
+
+     dr=blck->dataList;
+     sprintf(format_," %s %%s",format);
+     for(;dr;dr=dr->next)
+     { int err;
+       double v;
+       char body_[StrLn+3];
+       char buff[StrLn];
+       sprintf(body_,"%s #",dr->body);
+       err=sscanf(body_,format_,txt,buff);
+//printf("body=|%s| format=|%s|,err=%d\n",body_,format_,err);
+       if(err==2 && strcmp(buff,"#")==0) {return 0; }
+     }  
+  }
+  }
+  return 1;
+}
 
 
 
@@ -771,7 +811,7 @@ int slhaWarnings(FILE*f)
 int slhaDecayExists(int pNum)
 { 
    decayStr* decay=decayList;
-   for(;decay;decay=decay->next) if( decay->pNum==pNum)
+   for(;decay;decay=decay->next) if(abs(decay->pNum)==abs(pNum))
    { decayRec*dr=decay->dataList;
      int n;
      for(n=0; dr; dr=dr->next, n++) continue;
@@ -783,7 +823,7 @@ int slhaDecayExists(int pNum)
 double slhaWidth(int pNum)
 {  
    decayStr* decay=decayList;
-   for(;decay;decay=decay->next) if( decay->pNum==pNum) return decay->pWidth;
+   for(;decay;decay=decay->next) if( abs(decay->pNum)==abs(pNum)) return decay->pWidth;
    printf("Error: width for particle %d is unknown\n",pNum);
    FError=1;
    return 0;
@@ -792,19 +832,59 @@ double slhaWidth(int pNum)
 double slhaBranch(int pNum,int N, int * nCh)
 {
    decayStr* decay=decayList;
-   for(;decay;decay=decay->next) if( decay->pNum==pNum)
+   for(;decay;decay=decay->next) if(abs(decay->pNum)==abs(pNum))
    { decayRec*dr=decay->dataList;
      int i;
      if(N<=0){ nCh[0]=0; return 0;}
      for(N--;N&&dr;N--,dr=dr->next) continue;
      if(dr==NULL) { nCh[0]=0;return 0;}
-     for(i=0;i<dr->nkey;i++) nCh[i]=dr->pNum[i];
+     if(decay->pNum==pNum) for(i=0;i<dr->nkey;i++) nCh[i]= dr->pNum[i];
+     else                  for(i=0;i<dr->nkey;i++) nCh[i]=-dr->pNum[i];
      nCh[i]=0;
      return dr->Br;
    }
    FError=1;
    return 0;
 }
+
+double slhaBr(int pNum, int len, ...)
+{
+  int i,k, list[DecLen], buf[DecLen];
+  decayStr*decay=decayList;
+
+  if(len<2 || len > DecLen-1) return 0;
+  va_list ap;
+  va_start(ap,len);
+  for(i=0;i<len;i++) list[i]=va_arg(ap, int);
+  va_end(ap);
+
+  for(k=0;k<len-1; )
+  { if(list[k]>list[k+1])
+    { int mem=list[k+1]; list[k+1]=list[k]; list[k]=mem;
+      k--;
+      if(k<0) k=1;
+    } else k++;   
+  }  
+ 
+  for(;decay;decay=decay->next) if( decay->pNum==pNum)
+  { decayRec*dr=decay->dataList;
+    for(;dr;dr=dr->next)
+    { if(dr->nkey != len) continue;
+      for(i=0;i<dr->nkey;i++) buf[i]=dr->pNum[i];
+      for(k=0;k<len-1; )
+      { if(buf[k]>buf[k+1])
+        { int mem=buf[k+1]; buf[k+1]=buf[k]; buf[k]=mem;
+          k--;
+          if(k<0) k=1;
+        } else k++;   
+      }  
+      for(k=0;k<len;k++) if(buf[k]!=list[k]) break;
+      if(k==len) return  dr->Br;
+    }                           
+  }                             
+  return 0;                     
+}
+
 
 int findQnumbers(int pdg,int*eQ3,int*spinDim,int*cDim,int*anti)
 { qNumberStr*qNmb=qNumberList;
@@ -908,13 +988,13 @@ int slhaWrite(char *fname)
   if(blockList)
   {
     fprintf(f,"BLOCK SPINFO # General Information\n");
-    fprintf(f," 1 %s\n",creator);
-    fprintf(f," 2 %s\n",version);
+    fprintf(f," 1      %s\n",creator);
+    fprintf(f," 2      %s\n",version);
   } else 
   {
     fprintf(f,"BLOCK DCINFO # General Information\n");
-    fprintf(f," 1 %s\n",creator);
-    fprintf(f," 2 %s\n",version);
+    fprintf(f," 1      %s\n",creator);
+    fprintf(f," 2      %s\n",version);
   } 
   
    
@@ -930,13 +1010,40 @@ int slhaWrite(char *fname)
        c++;
     } 
   } 
+#define NEW
+#ifdef NEW    
+{
+  blockStr* bList=blockList;
+  blockRec* bRec;
+  int i1,j1,k,l,i;
 
+
+  for(i1=0, bList=blockList; bList; bList=bList->next) i1++;
+  for(k=0;k<i1;k++) 
+  { int i;
+    bList=blockList;
+    for(i=0;i<k;i++) bList=bList->next;
+    fprintf(f,"BLOCK %s ",bList->name);
+    if(bList->scale >0 ) fprintf(f,"Q= %E ",bList->scale);
+    if(bList->txt) fprintf(f,"# %s\n",bList->txt); else fprintf(f,"\n");    
+
+    for(j1=0,bRec=bList->dataList; bRec; bRec=bRec->next) j1++;
+    for(l=0;l<j1;l++)
+    { bRec=bList->dataList;
+      for(i=0;i<l;i++) bRec=bRec->next;
+      fprintf(f," %s",bRec->body);
+      if(bRec->txt) fprintf(f," # %s\n",bRec->txt); else fprintf(f,"\n");
+    }
+  }  
+}
+#else
   for(k=1;;k++)
-  { double complex val;
+  {
+    double complex val;
     double scale;
     char name[BlckLn];
     int len, key[KeyMLn];
-    
+
     if(0==allBlocks(k,0,name,&len, key, &val)) break;
     
     fprintf(f,"BLOCK %s " ,name);
@@ -953,6 +1060,9 @@ int slhaWrite(char *fname)
        fprintf(f," # %s\n",slhaComment);
     }            
   }
+
+#endif 
+
 
   for(k=1;;k++)
   { int pdg,eQ3,spinDim,cDim,anti;

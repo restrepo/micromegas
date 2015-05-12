@@ -1,6 +1,10 @@
-
 #include"SLHAplus.h"
+#define  _XOPEN_SOURCE 500
+#define  _XOPEN_SOURCE_EXTENDED
 #include<unistd.h>
+#include <sys/types.h>
+#include <signal.h>
+       
 
 unsigned sysTimeLim=0;
 unsigned sysTimeQuant=10;
@@ -26,11 +30,11 @@ int System( char * format, ...)
    va_list args;
    char command[STRSIZ];
    int err;
-   
-   fflush(NULL);    
+      
    va_start(args,format);
    vsprintf(command,format,args);
    va_end(args);
+   fflush(NULL);
    if(!sysTimeLim)  { 
 //   printf("call system\n"); 
                       err=system(command);}
@@ -62,7 +66,7 @@ int System( char * format, ...)
        } exit(255);  
      }      
    }
-   if(err<0||WIFSIGNALED(err) ) err==-1; else
+   if(err<0||WIFSIGNALED(err) ) err=-1; else
    {
       err=WEXITSTATUS(err);
       if(err==255) err=-1;

@@ -64,7 +64,7 @@ double slha(double mssmOK)
 }
 
 extern double  saveSLHA(double x);
-double  saveSLHA(double x){ if(x) delFiles=0; else delFiles=1; return 1;}
+double  saveSLHA(double x){  return 1;}
 
 
 static double SW,tb,MZ,mu;

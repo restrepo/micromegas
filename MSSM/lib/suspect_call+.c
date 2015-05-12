@@ -18,3 +18,8 @@
 #define xxxEwsbMSSM   suspectEwsbMSSM
 #define xxxewsbmssm_  suspectewsbmssm_ 
 #include "pmssm.inc"
+
+#define xxxSUGRAnuhc  suspectSUGRAnuhc
+#define xxxSUGRAnuh   suspectSUGRAnuh 
+#define xxxsugranuh_  suspectsugranuh_
+#include "sugracHiggs.inc"

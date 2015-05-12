@@ -1,6 +1,5 @@
 #include <stdlib.h>
 
-
 #ifdef __hpux
 #include<dl.h>
 #else
@@ -16,96 +15,67 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-
+#include "fcompare.h"
+#include "../../include/VandP.h"
+#include "vp.h"
 #include "dynamic_cs.h"
-
-#include "../../include/V_and_P.h"
-
-double * varAddress(char *name)
-{int i;
- for(i=0;i<nModelVars+nModelFunc;i++) if(!strcmp(name,varNames[i]))return varValues+i;
- return NULL;
-}
   
-int findVal(char * name, double * val)
-{
-  double * va=varAddress(name);
-  if(va)
-  {  
-    if(va > varValues+LastVar)return 2;
-     *val=*va; return 0; 
-  } else return 1;   
-}
-    
-double  findValW(char*name)
-{
-  double val;
-  if(findVal(name,&val))
-  {  printf(" name %s not found\n",name);
-     return 0;
-  } else return val;
-}
-             
-
-
 char  * libDir=NULL;
 char  * modelDir=NULL;
 char  * compDir=NULL;
 char  * calchepDir=NULL;
 int   modelNum=0;
 
+double BWrange=2.7;
 
 int  prepareWorkPlace(void)
 {  char * command;
    struct stat buf;
-   int err;
+   int err,len,mknew;
 
    if(!compDir) return  -1;   
-/*     
-   fname=malloc(strlen(modelDir)+20);
-   for(i=0;i<5;i++) 
-   {  sprintf(fname,"%s/%s%d.mdl",modelDir,mFiles[i],modelNum);
-      if(stat(fname,&buf)) { printf("can not find %s\n",fname);  free(fname);        return -2;}
-   }   
-   free(fname);
-*/
-   err=stat(compDir,&buf);
+   mknew=stat(compDir,&buf);
+   len=strlen(compDir)+500;
+   if(modelDir) len+=strlen(modelDir);
+   command=malloc(len);  
 
-   command=malloc(strlen(compDir)+500);
-   if(err) { if(mkdir(compDir, 00755)) return -3; }  
-   
-   sprintf(command, "dName=%s\n"
-     "for FILE in tmp results\n"
+   if(mknew) 
+   { char * dir[3]={"tmp","results","models"};
+     int i;
+     if(mkdir(compDir, 00755)) return -3; 
+     for(i=0;i<3;i++) 
+     { 
+        sprintf(command,"%s/%s",compDir,dir[i]);
+        mkdir(command,00755);
+     } 
+     if(modelDir && modelNum)
+     {
+       sprintf(command,
+       "for FILE in vars func prtcls lgrng extlib\n do\n"
+       "  cp %s/\"$FILE\"%d.mdl %s/models/\"$FILE\"1.mdl\n" 
+       "done\n", modelDir,modelNum,  compDir);  
+       system(command);
+     } else { free(command); return -2;} 
+   } else 
+   {   
+     sprintf(command, "dName=%s\n"
+     "for FILE in $dName/tmp/* $dName/results/*\n"
      "do\n"
-     " if(test ! -d $dName/$FILE) then\n"
-     "   mkdir $dName/$FILE\n"
-     " else\n"
-     "   rm -f $dName/$FILE/*\n"
-     " fi\n"
-     "done\n"
-     " if(test ! -d $dName/models) then\n"
-     "   mkdir $dName/models\n"
-     " fi\n",compDir);
-   system(command);
-
-   if(modelDir && err && modelNum)
-   {
-     sprintf(command, "dName=%s\n"          
-       "for FILE in vars func prtcls lgrng extlib\n do\n" 
-       "  if(test ! -r $dName/models/\"$FILE\"1.mdl) then\n" 
-       "   cp %s/\"$FILE\"%d.mdl $dName/models/\"$FILE\"1.mdl\n"
-       "  fi\n"
-       "done\n",compDir, modelDir,modelNum);
+     " if(test ! -d $FILE) then\n"
+     "   rm -f $FILE\n"
+     " fi\n" 
+     "done\n",compDir);     
      system(command);
-   }
+   } 
    free(command);
-   return err;
+   return mknew;
 }
 
-/*#define TEST*/
+
+//#define SAVE 
 int cleanWorkPlace(void)
 { 
-#ifndef TEST
+#ifndef SAVE
    char * command;
    command=malloc(strlen(compDir)+100);
    sprintf(command,"rm -fr %s",compDir);
@@ -115,7 +85,37 @@ int cleanWorkPlace(void)
    return 0; 
 }
 
-static int  checkMtime(char * fname)
+
+int  checkWorkPlace(void)
+{
+  char * n1=malloc(strlen(modelDir)+50);
+  char * n2=malloc(strlen(compDir)+50);
+  char *fList[5]= {"vars","prtcls","extlib","func","lgrng",};
+  int i;
+  for(i=0;i<5;i++)
+  { sprintf(n1,"%s/%s%d.mdl",modelDir,fList[i],modelNum);
+    sprintf(n2,"%s/models/%s1.mdl",compDir,fList[i]);
+    if(fcompare(n1,n2)) break;
+  }   
+  free(n1);
+  free(n2);
+  if(i==5) return 0;
+  if(modelDir && modelNum)
+  { 
+     char* command=malloc(strlen(modelDir)+strlen(compDir)+200);
+     sprintf(command,
+     "for FILE in vars func prtcls lgrng extlib\n do\n"
+     "  cp %s/\"$FILE\"%d.mdl %s/models/\"$FILE\"1.mdl\n" 
+     "done\n", modelDir,modelNum,  compDir);  
+     system(command);
+     free(command);
+     delAllLib();
+  }
+  return 1;
+}  
+
+
+int  checkMtime(char * fname)
 { int i,L;
   time_t tt;
   struct stat buff;
@@ -185,7 +185,7 @@ static numout* loadLib(void* handle, char * lib)
   else
   {  int i;
      cc->init=0;
-     cc->Q=NULL, cc->SC=NULL, cc->GG=NULL;
+     cc->Q=NULL, cc->SC=NULL;
      cc->link=malloc(sizeof(double*)*(1+cc->interface->nvar));
      cc->link[0]=NULL;
      for(i=1;i<=cc->interface->nvar;i++) 
@@ -194,7 +194,6 @@ static numout* loadLib(void* handle, char * lib)
 if(cc->link==NULL) printf("No link for %s\n",name);       
        if(strcmp(name,"Q")==0) cc->Q=cc->interface->va+i; 
        else if(strcmp(name,"SC")==0) cc->SC=cc->interface->va+i;
-       else if(strcmp(name,"GG")==0) cc->GG=cc->interface->va+i;
      }  
      *(cc->interface->aWidth)=&aWidth;
   }
@@ -228,10 +227,17 @@ numout*getMEcode(int twidth,int Gauge, char*Process, char*excludeVirtual,
    
    if(Gauge) sprintf(lib_,"%s_u",lib);    else  strcpy(lib_,lib); 
      
-   for(test=allProc;test; test=test->next)
-   { if(strcmp(lib_,test->libname)==0) return test->cc;}
+   for(test=allProc;test; test=test->next) if(strcmp(lib_,test->libname)==0) 
+   {
+     *(test->cc->interface->gtwidth)=0;
+     *(test->cc->interface->twidth) =0;
+     *(test->cc->interface->gswidth)=0;
+     *(test->cc->interface->BWrange)=BWrange; 
+     free(lib_);
+     return test->cc;
+   }
    
-   Len=strlen(compDir)+strlen(lib)+300;
+   Len=strlen(compDir)+strlen(lib)+strlen(libDir)+300;
    proclibf=malloc(Len);
 
    if(Process) Len+=strlen(Process);
@@ -261,9 +267,9 @@ numout*getMEcode(int twidth,int Gauge, char*Process, char*excludeVirtual,
         if(twidth) strcpy(options,"5[[{[{}");else strcpy(options,"");
         if(Gauge) strcpy(GaugeCh,"U"); else strcpy(GaugeCh,"F");
  
-        delWorkDir=prepareWorkPlace();      
-                          
-        sprintf(command,"cd %s; %s/bin/newProcess %s %s \"%s\" %s \"%s\"",
+        delWorkDir=prepareWorkPlace();
+
+        sprintf(command,"cd %s; %s/sbin/newProcess %s %s \"%s\" %s \"%s\"",
                        compDir, calchepDir, lib_, libDir,options,GaugeCh,Process);
   
         if(excludeVirtual) sprintf(command+strlen(command)," \"%s\"",excludeVirtual);
@@ -297,6 +303,7 @@ numout*getMEcode(int twidth,int Gauge, char*Process, char*excludeVirtual,
       test->cc=cc;
    } else if(new) dClose(handle);  
     free(command); free(proclibf); free(lib_);
+    if(cc)(*cc->interface->BWrange)=BWrange;
     return cc; 
 }
 
@@ -344,8 +351,8 @@ printf("process=%s\n",process);
   {  char * command=malloc(strlen(compDir) + strlen(calchepDir) + strlen(libDir) + 200);
      int delWorkDir=prepareWorkPlace();
      sprintf(command,"cd %s;"
-       " %s/bin/s_calchep -blind \"{{%s{{{[[{0\";"
-       " mv results/list_prc.txt %s/%s",
+       " %s/bin/s_calchep -blind \"{{%s{{{[[{0\" >/dev/null;"
+       " if(text $? -eq 0) then mv results/list_prc.txt %s/%s ; fi",
        compDir,calchepDir,process, libDir,lib);
      system(command);
      free(command);
@@ -372,7 +379,7 @@ txtList  makeDecayList(char * pname, int nx)
   FILE *f;
   txtList List=NULL;
 
-printf("asks 1->%d for %s\n",nx,pname);
+//printf("asks 1->%d for %s\n",nx,pname);
   pname2lib(pname,lname);
   sprintf(fnameL,"dList_%s_%dx",lname,nx);
   fnameG=malloc(strlen(libDir)+50);
@@ -381,9 +388,8 @@ printf("asks 1->%d for %s\n",nx,pname);
   {  char * command=malloc(strlen(compDir) + strlen(calchepDir)+strlen(libDir) +200);
      int delWorkDir=prepareWorkPlace();
      sprintf(command,"cd %s;"
-       " rm -f tmp/* results/*; "
-       " %s/bin/s_calchep -blind \"{{%s->%d*x{{{[[{0\";"
-       " mv results/list_prc.txt %s/%s",
+       " %s/bin/s_calchep -blind \"{{%s->%d*x{{{[[{0\" >/dev/null ;"
+       " if(test $? -eq 0) then mv results/list_prc.txt %s/%s;fi",
        compDir,calchepDir,pname,nx,libDir,fnameL);
      system(command);
      free(command);
@@ -406,26 +412,34 @@ printf("asks 1->%d for %s\n",nx,pname);
 
 void cleanTxtList(txtList L)
 { 
-  while(L) {txtList l=L; free(L->txt); l=L;  L=L->next; free(l);}  
+   while(L) {txtList l=L; free(L->txt); L=L->next; free(l);}  
 }
 
 void printTxtList(txtList L, FILE *f)
 { for(;L;L=L->next) fprintf(f,"%s\n",L->txt);}
 
 
-int qNumbers(char*pname, int *spin2, int * charge3, int * cdim)
+
+void delAllLib(void)
 {
-  int n=pTabPos(pname);
-  int sign=1,pdg;
-  if(!n) return 0;
-  if(n<0){ n=-n; sign=-1;}
-  if(spin2)   *spin2  =ModelPrtcls[n-1].spin2;
-  if(charge3) *charge3=sign*ModelPrtcls[n-1].q3;
-  pdg=sign*ModelPrtcls[n-1].NPDG;
-  if(cdim)    
-  { *cdim   =ModelPrtcls[n-1].cdim; 
-    if(sign==-1 &&(*cdim==3 || *cdim==-3)) (*cdim)*=-1;
+  procRec* curProc=allProc;
+  while(curProc)
+  {  procRec*tmp=curProc;
+     free(curProc->libname);
+     free(curProc->cc->link);
+     dClose(curProc->cc->handle);     
+     free(curProc->cc);
+     curProc=curProc->next;
+     free(tmp);
   }
-  return pdg;
+  allProc=NULL;
 }
 
+numout*newProcess(char*Process)
+{  int err;
+   char lib[100];
+   err=process2Lib(Process,lib);
+   if(err) return NULL;
+   return getMEcode(0,ForceUG,Process,NULL,"",lib);
+}
+            

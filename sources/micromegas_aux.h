@@ -2,13 +2,14 @@
 #define __MICRO_AUX__
 
 #include"micromegas.h"
-#include"../CalcHEP_src/include/V_and_P.h"
+#include"../CalcHEP_src/include/VandP.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif 
 
 #include "../CalcHEP_src/c_source/dynamicME/include/dynamic_cs.h"
+#include "../CalcHEP_src/c_source/dynamicME/include/vp.h"
 
 
 /*==================== displayPlot =================*/
@@ -31,7 +32,9 @@ extern char*WORK;
 extern int Nodd;
 extern  ModelPrtclsStr * OddPrtcls;
 extern int createTableOddPrtcls(void);
-extern char * txtListOddParticles(void);     
+extern char * OddParticles(int mode);
+extern char * EvenParticles(void); 
+    
 /*=============================================
 C->F and F->C    string convertation     
 ===============================================*/
@@ -50,15 +53,30 @@ extern void fortreread_(int* N, char * fname, int len);
 
 extern double simpson(double (*func)(double), double a, double b, double eps);
 extern double gauss(double (*func)(double), double a, double b, int n);
+extern double vegas_chain(int ndim, double (*Integrand)(double*, double),
+                          int N0, double Nfact, double eps,double * dI);
+
+
 extern int  odeint(double*ystart,int nvar,double x1,double x2, double eps,
                    double h1, void(*derivs)(double,double*,double *));
 
-
+extern int stiff( int first,double xstart, double xend, int n, double*y, double *yscal, double eps, double*htry,
+    void (*derivs)(double, double*, double*, double,double*,double*));
+extern int stifbs(int first,double xstart, double xend, int nv, double*y, double *yscal, double eps, double*htry,
+    void (*derivs)(double,double*,double*,double,double*,double*));
+   
+    
 /*==== Tool  for interpolation  ====*/
+extern double polint2Exp(double x, int n,  double *xa, double *ya);
+extern double polint2(double x, int n,  double *xa, double *ya);
 extern double  polint3(double x, int n,  double *xa, double *ya);
 extern double  polint4(double x, int n,  double *xa, double *ya);
-extern int buildInterpolation( double (*Fun)(double), double x1,double x2, double eps,
-                                int * N, double ** xa, double **ya);
+extern int buildInterpolation( double (*Fun)(double), double x1,double x2, 
+            double eps, double delt, int * N, double ** xa, double **ya);
+            
+extern void spline(double*x,double*y,int n,double*y2);            
+extern void splint(double*xa, double*ya, double*y2a, int n, double x, double *y);
+            
 /*======= special functions ========*/
 extern double bessk0(double x);
 extern double bessk1(double x);
@@ -66,18 +84,34 @@ extern double bessk2(double x);
 extern double K2pol(double x); /*bessk1(1/x)*exp(1/x)*sqrt(2/M_PI/x);*/
 extern double K1pol(double x); /*bessk2(1/x)*exp(1/x)*sqrt(2/M_PI/x);*/
 
+/*======== read Table =============*/
+
+extern int readTable(char * fileName, int *Ncolumn, double **tab);
+
+
 /* Hidden interface with CalcHEP */
 extern int FError;
 extern int OnlyTEQ0;
 
-extern void pname2lib(char*pname, char * libname);
+extern int pname2lib(char*pname, char * libname);
 extern numout*newProcess_(int twidth, int model,int UG,char*Process,
           char * excludeVirtual,char*excludeOut,char*lib,int usr);
 
-extern int  kin22(double PcmIn,double * pmass);
-extern double  dSigma_dCos(double  cos_f);
 
-extern int _nsub_;
+//=====  2->2 processes ===========
+
+extern double (*sqme22)(int nsub, double GG, REAL *pvect, int * err_code); 
+
+extern int     kin22(double PcmIn,REAL * pmass);
+extern double  kinematic_23(double Pcm,int i3, double M45, double cs1, double cs2,  double fi,REAL*pmass, REAL*pvect);
+extern double  kinematic_24(double Pcm,int i3, int i4, double M1, double M2, double xcos,double xcos1, double xcos2, double fi1, double fi2,
+                            REAL*pmass, REAL * P);
+                            
+extern double  dSigma_dCos(double  cos_f);
+extern int  nsub22;
+
+extern double  vcs22(numout * cc,int nsub,int * err); 
+
 
 #define NTOF(X) extern forCalchep1 X; double X(double ok){return findValW(#X);}
 
@@ -106,7 +140,20 @@ extern int  wimpPos(void);
 extern int vPolar(int out1,int out2,int out3,double*left,double*right,double*lng);
 extern double  plazmaWidth(char *process,double T);
 
+extern double cs23MM(numout*cc, int nsub, double Pcm, int fast,int ii3, double M45min, double M45max);
+
+
+extern double amoeba(double *p, double * y, int ndim, double (*f)(double *), double eps, int *nCalls);
+                                                    
+
+extern REAL *Qaddress;
+
+extern double lGGhSM(double Mh, double aQCDh, double Mcp,double Mbp,double Mtp,double vev);
+extern double lAAhSM(double Mh, double aQCDh, double Mcp,double Mbp,double Mtp,double vev);
+
 #include"../CalcHEP_src/include/num_in.h"
+
+#include"microPath.h"
 
 
 #ifdef __cplusplus

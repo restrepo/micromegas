@@ -1,0 +1,219 @@
+
+----------------------------------------------------------------
+Incorrect kinetic term for particle A/A :
+(-1)*p1**2+(+1)*p1^mu*p1^nu
+----------------------------------------------------------------
+Incorrect kinetic term for particle Z/Z :
+(+1/CW**2*SW**2-1/CW**2)*p1**2+(-1/CW**2*SW**2+1/CW**2)*p1^mu*p1^nu
+----------------------------------------------------------------
+Incorrect kinetic term for particle '~PS'/'~PS' :
+(-1/6*del**2/v**2*vh**2)*p1**2
+----------------------------------------------------------------
+Incorrect kinetic term for particle '~P0'/'~P0' :
+(-1/6*del**2/v**2*vh**2)*p1**2
+----------------------------------------------------------------
+Incorrect kinetic term for particle '~A'/'~A' :
+(+1/CW**2*SW**2-1/CW**2)*p1**2+(-1/CW**2*SW**2+1/CW**2)*p1^mu*p1^nu
+----------------------------------------------------------------
+Incorrect kinetic term for particle '~P+'/'~P-' :
+(-1/12*del**2/v**2*vh**2)*p1**2
+----------------------------------------------------------------
+Particles without kinetic term:
+[H, '~++']
+
+----------------------------------------------------------------
+Particles without mass term:
+['~++', u, d]
+
+----------------------------------------------------------------
+Linear term with particle H
+Expression: (+2/3*lamh4*vh**3)
+Numeric value: +1199877.826881
+
+
+----------------------------------------------------------------
+Mixing particles with different spin: '~P-'/'~W+'
+Expression: (-1/6*EE/SW*del/v*vh**2)*p1^mu
+Numeric value: -6.667714*p1
+
+Mixing particles with different spin: '~P+'/'~W-'
+Expression: (+1/6*EE/SW*del/v*vh**2)*p1^mu
+Numeric value: +6.667714*p1
+
+Mixing particles with different spin: '~PS'/'~Z'
+Expression: (-1/6*i*EE/SW*Sqrt2*del/v*vh**2)*p1^mu
+Numeric value: -9.429572*i*p1
+
+Mixing particles with different spin: '~A'/'~PS'
+Expression: (+1/6*i/CW*EE*Sqrt2*del/v*vh**2)*p1^mu
+Numeric value: +5.038882*i*p1
+
+
+---------------------------------------------------------------
+Mass term for particle H :
+(-2*lamh4*vh**2) = -120.606261**2
+This particles was declared with mass MH = 120.000000
+
+---------------------------------------------------------------
+Mass term for particle 'W+' :
+(+1/4*EE**2/SW**2*vh**2-1/24*EE**2/SW**2*del**2/v**2*vh**4) = +80.417750**2
+This particles was declared with mass MWL = 80.424998
+
+---------------------------------------------------------------
+Mass term for particle Z :
+(+1/4/CW**2*EE**2/SW**2*vh**2-1/24/CW**2*EE**2/SW**2*del**2/v**2*vh**4) = +91.179383**2
+This particles was declared with mass MZL = 91.187600
+
+---------------------------------------------------------------
+Mass term for particle b :
+(+1*lamb*vh-1/12/f**2*lamb*vh**3) = +3.240484
+This particles was declared with mass Mb = 3.240734
+
+---------------------------------------------------------------
+Mass term for particle c :
+(+1*lamc*vh-1/3/f**2*lamc*vh**3) = +0.660289
+This particles was declared with mass Mc = 0.660647
+
+---------------------------------------------------------------
+Mass term for particle l :
+(+1*Ml/v*vh) = +1.785978
+This particles was declared with mass Ml = 1.777000
+
+---------------------------------------------------------------
+Mass term for particle m :
+(+1*Mm/v*vh) = +0.106234
+This particles was declared with mass Mm = 0.105700
+
+---------------------------------------------------------------
+Mass term for particle s :
+(+1*lams*vh-1/12/f**2*lams*vh**3) = +0.199985
+This particles was declared with mass Ms = 0.200000
+
+---------------------------------------------------------------
+Mass term for particle '~P+' :
+(+3*lamh4*vh**2) = +147.711900**2
+This particles was declared with mass MH3 = 689.233346
+
+---------------------------------------------------------------
+Mass term for particle '~P0' :
+(+6*lamh4*vh**2) = +208.896172**2
+This particles was declared with mass MH3 = 689.233346
+
+---------------------------------------------------------------
+Mass term for particle '~PS' :
+(+6*lamh4*vh**2) = +208.896172**2
+This particles was declared with mass MH3 = 689.233346
+
+---------------------------------------------------------------
+Mass term for particle '~W+' :
+(-1/4*EE**2/SW**2*vh**2+1/24*EE**2/SW**2*del**2/v**2*vh**4) = -80.417750**2
+This particles was declared with mass MWH = 648.316921
+
+---------------------------------------------------------------
+Mass term for particle '~b' :
+(+1*Sqrt2*f*kappa) = +1414.213562
+This particles was declared with mass Mdo = 1414.213562
+
+---------------------------------------------------------------
+Mass term for particle '~c' :
+(+1*Sqrt2*f*kappa-1/8*Sqrt2*del**2*f*kappa/v**2*vh**2) = +1403.387709
+This particles was declared with mass Muo = 1403.496274
+
+---------------------------------------------------------------
+Mass term for particle '~d' :
+(+1*Sqrt2*f*kappa) = +1414.213562
+This particles was declared with mass Mdo = 1414.213562
+
+---------------------------------------------------------------
+Mass term for particle '~e' :
+(+1*Sqrt2*f*kappal) = +1414.213562
+This particles was declared with mass Mlo = 1414.213562
+
+---------------------------------------------------------------
+Mass term for particle '~l' :
+(+1*Sqrt2*f*kappal) = +1414.213562
+This particles was declared with mass Mlo = 1414.213562
+
+---------------------------------------------------------------
+Mass term for particle '~m' :
+(+1*Sqrt2*f*kappal) = +1414.213562
+This particles was declared with mass Mlo = 1414.213562
+
+---------------------------------------------------------------
+Mass term for particle '~ne' :
+(+1*Sqrt2*f*kappal-1/8*Sqrt2*del**2*f*kappal/v**2*vh**2) = +1403.387709
+This particles was declared with mass Mno = 1403.496274
+
+---------------------------------------------------------------
+Mass term for particle '~nl' :
+(+1*Sqrt2*f*kappal-1/8*Sqrt2*del**2*f*kappal/v**2*vh**2) = +1403.387709
+This particles was declared with mass Mno = 1403.496274
+
+---------------------------------------------------------------
+Mass term for particle '~nm' :
+(+1*Sqrt2*f*kappal-1/8*Sqrt2*del**2*f*kappal/v**2*vh**2) = +1403.387709
+This particles was declared with mass Mno = 1403.496274
+
+---------------------------------------------------------------
+Mass term for particle '~s' :
+(+1*Sqrt2*f*kappa) = +1414.213562
+This particles was declared with mass Mdo = 1414.213562
+
+---------------------------------------------------------------
+Mass term for particle '~t1' :
+(+1*f*lam2) = +1004.068531
+This particles was declared with mass Mt1 = 1004.068531
+
+---------------------------------------------------------------
+Mass term for particle '~t2' :
+(+1*Sqrt2*f*kappa-1/8*Sqrt2*del**2*f*kappa/v**2*vh**2) = +1403.387709
+This particles was declared with mass Muo = 1403.496274
+
+---------------------------------------------------------------
+Mass term for particle '~u' :
+(+1*Sqrt2*f*kappa-1/8*Sqrt2*del**2*f*kappa/v**2*vh**2) = +1403.387709
+This particles was declared with mass Muo = 1403.496274
+
+---------------------------------------------------------------
+Mixing of particles [t, tp]
+
+M11 (T/t) = (-1*ca*del*f*lam1*sa**2+1*ca*lam1*vh-3/2*ca*del**2*lam1*sa**4*vh+1/2*ca*del**2*lam1*sa**2*vh+1/2*ca*del/f*lam1*sa**2*vh**2-1/3*ca/f**2*lam1*vh**3+1/2*ca*del**2/f**2*lam1*sa**4*vh**3-1/6*ca*del**2/f**2*lam1*sa**2*vh**3+1*del*f*lam2*sa**3)
+    = +173.483548
+    Declared mass Mt=3.240734
+
+
+M12 (T/tp) = (+1/2*ca*f*lam1-3/4*ca*del**2*f*lam1*sa**4+1/4*ca*del**2*f*lam1*sa**2-1/2*del*f*lam1*sa**3+1/2*ca*del*lam1*sa**2*vh+1/2*lam1*sa*vh-3/4*del**2*lam1*sa**5*vh+3/4*del**2*lam1*sa**3*vh-1/4*del**2*lam1*sa*vh-1/4*ca/f*lam1*vh**2+3/8*ca*del**2/f*lam1*sa**4*vh**2-1/8*ca*del**2/f*lam1*sa**2*vh**2+1/4*del/f*lam1*sa**3*vh**2-1/6*ca*del/f**2*lam1*sa**2*vh**3-1/6/f**2*lam1*sa*vh**3+1/4*del**2/f**2*lam1*sa**5*vh**3-1/4*del**2/f**2*lam1*sa**3*vh**3+1/12*del**2/f**2*lam1*sa*vh**3-1/2*ca*del*f*lam2*sa**2-1/2*f*lam2*sa-3/4*del**2*f*lam2*sa**3+3/4*del**2*f*lam2*sa**5+1/4*del**2*f*lam2*sa)
+    = -0.858683
+
+
+M21 (Tp/t) = (+1/2*ca*f*lam1-3/4*ca*del**2*f*lam1*sa**4+1/4*ca*del**2*f*lam1*sa**2-1/2*del*f*lam1*sa**3+1/2*ca*del*lam1*sa**2*vh+1/2*lam1*sa*vh-3/4*del**2*lam1*sa**5*vh+3/4*del**2*lam1*sa**3*vh-1/4*del**2*lam1*sa*vh-1/4*ca/f*lam1*vh**2+3/8*ca*del**2/f*lam1*sa**4*vh**2-1/8*ca*del**2/f*lam1*sa**2*vh**2+1/4*del/f*lam1*sa**3*vh**2-1/6*ca*del/f**2*lam1*sa**2*vh**3-1/6/f**2*lam1*sa*vh**3+1/4*del**2/f**2*lam1*sa**5*vh**3-1/4*del**2/f**2*lam1*sa**3*vh**3+1/12*del**2/f**2*lam1*sa*vh**3-1/2*ca*del*f*lam2*sa**2-1/2*f*lam2*sa-3/4*del**2*f*lam2*sa**3+3/4*del**2*f*lam2*sa**5+1/4*del**2*f*lam2*sa)
+    = -0.858683
+
+
+M22 (Tp/tp) = (+1*f*lam1*sa-3/2*del**2*f*lam1*sa**5+3/2*del**2*f*lam1*sa**3-1/2*del**2*f*lam1*sa+1*del*lam1*sa**3*vh-1/2/f*lam1*sa*vh**2+3/4*del**2/f*lam1*sa**5*vh**2-3/4*del**2/f*lam1*sa**3*vh**2+1/4*del**2/f*lam1*sa*vh**2-1/3*del/f**2*lam1*sa**3*vh**3+1*ca*f*lam2-3/2*ca*del**2*f*lam2*sa**4+1/2*ca*del**2*f*lam2*sa**2)
+    = +1408.820195
+    Declared mass Mte=1409.206279
+
+
+Looking for the mixing matrix...
+No mixing matrices found.
+
+---------------------------------------------------------------
+Mixing of particles ['~A', '~Z']
+
+M11 (~A/~A) = (-1/2/CW*EE**2/SW*del**2*vh**2*xh-1/4/CW**2*EE**2*vh**2+1/6/CW**2*EE**2*del**2/v**2*vh**4)
+    = -43.006021**2
+    Declared mass MAH=150.200847
+
+
+M12 (~A/~Z) = (-1/4/CW*EE**2/SW*vh**2+1/2/CW**2*EE**2*del**2*vh**2*xh-1/4/CW**2*EE**2/SW**2*del**2*vh**2*xh+1/6/CW*EE**2/SW*del**2/v**2*vh**4)
+    = -58.214850**2
+
+
+M22 (~Z/~Z) = (+1/2/CW*EE**2/SW*del**2*vh**2*xh-1/4*EE**2/SW**2*vh**2+1/6*EE**2/SW**2*del**2/v**2*vh**4)
+    = -78.784331**2
+    Declared mass MZH=648.316921
+
+
+Looking for the mixing matrix...
+No mixing matrices found.

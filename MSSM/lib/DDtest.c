@@ -2,6 +2,7 @@
 #include<stdlib.h>
 #include"../../sources/micromegas.h"
 #include"../../sources/micromegas_aux.h"
+#include"pmodel.h"
 #define SQ(x)  ((x)*(x))
 
 extern double GluWeight(void);
@@ -13,8 +14,6 @@ int MSSMDDtest(int loop, double*pA0,double*pA5,double*nA0,double*nA5)
   double mh,mH,ca,sa,mu;
   double o1o1h,o1o1H,SQM[2][2][2][2],capb,sapb,w2s3,w4s3;
   char buffName[10];
-  char * MqNames[6]={"Md",  "Muq", "Ms" , "Mc",  "Mb",  "Mt"};
-  char * MqSMnm[6] ={"MdSM","Muq", "MsSM","Mc",  "MbSM","Mt"}; 
   char * ZqNames[6]={"Zdd" ,"Zuu" ,"Zss", "Zcc", "Zb",  "Zt"};
   char * MS1mass[6]={"MSdL","MSuL","MSsL","MScL","MSb1","MSt1"};
   char * MS2mass[6]={"MSdR","MSuR","MSsR","MScR","MSb2","MSt2"};
@@ -24,6 +23,7 @@ int MSSMDDtest(int loop, double*pA0,double*pA5,double*nA0,double*nA5)
   int i,II,IQ,i1,i2;
   double Ampl0,Ampl2;
   double MN=0.939;
+  double MqPole[7]={0,0,0,0,1.67,4.78,173.};
   double qcdNLO,qcdNLOs;
   
   double wS0P__[6],wS0N__[6]; /*scalar */
@@ -49,7 +49,7 @@ int MSSMDDtest(int loop, double*pA0,double*pA5,double*nA0,double*nA5)
   { printf("qbox returns 0 because WINP is not ~o1\n"); return 0;} 
 /*ccccccccccccccccccc CONSTANTS ccccccc*/   
 
-  ALPE=findValW("alfEMZ");
+  ALPE=1/127.994;
   SW=findValW("SW");
   CW=sqrt(1.-SW*SW);
   MZ=findValW("MZ");
@@ -58,15 +58,16 @@ int MSSMDDtest(int loop, double*pA0,double*pA5,double*nA0,double*nA5)
   G =E/SW;
   mne=fabs(findValW("MNE1"));
 /*=======*/
-  beta=atan(findValW("tb"));
+  beta=atan(findValW("tB"));
   sb=sin(beta);
   cb=cos(beta);
   mu=findValW("mu");
 /*========  Quark,SQUARK masses and mixing  ======*/
   for(IQ=1;IQ<=6;IQ++)
-  { mq[IQ]=findValW(MqNames[IQ-1]);
-    mqSM[IQ]=findValW(MqSMnm[IQ-1]);
-    
+  { 
+    mqSM[IQ]= pMass(pdg2name(IQ));
+    mq[IQ]= mqSM[IQ];
+        
     msq[0][IQ]=findValW(MS1mass[IQ-1]);
     msq[1][IQ]=findValW(MS2mass[IQ-1]);
     for(i1=0;i1<2;i1++) for(i2=0;i2<2;i2++)
@@ -76,7 +77,11 @@ int MSSMDDtest(int loop, double*pA0,double*pA5,double*nA0,double*nA5)
     }
     Aq[IQ]=findValW(AqNames[IQ-1]);
   }
-
+  
+  mq[1]/=1+deltaMd();
+  mq[3]/=1+deltaMd();
+  mq[5]/=1+deltaMb();
+  
   for(i=1;i<=4;i++){sprintf(buffName,"Zn1%d",i); NL[i]=findValW(buffName);}
 
   T3Q[0]=0.5; EQ[0]=2/3.; T3Q[1]=-0.5; EQ[1]=-1/3.;
@@ -94,7 +99,7 @@ int MSSMDDtest(int loop, double*pA0,double*pA5,double*nA0,double*nA5)
   }
 /* Higgs sector */ 
   mh=findValW("Mh");
-  mH=findValW("MHH");
+  mH=findValW("MH");
   sa=findValW("sa");
   ca=findValW("ca");
   o1o1h= E*(ca*NL[4]+sa*NL[3])*(CW*NL[2]-SW*NL[1])/CW/SW;
@@ -163,6 +168,23 @@ int MSSMDDtest(int loop, double*pA0,double*pA5,double*nA0,double*nA5)
     f=mne*ApB[II][IQ]*(SQ(msq[II][IQ])-SQ(mne)+SQ(mqSM[IQ]))/D2;
     *pA0+=(f+g)/SQ(msq[II][IQ])*MN*wS0P__[5]/8*qcdNLOs ;
     *nA0+=(f+g)/SQ(msq[II][IQ])*MN*wS0N__[5]/8*qcdNLOs ;
+
+    if(Twist2On && IQ!=6)
+    { double D,g;
+      int IQn;
+      qcdNLO=1;
+
+      switch(IQ)
+      { case 1: IQn=2;break;
+        case 2: IQn=1;break;
+        default: IQn=IQ;
+      } 
+    
+      D=SQ(msq[II][IQ])-SQ(mne)-SQ(mqSM[IQ]);                                                                               
+      g=-0.25*ApB[II][IQ]/(D*D-4*mne*mne*mqSM[IQ]*mqSM[IQ]); 
+      *pA0-=1.5*g*mne*MN*parton_x(IQ, msq[II][IQ]-mne);
+      *nA0-=1.5*g*mne*MN*parton_x(IQn,msq[II][IQ]-mne);
+    }  
   }
 
 /****** Heavy squarks in case of loops   */ 
@@ -183,38 +205,19 @@ int MSSMDDtest(int loop, double*pA0,double*pA5,double*nA0,double*nA5)
      b1d = AmB[II][IQ]*mqSM[IQ]*LintIk(3,msq[II][IQ],mqSM[IQ],mne);      
      bs  =ApB[II][IQ]*mne     *LintIk(2,msq[II][IQ],mqSM[IQ],mne)*3/8.;
      b1s =ApB[II][IQ]*mne     *LintIk(4,msq[II][IQ],mqSM[IQ],mne);	
-     b2s =ApB[II][IQ]         *LintIk(5,msq[II][IQ],mqSM[IQ],mne)/4.;
+     b2s =ApB[II][IQ]         *LintIk(5,msq[II][IQ],MqPole[IQ],mne)/4.;
      f=-(bd+bs-mne*b2s/2-mne*mne*(b1d+b1s)/4); 
      *pA0+=f*MN*wS0P__[IQ-1]*qcdNLO;
      *nA0+=f*MN*wS0N__[IQ-1]*qcdNLO;
 
-     if(IQ==6 && Twist2On)
+     if(Twist2On) 
      { double Ampl2;
-       Ampl2=parton_alpha(mqSM[IQ])/(12*M_PI)*(b2s+mne*(b1s+b1d)/2)*parton_x(21,mqSM[IQ]);   
+       Ampl2=parton_alpha(mqSM[IQ])/(12*M_PI)*(b2s+mne*(b1s+b1d)/2)*parton_x(21,MqPole[IQ]);   
       *pA0+=1.5*Ampl2*mne*MN;
       *nA0+=1.5*Ampl2*mne*MN;             
-     }
+     }     
   } 
 
-  if(Twist2On)
-  {
-    for(IQ=1;IQ<=5;IQ++) for(II=0;II<2;II++)
-    { double D,g;
-      int IQn;
-      qcdNLO=1;
-
-      switch(IQ)
-      { case 1: IQn=2;break;
-        case 2: IQn=1;break;
-        default: IQn=IQ;
-      } 
-    
-      D=SQ(msq[II][IQ])-SQ(mne)-SQ(mqSM[IQ]);                                                                               
-      g=-0.25*ApB[II][IQ]/(D*D-4*mne*mne*mqSM[IQ]*mqSM[IQ]); 
-      *pA0-=1.5*g*mne*MN*parton_x(IQ, 1.2*(msq[II][IQ]-mne*mne/msq[II][IQ]));
-      *nA0-=1.5*g*mne*MN*parton_x(IQn,1.2*(msq[II][IQ]-mne*mne/msq[II][IQ]));
-    }     
-  }
 /******  higgs-quark-anitiquark */
   for(IQ=1;IQ<=6;IQ++)
   { double fh,fH;

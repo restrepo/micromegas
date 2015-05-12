@@ -1,0 +1,38 @@
+% Soft SUSY-breaking terms
+%gb Comment this out masses not OK
+
+
+let M2_H3=MHc**2-(4/EE**2*MW**2*SW**2*cb**2*la6r/s2b+4/EE**2*MW**2*SW**2*la7r/s2b*sb**2+2/EE**2*MW**2*SW**2*la4+4/EE**2*MW**2*SW**2*la5r). 
+let M2_H1= M2_H3*sb**2 -mui**2 -mur**2 +2/EE**2*MW**2*SW**2*(2*cb**2*la1+la3*sb**2+la4*sb**2+2*la5r*sb**2+3*cb*la6r*sb+la7r*sb**3/cb).
+let M2_H2= M2_H3*cb**2 -mui**2 -mur**2 +2/EE**2*MW**2*SW**2*(2*la2*sb**2+cb**2*la3+cb**2*la4+2*cb**2*la5r+3*cb*la7r*sb+cb**3*la6r/sb).
+
+
+
+ lterm  -M2_H1*s_h1*s_H1.
+ lterm  -M2_H2*s_h2*s_H2.
+ lterm  -M2_H3*sb*cb*eps2*(s_h1*s_h2+s_H1*s_H2).
+ lterm  i*2/EE**2*MW**2*SW**2*(2*la5i+cb/sb*la6i+sb/cb*la7i)*sb*cb*eps2*(s_h1*s_h2-s_H1*s_H2).
+
+lterm  -Mq2**2*s_q1*s_Q1  -Mq2**2*s_q2*s_Q2  -Mq3**2*s_q3*s_Q3.
+lterm  -Mu2**2*s_u1*s_U1  -Mu2**2*s_u2*s_U2  -Mu3**2*s_u3*s_U3.
+lterm  -Md2**2*s_d1*s_D1  -Md2**2*s_d2*s_D2  -Md3**2*s_d3*s_D3.
+
+lterm  -Ml2**2*s_l1*s_L1  -Ml2**2*s_l2*s_L2  -Ml3**2*s_l3*s_L3.
+lterm  -Mr2**2*s_r1*s_R1  -Mr2**2*s_r2*s_R2  -Mr3**2*s_r3*s_R3.
+
+lterm    (MG1r+i*MG1i)*f_B0*f_B0/2+AddHermConj.
+lterm    (MG2r+i*MG2i)*f_Wb*f_Wc/2+AddHermConj.
+lterm    (MG3r+i*MG3i)*f_G*f_G/2 +AddHermConj.  
+
+lterm s_h1*eps2*( ls1*s_l1*s_r1
+                 +ls2*s_l2*s_r2
+                 +ls3*s_l3*s_r3) + AddHermConj.
+
+lterm s_h2*eps2*( us1*s_q1*s_u1
+                 +us2*s_q2*s_u2
+                 +us3*s_q3*s_u3) + AddHermConj.
+
+lterm s_h1*eps2*(  ds1*(Vud*s_q1+Vcd*s_q2+Vtd*s_q3)*s_d1
+		  +ds2*(Vus*s_q1+Vcs*s_q2+Vts*s_q3)*s_d2
+		  +ds3*(Vub*s_q1+Vcb*s_q2+Vtb*s_q3)*s_d3 ) + AddHermConj.
+

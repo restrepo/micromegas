@@ -1,5 +1,5 @@
 /*
-  Author Alexander Pukhov.    Copyright (C) GPL, 2004
+  Author Alexander Pukhov.
 */
 
 #include "include/pdt.h"
@@ -460,40 +460,33 @@ void delPdtList(pdtList * list)
   { pdtList * next=list->next;;
     free(list->file);
     free(list->name);
+    free(list->partons);
+    free(list->items);
     free(list);
     list=next; 
   }
 }
 
 
-long  makePdtList(char * file, long Nparton, pdtList ** list)
+long  makePdtList(char * file,  pdtList ** list)
 { char s[100];
   char dName[100];
-  FILE * f=fopen(file,"r");   
-  long N;
+  FILE * f=fopen(file,"r");  
+  int partons_[100], positions_[100];
+  int N,L;
 
   if(!f) return 0;
   while(fscanf(f,"%s",s) ==1 && strcmp(s,"#distribution")!=0) ;
-  for(;!feof(f);)
+  for(L=0;!feof(f);)
   { long mother;
     int bcount=0,pos;
     char ch;
+    L=0;
     if(2!=fscanf(f," \"%[^\"]%*c %ld => ",dName,&mother)) break; 
     for(pos=1,ch=0;ch!='#';)
-    {  if(1==fscanf(f," %ld ",&N))
-       { if(N==Nparton) 
-         {  pdtList * new=malloc(sizeof(pdtList));
-             new->name=malloc(strlen(dName)+1);
-             strcpy(new->name,dName);
-             new->file=malloc(strlen(file)+1);
-             strcpy(new->file,file);
-             new->position=pos;
-             new->posaux=0;
-             new->beamP=mother;
-             new->next=*list;
-             *list=new;
-             do fscanf(f,"%c",&ch); while((!feof(f)) && ch!='#');
-         } 
+    {  if(1==fscanf(f," %d ",&N))
+       {
+         partons_[L]=N;   positions_[L]=pos; L++;       
          if(bcount==0) pos++; 
        }
        else 
@@ -501,8 +494,24 @@ long  makePdtList(char * file, long Nparton, pdtList ** list)
           ||(bcount &&strchr("(#",ch)) || (!bcount && ch==')') )goto exi;
           if(ch=='(') bcount=1; 
           else if(ch==')') { bcount=0; pos++;}
-       }
+       }      
     } 
+    {  pdtList * new=malloc(sizeof(pdtList));
+       new->name=malloc(strlen(dName)+1);
+       strcpy(new->name,dName);
+       new->file=malloc(strlen(file)+1);
+       strcpy(new->file,file);
+       new->partons=malloc(sizeof(int)*(L+1));
+       memcpy(new->partons,partons_,sizeof(int)*L);
+       new->partons[L]=0;
+
+       new->items=malloc(sizeof(int)*(L+1));
+       memcpy(new->items,positions_,sizeof(int)*L);
+       new->items[L]=0;
+       new->beamP=mother;
+       new->next=*list;
+       *list=new;   
+    }
     if(1!=fscanf(f,"%s",s)) break;
     if(strcmp(s,"distribution")==0) continue; else { fclose(f); return 0;} 
   }
@@ -510,3 +519,23 @@ exi:
   N=ftell(f);
   fclose(f); return N; 
 }
+
+int checkPartons( int * pNum, pdtList * L)
+{ int *p;
+  for(;*pNum; pNum++)
+  { 
+    if(*pNum==81 || *pNum==83) 
+    {  for(p=L->partons ;*p;p++) if(*p==3) break; if(*p==0) return 0;
+       for(p=L->partons ;*p;p++) if(*p==1) break; if(*p==0) return 0;
+    } else if(*pNum==-81 || *pNum==-83)     
+    {  for(p=L->partons ;*p;p++) if(*p==-3) break; if(*p==0) return 0;
+       for(p=L->partons ;*p;p++) if(*p==-1) break; if(*p==0) return 0;
+    }  else  
+    {
+      for(p=L->partons ;*p;p++) if(*pNum==*p) break;
+      if(*p==0) return 0;
+    }  
+  }
+  return 1;
+}
+

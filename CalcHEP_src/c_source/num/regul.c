@@ -8,12 +8,13 @@
 #include"read_func.h"
 #include"rd_num.h"
 #include"regul.h"
-#include"V_and_P.h"
+/*
+#include"VandP.h"
 #include"dynamic_cs.h"
-
+*/
 
 table regTab={"*** Table ***"," Regularization ",
-" Momentum    |> Mass  <|> Width <| Power|",NULL};
+" Momentum    |> Mass  <|> Width <| Power|",NULL,0};
 
 invreg_ invreg_1[200];
 
@@ -38,19 +39,6 @@ static int addreg_(char *lv, double rgmasw, double rgwdtw, int nndeg)
 } /* addreg_ */
 
 
-static int  rd_numW(char* s, double *p)
-{ 
-  int n; 
-
-  if(rd_num(s,p)) return 1;
-
-  for(n=0;n<nModelParticles;n++) if(strcmp(s, ModelPrtcls[n].width)==0) 
-  {  *p=pWidth(ModelPrtcls[n].name,NULL,NULL);
-     return 1;
-  }      
-
-  return 0;
-}
 
 int fillRegArray(void)
 { char charKey; 
@@ -83,13 +71,13 @@ int fillRegArray(void)
 
     coninv_(lv);
 /*================ Mass ============*/
-    if( calcExpression(massStr,rd_numW,&mass) )
+    if( calcExpression(massStr,rd_num,&mass) )
     {    sprintf(errorText," Error in  regularization table line %d .\n"
                           " Wrong field 'Mass' .",lineNum);
          goto errorExit;
     }                                         
 /*==================Width ==========*/    
-    if( calcExpression(widthStr,rd_numW,&width) )   
+    if( calcExpression(widthStr,rd_num,&width) )   
     {    sprintf(errorText," Error in  regularization table line %d .\n"
                           " Wrong field 'Width' .",lineNum);
          goto errorExit;

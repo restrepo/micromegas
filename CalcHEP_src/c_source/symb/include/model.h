@@ -1,16 +1,18 @@
 #ifndef __MODEL__
 #define __MODEL__
 
+#include "polynom.h"   /* for VAR_NAME_SIZE  */
+
 #define MAXINOUT 9
 
 /* ================== variables ==================== */
-#define VAR_NAME_SIZE 7
+
 #define strongconst "GG"
 
 typedef struct varrec
 {
   char       varname[VAR_NAME_SIZE];
-  int        need;
+  int        pub;
   int        hidden;
   double     varvalue;
   int        pwidth;
@@ -24,7 +26,7 @@ extern varlist  modelvars;
 
 /*=================== particles ==================== */
 
-#define P_NAME_SIZE 4
+#define P_NAME_SIZE 11
 #define MAXVALENCE 4
 
 typedef short particleNumType;
@@ -39,13 +41,14 @@ typedef struct modeofdecay *decaylink;
 
 typedef struct prtcl_base
    {
-      char    name[P_NAME_SIZE+2];
-      long    N;    
+      char    name[P_NAME_SIZE];
+      int          N;    
       int          anti, spin;
       char         massidnt[VAR_NAME_SIZE], imassidnt[VAR_NAME_SIZE];
       int          cdim;
       int          q3;
-      int          hlp;      
+      int          hlp; 
+      int          nHerm;     
       char *       latex;
       decaylink    top;
    }  prtcl_base;
@@ -81,6 +84,5 @@ typedef struct algvert
 typedef struct algvert *algvertptr;
 
 extern algvertptr lgrgn;
-extern char*EXTLIB;
 extern char*EXTFunc;
 #endif

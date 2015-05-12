@@ -31,12 +31,7 @@ static int SystemCall(int mode)
    fclose(f);
 
   err=system(buff);   
-  if(err>=0) err=slhaRead(FOUT,0); else cleanSLHAdata();
-  if(delFiles)
-  { unlink(FIN);unlink(FOUT);  
-    unlink("Control.in");unlink("Messages.out");unlink("SPheno.out");
-  }
-          
+  if(err>=0) err=slhaRead(FOUT,4); else cleanSLHAdata();
   return err;
 }
 
@@ -58,6 +53,21 @@ double  sphenoSUGRAc(double tb, double gMG1,double gMG2,double gMG3,
    return SystemCall(1);
 }
 
+double  sphenoSUGRAnuhc(double tb, double gMG1,double gMG2,double gMG3,
+             double gAl, double gAt, double gAb,double gMl2,double gMl3,double gMr2,double gMr3,
+             double gMq2,double gMq3,double gMu2,double gMu3,double gMd2,double gMd3,double mu,double MA)
+{ 
+   int err=sugraHiggsLesH(FIN, tb, gMG1,gMG2,gMG3, gAl, gAt, gAb, gMl2,gMl3,gMr2,gMr3,gMq2,gMq3,gMu2,gMu3,gMd2,gMd3,mu,MA);
+   FILE*f=fopen(FIN,"a");
+   
+   fprintf(f," 0  -1  # EWSB\n");
+   fclose(f);  
+  
+              
+   if(err) {printf("can not write down LesHouches.in file\n"); exit(10);}
+
+   return SystemCall(1);
+}
 
 
 double  sphenoAMSBc(double m0,double m32, double tb, double sgn)

@@ -8,19 +8,19 @@
 #include "plot.h"
 #include "num_serv.h"
 #include "width_12.h"
-#include "const.h"
 #include "interface.h"
 #include "param.h"
-#include "4_vector.h"
 #include "files.h"
 #include "alphas2.h"
+#include "../../include/VandP.h"
+#include "dynamic_cs.h"
 
 static char inParticle[10];
 static double * widths=NULL;
 static int EffQmass=1;
-static  double *Q=NULL,*GG=NULL,*SC=NULL;
+static  REAL *Q=NULL,*SC=NULL;
 static int nsubSel=0;
-
+static REAL pvect3[12];
 
 static void  decay12information(double totwidth,int Branchings)
 {  
@@ -76,129 +76,6 @@ static void  decay12information(double totwidth,int Branchings)
 } 
 
 
-static void  writeLesHdecays(void)
-{ 
- int i,nsub;
- int first=1;
- 
- long N1,N2,N3;
- double S; 
- double *widths=(double *) malloc(sizeof(double)*nprc_int);
- double *sum=(double *) malloc(sizeof(double)*nprc_int);
-
- double *masses=(double *) malloc(3*sizeof(double)*nprc_int);
- long  *codes=(long *) malloc(3*sizeof(long)*nprc_int);
- char ** names=malloc(3*sizeof(char*)*nprc_int); 
- int npTot=0;
- char f_name[50];
- FILE *f;
- char*inP=" ";
-
- nextFileName(f_name,"decaySLHA",".txt");
- f=fopen(f_name,"w");
-fprintf(f,"#Masses, widths and branchings in SLHA format:\n");
-fprintf(f,"BLOCK MODELPARAMETERS:\n");
-for(i=1;i<=nvar_int;i++) 
-fprintf(f,"# %8s  %E\n", varName_int[i], va_int[i]);
-fprintf(f,"BLOCK MASS  # Mass Spectrum\n");
-for(nsub=1;nsub<=nprc_int;nsub++)
-{ for(i=1;i<4;i++) 
-  {  double m;
-     long N; 
-     char * nm=pinf_int(nsub,i,&m,&N);
-     int j;
-     for(j=0;j<npTot;j++) if(strcmp(nm,names[j])==0 || N==codes[j] ||
-     N==-codes[j]) break;
-     if(j==npTot) 
-     { masses[j]=m;
-       codes[j]=N;
-       names[j]=nm;
-       npTot++;
-     }
-  }  
-} 
-for(i=0;i<npTot;i++) fprintf(f,"%10d  %E  # %s\n",codes[i],masses[i],names[i]);  
-free(masses); free(codes); free(names);
-  
- err_code = 0; 
-
- for(nsub=0;nsub<nprc_int;nsub++) sum[nsub]=0;   
-
- for(nsub=1;nsub<=nprc_int;nsub++) 
- {  double m1, m2, m3;
-    char *inP_new=pinf_int(nsub,1,&m1,&N1);
-    int Nsum;
-        
-    first=strcmp(inP_new,inP); 
-      
-    if(first)
-    { Nsum=nsub-1; 
-      inP=inP_new;
-      if(EffQmass&&Q) *Q=m1;
-      if(calcFunc_int()>0)
-      {  messanykey(15,15,"Can not calculate constraints");
-           return;
-      }
-      if(GG)
-      { if(SC) *GG=*SC; 
-        else {if(Q) *GG=sqrt(4*M_PI*alpha_2(*Q)); else *GG=sqrt(4*M_PI*alpha_2(m1));}
-      }
-    }  
-    
-    pinf_int(nsub,1,&m1,&N1); 
-    pinf_int(nsub,2,&m2,NULL);  
-    pinf_int(nsub,3,&m3,NULL);
-
-          
-    if (m1 <=m2 + m3) widths[nsub-1] = 0.0; 
-    else 
-    { 
-        double md=m2-m3;
-        double ms=m2+m3; 
-        double pRestOut=sqrt((m1*m1 - ms*ms)*(m1*m1-md*md))/(2*m1);
-        double totcoef= pRestOut/(8. * M_PI * m1*m1);
-                   
-        for(i=1;i<12;i++) pvect[i]=0;
-        pvect[0]=m1;
-        pvect[7]=pRestOut;
-        pvect[4]=sqrt(pRestOut*pRestOut+m2*m2);
-        pvect[11]=-pRestOut;
-        pvect[8]=sqrt(pRestOut*pRestOut+m3*m3);
-            
-        widths[nsub-1] = totcoef * sqme_int(nsub,pvect,&err_code);
-        if(err_code != 0) {  errormessage(); widths[nsub-1]=0; err_code=0;}
-        sum[Nsum] += widths[nsub-1];      
-    }
- }
-
- inP=" "; 
- for(nsub=1;nsub<=nprc_int;nsub++) 
- {     
-    char *inP_new=pinf_int(nsub,1,NULL,&N1);
-    
-    first=strcmp(inP_new,inP); 
-      
-    if(first)
-    {  inP=inP_new;
-       S=sum[nsub-1];
-       if(S>0) fprintf(f,"DECAY   %d   %E # %s width\n",  N1, S,  inP);
-    }
-    if(S>0 && widths[nsub-1]!=0)
-    {  char * inP2=pinf_int(nsub,2,NULL,&N2);
-       char * inP3=pinf_int(nsub,3,NULL,&N3);
-       fprintf(f," %12.4E 2  %8d  %8d # Br(%-3s -> %-3s %-3s) %11.3E[Gev]\n",
-        widths[nsub-1]/S,N2,N3,inP,inP2,inP3,widths[nsub-1]);
-    }
- }
- fclose(f);
-{ char mess[100];
-  sprintf(mess,"Output is saved  in %s",f_name);   
-  messanykey( 12, 12,mess);  
-}
- free(widths); free(sum);
-
-} 
-
 static double calcwidth12(void)
 { 
  int i,nsub;
@@ -206,28 +83,22 @@ static double calcwidth12(void)
  double selChan=0;
  int first=1;
  
- long N1;
+ int N1;
 
  err_code = 0; 
 
  for(nsub=1;nsub<=nprc_int;nsub++) widths[nsub-1]=0;
  for(nsub=1;nsub<=nprc_int;nsub++) 
- {  double m1, m2, m3;
-
+ {  REAL m1, m2, m3;
+    double GG;
     if(strcmp(pinf_int(nsub,1,&m1,&N1),inParticle)==0) 
     { 
       if(first)
       { 
-        if(EffQmass&&Q) *Q=m1;
-        if(calcFunc_int()>0)
-        {  messanykey(15,15,"Can not  calculate constraints");
-           return 0;
-        } 
-        if(GG)
-        { if(SC) *GG=*SC; 
-          else {if(Q) *GG=sqrt(4*M_PI*alpha_2(*Q)); else *GG=sqrt(4*M_PI*alpha_2(m1));}
-        }
-
+        if(EffQmass&&Q) setQforParticle(Q,inParticle); 
+        if(calcMainFunc()>0) {  messanykey(15,15,"Can not  calculate constraints"); return 0;}
+        if(calcFunc_int()>0) {  messanykey(15,15,"Can not  calculate constraints"); return 0;} 
+        if(Q) GG=sqrt(4*M_PI*alpha_2(*Q)); else GG=sqrt(4*M_PI*alpha_2(m1));
         first=0;
       }  
       pinf_int(nsub,1,&m1,NULL);pinf_int(nsub,2,&m2,NULL);pinf_int(nsub,3,&m3,NULL);
@@ -240,14 +111,14 @@ static double calcwidth12(void)
         double pRestOut=sqrt((m1*m1 - ms*ms)*(m1*m1-md*md))/(2*m1);
         double totcoef= pRestOut/(8. * M_PI * m1*m1);
                    
-        for(i=1;i<12;i++) pvect[i]=0;
-        pvect[0]=m1;
-        pvect[7]=pRestOut;
-        pvect[4]=sqrt(pRestOut*pRestOut+m2*m2);
-        pvect[11]=-pRestOut;
-        pvect[8]=sqrt(pRestOut*pRestOut+m3*m3);
-            
-        widths[nsub-1] = totcoef * sqme_int(nsub,pvect,&err_code);
+        for(i=1;i<12;i++) pvect3[i]=0;
+        pvect3[0]=m1;
+        pvect3[7]=pRestOut;
+        pvect3[4]=sqrt(pRestOut*pRestOut+m2*m2);
+        pvect3[11]=-pRestOut;
+        pvect3[8]=sqrt(pRestOut*pRestOut+m3*m3);
+
+        widths[nsub-1] = totcoef * sqme_int(nsub,GG,pvect3,&err_code);
         if(err_code != 0) {  errormessage(); widths[nsub-1]=0; err_code=0;}
         width12 += widths[nsub-1];
         if(nsubSel==nsub) selChan= widths[nsub-1];
@@ -318,17 +189,13 @@ void  decay12(void)
    void * pscr=NULL; 
    char * mlist;
    static int Branch=1;
+   double Qstat;
 
    widths=(double*)malloc(sizeof(double)*nprc_int);
-
-   for(i=1;i<=nvar_int;i++)
-   {   if(!strcmp(varName_int[i],"Q"))  Q=va_int+i;
-       else if(!strcmp(varName_int[i],"GG")) GG=va_int+i;
-   }
- 
-   if(GG)for(i=1;i<=nvar_int+nfunc_int;i++) 
-      if(!strcmp(varName_int[i],"SC")){ SC=va_int+i; break;}
    
+   if(Q==NULL) for(i=0;i<nModelVars;i++) if(strcmp(varNames[i],"Q")==0){ Q= varValues+i; break;}
+   if(Q) Qstat=*Q; 
+
    inmenutxt(&mlist);
    L=mlist[0];
    sscanf(mlist+1,"%s",inParticle);   
@@ -342,7 +209,7 @@ void  decay12(void)
          " Model parameters       "
          " Constraints            "
          " Parameter dependence   "
-         " Les Houches output     ";
+         ;
 
       clrbox(1,13, maxCol(), maxRow());
       nsubSel=0;
@@ -382,11 +249,11 @@ void  decay12(void)
 	     paramdependence( calcwidth12,proc,dimInfo);
 	     put_text(&pscr);
 	   } break;
-        case 7: writeLesHdecays(); break; 
       } 
    }
    free(widths);
    free(mlist);   
    clrbox(1,1,53,16);
    clrbox(1,16,maxCol(),maxRow());
+   if(Q) *Q=Qstat;
 }

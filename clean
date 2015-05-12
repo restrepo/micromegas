@@ -5,7 +5,7 @@
     echo OK!
   else
     echo cleaning is refused!
-    exit 0
+    exit 1
   fi 
 
   if(test -x "`which gmake`") then
@@ -15,13 +15,14 @@
   fi
   export MAKE
 
-  for Dir in * 
+  for Dir in * Packages/*
   do 
-    if(test -d $Dir ) then 
+    if(test -d $Dir  -a $Dir != Packages ) then 
+       echo clean $Dir
        $MAKE -C $Dir clean
     fi
   done
 
-
+  
   
   exit 0

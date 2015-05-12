@@ -19,6 +19,5 @@ $(lib)/serv.a:$(lib)/serv.a($(OBJ))
 	$(RANLIB) $@
 	@rm -f $(OBJ)
 
-
- $(bin)/calc: main_calc.c $(lib)/serv.a
+$(bin)/calc: main_calc.c  $(lib)/serv.a
 	$(CC) $(CFLAGS)  -o $@    $^ -lm

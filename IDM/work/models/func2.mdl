@@ -1,0 +1,24 @@
+Inert Dublet
+ Constraints 
+ Name  |> Expression                                                                                                                                                                                    <|
+CW     |sqrt(1-SW^2) % cos of the Weinberg angle
+MW     |MZ*CW
+Lqcd   |initQCD5(alfSMZ, McMc, MbMb, Mtp)
+Mb     |MbEff(Q)
+Mt     |MtEff(Q)
+Mc     |McEff(Q)
+PI     |acos(-1)
+Mbp    |MbMb*(1+4/3*alphaQCD(MbMb)/PI)
+Mcp    |Mc*(1+4/3*alphaQCD(Mc)/PI)
+mu2    |MHX^2-laL*(2*MW/EE*SW)^2
+la3    |2*(MHC^2-mu2)/(2*MW/EE*SW)^2
+la5    |(MHX^2-MH3^2)/(2*MW/EE*SW)^2
+la4    |2*laL-la3-la5
+B00000 |2*SW^2-1
+B00001 |-2*SW^2+1
+B00002 |la4-la5
+B00003 |la4+la5
+B00004 |la3+la4-la5
+B00005 |la3+la4+la5
+B00006 |1+4*SW^4-4*SW^2
+B00007 |la3+la4

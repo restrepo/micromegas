@@ -24,8 +24,7 @@ static int SystemCall(int mode)
   }  
   
   err=System(buff);   
-  if(err>=0)  err=slhaRead(FOUT,0); else cleanSLHAdata();   
-  if(delFiles){unlink(FIN);unlink(FOUT);unlink("suspect2.out"); }
+  if(err>=0)  err=slhaRead(FOUT,4); else cleanSLHAdata();   
   return err;
 }
 
@@ -65,6 +64,22 @@ double  suspectSUGRAc(double tb, double gMG1,double gMG2,double gMG3,
    addSU_ALGO(FIN,ichoice);
    return SystemCall(1);
 }
+
+double  suspectSUGRAnuhc(double tb, double gMG1,double gMG2,double gMG3,
+             double gAl, double gAt, double gAb, double gMl2,double gMl3,double gMr2,double gMr3,
+             double gMq2,double gMq3,double gMu2,double gMu3,double gMd2,double gMd3,double mu,double MA)
+{ 
+   int ichoice[12]={0,0,21, 1, 2, 0, 0, 2, 1, 2, 2,  0};
+   
+   if(sugraHiggsLesH(FIN,tb, gMG1,gMG2,gMG3,
+             gAl, gAt, gAb, gMl2,gMl3,gMr2,gMr3,
+             gMq2,gMq3,gMu2,gMu3,gMd2,gMd3,mu,MA))
+   {  printf("can not write down %s file\n",FIN); exit(10);}
+   addSU_ALGO(FIN,ichoice);
+   return SystemCall(1);
+}
+
+
 
 
 double  suspectAMSBc(double m0,double m32, double tb, double sgn)

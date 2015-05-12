@@ -259,7 +259,7 @@ int writelesh_(int * err, char*CODE,char *f_name,int len1,int len2)
   fprintf(f,"#PDG code      mass           particle\n");
   fprintf(f,"       24   %16.8E    # MW\n",              80.423);
   fprintf(f,"       25   %16.8E    # h0\n",              findValW("Mh")); 
-  fprintf(f,"       35   %16.8E    # H0\n",              findValW("MHH" )); 
+  fprintf(f,"       35   %16.8E    # H0\n",              findValW("MH" )); 
   fprintf(f,"       36   %16.8E    # A0\n",              findValW("MH3" )); 
   fprintf(f,"       37   %16.8E    # H+\n",              findValW("MHc" )); 
   fprintf(f,"  1000001   %16.8E    # ~d_L\n",            findValW("MSdL")); 

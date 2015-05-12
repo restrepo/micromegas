@@ -12,6 +12,7 @@
 whohow     liminsp, LimQ;
 whohow     limout;
 
+int ZWmax=1000, ZWmin=-1000;
 
 int  nin, nout, n_x;   /* Number of X-particles */
 shortstr  processch="";
@@ -47,8 +48,12 @@ static void  addlim(whohow p_list,int j,int k, int anti)
 
    for (i = 0; i < whohowMAX-1; i++) 
    { 
-      if (p_list[i].who == j) return;
-      if (p_list[i].who == 0) 
+      if (p_list[i].who == j)
+      { if(  ( k>0 && p_list[i].how>0 && k<p_list[i].how) 
+           ||( k<0 && p_list[i].how<0 && k>p_list[i].how)  
+          ) { p_list[i].how=k; return; }
+      }
+      if(p_list[i].who == 0) 
       {  p_list[i].who = j; 
          p_list[i].how = k; 
          p_list[i+1].who = 0; 
@@ -194,11 +199,10 @@ static int input(int y0, char*hlp, char*directive, char*text, int cur, int lim)
 static int enter_h(int * y,char* name,int num,int scat)
 { int      i,m,j=0;
   int      redres;
-  shortstr hadrch;  
+  char     hadrch[STRSIZ];  
 
   char ** items;
   char * errpos=NULL;
-
   locateinbase(name,&j);
   if(j)
   { 
@@ -253,8 +257,8 @@ static int enter_h(int * y,char* name,int num,int scat)
   
      do 
      {  char direction[100];
-        sprintf(direction,"composit '%s'  consists of: ",name); 
-        redres=input(*y, "s_ent_2", direction,  hadrch, m , SSTRLEN-1);
+        sprintf(direction,"composite '%s'  consists of: ",name);
+        redres=input(*y, "s_ent_2", direction,  hadrch, m , STRSIZ-1);
         if(redres==KB_ESC) return 1;               
      }  while (redres!=KB_ENTER && redres!=KB_ESC);
 
@@ -309,7 +313,7 @@ static int restrict_p(int y0, int anti, char * mess, char * hlp,
 char *  inputstr, whohow  liminsp)
 { 
    int m, j, k;
-   int ntot;
+   int ntot,ntotQ,forQ;
 
    char ** items;   
    char *errpos=NULL;
@@ -324,20 +328,27 @@ do{
     }
     trim(inputstr);
     nilprtcl(liminsp);
+    nilprtcl(LimQ);
     ntot=0;
-
+    ntotQ=0;
     items=stritems(",",inputstr);
     for(m=0 ; items[m]; m++)
     {  char frgm[100];
        char *n;
-      sscanf(items[m],"%[^,]",frgm);       
-
-      if(n=strstr(frgm,"!="))
+       forQ=0;
+       sscanf(items[m],"%[^,]",frgm);
+             
+      if((n=strstr(frgm,"!=")))       
       { if(!anti) {errTxt="wrong restriction"; break;}
         if(sscanf(n+2,"%d",&k)!=1) {errTxt="wrong number"; break;}
-        else {n[0]=0; k++;  k=-k;}
+        else  { n[0]=0; k++; forQ=1;}
       }
-      else if(n=strstr(frgm,">"))
+      else if((n=strstr(frgm,"<")))
+      { if(!anti) {errTxt="wrong restriction"; break;}
+        if(sscanf(n+1,"%d",&k)!=1) {errTxt="wrong number"; break;}
+        else {n[0]=0; k=-k-1;}
+      }
+      else if((n=strstr(frgm,">")))
       {
         if(sscanf(n+1,"%d",&k)!=1) {errTxt="wrong number"; break;}
         else {n[0]=0;k++;}
@@ -345,14 +356,28 @@ do{
       else k=1;
       trim(frgm);
 
+      if(strcmp(frgm,"%Z+W")==0)
+      {  
+         if(k>0) ZWmax=k-1;
+         if(k<0) ZWmin=-k-1;
+         continue;
+      }
+                                                 
+
       locateinbase(frgm,&j);
       if ((j == 0) || (!anti&&pseudop(j)))
       {  errTxt="wrong limit statement";
          break;
       }
-      ntot++;
-      if(ntot>=whohowMAX) { errTxt="Too many items"; break;}
-      addlim(liminsp,j,k,anti);
+      if(forQ) 
+      { ntotQ++; 
+        if(ntotQ>=whohowMAX) { errTxt="Too many items"; break;}
+        addlim(LimQ,j,k,anti);
+      }else  
+      { ntot++;
+        if(ntot>=whohowMAX) { errTxt="Too many items"; break;}
+        addlim(liminsp,j,k,anti);
+      }  
     }
     errpos=items[m];
     free(items);
@@ -363,7 +388,8 @@ do{
 
 int enter(void)
 {   
-   int  i, y0,scat;
+   int  i, y0;
+   int scat;
    int  redres;
 
    char ** items=NULL;
@@ -372,7 +398,9 @@ int enter(void)
 
    int curh=0;
 
-
+   ZWmax= 1000;
+   ZWmin=-1000;
+     
    prtcllist(0);
    scrcolor(Red,BGmain);
    y0 = ycons;
@@ -398,11 +426,11 @@ label_1:
    arrpos=strstr(processch,"->");
    if(arrpos)  strncpy(arrpos,", ",2); 
    else { errTxt="'->' is absent "; goto label_1; }
-   if( strchr(processch,',')<arrpos ) scat=1; else scat=0;
-   
+ 
    if(items) free(items);
    items=stritems(" ,",processch);
-
+   if( items[0] && items[1] &&items[1] <arrpos ) scat=1; else scat=0;
+    
    for(i=0,nin=0,nout=0,n_x=0,curh=0; items[i]; i++)   
    {  char name[100];
 
@@ -417,7 +445,8 @@ label_1:
         if(curh==MAXINOUT-1){errTxt="Too many particles"; break;}
         if(items[i]>arrpos) nout++; else nin++; 
         if(nin>2){errTxt="Too many incoming particles"; break;}                  
-        if(enter_h(&y0,name,curh,scat)) break;  
+        if(enter_h(&y0,name,curh,scat)) break;
+ 
         curh++;
       }
    }
@@ -429,8 +458,8 @@ label_1:
       errTxt=err_Txt;
    }   
    if(errTxt) goto label_1;    
-   if(nout<2)
-   {  errTxt="The number of outgoing particles should  exceed 1";
+   if(nout+nin<3)
+   {  errTxt="The total number of particles should  exceed 2";
       goto label_1;
    }
    if(nin<1)
@@ -447,11 +476,7 @@ label_1:
    if(restrict_p(y0,1, "Exclude diagrams with ","s_ent_4",limpch,liminsp)
      ) goto label_1;
 
-   for(nilprtcl(LimQ), i=0;i<liminsp[i].who;i++) if(liminsp[i].how <0)
-   {
-     liminsp[i].how =-liminsp[i].how;
-     addlim(LimQ,liminsp[i].who,liminsp[i].how,0);
-   }
+   for( i=0;LimQ[i].who;i++)  addlim(liminsp,LimQ[i].who, LimQ[i].how,0);
 
    y0++;
    if(y0>=maxRow()-1) {y0=maxRow()-1; goto_xy(1,y0); clr_eol();} 

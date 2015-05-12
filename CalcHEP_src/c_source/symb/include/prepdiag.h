@@ -33,7 +33,7 @@ extern set    setmassindex,setmassindex0;
 extern int    nloop;
 extern int    consLow;
 extern int    fermmap[2*maxvert];
-extern char   inoutmasses[MAXINOUT][7];
+extern char   inoutmasses[MAXINOUT][VAR_NAME_SIZE];
 extern momsum momdep[3*maxvert];
 
 extern void   preperdiagram(void);

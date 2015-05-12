@@ -1,9 +1,6 @@
-#include"num_out.h"
 #include"sf_epp.h"
-#include "const.h"
 #include "crt_util.h"
 #include<math.h>
-
 static double xin[2] ={0.938, 0.938}; /* Mass of proton [GeV] */
 static int charge[2] ={1, 1};         /* Charge of proton [e] */
 static double q2_max[2] ={2., 2.};    /* Max of photons Abs(q^2) [GeV^2] */
@@ -18,7 +15,7 @@ static const double Maxpt_min = 1.;   /* Maximal of minimal  Pt cut [GeV], */
 /* ********************************************************* */
 
 
-int  p_epp__ (long pNum){ if(pNum==22) return 1; else return 0; }
+int  p_epp__ (int*pNum){ if(pNum[0]==22 && pNum[1]==0) return 1; else return 0; }
 
 void 
 n_epp__ (int i, char *name)
@@ -68,7 +65,7 @@ int mc_epp__(int i)
 }
 
 
-int m_epp__ (int i)
+int m_epp__ (int i,int*pString)
 {
   void *pscr = NULL;
   i--;

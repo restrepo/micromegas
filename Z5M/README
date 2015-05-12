@@ -1,0 +1,31 @@
+Installation of a new model.
+
+The model of particle interaction has to be defined in the    
+CalcHEP format,   Comput.Phys.Commun. 184 (2013) 1729-1769 //arXiv:1207.0798 [hep-ph] 
+
+1. Define the model  by writing the
+  extlib1.mdl  func1.mdl  lgrng1.mdl  prtcls1.mdl  vars1.mdl 
+ model files and put these files in the  directory work/models/.
+   LanHEP program  can help  you to generate model files. 
+   Odd  particles (particles of DM sector) should have a name starting with "~". 
+
+2. To check your model, go to work/  and launch 
+   ./calchep 
+Use "Check Model"  to get  information  about   model inconsistencies. 
+  
+2. External constraints. 
+If your model has external functions  they have to be realized in 
+the as a  library lib/aLib.a. If your external function do not need other 
+libraries and are presented by C-code, then put this code in lib/
+subdirectory. The library will be compiled automatically.  In more compensated case,
+improve  lib/Makefile
+ 
+3. We provide the  user with  two examples of main programs: 
+main.c and main.F
+
+Compilation of executable is launched by 
+
+    gmake  main=<name of your main file>
+
+if gmake is absent, use make. We assume that in such case make works like 
+gmake.

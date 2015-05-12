@@ -133,7 +133,7 @@ void  calcdenominators(vcsect vcs )
          }
 
          strcpy(denom[denrno].momStr,buff);
-         denom[denrno].power = 1;
+         if(v <= vcs.sizel) denom[denrno].power = 1; else denom[denrno].power = -1;
 
          denom[denrno].mass=modelVarPos(prtclbase[ln->partcl-1].massidnt);
          if(ttypepropag(v,l)&&!tWidths) denom[denrno].width = 0; else 
@@ -143,7 +143,7 @@ void  calcdenominators(vcsect vcs )
          if ( !strcmp(denom[denrno].momStr,denom[k].momStr) &&
                denom[denrno].mass  ==  denom[k].mass &&
                denom[denrno].width ==  denom[k].width )
-         {  ++(denom[k].power); goto label_1;}
+         {   denom[k].power=2;    goto label_1;}
          denrno++;
 label_1:;
       }
@@ -153,12 +153,12 @@ label_1:;
 
 void  denominatorStatistic(int nsub, 
    int * n_swidth, int *n_twidth, int * n_0width, denlist * allDenominators, 
-   FILE * fd, int for12)
+   FILE * fd)
 { 
    int i;
    catrec    cr;
    denlist    den_, den_tmp;
-   deninforec   dendescript;
+   deninforec   dendescript={0};
     
    (*n_swidth)  = 0;
    (*n_twidth)  = 0;
@@ -172,17 +172,7 @@ void  denominatorStatistic(int nsub,
       
       if (cr.nsub_ == nsub)
       { 
-         whichArchive(cr.nFile,'r',for12);
-/*          if(ArchNum!=0 && ArchNum!=cr.nFile) fclose(archiv);
-         if(ArchNum==0 || ArchNum!=cr.nFile) 
-         { char archiveName[40];
-           ArchNum=cr.nFile;
-           sprintf(archiveName,ARCHIV_NAME,ArchNum);
-           if(for12) strcat(archiveName,"2");
-           archiv=fopen(archiveName,"rb");
-         }
-            
-*/      
+         whichArchive(cr.nFile,'r');
          dendescript.cr_pos = ftell(catalog) - sizeof(cr);
 
          fseek(archiv,cr.denompos,SEEK_SET);
@@ -220,6 +210,6 @@ void  denominatorStatistic(int nsub,
    }
    
 /*   if(ArchNum) fclose(archiv);  */
-   whichArchive(0,0,0);
+   whichArchive(0,0);
   *allDenominators=den_;
 }

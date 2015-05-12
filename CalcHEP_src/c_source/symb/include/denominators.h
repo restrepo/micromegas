@@ -39,7 +39,7 @@ typedef struct deninforec
 extern void  calcdenominators(vcsect vcs );
 extern void denominatorStatistic(int nsub, 
   int * n_swidth,  int * n_twidth,  int * n_0width, 
-  denlist * allDenominators, FILE * fd, int for12); 
+  denlist * allDenominators, FILE * fd); 
 extern int  ttypepropag(int v,int l);
 
 #endif

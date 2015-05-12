@@ -256,24 +256,13 @@ static void  addscmult( int nSpin )
       delpoly(&(ee.expr.p)); 
    }
 
-   for(i=0;i<vardef->nvar;  i++) 
-   { char *c=strchr(vardef->vars[i].name,'.');
-     if(c) c[0]='_';
-   }
-
    for(n=2; n<=px; n++) for(m=1; m<=n-1; m++)
    {  symb_all mm;
-      sprintf(name,"p%d_p%d",m,n);
+      sprintf(name,"p%d.p%d",m,n);
       mm=rd_symb(name);
       assignsclmult(-m,-n,mm->expr.p);
       delunit(mm);      
    }
-
-   for(i=0;i<vardef->nvar;  i++) 
-   {  char *c=strchr(vardef->vars[i].name,'_');
-      if(c) c[0]='.';
-   }
-              
 
    for(n=px; n<py; n++) for(m=0; m<=n; m++) if((n!=m || n>= nin+nout))
    {  poly qq=NULL;
@@ -512,7 +501,7 @@ static void  del_pp(poly* p, poly * fact, long * del)
       sewpoly(&psub,&q);
    }
 
-   if (nout > 2) multpolyint(&psub,-1);
+   if (nout != 2) multpolyint(&psub,-1);
 
    z_d = vardef->vars[0].zerodeg;
    m_d = vardef->vars[0].maxdeg;
@@ -614,11 +603,11 @@ static void  transformfactor(rmptr* t_fact,poly mon,long del)
 
 
 /* ----------- end of numeric factors collecting--------------- */
-   sprintf(factortxt,"%d",factnum);
+   sprintf(factortxt,"%ld",factnum);
 
    tf_add = (rmptr)read_rmonom(factortxt);
    mult_rptr(t_fact,&tf_add);
-   sprintf(factortxt,"1/(%d",factdenum);
+   sprintf(factortxt,"1/(%ld",factdenum);
 
    for(v=0; v<vcs.sizet; v++) for(l=0; l<vcs.valence[v]; l++)
    {  edgeinvert *L = &(vcs.vertlist[v][l]);
@@ -975,8 +964,8 @@ for (i = 0;i<=n_vrt-1;i++)
 
    if(symb_iszero(rnum)) return 2;
 
-   if (consLow) del_pp(&(rnum.expr.t->re), &mon,&del);
-       else { mon= polyfactor(rnum.expr.t->re); del=1;}
+   if (/*consLow*/ nin+nout<=5) del_pp(&(rnum.expr.t->re), &mon,&del);
+       else  { mon= polyfactor(rnum.expr.t->re); del=1;}
 
    if(rnum.expr.t->re==NULL) return 2;
 
@@ -1009,7 +998,7 @@ static void  calcproc(csdiagram* csdiagr)
 static void  writestatistic(unsigned noutmemtot,char* txt)
 {
    goto_xy(1,12);  print("%u\n",calcdiag_sq);
-   goto_xy(1,13);  print("%u",noutmemtot);
+   if(noutmemtot) {goto_xy(1,13);  print("%u Out of memory   ",noutmemtot);}
    goto_xy(17,14); print("%4d",ndiagr);
    goto_xy(42,14); print("%s      ",txt);
    goto_xy(14,17); clr_eol();
@@ -1032,10 +1021,11 @@ void  calcallproc(void)
    memerror=heap_is_empty;
    memoryInfo=memoryInfo_;
 
-   goto_xy(1,13);
+   goto_xy(1,14);
    scrcolor(FGmain,BGmain);
 
-   print("0     Out of memory\n");
+//   print("0     Out of memory\n");
+   
    print("current diagram          in (Sub)process \n");
    print("Subdiagram  :\n");
    print("Used memory :%3d Kb       \n",(int)(usedmemory/1000));
@@ -1096,7 +1086,7 @@ void  calcallproc(void)
             {
                wrtoperat("Writing result             ");
                vardef=&(varsInfo[0]);     
-               ArcNum=whichArchive(ArcNum,'w',0); 
+               ArcNum=whichArchive(ArcNum,'w'); 
                saveanaliticresult(rnum.expr.t->re,factn,factd, vcs,ArcNum); 
                newCodes=1;
             }
@@ -1116,7 +1106,7 @@ exi:
    fclose(menuq);
    
    fclose(catalog);
-   whichArchive(0,0,0);      
+   whichArchive(0,0);      
    scrcolor(FGmain,BGmain);
    clrbox(1,14,70,20);
    memerror=NULL;

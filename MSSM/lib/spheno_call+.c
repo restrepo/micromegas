@@ -18,3 +18,8 @@
 #define xxxEwsbMSSM   sphenoEwsbMSSM
 #define xxxewsbmssm_  sphenoewsbmssm_
 #include "pmssm.inc"
+
+#define xxxSUGRAnuhc  sphenoSUGRAnuhc
+#define xxxSUGRAnuh   sphenoSUGRAnuh 
+#define xxxsugranuhs_  sphenosugranuh_
+#include "sugracHiggs.inc"

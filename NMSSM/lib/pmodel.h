@@ -11,7 +11,9 @@ extern "C" {
 extern void   o1Contents(FILE * f);
 extern int    nmssmEWSB(void); 
 extern int    nmssmSUGRA(double m0, double mhf,   double a0, double tb,
-                         double sgn,double Lambda,double aLambda, double aKappa);
+                         double sgn,double Lambda,double aLambda, double aKappa,
+                         double xif, double xis, double muP, double MSPQ,double M3HQ
+                         );
 extern int    readVarNMSSM(char *fname);
 extern int    readSLHA(char * fname);
 extern int    NMHwarn(FILE * f);
@@ -22,6 +24,8 @@ extern double  deltams_(double *M, double*P);
 extern double  bsmumu_(double *M, double*P);
 extern double  btaunu_(double *M, double*P);
 extern double  gmuon_(double *M, double*P);
+extern int     HBblocks(char * fname);
+extern int     loopGamma(double * csAA, double *csAZ);
 
 #define bsgnlo     bsgnlo_
 #define deltaMd    deltamd_
@@ -30,7 +34,6 @@ extern double  gmuon_(double *M, double*P);
 #define btaunu     btaunu_
 #define gmuon      gmuon_
 
-extern int delFiles;
 #ifdef __cplusplus
 }
 #endif 

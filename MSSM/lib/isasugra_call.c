@@ -26,8 +26,7 @@ static int SystemCall(int mode)
   sprintf(buff+strlen(buff)," %s %s",FIN, FOUT);
   err=System(buff); 
    
-  if(err>=0) err=slhaRead(FOUT,0); else cleanSLHAdata();
-  if(delFiles){unlink(FIN);unlink(FOUT);} 
+  if(err>=0) err=slhaRead(FOUT,4); else cleanSLHAdata();
   return err;
 }
 
@@ -49,6 +48,17 @@ double  isajetSUGRAc(double tb, double gMG1,double gMG2,double gMG3,
    err=SystemCall(1);
 
    return err;
+}
+
+double  isajetSUGRAnuhc(double tb, double gMG1,double gMG2,double gMG3,
+             double gAl, double gAt, double gAb, double gMl2,double gMl3,double gMr2,double gMr3,
+             double gMq2,double gMq3,double gMu2,double gMu3,double gMd2,double gMd3,double mu,double MA)
+{ 
+   
+   if(sugraHiggsLesH("slha.in",tb, gMG1,gMG2,gMG3, gAl, gAt, gAb, gMl2,gMl3,gMr2,gMr3,
+             gMq2,gMq3,gMu2,gMu3,gMd2,gMd3,mu,MA))
+   {  printf("can not write down 'slha.in' file\n"); exit(10);}
+   return SystemCall(1);
 }
 
 

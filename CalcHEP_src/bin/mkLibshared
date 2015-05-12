@@ -36,4 +36,4 @@ else
  fi 
 fi
 #
-$CC $SHARED -o $target  $CFLAGS $CFLAGSD *.c  
+$CC $SHARED -o $target  $CFLAGS *.c  

@@ -193,11 +193,11 @@ int wrtkin_(FILE *nchan)
    i__1 = ndec;
    for (i = 0; i < i__1; ++i) 
    {
-     for (k=0;c=kinmtc_1[i].lvin[k];k++) fprintf(nchan,"%d",c);
+     for(k=0;(c=kinmtc_1[i].lvin[k]);k++) fprintf(nchan,"%d",c);
      fprintf(nchan," -> ");
-     for (k = 0; c=kinmtc_1[i].lvout[0][k]; ++k)  fprintf(nchan,"%d",c);
+     for(k=0;(c=kinmtc_1[i].lvout[0][k]);++k)  fprintf(nchan,"%d",c);
      fprintf(nchan," , ");
-     for (k = 0; c=kinmtc_1[i].lvout[1][k] ; ++k) fprintf(nchan,"%d",c);
+     for(k=0;(c=kinmtc_1[i].lvout[1][k]);++k) fprintf(nchan,"%d",c);
      fprintf(nchan,"\n");
     }	
     return 0;
@@ -212,13 +212,13 @@ int rdrkin_(FILE *nchan)
     { int l,k,c;
       fscanf(nchan,"%s -> %s , %s", strin,strout1,strout2); 
 
-      for(k=0,l=0;c=strin[k];k++)  if(c!=' ')kinmtc_1[i].lvin[l++]=c-'0';
+      for(k=0,l=0;(c=strin[k]);k++)  if(c!=' ')kinmtc_1[i].lvin[l++]=c-'0';
       kinmtc_1[i].lvin[l]=0; 
 
-      for(k=0,l=0;c=strout1[k];k++)if(c!=' ')kinmtc_1[i].lvout[0][l++]=c-'0';
+      for(k=0,l=0;(c=strout1[k]);k++)if(c!=' ')kinmtc_1[i].lvout[0][l++]=c-'0';
       kinmtc_1[i].lvout[0][l]=0; 
       
-      for(k=0,l=0;c=strout2[k];k++)if(c!=' ')kinmtc_1[i].lvout[1][l++]=c-'0';
+      for(k=0,l=0;(c=strout2[k]);k++)if(c!=' ')kinmtc_1[i].lvout[1][l++]=c-'0';
       kinmtc_1[i].lvout[1][l]=0; 
 
     }

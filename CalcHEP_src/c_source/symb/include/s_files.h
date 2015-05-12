@@ -18,7 +18,7 @@ typedef struct catrec
     extern FILE * archiv;
     extern FILE * catalog;
      
-    extern char mdFls[5][10];
+    extern char* mdFls[5];
     extern shortstr  pathtouser;
     
 #define MENUQ_NAME   "./tmp/menuq.ch"  
@@ -34,7 +34,7 @@ extern void  wrt_menu(int menutype, int k,
 extern int  rd_menu(int   menutype, int k,
               char*txt,int*ndel,int*ncalc,int*nrest,long*recpos);
 
-extern int whichArchive(int nFile, int rw, int forWidth);
+extern int whichArchive(int nFile, int rw);
 #define  FREAD1(d,f)   fread(&(d),sizeof(d),1,f)
 #define  FWRITE1(d,f)  f_write(&(d),sizeof(d),1,f)
 #define  MAXARCHIVE 100000000L

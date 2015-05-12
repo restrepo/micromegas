@@ -7,7 +7,8 @@ endif
 
 all:micromegas.a 
 
-OBJ = $(notdir $(subst .c,.o,$(filter-out $(special),$(wildcard *.c)))) 
+OBJ = $(notdir $(subst .c,.o,$(filter-out $(special),$(wildcard *.c))))
+
 
 #ifneq ($(FC),)
 #   override OBJ += faux.o

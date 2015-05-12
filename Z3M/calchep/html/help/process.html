@@ -1,0 +1,102 @@
+<html>
+<head>
+	<title>CalcHEP Batch Help</title>
+	<link rel='stylesheet' href='../style.css' type='text/css'></link>
+</head>
+<body>
+	<div id='links'>
+		<ul>
+			<li><a href='../index.html'>Home</a></li>
+			<li><a href='../symbolic.html'>Symbolic Results</a></li>
+			<li><a href='../numerical.html'>Numerical Results</a></li>
+			<li><a href='../events.html'>Events Library</a></li>
+			<li><a href='../library.html'>Process Library</a></li>
+			<li><a href='index.html'>Help</a>
+				<ul>
+					<li><a href='batch_file.html'>Batch File</a><ul>
+						<li><a href='comment.html'>Comments</a></li>
+						<li><a href='model.html'>Model</a></li>
+						<li><a href='process.html'>Process</a></li>
+						<li><a href='pdf.html'>PDF</a></li>
+						<li><a href='momentum.html'>Momentum</a></li>
+						<li><a href='parameters.html'>Parameters</a></li>
+						<li><a href='runs.html'>Scans</a></li>
+						<li><a href='qcd.html'>QCD</a></li>
+                                                <li><a href='BW.html'>BW</a></li>
+						<li><a href='cuts.html'>Cuts</a></li>
+						<li><a href='kinematics.html'>Kinematics</a></li>
+						<li><a href='regularization.html'>Regularization</a></li>
+						<li><a href='distributions.html'>Distribution</a></li>
+						<li><a href='events.html'>Events</a></li>
+						<li><a href='parallelization.html'>Parallelization</a></lii>
+						<li><a href='vegas.html'>Vegas</a></li>
+						<li><a href='generator.html'>Generator</a></li>
+						<li><a href='example1.html'>Example 1</a></li>
+						<li><a href='example2.html'>Example 2</a></li>
+						<li><a href='example3.html'>Example 3</a></li>
+					</ul></li>
+					<li><a href='process_library.html'>Process Library</a></li>
+					<li><a href='event_library.html'>Event Library</a></li>
+				</ul>
+			</li>
+			<br>
+			<li>Thank you for using <a href='http://theory.sinp.msu.ru/~pukhov/calchep.html'>CalcHEP</a>!</li>
+			<li>Please cite <a href='http://inspirehep.net/record/1123804'>arXiv:1207.6082</a></li>
+		</ul>
+	</div>
+	<div id='help_main'>
+		<h1>Process Help</h1>
+		<h3>Process</h3>
+		<p>
+			Processes are specified using the "Process" keyword and standard CalcHEP notation as in:<br>
+			<table>
+				<tr><td>Process</td><td>:</td><td>p,p->j,l,l</td></tr>
+			</table>
+			Multiple processes can also be specified as in:<br>
+			<table>
+				<tr><td>Process</td><td>:</td><td>p,p->E,ne</td></tr>
+				<tr><td>Process</td><td>:</td><td>p,p->M,nm</td></tr>
+			</table>
+			As many processes as desired can be specified.  When more than one process is specified, the processes are numbered by the order in which they are specified in the batch file.  So, in this example, p,p->E,ne is process 1 and p,p->M,nm is process 2.  This numbering can be useful when specifying <a href='qcd.html'>QCD scale</a>, <a href='cuts.html'>cuts</a>, <a href='kinematics.html'>kinematics</a>, <a href='regularization.html'>regularization</a> and <a href='distributions.html'>distributions</a> allowing these to be specified separately for each process.  There is no default for this keyword.  It must be specified.
+		</p>
+		<h3>Decay</h3>
+		<p>
+			Decays are specified using the "Decay" keyword and are also in standard CalcHEP notation as in:<br>
+			<table>
+				<tr><td>Decay</td><td>:</td><td>W->l,nu</td></tr>
+			</table>
+			Again, multiple decays can be specified as in:<br>
+			<table>
+				<tr><td>Decay</td><td>:</td><td>W->l,nu</td></tr>
+				<tr><td>Decay</td><td>:</td><td>Z->l,l</td></tr>
+			</table>
+			The default is to not have any decays.  <a href='cuts.html'>Cuts</a> and <a href='distributions.html'>distributions</a> do not apply to decays, however, <a href='kinematics.html'>kinematics</a>, and <a href='regularization.html'>regularization</a> do.
+		</p>
+		<h3>Alias</h3>
+		<p>
+			It is sometimes convenient to specify groups of particles as in the particles that compose the proton or all the leptons.  This can be done with the keyword "Alias" as in:<br>
+			<table>
+				<tr><td>Alias</td><td>:</td><td>p=u,d,U,D,G</td></tr>
+				<tr><td>Alias</td><td>:</td><td>l=e,E,m,M</td></tr>
+				<tr><td>Alias</td><td>:</td><td>nu=ne,Ne,nm,Nm</td></tr>
+				<tr><td>Alias</td><td>:</td><td>W=W+,W-</td></tr>
+			</table>
+			As many composite particles as necessary can be specified.  These definitions can be used in <a href='cuts.html'>cuts</a> and <a href='distributions.html'>distributions</a> as well as in the processes and decays.  The default is not to have any composite definitions.
+			
+		</p>
+		<h3>Remove</h3>
+		<p>
+			It is sometimes necessary to remove particles from internal lines of the diagrams. This can be done with the keyword "Remove" as in:<br>
+			<table>
+				<tr><td>Remove</td><td>:</td><td>W+>2,Z</td></tr>
+			</table>
+			The notation is the same as in the graphical interface and is used in the symbolic session of productions processes directly without any modifications.  For decays, the keyword is "Remove Decay" as in:<br>
+                        <table>
+				<tr><td>Remove Decay</td><td>:</td><td>Z,H</td></tr>
+			</table>
+                        Aliases can not be used in Remove statements.  We would like to stress that the user should use these keywords with great care as violation of gauge invariance could occur ruining important cancellations between diagrams.
+			
+		</p>
+	</div>
+</body>
+</html>

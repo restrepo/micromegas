@@ -1,65 +1,103 @@
  3 9 72
-  This table  apples cuts on the phase space. A phase space function
- is described in the first column. Its limits are defined and the second
- and the third columns. If one of these fields is empty then a one-side
+      Cuts
+   This table specifies cuts on the phase space. A phase space function
+ is described in the second column. Its limits are defined in the third
+ and the fourth columns. If one of these fields is empty then a one-side
  cut is applied. 
-  The phase space function is defined by its name which characterize 
- type of cut and a particle list for which the cut is applied. 
- For example, "T(u)" means  transverse momentum  of 'u'-quark; 
- T(u,D) means summary transverse momentum of quark pair.
- The following  cut functions are available:
-  A  - Angle  in degree units;
-  C  - Cosine of angle;
-  J  - Jet cone angle;
-  E  - Energy of the particle set;
-  M  - Mass of the particle set;
-  P  - Cosine in the rest frame of pair;
-  T  - Transverse momentum P_t  of the particle set;
-  Y  - Rapidity of  particle set. 
-  N  - Pseudo-rapidity of particle set.
+   In general the phase space function is defined by its name, which 
+ characterizes  the type of cut, and an outgiong  particle list for 
+ which the cut is  applied. For example, "T(u)" means the transverse 
+ momentum  of the 'u'-quark.  "T(u,D)" means the transverse momentum  of
+ the quark pair.
+
+   The following cut functions are available:
+   
+  A  - Angle in degree units
+  C  - Cosine of angle
+  D  - Jet separation min(pT1^2,pT2^2)*(cosh(d_Rapidity)-cos(d_AzimuthAngle))
+
+  J  - Jet cone angle
+  E  - Energy of the particle set
+  M  - Mass of the particle set
+  P  - Cosine of the angle between the first particle in the list and 
+       the direction of boosting of the particle set into the rest 
+       frame of the particles set
+  T  - Transverse momentum (P_t) of the particle set
+  Y  - Rapidity of the particle set 
+  N  - Pseudo-rapidity of the particle set
   Z  - Transverse energy
- Generaly 'A','C' have 2 arguments. But in case of  collision functions
- 'A' and 'C' with one argument designate angle between the given 
- particle and first (in the list) incoming particle.
-   One can construct cuts  using names  of particles which are involved 
- in others  subprocess. For a diven Monte Carlo session cuts which are
- applied for particles which are absensent in the session will be 
-ignored.    
   
-  Sometimes the list of outgoing particles contans identical ones
- like  in the case of "e,E->A,A,A" process. For such subprocess 
- E(A) cut  is applied to all  gammas. 
-
- One can add '^'/'_' modifier for function name. If process contains 
- identical particles such functions choose maximum/minimum values. 
-In general cut 
-
- Parameter  |> Min bound <|> Max bound <|
-E(A)        |   20        |  100
-
-works like 
-
- Parameter  |> Min bound <|> Max bound <|
-  E^(A)     |             |   100 
-  E_(A)     |  20         |   
+ Generally 'A' and 'C' have 2 arguments. But in the case of a collision
+ process, the functions 'A' and 'C' with one argument designate the 
+ angle between the given  particle and the first (in the list) incoming
+ particle.
+   One can construct cuts using the names of the particles which are
+ involved in other subprocesses. For a given Monte Carlo session cuts 
+ for  particles which are absent in the current session are ignored.    
+  
+   Sometimes the list of outgoing particles contains identical particles
+ such as in the case of the process "e,E->A,A,A". For such a process,
+ the cut is applied to each of the identical particles.  For example the
+ cut "E(A)" is applied to each of the photons.  Similarly, "J(A,A)"  
+ is applied to all photon pairs.
+   This behavior can be modified with the '^'/'_' symbols. The result of
+ adding these to the function name is to apply the cut to the particle
+ with the maximum/minimum value of the phase space function. For example,
+ "E_(A)" would only apply the cut to the photon with the smallest energy.
+ Similarly, "E^(A)" would only apply the cut to the photon with the
+ highest energy.  To further illustrate this, consider the following cut:
  
- One can type 'Jet' instead of particles name. CalcHEP  interprets 
- it as one of 5 quarks of gluon. 
+| |Parameter  |> Min bound <|> Max bound <|
+| | E(A)      |   20        |  100
 
- AM User defined cut also can be applied. They are specified by 
- 'U<character_set>'. The list of particles is not expected after this
- name. CalcHEP will call use 
-          usrfun("<character_set>")
- For example 
-   'Uabc'   leads to call usrfun("abc")
- Originally CalcHEP contains a dummy version of 'usrfun' which leads to 
- stop of n_calchep execution. An object file or library with a code of
- usrfun has to be written in table 'Libraries' which specify the model.
- As well one can use the "Edit linker" option of CalcHEP symbolic
- session. The approach to particle momenta and their names needed to 
- write 'usrfun' are explained in CalcHEP manual.
+ which could also be written as 
 
- The parameter  limits van be defined  by an algebraic formula, which
- contains numbers and identifiers enumerated in the "Model parameters"
- menu. Parentheses  "()" and  operation "+,-,/,*,**,sqrt()" are also
- permitted.
+| |Parameter  |> Min bound <|> Max bound <|
+| | E^(A)     |             |   100 
+| | E_(A)     |  20         |   
+ 
+   One can also use the composite name 'Jet' which is interpreted as the
+ 5 light quarks and the gluon.  For example, the cut "T(Jet)" would 
+ apply the transverse mass cut to all 5 light quarks and the gluon.
+
+ In addition, the first column in the cut Table can be used to comment 
+ (%) or to reverse (!) the cut. For example, the following cut:
+ 
+| |Parameter  |> Min bound <|> Max bound <|
+|!| E(A)      |   20        |  100
+
+ means that the photon must have E(A)<20 or E(A)>100 which is just the
+ opposite of the cut without the "!". A % in the first column causes the
+ cut to be ignored.
+ 
+   The limits of the cuts can also be defined by an algebraic formula
+ which contains numbers and model parameters.  Parentheses "()" and 
+ the standard operations "+,-,/,*,**,sqrt()" are also permitted.  As an 
+ example, the following cuts the e,E pair to have an invariant mass
+ within 10GeV of the mass of the Z boson:
+ 
+| |Parameter  |> Min bound <|> Max bound <|
+| | M(e,E)    | MZ-10       | MZ+10
+ 
+   User defined cuts can also be applied. They are specified by a string
+ beginning with the letter 'U' as in 'U<character_set>' where 
+ <character_set> is any set of ascii characters.  For example, consider
+ the cut:
+ 
+| |Parameter  |> Min bound <|> Max bound <|
+| | Uabc      |   20        |  100
+
+ In this case, CalcHEP will call the function usrfun("abc"). It is up to
+ the user to write (or modify) the function "double usrfun(char * name)"
+ and link it to their model using the "Libraries" section of the model
+ definition.  An example of this function is located at 
+ $CALCHEP/utile/usrfun.c which can be modified by the user to fit their
+ needs.  Further details can be found in the CalcHEP manual.
+
+ For collision processes one can  apply cut on energies of first and
+ second incoming particles and CMS total energy. Cut parameters 'E1','E2' 
+ and 'M12' should be used in this case. 
+
+
+
+

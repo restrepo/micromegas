@@ -11,13 +11,14 @@ typedef struct pdtList
   char *  name;      /* title name of distribution             */     
   long  beamP;     /* MC-number of beam particles            */
   char * file;       /* name of file where it is stored        */
-  int   position;    /* ordering number of parton in the list of functions*/
-  int   posaux;
+  int  * partons;    /* ordering number of parton in the list of functions*/
+  int  * items;
 } pdtList; 
 
 typedef struct pdtStr
 { double mass;       /* mass of composite particle             */
   long beamP;
+  long parton;
   int  nq;           /* number of points in Q-scale grid       */ 
   int  nx;           /* number of points in X-scale grid       */
   double * x_grid;   /* data for the X-grid                    */
@@ -51,7 +52,7 @@ typedef struct pdtStr
 } pdtStr;  
 
 
-extern long   makePdtList(char * file, long parton, pdtList ** list);
+extern long   makePdtList(char * file, pdtList ** list);
                      /* scan 'file' to detect does it contain  */
                      /* data for 'parton'. If yes, the         */
                      /* corresponding information is added to 'list' */
@@ -73,5 +74,7 @@ extern double interFunc(double x, double q, pdtStr * W);
                      /* power factors later on                 */
 extern double interAlpha(double q, pdtStr * W );
                      /* interpolates data for QCD-alpha(Q)     */
+                     
+extern int checkPartons( int * pNum, pdtList * L);                     
 
 #endif

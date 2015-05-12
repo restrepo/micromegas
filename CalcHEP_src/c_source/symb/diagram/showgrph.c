@@ -19,7 +19,7 @@
   nm-1 - last  FilePos of subproces;
   */
  
-static   char stc[80];
+static   char stc[100];
 static   long   nn, nm;
 static   int pictureX;
 static   int pictureY;  
@@ -57,16 +57,42 @@ static void  wrttext(int n,int x,int y)
 
 static void  setPictureScale_(int squared, int*pictureX,int*pictureY)
 {  
-  if(squared || nin+nout< 7)setPictureScale(squared, pictureX,pictureY);else 
-  {*pictureX=amplitudeFrameX(nin,nout); *pictureY=amplitudeFrameY(nin,nout);}
+  if(squared && nin+nout< 7)setPictureScale(squared, pictureX,pictureY);
+  else {*pictureX=amplitudeFrameX(nin,nout); *pictureY=amplitudeFrameY(nin,nout);
+  if(squared) *pictureX =2*(*pictureX);
+  }
 }
 
 static void picture_(int squared, char* buff, int x, int y)
 {
-    if(squared || nin+nout< 7) picture(squared,buff,x,y); else
+    if(squared &&  nin+nout< 7) picture(squared,buff,x,y);
+    else if(!squared) 
    {  vampl V;
       mkverts((particleNumType *)buff,&V);
-      drawAmpitudeDiagram(&V,x,y);
+      drawAmpitudeDiagram(&V,0,x,y);
+   }  
+   else 
+/*
+ypedef struct csdiagram
+   {
+      decayDiagram  dgrm1,dgrm2;
+      int        lnk[MAXINOUT];
+      int           mult;
+      unsigned          del;
+      char          status;   // -2-outOfMemory,-1-deleted, 0-Rest, 1-calculated,2-Zero  
+      int nsub;
+   }  csdiagram;
+*/   
+   {    csdiagram*sqD=(csdiagram*)buff;
+        vampl V;
+        int pictureX;
+         
+        mkverts(sqD->dgrm1,&V);
+        drawAmpitudeDiagram(&V,0,x,y);
+        mkverts(sqD->dgrm2,&V);
+        pictureX=amplitudeFrameX(nin,nout);
+        drawAmpitudeDiagram(&V,1,x+2*pictureX,y); 
+        return;
    }  
 }
  

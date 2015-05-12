@@ -8,13 +8,13 @@ if( test -r session.dat) then
 fi 
 
 if(test "$testStr") then 
-  if(test $# -ne 2) then
+  if(test $# -ne 1) then
      echo ERROR!. $0 need two parameters:
-     echo "1   number of events"
-     echo "2   number of steps to find new maximum"                
+     echo "1   number of events"  
      exit 200
   else
-     ./n_calchep -blind  "[[[[[[[[[{{$1{[[{$2{[{}0"
+     ./n_calchep -blind  "[[[[[[[[{[[[[[[[[[{{$1{[{0"
+
      exit $? 
   fi
 else 

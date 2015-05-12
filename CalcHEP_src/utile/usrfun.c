@@ -1,63 +1,73 @@
-/*
- Copyright (C) 1997, Alexander Pukhov 
-*/
-
 #include<stdlib.h>
 #include<stdio.h>
+#include<math.h>
+#include<string.h>
 
-/*                FOR USER 
+extern double usrfun(char*name, int nIn, int nOut,  double * pvect,char**pName,int*pCode);
+/*     
+Any time we use  U<name>  to specify cuts and distribution, CalcHEP calls
+function 'usrfun' to calculate corresponding value. CalcHEP code has 
+a dummy version of this function stops calculation. The dummy version is 
+replaced on the  user one if its code is passed to CalcHEP linker via 
+'Libraries' model item.  One can use CALCHEP and  WORK  environment 
+variables  to specify path to the code. These variables  are automatically 
+defined in calchep and calchep_batch  scripts. Also one can use any other 
+environment variables defined separately. 
 
-The given file contains a dummy version of 
-       double usrfun(char * name)
-function which should be  replaced by other ones written by the user.
-We expect that user version will be attached to calchep numerical code
-as  via 'Libraries' model file, while the current dummy version will 
-be kept unchanged here. 
-  If one uses U<txt> for  n_calchep  cuts and histograms then usrfun(<txt>) 
-will be called. Say 'Uabs'  corresponds to usrfun("abs").
- 
-Below we present tools which can be used for usrfun.       
+ Parameters of usrFF:
+    name - identifier of constructed physical variable. For instance, if 
+       you call Uabs  in cuts/distibutions then  string "abs" is passed to 
+       usrfun as the 'name' argument.  
+    nIn - number of incoming particles;
+    nOut- number of outgoing particles;
+    pvect  presents momenta of particles: 
+       4-momentum of  i^{th} particle ( i=0,1,...,nIn+nOut-1)  is 
+       q[k]=pvect[4*i+k]  k=0,1,2,3; 
+       q[0] - in particle energy, which always is positive.
+       q[3] - specify projection of momentum on axis of collision.
+
+    pName[i] (i=0,..nIn+nOut-1) contains name of i^th particle involved in
+    reaction and pCode[i] is the corresponding PDG code. 
+
+    Auxiliary functions which can help for construct usrFF are 
+     
 */
 
-extern double calcPhysVal(char key,char * lv);
-/*   This function allow to reproduce built-in CalcHEP functions.
-Here 'key' is one-character  function identifier ( see $CALCHEP/help/n_cut.txt)   
-lv presents particle numbers terminates by zero. For example 
-     calcPhysVal('M',"\3\4");  
-return joint mass of particle 3 and 4 in reaction list. 
-   One can extend list of observables using
+extern int findval(char*name, double *value);
+extern int qnumbers(char*pname, int *spin2, int * charge3, int * cdim);
+
+/* The first one gives valueof  model parameter specified by its name.
+If this  parameter indeed presented in the model then return value is zero 
+and  parameter  'value' gets corresponding number. 
+
+The qnumbers function gives  particle  quantum numbers: spin*2, 
+(electric charge)*3 and dimension of color group representation. Return value
+is PDG code which has to agree with pCode array data.
 */
 
-extern int nin_int, nout_int; /* numbers of incoming and outgoing particles */
- 
-extern double pvect[400];     /* momenta of particles 
 
-             q[k]=pvect[4*(I-1)+k]  k=0,1,2,3 - momenta of I^{th} particle; 
-                  1<=I<=nin_int          - incoming particles;
-             nin_int<I<=nin_int+nout_int - outgoing particles;
-             Energy of all particle are positive  pvect[4*(I-1)]>0;
-             Axis of collision k=3.    
-                               */ 
+/* Example: UMT(p1,p2) function which calculates transfer mass of 2 particles,
+   for instance    UMT(e,Ne) - gives transverce mass of electron and neutrino.*/ 
 
-extern char * (*pinf_int)(int nsub, int nprtcl, double * pmass, long*pnum);
-                               /* Input parameters are 
-                      nsub - current subprocess number,*/
-extern int Nsub;               /* returns number of current subprocess
-                      nprtcl - number of particle in reaction.
-
-                                 Return value 
-                      name of particle, reference of static object.           
-
-                                 Outgoing parameters are
-                      pmass - particle mass;
-                      pnum - PDG code. One can substitute NULL to ignore
-                             this information.
-                               */
-                                                                
-double usrfun(char * name)
-{   
-   fprintf(stdout," usrfun(char* name)  called with parameter %s\n"
-                  " But is not  defined!\n",name);
-   sortie(54);
-   return 0.;
+double usrfun(char * name, int nIn, int nOut, double * pvect,char**pName,int*pCode)
+{   char p1[10],p2[10];   // for 2 particles in MT(p1,p2)
+    int i,j; 
+    double sum=0;
+    
+    if(name==strstr(name,"MT("))   // name is started from "MT("
+    {  //read p1&p2
+       int np=sscanf(name+3,"%[^,],%[^)]",p1,p2);
+       for(i=nIn;i<nIn+nOut;i++) 
+       {  if(strcmp(p1,p2)==0) j=i+1;    /* if  p1==p2 */ else j=nIn; 
+          for(  ;j<nIn+nOut;j++)
+          if(strcmp(p1,pName[i])==0 &&  strcmp(p2,pName[j])==0) //find position of particles
+          { double * q1=pvect+4*i, *q2=pvect+4*j;
+            double Et1=sqrt(fabs(q1[0]*q1[0] - q1[3]*q1[3]) );    // transvers energy of the first particle
+            double Et2=sqrt(fabs(q2[0]*q2[0] - q2[3]*q2[3]) );    // transvers energy of the second particle 
+            sum+=sqrt( (Et1+Et2)*(Et1+Et2) -(q1[1]+q2[1])*(q1[1]+q2[1]) - (q1[2]+q2[2])*(q1[2]+q2[2])    ); // sqrt(E^2-PL^2)            
+          }
+       }      
+    }  else { printf("Not defined user function %s\n",name); exit(2);}  
+   
+    return sum;
 }

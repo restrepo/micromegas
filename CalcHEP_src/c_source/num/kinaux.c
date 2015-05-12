@@ -51,7 +51,7 @@ int spole_(char *lv)
 {
    int i1=0,i2=0,n,i=0;
    
-   while(n=lv[i++]){ if(n>nin_int) i1++; else i2++;}  
+   while((n=lv[i++])){ if(n>nin_int) i1++; else i2++;}  
    if(i2==nin_int) i2=0;
    return  ! (i1 && i2);
 } 

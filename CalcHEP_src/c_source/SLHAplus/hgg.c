@@ -1,6 +1,5 @@
 #include"SLHAplus.h"
 
-#define polint4 polint4_
 //#define HDECAY
 
 static double   fiRe(double tau)
@@ -30,14 +29,20 @@ static double fiIm(double tau)
   }
 }
 
-double HggFr(double tau) { return  2*(tau+(tau-1)*fiRe(tau))/(tau*tau); }
-double HggFi(double tau) { return  2*(tau-1)*fiIm(tau)/(tau*tau); }
-double HggVr(double tau) { return -2*(2*tau*tau + 3*tau + 3*(2*tau-1)*fiRe(tau))/(2*tau*tau); }
-double HggVi(double tau) { return -2*(3*(2*tau-1)*fiIm(tau))/(2*tau*tau); }
-double HggAr(double tau) { return  2*fiRe(tau)/tau;}
-double HggAi(double tau) { return  2*fiIm(tau)/tau;}
-double HggSr(double tau) { return -2*(tau-fiRe(tau))/(tau*tau);}
-double HggSi(double tau) { return  2*fiIm(tau)/(tau*tau);}
+static double HggFr(double tau) { return  2*(tau+(tau-1)*fiRe(tau))/(tau*tau); }
+static double HggFi(double tau) { return  2*(tau-1)*fiIm(tau)/(tau*tau); }
+static double HggVr(double tau) { return -2*(2*tau*tau + 3*tau + 3*(2*tau-1)*fiRe(tau))/(2*tau*tau); }
+static double HggVi(double tau) { return -2*(3*(2*tau-1)*fiIm(tau))/(2*tau*tau); }
+static double HggAr(double tau) { return  2*fiRe(tau)/tau;}
+static double HggAi(double tau) { return  2*fiIm(tau)/tau;}
+static double HggSr(double tau) { return -(tau-fiRe(tau))/(tau*tau);}
+static double HggSi(double tau) { return  fiIm(tau)/(tau*tau);}
+
+
+double complex HggF(double tau) { return HggFr(tau)+I*HggFi(tau);}
+double complex HggV(double tau) { return HggVr(tau)+I*HggVi(tau);}
+double complex HggA(double tau) { return HggAr(tau)+I*HggAi(tau);}
+double complex HggS(double tau) { return HggSr(tau)+I*HggSi(tau);}
 
 
 #ifdef HDECAY
@@ -95,40 +100,8 @@ static double mAi[mNN]={ 0.0000E+00, 0.0000E+00, 0.0000E+00, 0.0000E+00, 0.0000E
 static double mSi[mNN]={ 0.0000E+00, 0.0000E+00, 0.0000E+00, 0.0000E+00, 0.0000E+00, 0.0000E+00, 0.0000E+00, 0.0000E+00, 0.0000E+00, 0.0000E+00, 0.0000E+00, 0.0000E+00, 0.0000E+00, 0.0000E+00, 0.0000E+00, 0.0000E+00, 0.0000E+00, 0.0000E+00, 0.0000E+00, 0.0000E+00, 0.0000E+00, 1.4053E+01, 1.3750E+01, 1.3343E+01, 1.2835E+01, 1.2219E+01, 1.1548E+01, 1.0862E+01, 1.0171E+01, 9.4852E+00, 8.6995E+00, 8.2180E+00, 7.6473E+00, 7.1238E+00, 6.6462E+00, 6.2148E+00, 5.8241E+00, 5.4733E+00, 5.1580E+00, 4.8771E+00, 4.6277E+00, 4.4061E+00, 4.2116E+00, 4.0411E+00, 3.8923E+00, 3.7647E+00, 3.6553E+00, 3.5626E+00, 3.4832E+00, 3.4164E+00, 3.3605E+00, 3.3128E+00, 3.2735E+00, 3.2410E+00, 3.2142E+00, 3.1926E+00, 3.1743E+00, 3.1597E+00, 3.1476E+00, 3.1389E+00, 3.1317E+00, 3.1258E+00, 3.1221E+00, 3.1187E+00, 3.1165E+00, 3.1151E+00, 3.1143E+00, 3.1138E+00, 3.1139E+00, 3.1143E+00, 3.1148E+00};
 
 
-static double  polintN(double x, int n,  double *xa, double *ya)
-{  double z[10];
-   int i,m;
-   for(i=0;i<n;i++) z[i]=ya[i];
-   for(m=1;m<n;m++) for(i=0;i<n-m;i++)
-   z[i]=(z[i]*(xa[i+m]-x) - z[i+1]*(xa[i]-x))/(xa[i+m]-xa[i]);
-   return z[0];
-}
 
-
-static int  leftX4(int dim, double * xa, double x)
-{  int k1,k2,k3;
-                
-   if(x<=xa[1]) return 0;
-   if(x>=xa[dim-4]) return dim-4;
-                                 
-   k1=1;                         
-   k2=dim-4;                     
-                                 
-   while(k2-k1>1)                
-   { k3=(k1+k2)/2;               
-     if(xa[k3]>x)k2=k3; else k1=k3;
-   }
-   return k1-1;
-}
-
-
-static double polint4(double x, int n,  double *xa, double *ya)
-{ int shift=leftX4(n, xa, x);
-  return polintN(x,4,xa+shift, ya+shift);
-}
-
-
-double Hgam1Fr(double tau) 
+static double Hgam1Fr(double tau) 
 { if(tau< maxTauTab) 
   { double x=1;
     tau-=1;
@@ -145,7 +118,7 @@ double Hgam1Fr(double tau)
 }
 
 
-double Hgam1Ar(double tau) 
+static double Hgam1Ar(double tau) 
 { if(tau< maxTauTab) 
   { double x=1;
     tau-=1;
@@ -160,7 +133,7 @@ double Hgam1Ar(double tau)
   }  
 } 
 
-double Hgam1Sr(double tau) 
+static double Hgam1Sr(double tau) 
 { if(tau< maxTauTab) 
   { double x=1;
     tau-=1;
@@ -175,7 +148,7 @@ double Hgam1Sr(double tau)
 }
 
 
-double Hgam1Fi(double tau) 
+static double Hgam1Fi(double tau) 
 { 
   if(tau<1) return 0;
   if(tau< maxTauTab) 
@@ -190,7 +163,7 @@ double Hgam1Fi(double tau)
   }
 }
 
-double Hgam1Ai(double tau) 
+static double Hgam1Ai(double tau) 
 { 
   if(tau<1) return 0;
   if(tau< maxTauTab) 
@@ -205,7 +178,7 @@ double Hgam1Ai(double tau)
   }  
 }
 
-double Hgam1Si(double tau) 
+static double Hgam1Si(double tau) 
 { 
   if(tau<1) return 0;
   if(tau< maxTauTab) 
@@ -218,13 +191,251 @@ double Hgam1Si(double tau)
  
 }
 
+double complex Hgam1F(double tau) { return Hgam1Fr(tau)+I*Hgam1Fi(tau); }
+double complex Hgam1A(double tau) { return Hgam1Ar(tau)+I*Hgam1Ai(tau); }
+double complex Hgam1S(double tau) { return Hgam1Sr(tau)+I*Hgam1Si(tau); }
+
+#define alphaE0    (1/137.036) 
+
+
+double complex hGGeven(double MH, double aQCD, int Nitems, ...)
+{
+  typedef struct{ int spin2; int cdim; double mass; double coeff;} hggItem;
+  hggItem* part=malloc(Nitems*sizeof(hggItem));
+  int i;
+  double complex sum=0; 
+  double a=aQCD;
+  
+  va_list ap;
+  va_start(ap,Nitems);
+
+  for(i=0;i<Nitems;i++)
+  {  part[i].spin2=va_arg(ap, int);
+     part[i].cdim=va_arg(ap, int);
+     part[i].mass=va_arg(ap,REAL); 
+     part[i].coeff=va_arg(ap,REAL);   
+  }
+  va_end(ap);
+  
+  for(i=0;i<Nitems;i++)
+  {  double complex  res;
+     double mass=part[i].mass; 
+     double tau=MH/2/mass;
+     double cf,lf;
+     tau=tau*tau;
+     switch(part[i].spin2)
+     { case 0: res=HggS(tau)/2; break;
+       case 1: res=HggF(tau); break;
+       case 2: res=-HggV(tau)/2; break;
+       default: 
+         printf("hGGeven item %d : unexpected  2*spin=%d\n", i+1,part[i].spin2);
+        exit(5);
+     } 
+     switch(part[i].cdim)
+     { case  3:
+       case -3: cf=0.5; break;
+       case  8: cf=-2;
+       default: continue;
+     } 
+     if(abs(part[i].cdim)==3) switch(part[i].spin2)
+     { 
+       case 0: lf=1+4.5*a; break;
+       case 1: lf=1+2.75*a;
+       if(tau<1)
+       {  double ln=2*log(mass/MH);
+          lf+= a*a*(6.1537-2.8542*ln+a*(10.999-17.93*ln+5.47*ln*ln)); 
+       } break;
+       default: lf=1;
+     }   
+
+     sum+= res*cf*lf*part[i].coeff;
+  }
+  free(part); 
+  sum*=a/8;
+  return sum;  
+}
+
+
+double complex hAAeven(double MH, double aQCD, int Nitems, ...)
+{
+  typedef struct{ int spin2; int cdim;  double mass; double coeff;} haaItem;
+  haaItem* part=malloc(Nitems*sizeof(haaItem));
+  int i;
+  double complex sum=0; 
+  double a=aQCD;
+  
+  va_list ap;
+  va_start(ap,Nitems);
+
+  for(i=0;i<Nitems;i++)
+  {  part[i].spin2=va_arg(ap, int);
+     part[i].cdim=va_arg(ap, int);
+     part[i].mass=va_arg(ap,REAL); 
+     part[i].coeff=va_arg(ap,REAL);   
+  }
+  va_end(ap);
+  
+  for(i=0;i<Nitems;i++)
+  {  double complex  res,lf;
+     double mass=part[i].mass; 
+     double tau,cf;
+
+     if(abs(part[i].cdim)==3)
+     { if(part[i].spin2==1) mass= mass*McRun(MH/2)/McRun(mass);
+       else  mass = mass*pow(alphaQCD(MH/2)/alphaQCD(mass),6./23.);
+     }
+     tau=MH/2/mass;
+     tau=tau*tau;
+     
+     switch(part[i].spin2)
+     { case 0: res=HggS(tau)/2; break;
+       case 1: res=HggF(tau); break;
+       case 2: res=-HggV(tau)/2; break;
+       default:
+       printf("hAAeven item %d : unexpected  2*spin=%d\n", i+1,part[i].spin2);
+        exit(5);
+     } 
+     cf=abs(part[i].cdim);
+     
+     lf=1;
+     if(abs(part[i].cdim)==3) switch(part[i].spin2)
+     { case 0: lf=1+a*Hgam1S(tau); break;
+       case 1: lf=1+a*Hgam1F(tau); break;
+     }
+     sum+= res*cf*lf*part[i].coeff;
+  }
+  free(part);
+  sum*=alphaE0/8/M_PI;
+  return sum;  
+}
+
+double complex hGGodd(double MH, double aQCD, int Nitems, ...)
+{
+
+  typedef struct{ int spin2; int cdim; double mass; double coeff;} hggItem;
+  hggItem* part=malloc(Nitems*sizeof(hggItem));
+  int i;
+  double complex sum=0; 
+  double a=aQCD;
+  
+  va_list ap;
+  va_start(ap,Nitems);
+
+  for(i=0;i<Nitems;i++)
+  {  part[i].spin2=va_arg(ap, int);
+     part[i].cdim=va_arg(ap, int);
+     part[i].mass=va_arg(ap,REAL); 
+     part[i].coeff=va_arg(ap,REAL);   
+  }
+  va_end(ap);
+  
+  for(i=0;i<Nitems;i++)
+  {  double complex  res;
+     double mass=part[i].mass; 
+     double tau=MH/2/mass;
+     double cf,lf;
+     tau=tau*tau;
+     switch(part[i].spin2)
+     { 
+       case 1: res=HggA(tau); break;
+       default:   
+         printf("hGGodd item %d : unexpected  2*spin=%d\n", i+1,part[i].spin2);
+        exit(5);
+     } 
+     switch(part[i].cdim)
+     { case  3:
+       case -3: cf=0.5; break;
+       case  8: cf=-2;
+       default: continue;
+     } 
+     
+     if(abs(part[i].cdim)==3)
+     {  lf=1+3*a;
+        if(tau<1) lf+= a*a*(9.6759-5*log(mass/MH));
+     } else lf=1;
+
+     sum+= res*cf*lf*part[i].coeff;
+  }
+  free(part); 
+  sum*=a/8;
+  return sum;  
+}
+
+
+double complex hAAodd(double MH, double aQCD, int Nitems, ...)
+{
+  typedef struct{ int spin2; int cdim; double mass; double coeff;} haaItem;
+  haaItem* part=malloc(Nitems*sizeof(haaItem));
+  int i;
+  double complex sum=0; 
+  double a=aQCD;
+  
+  va_list ap;
+  va_start(ap,Nitems);
+
+  for(i=0;i<Nitems;i++)
+  {  part[i].spin2=va_arg(ap, int);
+     part[i].cdim=va_arg(ap, int);
+     part[i].mass=va_arg(ap,REAL); 
+     part[i].coeff=va_arg(ap,REAL);   
+  }
+  va_end(ap);
+  
+  for(i=0;i<Nitems;i++)
+  {  double complex  res,lf;
+     double mass=part[i].mass; 
+     double tau,cf;
+      
+     if(abs(part[i].cdim)==3)
+     {
+        mass= mass*McRun(MH/2)/McRun(mass);
+     }
+     tau=MH/2/mass;
+     tau=tau*tau;
+          
+     switch(part[i].spin2)
+     { case 1: res=HggA(tau); break;
+       default:   
+         printf("hAAodd item %d : unexpected  2*spin=%d\n", i+1,part[i].spin2);
+        exit(5);
+     } 
+     cf=abs(part[i].cdim);
+     
+     lf=1;
+     if(abs(part[i].cdim)==3) switch(part[i].spin2)
+     { 
+       case 1: lf=1+a*Hgam1A(tau); break;
+     }
+     sum+= res*cf*lf*part[i].coeff;
+  }
+  free(part);
+  sum*=alphaE0/8/M_PI;
+  return sum;  
+}
+
+
+
 #ifdef MAIN
 
 int main(void)
 { int i;
   
+  double mh=100,mt=171.4, tauT=pow(mh/2/mt,2);
+  double GF=1.166637E-5,MW=79.95,SW=0.481,EE=0.31223;
+  double tauW=pow(mh/2/MW,2);
+  double haa;
+  printf("tauT=%e  Hggr(tau)=%E  Hggi(tau)=%E  \n", tauT, HggFr(tauT),HggFi(tauT));
+  printf("tauW=%e  HggWr(tauW)=%E  HggWi(tauW)=%E  \n", tauW, HggVr(tauW),HggVi(tauW));
+  printf("Hgam1Fr(tauT)=%E\n",Hgam1Fr(tauT));
+  printf(" HggFr(tauT)*(1+0.12/M_PI*Hgam1Fr(tauT) )=%E \n", HggFr(tauT)*(1-0.12/M_PI*Hgam1Fr(tauT) ));
+  printf("GF=%E(1.166637E-5)\n", sqrt(2.)*pow(EE/(MW*SW),2.)/8.); 
+  
+//  haa=pow(EE/(MW*SW),2)/8*pow(EE*EE/4/M_PI,2)*pow(mh,3)/(128*pow(M_PI,3))*pow(3*(4./9.)*HggFr(tauT)+HggVr(tauW) ,2);
+  haa=pow(EE/(MW*SW),2)/8*pow(EE*EE/4/M_PI,2)*pow(mh,3)/(128*pow(M_PI,3))*pow(HggVr(tauW) ,2);
+  printf("haa=%E\n",haa);   
+  
 //  displayFunc10(mHgam1Fr,-2,4,"mHgam1Fr");    displayFunc10(hdHgam1Fr,-2,4,"hdHgam1Fr");
-  displayFunc10(mHgam1Ar,-0.01,0.01,"mHgam1Ar");    displayFunc10(hdHgam1Ar,-0.01,0.01,"hdHgam1Ar");
+//  displayFunc10(mHgam1Ar,-0.01,0.01,"mHgam1Ar");    displayFunc10(hdHgam1Ar,-0.01,0.01,"hdHgam1Ar");
 //  displayFunc10(mHgam1Sr,-2,4,"mHgam1Sr");    displayFunc10(hdHgam1Sr,-2,4,"hdHgam1Sr");
 
 //  displayFunc10(mHgam1Fi,-2,4,"mHgam1Fi");    displayFunc10(hdHgam1Fi,-2,4,"hdHgam1Fi");

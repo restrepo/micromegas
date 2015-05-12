@@ -23,19 +23,19 @@ static int SystemCall(int mode)
   { printf("Executable \n %s\n is not found. Program stops.\n",buff);
     exit(13);
   }
-    
+
+/*    
   { FILE *f=fopen(FIN,"a");
      fprintf(f,"%s\n%s\n","Block SOFTSUSY               # SOFTSUSY specific inputs",
      "         2   0                    # quark mixing option");
      fclose(f);
   }  
+*/
 
-
-  sprintf(buff,"pwd=`pwd`; cd %s ;  ./softpoint.x leshouches < $pwd/%s > $pwd/%s",SOFTSUSY,FIN,FOUT);
+  sprintf(buff,"pwd=`pwd`; cd %s ;  ./softpoint.x leshouches < $pwd/%s > $pwd/%s; echo OK",SOFTSUSY,FIN,FOUT);
  
-  err=System(buff);   
-  if(err>=0)   err=slhaRead(FOUT,0); else cleanSLHAdata();
-  if(delFiles){unlink(FIN);unlink(FOUT);}
+  err=System(buff);     
+  if(err>=0)   err=slhaRead(FOUT,4); else cleanSLHAdata();
 
   return err;
 }
@@ -51,6 +51,21 @@ double  softSusySUGRAc(double tb, double gMG1,double gMG2,double gMG3,
              gAl, gAt, gAb, sgn, gMHu, gMHd,
              gMl2,gMl3,gMr2,gMr3,
              gMq2,gMq3,gMu2,gMu3,gMd2,gMd3);
+
+   if(err) {printf("can not write down LesHin  file\n"); exit(10);} 
+    
+   return SystemCall(1);
+}
+
+double  softSusySUGRAnuhc(double tb, double gMG1,double gMG2,double gMG3,
+             double gAl, double gAt, double gAb, double gMl2,double gMl3,double gMr2,double gMr3,
+             double gMq2,double gMq3,double gMu2,double gMu3,double gMd2,double gMd3,double mu,double MA)
+{ 
+
+   int err=sugraHiggsLesH(FIN, tb, gMG1,gMG2,gMG3,
+             gAl, gAt, gAb, 
+             gMl2,gMl3,gMr2,gMr3,
+             gMq2,gMq3,gMu2,gMu3,gMd2,gMd3,mu,MA);
 
    if(err) {printf("can not write down LesHin  file\n"); exit(10);} 
     

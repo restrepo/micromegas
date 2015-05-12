@@ -129,7 +129,7 @@ sw=0.48076;
 Mz=91.1876;
 Mmu=0.1057;
 
-findVal("tb",&tbeta);
+findVal("tB",&tbeta);
 
 
 beta = atan(tbeta);

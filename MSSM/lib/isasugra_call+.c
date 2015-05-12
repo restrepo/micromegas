@@ -17,3 +17,8 @@
 #define xxxAMSB   isajetAMSB
 #define xxxamsb_  isajetamsb_
 #include "amsb.inc"
+
+#define xxxSUGRAnuhc  isajetSUGRAnuhc
+#define xxxSUGRAnuh   isajetSUGRAnuh 
+#define xxxsugranuhs_  isajetsugranuh_
+#include "sugracHiggs.inc"

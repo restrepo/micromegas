@@ -18,6 +18,7 @@
 char *  trim(char* p)
 {  int n1=0, n2, k=-1;
    n2=(int)strlen(p)-1;
+   if(n2<0) return p;
    while(!isgraph(p[n1]) && n1 <= n2) n1++;
    while(!isgraph(p[n2]) && n1 <  n2) n2--;
    while(++k < n2-n1+1)  p[k] = p[k+n1];

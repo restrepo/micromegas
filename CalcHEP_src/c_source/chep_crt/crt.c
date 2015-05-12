@@ -229,12 +229,12 @@ int color,int aux,char*text)             /* by A.Pukhov */
      {
 	 if(pred==NULL)
 	 {  graphList=p->next;
-	    if (p->type==string) free(p->text);
+	    if (p->text) free(p->text);
             free(p);
             p=graphList;
          }else
 	 {  pred->next=p->next;
-	    if (p->type==string) free(p->text);
+	    if (p->text) free(p->text);
             free(p);
             p=pred->next;
          }
@@ -266,8 +266,17 @@ static void repeatGrCom(int x1,int y1,int x2,int y2,int all) /* by A.Pukhov */
    graphComPtr p1,p2;
    int dn,xx1,xx2,yy1,yy2;
    int count =0;
+   static int oldX=0,oldY=0;
 
    if(blind==1) return;
+
+   if(oldX && oldY && (oldX!=CdX || oldY !=CdY))
+   {  
+     double kx=CdX/(double)oldX, ky=CdY/(double)oldY;     
+     graphComPtr p = graphList;
+     for(;p;p=p->next) { p->x1*=kx; p->x2*=kx; p->y1*=ky;p->y2*=ky;}
+   }
+   oldX=CdX; oldY=CdY;
 
 /*   printf(" repeatGrCom   "); */
    sg_screenSize(&bgi_maxx,&bgi_maxy);
@@ -352,6 +361,7 @@ contin:;
 
 static void crt_expose(int x1,int y1,int w,int h)  /* by A.Pukhov */
 {   
+    crt0_charSize(&CdX,&CdY);
     repeatGrCom(x1,y1,x1+w,y1+h,1);
     refresh_scr();     
 }
@@ -534,6 +544,18 @@ int  start1(char * window_name,char * icon_file,char * ini_file,
       xw_expose=(*crt_expose);
       crt0_charSize(&CdX,&CdY);
       clr_scr(FGmain,BGmain);
+      if(err==1)
+      {  printf("You have launched CalcHEP compiled without X11 (/usr/include/X11 is empty)\n"
+                "Current version can work only in the 'blind' mode. ( See manual)\n"
+                "To use CalcHEP in graphic interface mode one has to install\n"
+                "   libX11-devel   for Fedora/Scientific, Darwin(MAC)\n"
+                "   libX11-dev     for Ubuntu/Debian\n"
+                "   xorg-x11-devel for SUSE\n"
+                "and recompile CalcHEP by\n"
+                "   make clean\n"
+                "   make\n");
+         exit(1);       
+      }    
    }
    if(blind==2) printf("\n\"");
    return err;
@@ -629,6 +651,16 @@ void get_text(int x1,int y1,int x2,int y2,void ** dump) /* by A.pukhov */
  int dn;
  graphComPtr p,q;
 
+ p=(graphComPtr)m_alloc(sizeof(graphCommand));
+ p->x1=x1;
+ p->y1=y1;
+ p->x2=x2;
+ p->y2=y2;
+ p->size=CdX;
+ p->aux=CdY;
+ p->text=NULL;
+ *dump=(void *)p;
+
  x1=(x1-1)*CdX;
  y1=(y1-1)*CdY;
 #ifdef _WIN32
@@ -639,13 +671,6 @@ void get_text(int x1,int y1,int x2,int y2,void ** dump) /* by A.pukhov */
  y2=y2*CdY-1;
 
 
- p=(graphComPtr)m_alloc(sizeof(graphCommand));
- p->x1=x1;
- p->y1=y1;
- p->x2=x2;
- p->y2=y2;
- p->text=NULL;
- *dump=(void *)p;
 
  q=graphList;
 
@@ -680,10 +705,21 @@ void get_text(int x1,int y1,int x2,int y2,void ** dump) /* by A.pukhov */
 void put_text(void ** dump)  /* by A.Pukhov */
 {
    graphComPtr p,q;
-
+   int x1,x2,y1,y2,oldCdX,oldCdY;
+   double kx,ky; 
    p= (graphComPtr)(*dump);
    if(p==NULL) return;
-   repeatGrCom(p->x1,p->y1,p->x2,p->y2,0);
+
+   x1=(p->x1-1)*CdX;
+   y1=(p->y1-1)*CdY;
+   x2=p->x2*CdX-1;
+   y2=p->y2*CdY-1;
+   oldCdX=p->size;
+   oldCdY=p->aux;
+   kx=CdX/(double)oldCdX;
+   ky=CdY/(double)oldCdY;
+             
+   repeatGrCom(x1,y1,x2,y2,0);
 
    q=p;
    p=p->next;
@@ -691,8 +727,8 @@ void put_text(void ** dump)  /* by A.Pukhov */
 
    while(p!=NULL)
    {
-     print0(p->x1,p->y1,p->color,p->aux, p->text);
-     addToGraphList(t_xt,p->x1,p->y1,p->x2,p->y2,p->color,p->aux, p->text);
+     print0(p->x1*kx,p->y1*ky,p->color,p->aux, p->text);
+     addToGraphList(t_xt,p->x1*kx,p->y1*ky,p->x2*kx,p->y2*ky,p->color,p->aux, p->text);
      q=p;
      p=p->next;
      free(q->text);

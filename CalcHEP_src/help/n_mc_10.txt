@@ -1,12 +1,13 @@
-2 5 50
-  This function prepare and launches Event 
-Generator. The events generated are written
-into the text file results/event_N.txt,
-where N is a session number. See help 
-for next level menus. 
-  The efficiency of generator should be 
-much better if before launching of generator
-the user starts Vegas integration and  
-prepares  by this way an appropriate phase
-space  grid.
-   
+2 7 50
+   This is an entry to the next menu level which 
+allows to the user to set parameters of Monte 
+Carlo program VEGAS and launch it.
+   After a VEGAS run the information about
+cross-section is displayed on the screen and 
+is written in the file. 
+ The user also has a posibility  to fill various
+distributions during the integral evaluation.
+ During Vegas sessions user can prepare Monte
+Carlo event generatoe and start it.
+
+

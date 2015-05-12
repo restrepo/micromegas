@@ -12,8 +12,6 @@
 
 #include"../CalcHEP_src/c_source/num/pdt.c"
 
-#define PDTFILE "../../CalcHEP_src/pdTables/cteq6l.pdt"
-
 static  pdtStr *data[12]={NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 static  pdtStr *data_;
@@ -45,11 +43,11 @@ static int pos(int pNum)
 
 static pdtStr * readPdtData(int pc)
 { pdtStr * DT;
-  static char*pdtFile=NULL;
-  
+  static char*pdtFile=NULL;  
   if(pdtFile==NULL)
-  { pdtFile=malloc(2+strlen(WORK)+strlen(PDTFILE));
-      sprintf(pdtFile,"%s/%s",WORK,PDTFILE);  
+  {
+     pdtFile=malloc(strlen(calchepDir)+30);
+     sprintf(pdtFile,"%s/pdTables/cteq6l.pdt",calchepDir);  
   }  
   DT=malloc(sizeof(pdtStr));
   if(getPdtData(pdtFile, pos(pc), DT )==0) return DT; 

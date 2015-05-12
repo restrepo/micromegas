@@ -15,6 +15,7 @@ int callSuperIsoSLHA(void)
      System("cd %s; make; make slha",path);
      sysTimeLim=sysTimeLimTmp;
    }
+
    if(access(command,X_OK)) 
    { printf("Can not compile superIso\n");
      free(command);
@@ -24,7 +25,6 @@ int callSuperIsoSLHA(void)
    System("%s  slhaForSuperIso >/dev/null  ",command);
    err=slhaRead("output.flha",1);
    unlink("slhaForSuperIso");
-   if(delFiles) unlink("output.flha");  
    free(command);
    return err;
 }

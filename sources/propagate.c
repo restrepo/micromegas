@@ -4,6 +4,11 @@
 
 #include "micromegas.h"
 #include "micromegas_aux.h"
+
+#define Delt 0.01
+
+int  vcsMode=1;
+
 extern double Zi(int i);
 
 /*===================  micrOMEGAs Halo profile =====================*/
@@ -13,7 +18,7 @@ static double   Halpha =   1;
 static double   Hgam   =   1;
 static double   Hbeta  =   3;
 
-double hProfileABG(double r)
+double hProfileZhao(double r)
 {
    double rhomax,rho,a1,a2,a3; 
    a1=pow((Rsun/r),Hgam);
@@ -21,37 +26,53 @@ double hProfileABG(double r)
    a3=1+pow(r/Ha,Halpha);
    rho = a1 * pow(a2/a3,(Hbeta-Hgam)/Halpha );
    
-  rhomax = 1e10;
-  if(rho >= rhomax) return rhomax; else return rho;
+   rhomax = 1e10;
+   if(rho >= rhomax) return rhomax; else return rho;
 }
 
-void setProfileABG(double Halpha_n, double Hbeta_n, double Hgam_n, double Ha_n)
+void setProfileZhao(double Halpha_n, double Hbeta_n, double Hgam_n, double Ha_n)
 {
    Ha        =  Ha_n;
    Halpha    =  Halpha_n;
    Hgam      =  Hgam_n;
    Hbeta     =  Hbeta_n;
+   setHaloProfile(hProfileZhao);
 }
 
 static double alphaEin=0.17;
 
 double hProfileEinasto(double r)
 { 
-  return  exp(-2*(pow(r/Rsun,alphaEin)-1)/alphaEin);
+   return  exp(-2*(pow(r/Rsun,alphaEin)-1)/alphaEin);
 } 
 
-void setProfileEinasto(double alpha){ alphaEin=alpha;}
-  
-
-double noClumps(double r){ return 1;}
-
-static double (*hProfile_)(double)=hProfileABG;
-static double (*cProfile_)(double)=noClumps;
-
-void setHaloProfiles(double (*hProfile)(double), double (*cProfile)(double))
-{ hProfile_=hProfile;
-  cProfile_=cProfile;
+void setProfileEinasto(double alpha)
+{  alphaEin=alpha;
+   setHaloProfile(hProfileEinasto);
 }
+  
+static double f_clump=0, rho_clump=0;
+
+extern void setClumpConst(double f,double rho);
+extern double rhoClumpsConst(double r);
+extern void setRhoClumps(double (*cProfile)(double));
+
+void setClumpConst(double f,double rho)
+{  f_clump=f; rho_clump=rho; setRhoClumps(rhoClumpsConst); }
+
+static double (*hProfile_)(double)=hProfileZhao;
+
+double rhoClumpsConst(double r)
+{ double v=(rho_clump - rhoDM*(*hProfile_)(r)*f_clump);
+  if(v<=0) return 0;
+  return f_clump*v;
+}
+
+static double (*rhoClumpEff_)(double)=rhoClumpsConst;
+
+void setHaloProfile(double (*hProfile)(double)){ hProfile_=hProfile;}
+
+void setRhoClumps(double (*cProfile)(double)) {   rhoClumpEff_=cProfile; }
 
 
 #define CELERITY_LIGHT 2.99792458e10 /* cm.s{-1} */
@@ -98,8 +119,19 @@ void setHaloProfiles(double (*hProfile)(double), double (*cProfile)(double))
 
 #define rHaloMin 0.000001
 
-/*=================================  Photon propagation ====================================*/
 
+static double  N_rho(void)
+{ double N;
+  if(CDM1==NULL && CDM2==NULL) N=rhoDM/Mcdm;
+  else if(CDM1==NULL) N=rhoDM/Mcdm2;
+  else if(CDM2==NULL) N=rhoDM/Mcdm1;
+  else N=rhoDM*(fracCDM2/Mcdm2 +(1-fracCDM2)/Mcdm1); 
+  
+  return N/hProfile_(Rsun); 
+}
+
+
+/*=================================  Photon propagation ====================================*/
 
 static double fi_, dfi_,sn_;
 
@@ -107,8 +139,9 @@ static double xIntegrand(double x)
 {  double r=Rsun*sqrt(x*x+sn_*sn_);
    double pf;
    if(r<rHaloMin) r=rHaloMin;
-   pf=hProfile_(r);
-   return  pf*pf*cProfile_(r);
+   pf=hProfile_(r); 
+   if(vcsMode) pf*=(pf +rhoClumpEff_(r)/rhoDM );
+   return  pf;
 }
 
 static double yIntegrand(double y)
@@ -118,9 +151,8 @@ static double yIntegrand(double y)
   r=Rsun*sqrt(x*x+sn_*sn_);
   if(r<rHaloMin) r=rHaloMin;
   pf=hProfile_(r);
-  res= pf*pf*cProfile_(r)/y/y;
-
-  return res;  
+  if(vcsMode) pf*=(pf+rhoClumpEff_(r)/rhoDM);
+  return  pf/y/y;
 }
 
 static double psiIntegrand(double psi)
@@ -156,21 +188,75 @@ double HaloFactor(double fi,double dfi)
    fi_=fi;
    if(dfi<=0) {dfi_=0;res=psiIntegrand(0);} 
    else res=simpson(fiIntegrand,0,dfi,1.E-4)/(1-cos(dfi));
-   Norm=rhoDM/hProfile_(Rsun)/Mcdm;
-   return res*Norm*Norm/(8*M_PI)*Rsun*sm_in_kpc;
+   return res/(4*M_PI)*Rsun*sm_in_kpc;
 }
+
+static double b_, l1_,dl_;
+
+static double l_integrand(double l)
+{
+   fi_=acos(cos(b_)*cos(l));
+   dfi_=0;
+   return psiIntegrand(0.);
+}
+         
+static double b_integrand(double b)
+{ b_=b;
+   return cos(b)*simpson(l_integrand,l1_,l1_+dl_,1.E-3);
+}
+       
+           
+static double HaloFactorGC(double l,double b,double dl,double db)
+{  double res;
+   double sm_in_kpc=3.0856775807E21;
+   double Norm;
+  
+   l1_=l, dl_=dl;
+
+   res=simpson(b_integrand,b,b+db,1.E-3);
+   if(dl<0) res*=-1;
+   if(db<0) res*=-1;
+   return res/(4*M_PI)*Rsun*sm_in_kpc;
+}
+ 
 
 void gammaFluxTab(double fi,double dfi, double sigmaV, double *Sp, double *Sobs)
 {
   int i; 
-  double hf=HaloFactor(fi, dfi)*sigmaV;
+  double hf,Norm=N_rho();
+  if(vcsMode) Norm*=Norm/2;
+  hf=Norm*HaloFactor(fi, dfi)*sigmaV;
   if(dfi>0) hf*=(1-cos(dfi))*2*M_PI; 
-  for(i=0;i<NZ;i++) Sobs[i]=hf*Sp[i]; 
+  for(i=1;i<NZ;i++) Sobs[i]=hf*Sp[i];
+  Sobs[0]=Sp[0]; 
 }
+
+void gammaFluxTabGC(double l,double b, double dl,double db, double sigmaV, double *Sp, double *Sobs)
+{
+  int i; 
+  double  hf,Norm=N_rho();
+  if(vcsMode) Norm*=Norm/2;
+  hf=Norm*HaloFactorGC(l,b,dl,db)*sigmaV; 
+  for(i=0;i<NZ;i++) Sobs[i]=hf*Sp[i]; 
+  Sobs[0]=Sp[0];
+}
+
 
 double gammaFlux(double fi, double dfi,  double dSigmadE )
 {
-  return  dSigmadE*HaloFactor(fi, dfi)*(1-cos(dfi))*2*M_PI;
+   double hf, Norm=N_rho();
+   if(vcsMode) Norm*=Norm/2;
+   hf=Norm*HaloFactor(fi, dfi);
+   if(dfi>0) hf*=(1-cos(dfi))*2*M_PI;
+   return  dSigmadE*hf;
+}
+
+double gammaFluxGC(double l, double b, double dl, double db, double dSigmadE )
+{
+   double  hf, Norm=N_rho();
+   if(vcsMode) Norm*=Norm/2;
+   hf=Norm*HaloFactorGC(l,b,dl,db);
+   return  hf*dSigmadE;
 }
 
 
@@ -250,7 +336,7 @@ static double  rIntegrand(double r)
    I_angular_rS=azimuthInt(Rsun*r /Kt_);
    rr=sqrt(r*r+z_*z_);
    prQ=hProfile_(rr);
-   prQ*=prQ*cProfile_(rr);
+   if(vcsMode) prQ*=(prQ+rhoClumpEff_(rr)/rhoDM);
    return r*I_angular_rS*exp(-(Rsun-r)*(Rsun-r)/(4*Kt_))*prQ;
 }
 
@@ -270,7 +356,7 @@ static double zIntegrand(double z)
 
 static double integral_cal_In(double K0_tau)
 {
-   if(K0_tau<0.001) { double prQ=hProfile_(Rsun); prQ*=prQ*cProfile_(Rsun);   return prQ/2;}
+   if(K0_tau<0.001) { double prQ=hProfile_(Rsun); if(vcsMode)prQ*=prQ+rhoClumpEff_(Rsun)/rhoDM;   return prQ/2;}
    Kt_=K0_tau;
    dR_ = sqrt(4.0 * Kt_ * log(10.0) * DIGIT);  
 
@@ -283,7 +369,8 @@ static double r_;
 
 static double zIntegrand(double z)
 { double rr=sqrt(r_*r_+z*z), prQ;
-  prQ=hProfile_(rr); prQ*=prQ*cProfile_(rr);
+  prQ=hProfile_(rr); 
+  if(vcsMode) prQ*=prQ+rhoClumpEff_(rr)/rhoDM;
   return   green_v(Kt_,z)*prQ; 
 }        
 
@@ -301,7 +388,11 @@ static double  rIntegrand(double r)
 static double integral_cal_In(double K0_tau)
 {
   double rMin,rMax;
-  if(K0_tau<0.001) {double prQ; prQ=hProfile_(Rsun); prQ*=prQ*cProfile_(Rsun); return prQ/2;}
+  if(K0_tau<0.001) 
+  { double prQ; prQ=hProfile_(Rsun); 
+    if(vcsMode)prQ*=prQ+rhoClumpEff_(Rsun)/rhoDM; 
+    return prQ/2;
+  }
   Kt_=K0_tau;
   
   dR_  = sqrt(4.0 * Kt_ * log(100./Eps));
@@ -335,12 +426,13 @@ double posiFlux(double E, double sigmav, double *tab)
 {
   double flu;
   double rho0;
-  if(E>=Mcdm)return 0;
-  rho0=rhoDM/hProfile_(Rsun)/Mcdm;
+  if(E>=tab[0])return 0;
+  rho0=N_rho();
+  if(vcsMode)  rho0*=rho0/2;
   tab_=tab; 
   flu =Tau_dif/(E*E)*sigmav/(4*M_PI)*CELERITY_LIGHT;
   Eobs=E;
-  return  flu*rho0*rho0*simpson(PosifluxIntegrand,E,Mcdm,Eps); 
+  return  2*flu*rho0*simpson(PosifluxIntegrand,E,tab[0],Eps); 
 }
 
 static double* xa_,*ya_;
@@ -355,21 +447,23 @@ void posiFluxTab(double Emin, double sigmav, double *tab, double *tabOut)
   int i;
   double buff[NZ];
   tab_   =tab;
-  rho0=rhoDM/hProfile_(Rsun)/Mcdm;
+  rho0=N_rho();
+  if(vcsMode) rho0*=rho0/2;
   flu = Tau_dif*sigmav/(4*M_PI)*CELERITY_LIGHT;
 
-  buildInterpolation(integral_cal_In,0., dKt(Mcdm,Emin),-Eps,&N_,&xa_,&ya_);
+  buildInterpolation(integral_cal_In,0., dKt(tab[0],Emin),-Eps,Delt,&N_,&xa_,&ya_);
 
 //printf("N_=%d\n",N_);
   
-  for(i=0;i<NZ;i++)
+  for(i=1;i<NZ;i++)
   {
-     Eobs=Mcdm*exp(Zi(i));
+     Eobs=tab[0]*exp(Zi(i));
      if(Eobs<Emin*0.9) buff[i]=0; 
-     else buff[i]= (flu/Eobs)* simpson(SpectIntegrand, Eobs, Mcdm, Eps);
+     else buff[i]= (flu/Eobs)* simpson(SpectIntegrand, Eobs, tab[0], Eps);
   }   
 
-  for(i=0;i<NZ;i++) tabOut[i]=rho0*rho0*buff[i]; 
+  for(i=1;i<NZ;i++) tabOut[i]=2*rho0*buff[i];
+  tabOut[0]=tab[0]; 
   free(xa_); free(ya_);    
 }
 
@@ -541,8 +635,8 @@ static double ek_,z_,r_;
 
 #define rHalo1  0.1
 
-static double rhoQ_2(double r){ double prQ=hProfile_(r); prQ*=prQ*cProfile_(r);  return r*r*prQ;  }
-static double rhoQ_3(double r){ double prQ=hProfile_(r); prQ*=prQ*cProfile_(r);  return r*r*r*prQ;}
+static double rhoQ_2(double r){ double prQ=hProfile_(r); if(vcsMode)prQ*=prQ+rhoClumpEff_(r)/rhoDM;  return r*r*prQ;  }
+static double rhoQ_3(double r){ double prQ=hProfile_(r); if(vcsMode)prQ*=prQ+rhoClumpEff_(r)/rhoDM;  return r*r*r*prQ;}
 
 static double  thetaIntegrandP(double uTheta)
 {
@@ -551,7 +645,8 @@ static double  thetaIntegrandP(double uTheta)
   double prQ;
   double d=sqrt(z_*z_ + (Rsun-r_)*(Rsun-r_) +4*r_*Rsun*sinTh*sinTh);
   if(d>=Rdisk) return 0;
-  prQ=hProfile_(d); prQ*=prQ*cProfile_(d);
+  prQ=hProfile_(d); 
+  if(vcsMode) prQ*=prQ+rhoClumpEff_(d)/rhoDM;
   return  uTheta*prQ*(1-exp(-2*(Rdisk-d)/Leff));
 }
 
@@ -569,7 +664,7 @@ static double rIntegrandP(double r)
   if(sinMax>=1) thetaMax=M_PI; else thetaMax=2*asin(sinMax);
 
   r_=r;
-  prQ=hProfile_(rHalo1); prQ*=prQ*cProfile_(rHalo1);
+  prQ=hProfile_(rHalo1); if(vcsMode) prQ*=prQ+rhoClumpEff_(rHalo1)/rhoDM;
   
   fluxDM_r_z=2*2*simpson(thetaIntegrandP,sqrt(thetaMin),sqrt(thetaMax),
   0.1*Eps)+2*thetaMin*prQ;   	
@@ -652,13 +747,15 @@ static double pbarPropRate(double ek)
 
 double pbarFlux(double E, double dSigmadE)
 { double rho0;
-  rho0=rhoDM/hProfile_(Rsun)/Mcdm ;
-  return 0.5*rho0*rho0*pbarPropRate(E)*dSigmadE;
+  rho0=N_rho();
+  if(vcsMode) rho0*=rho0/2;
+  return rho0*rho0*pbarPropRate(E)*dSigmadE;
 }
 
+static double Mcdm0;
 
 static double logPbarRate(double x)
-{ return log(0.5*pbarPropRate( Mcdm*exp(x)));}
+{ return log(pbarPropRate( Mcdm0*exp(x)));}
 
 void pbarFluxTab(double Emin, double sigmav, double *tab, double *tabOut)
 {
@@ -667,18 +764,21 @@ void pbarFluxTab(double Emin, double sigmav, double *tab, double *tabOut)
   double * Egrid,*Fgrid;
   double tab2[NZ];
   double rho0;
-
-  buildInterpolation(logPbarRate,log( Emin/Mcdm),log(0.9),0.01,&N,&Egrid,&Fgrid);
+  Mcdm0=tab[0];
+  buildInterpolation(logPbarRate,log( Emin/Mcdm0),log(0.9),0.01,Delt,&N,&Egrid,&Fgrid);
 /*printf("Npbar=%d\n",N);*/
-  rho0=rhoDM/hProfile_(Rsun)/Mcdm;
+
+  rho0=N_rho();
+  if(vcsMode)rho0*=rho0/2;
+ 
   for(i=0;i<NZ;i++)
   {  double z=Zi(i);
-     double E=Mcdm*exp(z);
+     double E=tab[0]*exp(z);
      if(E<Emin*0.9) tab2[i]=0; else tab2[i]= 
      sigmav*exp(polint4(z,N, Egrid, Fgrid) )*zInterp(z,tab);
   }   
-  for(i=0;i<NZ;i++) tabOut[i]=rho0*rho0*tab2[i];
- 
+  for(i=1;i<NZ;i++) tabOut[i]=rho0*tab2[i];
+  tabOut[0]=tab[0];
   free(Egrid); free(Fgrid);   
 }
 
@@ -689,18 +789,44 @@ void pbarFluxTab(double Emin, double sigmav, double *tab, double *tabOut)
 void solarModulation(double PHI, double mass, double * inTab, double * outTab)
 { double buff[NZ];
   int i;
-  for(i=0;i<NZ;i++)
+  double Mcdm0=inTab[0];
+  
+  for(i=1;i<NZ;i++)
   { 
     double X,E,P,Xs,Es,Ps;
     X=exp(Zi(i));
-    E=Mcdm*X;
+    E=Mcdm0*X;
     P=sqrt( E*(E+2*mass));
     Es=E+PHI/1000.;
     if(Es>=Mcdm) buff[i]=0; else
     {  Ps=sqrt( Es*(Es+2*mass));
-       Xs=Es/Mcdm;
+       Xs=Es/Mcdm0;
        buff[i]= (X/Xs)*zInterp(log(Xs),inTab)*pow(P/Ps,2);    
     }
   }
-  for(i=0;i<NZ;i++) outTab[i]=buff[i];
+  for(i=1;i<NZ;i++) outTab[i]=buff[i];
+  outTab[0]=Mcdm0;
+}
+
+
+double pBarBackgroundFlux(double E)  /* arXiv:astro-ph/0609522v3 */
+{ const   double C[5]={-3.211,0.12145,-0.2728,-0.075265,-0.007162};
+  const   double D[2]={-2.02735,1.16463};
+  double s, x;
+  if(E<0) return 0; 
+
+  x=log(E);
+  if(E<11) 
+  { int i;
+    for( i=3,s=C[4];i>=0;i--)  s=s*x+C[i];
+  } else s=D[0]*pow(x,D[1]);
+  if(E<11) return 1.E-4*exp(s);  /* m^2 => cm^2 */
+  else return 8.621348E-01*1.E-4*exp(s);
+}   
+
+void pBarBackgroundTab(double Emax, double *pBarTab)
+{
+  int i;
+  for(i=1;i<NZ;i++) { double E=Emax*exp(Zi(i));pBarTab[i]= E*pBarBackgroundFlux(E);}
+  pBarTab[0]=Emax;
 }

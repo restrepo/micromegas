@@ -136,7 +136,7 @@ static void*  rd_rcode(char* s)
 {  char    * p;
    int  num;
 
-   p = (char *) m_alloc(12);
+   p = (char *) m_alloc(4+VAR_NAME_SIZE);
    p[0]=0;
    if (strlen(s) == 2 && s[1] > '0' && s[1] <= '9')
    {

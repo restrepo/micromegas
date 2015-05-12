@@ -48,7 +48,7 @@ static void*  act_num(char* ch,int n, void**args)
      case '+': p1+=p2;  break;
      case '*': p1*=p2;  break;
      case '/': if(p2==0.)rderrcode=naninoperation; else p1/=p2;  break;
-     case '^': if(p2==floor(p2)) p1=pow_dl(p1,floor(p2)); else p1=pow(p1,p2);
+     case '^': p1=pow(p1,p2);
                break;
      case '.': rderrcode=typemismatch; 
                break;
@@ -106,7 +106,7 @@ int calcExpression(char *s,int(*nameToDouble)(char *,double *), double *p)
   if(rderrcode==0 && !isAble) rderrcode=unknownfunction; 
  
   if(!rderrcode) *p=*r;
-  if(!rderrcode && !finite(*r)) rderrcode=cannotevaluate;
+  if(!rderrcode && !isfinite(*r)) rderrcode=cannotevaluate;
  
   release_(&heapbeg); 
   return rderrcode;

@@ -4,11 +4,11 @@
 
 
 
-double pwidth_(char * name, txtList *L , int *dim, int len)
+double pwidth_(char * name, txtList *L , int len)
 {
    char cName[10];
    fName2c(name,cName, len);
-   return pWidth(cName, L , dim);
+   return pWidth(cName, L );
 }
 
 void printtxtlist_(txtList * list, int * Nch)

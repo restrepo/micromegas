@@ -16,6 +16,10 @@ C    Display information about SUSY and Higgs masses
 #define CONSTRAINTS
 C     Display  deltarho, B_>sgamma, Bs->mumu, gmuon and
 C     check LEP mass limits 
+
+C#define HIGGSBOUNDS  '../Packages/HiggsBounds-4.2.0'
+C#define HIGGSSIGNALS '../Packages/HiggsSignals-1.3.0'
+
 #define OMEGA
 C    Calculate relic density and display contribution of
 C                            individual channels 
@@ -24,6 +28,10 @@ C     Compute spectra of gamma/positron/neutrinos
 C     for DM annihilation; calculate <sigma*v> and
 C     integrate gamma signal over DM galactic squared
 C     density for given line of sight.
+C#define LoopGAMMA
+C     Calculate discrete  photon spectrum caused by annihilation of
+C      neutralinos into two photons and Z-photon
+
 C!#define RESET_FORMFACTORS
 C     Modify default nucleus form factors, 
 C     DM velocity distribution,
@@ -38,6 +46,7 @@ C     and recoil energy distibution for various nuclei
 C#define DECAYS
 C     Calculates particle widths and branchings
 
+
 C#define CROSS_SECTIONS
 C     Calculate cross sections and widths for
 C      reactions specified by the user
@@ -49,6 +58,8 @@ C===== Options ========
 C#define SHOWPLOTS
 C     Display  graphical plots on the screen
 
+#define CLEAN    to clean intermidiate files
+
 C===== End of DEFINE  settings ===== 
 
 
@@ -59,9 +70,10 @@ C! external functions
 
 C! local  Parameters   
       INTEGER fast/1/
-      REAL*8  Beps/1.E-5/,cut/0.01/
-      REAL*8  m0,mhf,a0,tb,sgn
-      REAL*8 m32
+      REAL*8  Beps/1.E-4/,cut/0.01/
+      REAL*8  m0,mhf,a0,tb,sgn,mXiF/0/,mXiS/0/,muP/0/,msP/0/,m3h/0/
+      REAL*8  m32
+      
 
 C Variables      
       INTEGER err
@@ -70,7 +82,7 @@ C Variables
      > gMl2,gMl3,gMr2,gMr3,gMq2,gMq3,gMu2,gMu3,gMd2,gMd3,
      >Lambda,aKappa,aLambda
       INTEGER  narg,nw 
-      character *100 argv
+      character *100 argv, buff
       character*10 cdmName
       integer spin2,charge3,cdim,PDGcdm
       real*8 Pcm,cosmin, cosmax,rw,width
@@ -89,6 +101,9 @@ C  for CONSTRAINTS
 C  for INDIRECT 
       real*8 N_tot, SpA(NZ),SpE(NZ), SpP(NZ) 
       real*8 FluxA(NZ),FluxE(NZ), FluxP(NZ)
+C  for LoopGAMMA
+      real*8 vcs_zg, vcs_gg
+
 C for CDM_NUCLEON
       real*8  pA0(2),pA5(2),nA0(2),nA5(2),Nmass,SCcoeff,
      >ffS0P(3),ffS0N(3),ffbuff(3)
@@ -164,7 +179,7 @@ c       call delFiles(0)
         endif 
       endif
   
-      err=nmssmSUGRA(m0,mhf,a0,tb,sgn,Lambda,aLambda,aKappa)
+      err=nmssmSUGRA(m0,mhf,a0,tb,sgn,Lambda,aLambda,aKappa,mXiF,mXiS,muP,msP,m3h)
       if(err.ne.0) goto 100
 
 #elif defined(EWSB)
@@ -290,6 +305,47 @@ C     Call writeLesH('slha.out')
  
 #endif
 
+#ifdef HIGGSBOUNDS
+      if(access(HIGGSBOUNDS//"/HiggsBounds",'x') .ne.0) call system('cd '//HIGGSBOUNDS//'; ./configure; make ')
+      call system('cat spectr decay > HB.in')
+      err=HBblocks('HB.in')
+      call system( HIGGSBOUNDS//'/HiggsBounds  LandH SLHA 5 1 HB.in HB.out >hb.stdout')
+      err=slhaRead("HB.out",1+4)
+      write(*,fmt='("HB result=",1PE10.1,"obsratio=", E10.1)')
+     .slhaVal2("HiggsBoundsResults",0.d0,1,2), slhaVal2("HiggsBoundsResults",0.,1,3)
+      if(0.eq.slhaSTRFormat("HiggsBoundsResults","1 5 ||%[^|]||",buff)) write(*,*) "Channel: ", buff
+
+#endif
+
+#ifdef HIGGSSIGNALS
+#define DataSet " latestresults "
+C#define Method  " peak " 
+C#define  Method " mass "
+#define  Method " both "
+C* PDF 1 - box ; 2 = Gaussian; 3 box+Gaussia
+#define PDF  " 2 " 
+#define dMh " 2 " 
+      write(*,*) 'HiggsSignals:'       
+      if(access(HIGGSSIGNALS// '/HiggsSignals','x').ne.0 ) call system( 'cd ' //HIGGSSIGNALS//'; ./configure; make')
+      call system('rm -f HS.in HS.out')
+      err=slhaWrite("HS.in")
+      err=HBblocks("HS.in")
+      call system('echo "BLOCK DMASS" >> HS.in')
+      call system('echo "  25 '//dMh// '" >> HS.in')
+      call system(HIGGSSIGNALS//'/HiggsSignals'//DataSet//Method//PDF//'SLHA 5 1 HS.in > hs.stdout');
+      call system('grep -A 10000  HiggsSignalsResults HS.in > HS.out')
+      err=slhaRead('HS.out',1+4)
+      write(*,fmt='("  Number of observables ",F5.0)') slhaVal1("HiggsSignalsResults",0.d0,7)
+      write(*,fmt='("  total chi^2=", 1PE10.1)') slhaVal1("HiggsSignalsResults",0.d0,12)
+      write(*,fmt='("  p-value =", 1PE10.1)') slhaVal1('HiggsSignalsResults',0.d0,13)
+#undef dMh
+#undef PDF
+#undef Method
+#undef DataSet
+      
+#endif
+
+
 
 #ifdef OMEGA
       write(*,*)
@@ -334,7 +390,7 @@ C  Use SpectdNdE(E, SpX) to calculate energy distribution in 1/GeV units.
 #ifdef SHOWPLOTS      
       write(mess,fmt="('gamma flux[cm^2 s GeV]^{-1} at fi=',F4.2,
      > ' from cone with angle=',F4.2,'[rad]')")fi,dfi*2  
-      err= displaySpectrum(FluxA,mess,Emin,Mcdm,1)
+      err= displaySpectrum(FluxA,mess,Emin,Mcdm)
 #endif
       write(*,fmt="('Photon flux =',1PE8.2,
      >'[cm^2 s GeV]^{-1} for E=',0PF5.1,'[GeV]')")
@@ -345,7 +401,7 @@ C  Use SpectdNdE(E, SpX) to calculate energy distribution in 1/GeV units.
 
 #ifdef SHOWPLOTS      
       err=displaySpectrum(FluxE,'positron flux [cm^2 s sr GeV]^{-1}',
-     >Emin,Mcdm,1)
+     >Emin,Mcdm)
 #endif
       write(*,fmt="('Positron flux  = ',1PE8.2,
      >'[cm^2 sr s GeV]^{-1} for E=',0PF6.1,'[GeV]')")
@@ -356,7 +412,7 @@ C  Use SpectdNdE(E, SpX) to calculate energy distribution in 1/GeV units.
 
 #ifdef SHOWPLOTS      
       err=displaySpectrum(FluxP,'a-proton flux [cm^2 s sr GeV]^{-1}',
-     >Emin,Mcdm,1)
+     >Emin,Mcdm)
 #endif
 
       write(*,fmt="('Anti proton flux  = ',1PE8.2,
@@ -364,6 +420,25 @@ C  Use SpectdNdE(E, SpX) to calculate energy distribution in 1/GeV units.
      > SpectdNdE(Etest, FluxP),  Etest     
 
 #endif
+
+#ifdef LoopGAMMA
+        
+      if(loopGamma(vcs_zg, vcs_gg).eq.0) then 
+         write(*,*) '=========== Gamma ray lines =============:'
+         write(*,*)    
+         write(*,fmt="('E=',F6.1,'[GeV] vcs(Z,A)=', 1PE8.2,
+     >        '[cm^2/s] flux=',E8.2,'[cm^2 s]^{-1}')") 
+     >   Mcdm-91.19*91.19/4/Mcdm, vcs_zg, 
+     >   gammaFlux(fi,dfi,vcs_zg)
+
+         write(*,fmt="('E=',F6.1,'[GeV] vcs(A,A)=', 1PE8.2,
+     >        '[cm^2/s] flux=',E8.2,'[cm^2 s]^{-1}')") 
+     >   Mcdm, vcs_gg, 
+     >   2*gammaFlux(fi,dfi,vcs_gg)
+
+      endif
+#endif   
+
 
 #ifdef RESET_FORMFACTORS
 
@@ -374,7 +449,7 @@ C   where <Type> can be "Scalar", "pVector", and "Sigma";
 C         <Nucleon>     "P" or "N" for proton and neutron
 C         <q>            "d", "u","s"
 C
-C   calcScalarFF( Mu/Md, Ms/Md, sigmaPiN[MeV], sigma0[MeV])  
+C   calcScalarQuarkFF( Mu/Md, Ms/Md, sigmaPiN[MeV], sigma0[MeV])  
 C   calculates and rewrites Scalar form factors
 
       write(*,*) 'protonFF (default)  d, u, s ', 
@@ -382,7 +457,7 @@ C   calculates and rewrites Scalar form factors
       write(*,*) 'neutronFF(default)  d, u, s ', 
      >       ScalarFFNd, ScalarFFNu,ScalarFFNs                          
       write(*,*) '===========Redefinition of form factors========='  
-      call calcScalarFF(0.553d0,18.9d0,70.d0,35.d0)
+      call calcScalarQuarkFF(0.553d0,18.9d0,45.5d0,26.d0)
       write(*,*) 'protonFF (new)      d, u, s ', 
      >ScalarFFPd, ScalarFFPu,ScalarFFPs                           
       write(*,*) 'neutronFF(new)      d, u, s ', ScalarFFNd, 
@@ -402,7 +477,7 @@ C    All parameters are  in [km/s] units.
       write(*,*) '==== Calculation of CDM-nucleons amplitudes  ====='   
 
 
-      err=nucleonAmplitudes(NoLoop, pA0,pA5,nA0,nA5)
+      err=nucleonAmplitudes(CDM1,FeScLoop, pA0,pA5,nA0,nA5)
       write(*,*)'CDM-nucleon amplitudes:'
       write(*,fmt="(' proton:  SI=',1PE9.2,' SD=',E9.2)")pA0(1),pA5(1)
       write(*,fmt="(' neutron: SI=',1PE9.2,' SD=',E9.2)")nA0(1),nA5(1) 
@@ -468,13 +543,13 @@ C  velocity distribution.
       write(*,*)'======Calculations of widths======='
 
 C      pname = "h";
-      width=pWidth('h1',txtL,dim)
+      width=pWidth('h1',txtL)
       write(*,fmt="('h1->',I1,'*x :  total width ',1PE8.2,'[GeV]')")
      >dim,width
       write(*,*)'and Branchings:'
       call printTxtList(txtL,6)
 
-      width=pWidth('l',txtL,dim)
+      width=pWidth('l',txtL)
       write(*,fmt="('l->',I1,'*x :  total width ',1PE8.2,'[GeV]')")
      >dim,width
       write(*,*)'and Branchings:'
@@ -483,7 +558,7 @@ C      pname = "h";
       write(*,fmt="('Br(e,Ne,nl)=',F4.2)") findBr(txtL,"e,Ne,nl")
 
 C   pname = "~o2";
-      width=pWidth('~o2',txtL,dim)
+      width=pWidth('~o2',txtL)
       write(*,fmt="('~o2->',I1,'*x :  total width ',1PE8.2,'[GeV]')")
      >dim,width
       write(*,*)'and Branchings:'

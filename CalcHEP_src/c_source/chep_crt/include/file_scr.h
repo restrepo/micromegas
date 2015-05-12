@@ -14,9 +14,10 @@ typedef struct linerec * linelist;
 
 typedef struct table
 	{  char   mdlName[30];
-		char   headln[80];
-		char   format[STRSIZ];
-		linelist   strings     ;
+           char   headln[80];
+           char   format[STRSIZ];
+           linelist   strings;
+           int pos;
 	}  table;
 
 

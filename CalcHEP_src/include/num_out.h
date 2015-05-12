@@ -5,6 +5,8 @@
 #include<string.h> 
 #include<math.h>
 
+#include"nType.h"
+
 extern  int    FError;
 
 extern const int nin_ext;
@@ -13,16 +15,16 @@ extern const int nprc_ext;
 extern const int nvar_ext;
 extern const int nfunc_ext;
 
-extern char * pinf_ext(int nsub,int nprtcl,double* pmass,long*num);
-extern long   pinfAux_ext(int nsub, int nprtcl,int *spin2, int* color,int*neutral);
+extern char * pinf_ext(int nsub,int nprtcl,REAL* pmass,int*num);
+extern int   pinfAux_ext(int nsub, int nprtcl,int *spin2, int* color,int*neutral);
 extern char * varName_ext[];
 
-extern double sqme_ext(int nsub, double * momenta, int * err);
+extern double sqme_ext(int nsub,double GG, REAL * momenta, int * err);
 extern int calcFunc_ext(void);
 extern double BWrange_ext;
 extern int twidth_ext, gtwidth_ext, gswidth_ext;
 extern double (*aWidth_ext)(char *);
-extern double va_ext[];
+extern REAL va_ext[];
 
 extern  char * den_info_ext(int nsub, int n, int * mass, int * width);
 extern void build_cb_ext(int nsub); 
@@ -30,7 +32,7 @@ extern void destroy_cb_ext(void);
 extern int cb_pow_ext;   
 extern int cb_nc_ext; 
 extern int * cb_chains_ext;
-extern double * cb_coeff_ext;
+extern REAL * cb_coeff_ext;
 extern double (*aWidth_ext)(char *);
 
 #ifndef  __CALCHEP_INTERFACE__
@@ -44,13 +46,13 @@ typedef struct CalcHEP_interface
   int nvar;
   int nfunc;
   char ** varName;
-  double* va;
+  REAL * va;
   
   int nin;
   int nout;
   int nprc;
-  char* (*pinf)(int, int , double*,long *);
-  long  (*pinfAux)(int, int,int *,int*,int*);
+  char* (*pinf)(int, int , REAL*,int *);
+  int  (*pinfAux)(int, int,int *,int*,int*);
   char** polarized;
   int (*calcFunc)(void);
   double * BWrange;
@@ -59,7 +61,7 @@ typedef struct CalcHEP_interface
   int *   gswidth;
   double (**aWidth)(char *);
 
-  double (*sqme)(int , double*, int*);
+  double (*sqme)(int,double,REAL*,int*);
 
   char * (*den_info)(int, int, int *, int*);
   void (*build_cb)(int);
@@ -67,7 +69,7 @@ typedef struct CalcHEP_interface
   int *cb_pow;
   int *cb_nc;
   int **cb_chains;
-  double ** cb_coeff;
+  REAL ** cb_coeff;
   void (*destroy_cb)(void);  
 } CalcHEP_interface;
 

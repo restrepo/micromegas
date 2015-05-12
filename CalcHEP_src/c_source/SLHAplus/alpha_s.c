@@ -2,15 +2,17 @@
  
 double MbPole=4.967923;  
 static double MtPole=174.1; 
-static double qMin=3.125347E-1;
+static double qMin=3.125347E-1, qLim=1;
 static double m_fact(int nf, double alpha1, double alpha2);
-
+static int nfMax=6;
 /*
    this file contains routines for running QCD coupling, 
    running quark masses,  and  effective quarks masses 
    which  generate correct widths of scalar particles.
 */
 
+
+double Mbp(void) { return MbPole;}
 
 
 static double alpha3(double Q, double lambda, int nf)
@@ -48,7 +50,7 @@ static double qMass[7]={0,0,0,0, 1.200000E+00, 4.230000E+00, 1.619152E+02};
 static double lambda[7]={0,0,0,3.125347E-01, 2.763267E-01, 1.991586E-01, 8.449407E-02};
 
 
-static double poleQmass(double mm, double alpha, int nf)
+double poleQmass(double mm, double alpha, int nf)
 {
   double 
          zeta2=1.6439,
@@ -86,6 +88,7 @@ double  initQCD(double MZalphaS, double McMc, double MbMb, double MtP)
 
   lambda[6]= findLambda(6,alpha3(qMass[6],lambda[5], 5),qMass[6]);
   notInitialized=0;
+  nfMax=6;
   
   qMass[5]=0; qMass[4]=0;
   if(MbMb<=lambda[5]) { qMin=lambda[5]; return qMin;}
@@ -99,22 +102,32 @@ double  initQCD(double MZalphaS, double McMc, double MbMb, double MtP)
   qMass[4]=McMc;
   lambda[3]=findLambda(3,alpha3(qMass[4],lambda[4],4),qMass[4]);
                        qMin=lambda[3]; return qMin;
-
 }
+
+double  initQCD5(double MZalphaS, double McMc, double MbMb, double MtP)
+{
+   double lmbd= initQCD(MZalphaS,McMc, MbMb,MtP);
+   lambda[6]=lambda[5]; 
+   nfMax=5;
+   return lmbd;
+}
+
 
 static int  NF(double Q)
 { 
          if(Q<qMass[4]) return 3;
    else  if(Q<qMass[5]) return 4; 
-   else  if(Q<qMass[6]) return 5; 
+   else  if(Q<qMass[6]||nfMax==5) return 5; 
    else                 return 6;
 }
 
 double alphaQCD(double Q) 
 { 
-  if(notInitialized) initQCD(0.1172,1.2,4.23,171.4);
+  if(notInitialized) initQCD(0.1184,1.2,4.23,173.07);
+  if(Q<qLim) Q=qLim;
   if(Q<qMin) return 1; return alpha3(Q,lambda[NF(Q)],NF(Q));
 }
+
 
 
 static double m_fact(int nf, double alpha1, double alpha2)
@@ -138,7 +151,7 @@ static double m_fact(int nf, double alpha1, double alpha2)
 static double  runningMass(double M0, double Q0,double Q)
 {  double alpha0, alpha1;
    int n=0;   
-
+   if(Q<qLim) Q=qLim;
    for(n=3; n<6;n++) if(Q0<qMass[n+1]) break;     
 
    alpha0=alphaQCD(Q0)/M_PI;   
@@ -178,7 +191,7 @@ double MbRun(double Q)
 }
 
 double MtRun(double Q) 
-{ if(Q<qMass[6]) return qMass[6];   
+{
    return runningMass(qMass[6], qMass[6], Q); 
 } 
 
@@ -195,25 +208,19 @@ double MqEff(double mass2GeV, double Q) { return MqRun(mass2GeV,Q)*sqrt(1+DeltaQ
 
 double McEff(double Q) { return McRun(Q)*sqrt(1+DeltaQCD(Q)); }
 double MbEff(double Q) { double m=MbRun(Q)*sqrt(1+DeltaQCD(Q));  if(m>MbPole) return MbPole; else return m;}
+
 double MtEff(double Q) 
 { 
   double meff,alpha;
-
   if(Q<=2*MtPole) return  MtPole;
-
   meff=MtRun(Q)*sqrt(1+DeltaQCD(Q));
   if(meff>MtPole)   return  MtPole;
-
   alpha=pow(2*MtPole/Q,15.);
   return alpha*MtPole+(1-alpha)*meff;
 }
 
-double nfQCD(double Q)
-{ if(Q<5) return 4; 
-  if(Q<175) return 5;
-  return 6;
-}
-
+ 
+double nfQCD(double Q) {return NF(Q);}
 
 
 #ifdef TEST

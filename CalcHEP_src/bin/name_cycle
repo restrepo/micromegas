@@ -6,7 +6,7 @@ cd $USR
 LANG=
 #============================
 if(test $# -ne 4) then
- echo Error, $0 needs 8 parameters
+ echo Error, $0 needs 4 parameters
  echo 1: Name of parameter 
  echo 2: Initial value 
  echo 3: Step
@@ -25,17 +25,23 @@ do
   $bin/set_param $1 $val
   err=$?; if(test $err -ne 0) then exit $err; fi
   if(test $first -eq 1) then
+    Sep=`grep \#Subprocess  session.dat |cut -f5 -d" "`
+    if(test "$Sep" = "->" ) then
+       Units="Width [GeV]"
+    else 
+       Units="Cross section [pb]"
+    fi
     n1=`grep Session_number session.dat|cut -f2 -d" "`
-    n2=`expr $n1 - 1 + $4`
+    n2=`expr  $n1 - 1 + $4`
     file=$1_tab_"$n1"_"$n2" 
-    lastval=`$bin/calc "$2+($4-1)*$3"`
+    lastval=`$bin/calc "$2+($4-1)*($3)"`
 #    date > $file
     echo "#type 0 %curve"  > $file
     echo "#x-axis: \"$1\"" >> $file
     echo "#xMin $2"        >> $file
     echo "#xMax $lastval"  >> $file
     echo "#xDim $4"        >> $file
-    echo "#yName   Cross section [pb]" >> $file
+    echo "#yName  " $UNITS >> $file
     first=0
   fi
   res=`$bin/run_vegas`
@@ -43,7 +49,7 @@ do
   echo $1=$val  sigma=$res[pb] 
   echo $res >>$file
 
-  val=`$bin/calc "$val + $3"`
+  val=`$bin/calc "$val + ($3)"`
   nstep=`expr $nstep - 1`
 done   
 echo See $file file.

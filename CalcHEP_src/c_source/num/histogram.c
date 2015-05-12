@@ -1,7 +1,3 @@
-/*
- Copyright (C) 1997, 2006 Alexander Pukhov
-*/
-
 #include"syst.h"
 #include"histogram.h"
 #include"crt_util.h"
@@ -17,7 +13,7 @@
 
 table histTab={"*** Table ***","Distributions",
                    "Parameter_1|> Min_1  <|> Max_1  <|"
-                   "Parameter_2|> Min_2  <|> Max_2  <|",NULL};
+                   "Parameter_2|> Min_2  <|> Max_2  <|",NULL,0};
                    
 typedef  struct  histRec 
 { struct histRec * next;
@@ -47,7 +43,7 @@ int clearHists(void)
 }
 
 
-void  fillHists(double w)
+void  fillHists(double w,double*V)
 { histRec * hists=histPtr;
   int i0,i1,k0,k1,n0,n1,i,k;
   double z0[100],z1[100]; 
@@ -58,7 +54,7 @@ void  fillHists(double w)
     hists->nPoints++;
     p=hists->pList[0];
     if(!w || !p) continue;
-    for(n0=0 ;p;p=p->next,n0++)  z0[n0]=calcPhysVal(hists->key[0][0],p->pstr);
+    for(n0=0 ;p;p=p->next,n0++)  z0[n0]=calcPhysVal(hists->key[0][0],p->pstr,V);
     switch(hists->key[0][1])
     { case '^':
         for(k=1;k<n0;k++) if(z0[0]<z0[k]) z0[0]=z0[k];
@@ -83,7 +79,7 @@ void  fillHists(double w)
 
     p=hists->pList[1];
     if(!p) continue;
-    for(n1=0 ;p;p=p->next,n1++)  z1[n1]=calcPhysVal(hists->key[1][0],p->pstr);
+    for(n1=0 ;p;p=p->next,n1++)  z1[n1]=calcPhysVal(hists->key[1][0],p->pstr,V);
     switch(hists->key[1][1])
     { case '^':
         for(k=1;k<n1;k++) if(z1[0]<z1[k]) z1[0]=z1[k];
@@ -121,7 +117,7 @@ int correctHistList(void)
    double rMin[2]={0.,0.}, rMax[2]={0.,0.};
    char  histStr[2][STRSIZ], minStr[2][STRSIZ], maxStr[2][STRSIZ];
    char fieldName[50];    
-
+   errorText[0]=0;
    for( hptr = histPtr ;hptr;hptr=hptr->next) hptr->mother=NULL;
    
    for(ln=histTab.strings,lineNum=1; ln; ln=ln->next,lineNum++)
@@ -175,12 +171,13 @@ int correctHistList(void)
          &&strcmp(hptr->title[1],histStr[1])==0
          && approxEq(hptr->hMin[1],rMin[1])
          && approxEq(hptr->hMax[1],rMax[1]) 
-         ) { hptr->mother=ln; 
+         ) { int ok=0;
              cleanPVlist(hptr->pList[0]);
              cleanPVlist(hptr->pList[1]); 
-             checkPhysValN(histStr[0],hptr->key[0],hptr->pList); 
-             if(strlen(histStr[1]))checkPhysValN(histStr[1],hptr->key[1],hptr->pList+1);
+             ok=checkPhysValN(histStr[0],hptr->key[0],hptr->pList); 
+             if(strlen(histStr[1]))ok=ok&checkPhysValN(histStr[1],hptr->key[1],hptr->pList+1);
              else { strcpy(hptr->key[1],"0"); hptr->pList[1]=NULL;}
+             if(ok) hptr->mother=ln; else hptr=NULL;  
              break; 
             } 
       if(hptr==NULL)
@@ -229,8 +226,10 @@ int correctHistList(void)
    }
    return 0;
  errorExit:
-   sprintf(errorText," Error in  line %d .\n%s.",lineNum,fieldName);
-   messanykey(2,10,errorText);
+   { char buff[300];
+     sprintf(buff,"Histograms:  Error in  line %d .\n%s. %s",lineNum,fieldName,errorText); 
+     messanykey(2,10,buff);
+   }  
    return 1;
 }
 
@@ -368,8 +367,21 @@ int wrt_hist2(FILE *fi, char * comment)
 }
 
 
-int rdr_hist2(FILE *nchan, char *comment)
-{  if(comment) fscanf(nchan,"%[^\n]\n",comment); else fscanf(nchan,"%*[^\n]\n"); 
+int rdr_hist2(FILE *nchan, char **comment)
+{  
+    long pos1,pos2;
+    pos1=ftell(nchan);
+    fscanf(nchan,"%*[^\n]\n");
+    pos2=ftell(nchan);
+    
+    if(comment)
+    {  *comment=malloc(pos2-pos1);
+       fseek(nchan,pos1,SEEK_SET);
+       fscanf(nchan,"%[^\n]\n",*comment);
+       pos2=strlen(*comment);
+       if(pos2 && (*comment)[pos2-1]=='\n') (*comment)[pos2-1]=0;
+    }
+    else fscanf(nchan,"%*[^\n]\n"); 
 
    if(readtable0(&histTab,nchan)) return 1;
    
@@ -387,22 +399,30 @@ static int strcmp2(char*c1,char*c2)
 }
 
 
-int add_hist(FILE *f, char *procname)
+int add_hist(FILE *f, char **procname)
 {  
   table histTab2=histTab;
   histRec * histPtr2=histPtr;
   histRec *r,*r2;
-  char procname2[100];
+  char*procname2;
   int i,err=0; 
   linelist qLl;
   histRec*histPtr_;
   
   histPtr=NULL;
   histTab.strings=NULL;
-  err=rdr_hist2(f,procname2);
+  
+  if(procname) err=rdr_hist2(f,&procname2); else err=rdr_hist2(f,NULL); 
   if(err) return err;
 
-  if(!histPtr2){ strcpy(procname,procname2); return 0; }
+  if(!histPtr2){ if(procname) *procname=procname2; return 0; }
+  if(procname)
+  {
+     *procname=realloc(*procname,strlen(*procname)+strlen(procname2)+5);
+     strcat(*procname,";");
+     strcat(*procname,procname2);
+     free(procname2);
+  }   
   if(!histPtr ){ histTab=histTab2; histPtr=histPtr2;  return 0;}
 
   if(strcmp(histTab.format,histTab2.format))
@@ -571,7 +591,7 @@ char   strmen[] =
    return 0;
 }
 
-static void xUnit(char key, char * units)
+void xUnit(char key, char * units)
 {
    switch(key)
    {
@@ -587,21 +607,16 @@ static void xUnit(char key, char * units)
 } 
 
 
-void showHist(int X, int Y)
+void showHist(int X, int Y,char *title)
 {
    char  histStr1[STRSIZ],histStr2[STRSIZ];
    linelist ln=histTab.strings;
    char * menutxt;
    void * pscr=NULL;
    int mode =0;
-   char procName[60];
    int npos=0;
    int width,width1,width2;
    int i,j;
-   
-   for(i=0,j=0;Process[i];i++) 
-      if(Process[i]!='%') procName[j++]=Process[i];
-   procName[j]=0;
    
    while(ln)
    {  npos++;
@@ -656,7 +671,7 @@ void showHist(int X, int Y)
             if( hist->nPoints == 0) messanykey(10,10,"Distibution is empty");     
             else
             if(strcmp(hist->key[1],"0")==0)
-            while(nBin1=nBinMenu(X,Y+4))                                                                   
+            while((nBin1=nBinMenu(X,Y+4)))                                                                   
             {  double f[300],df[300],coeff;                                        
                int i;
                coeff=nBin1/(hist->nPoints*(hist->hMax[0] - hist->hMin[0]));               
@@ -678,7 +693,7 @@ void showHist(int X, int Y)
                if(units[0]) { strcat(yname,"/");strcat(yname,units);}              
                strcat(yname,"]");                                                  
                                                                                    
-               plot_1(hist->hMin[0],hist->hMax[0],nBin1,f,df,procName,xname,yname);       
+               plot_1(hist->hMin[0],hist->hMax[0],nBin1,f,df,title,xname,yname);       
             } else
             while(nBinMenu2(X,Y+4,&nBin1,&nBin2))                                                                   
             {  double f[900],df[900],coeff;                                        
@@ -707,7 +722,7 @@ void showHist(int X, int Y)
                                                                                     
                plot_2(hist->hMin[0],hist->hMax[0],nBin1,
                       hist->hMin[1],hist->hMax[1],nBin2,
-                       f,df,procName,xname,yname);       
+                       f,df,title,xname,yname);       
             }                                                                                  
          }
       }       

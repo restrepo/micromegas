@@ -1,7 +1,5 @@
 1 12 51 3
- Factor of artificial increase of maxima. Ordinary
-maxima of functions in sub-cubes are detected with
-mistakes. It leads to appearance of events with 
-whole  multiple factor. To prevent it we use this
-factor. Surely, it decreases  the efficiency of 
-generator.
+ Launch the  event generation.
+ Generated events will be stored in 
+ "event_N.txt" file, where N - is a ordinal 
+ number of current session.

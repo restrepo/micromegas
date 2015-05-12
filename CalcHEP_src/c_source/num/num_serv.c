@@ -13,15 +13,15 @@ void  paramdependence(r_func  ff, char*  procname, char*  resultname)
 {
    double      minprm, maxprm;
    int         npoints;
-   double      memprm, stepprm;
+   double      stepprm;
    unsigned    count;
    double f[201];
    int Esc=0,mPos=1;
    double prmval; 
    char txt[100];
    char name[20];
-   double *vPos;   
-   if(!selectParam(54,11,"Choose parameter",NULL,nin_int==2,1,0,&vPos,name,&mPos)) return; 
+   REAL *vPos, memprm;   
+   if(!selectParam(54,11,"Choose parameter",NULL,nin_int==2,0,1,0,&vPos,name,&mPos)) return; 
 
    memprm=*vPos;
  
@@ -99,5 +99,5 @@ label4: npoints = 101;
    strcpy(txt,name);
    if (err_code <=1 && Esc==0)  plot_1(minprm,maxprm ,npoints,f,NULL,procname,txt,resultname); 
    *vPos=memprm; 
-   calcFunc_int();
+   checkParam();
 } 

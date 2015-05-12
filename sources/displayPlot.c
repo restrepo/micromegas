@@ -11,15 +11,15 @@ void displayPlot(char * title, char*xName, char*yName, double xMin, double xMax,
   char *buff;
   if(ff) i=2;else i=1;
  
-  buff=malloc(100+ strlen(title)+strlen(xName)+strlen(yName)+strlen(WORK) +dim*(11*i+2));  
+  buff=malloc(100+ strlen(title)+strlen(xName)+strlen(yName)+strlen(calchepDir) +dim*(11*i+2));  
  
   sprintf(buff,"echo \"#type %d\n#title %s\n#xName %s\n#yName %s\n#xMin %.3E\n#xMax %.3E\n#xDim %d\n",
   i-1,title,xName,yName, xMin,xMax,dim);
   if(ff) for(i=0;i<dim;i++) sprintf(buff+strlen(buff),"%.2E %.2E\n",f[i],ff[i]);
   else   for(i=0;i<dim;i++) sprintf(buff+strlen(buff),"%.3E\n",f[i]); 
   
-  sprintf(buff + strlen(buff),"\" | %s/../../CalcHEP_src/bin/plot_view &",WORK);
-  
+  sprintf(buff + strlen(buff),"\" | %s/bin/plot_view &",calchepDir);
+
   system(buff);
   free(buff);
 }
@@ -47,7 +47,7 @@ extern int blind;
 static int newPID=0;
 static int pidList[100];
 
-extern char pathtocomphep[], pathtohelp[];
+extern char pathtocalchep[], pathtohelp[];
   
 void displayPlot(char * title, char*xName, char*yName, double xMin, double xMax, int dim, double *f,double *ff)
 { int pid;
@@ -58,14 +58,14 @@ void displayPlot(char * title, char*xName, char*yName, double xMin, double xMax,
   if(pid==0) 
   {  int err;
      blind=0; 
-     err=start1("micrOMEGAs Plot","../CalcHEP_src/icon" ,"calchep.ini",NULL);
+     err=start1("micrOMEGAs Plot",NULL ,"calchep.ini",NULL);
      if(err) 
      { printf("Can not display plot because micromegas is compiled without X11\n");
        exit(0);
      }
-     sprintf(pathtocomphep,"%s/../../CalcHEP_src/",WORK);
-     sprintf(pathtohelp,"%s/help/",pathtocomphep);
-     clearTypeAhead();         
+     sprintf(pathtocalchep,"%s/",calchepDir);
+     sprintf(pathtohelp,"%s/help/",pathtocalchep);
+     clearTypeAhead();  
      plot_1(xMin,xMax,dim,f,ff,title,xName,yName);
      finish();
      exit(0);

@@ -1,30 +1,37 @@
 /*
  Copyright (C) 2002, Alexander Pukhov pukhov@theory.sinp.msu.ru
 */
+
+
 #include "syst.h"
 #include "interface.h"
-#include "alphas2.h"
 #include "crt_util.h"
 #include "plot.h"
 #include "kinaux.h"
-#include "const.h"
 #include "strfun.h"
 #include "sf_pdt.h"
 #include "read_func.h"
+/*
 #include "phys_val.h"
 #include "parser.h"
-#include<math.h>
+#include "4_vector.h"
+#include "VandP.h"
+*/
+#include "num_out.h"
+#include "qcdScale.h"
+#include "alphas2.h"
+
 
 double (*sf_alpha)(double)=NULL;
 
-static double alphaMZ=0.1172;
+static double alphaMZ=0.1184;
 static int alphaOrder=2;
 static int alphaNF=5;
 static double MbMb=4.2;
-static double Mtp=175;
+static double Mtp=173;
 static int alphaPDF=1;
-static char scale_str[61]="91.187";
-
+static char Fscale_str[61]="91.187";
+static char Rscale_str[61]="Qfact";
 static double alpha(int nf, int odr, double lambda,  double dscale)
 {
     double b0 = 11. -  (2./3.)*nf;
@@ -114,22 +121,6 @@ double alpha_2(double Q)
   else                return alpha(nf6, alphaOrder, L6, Q);
 }
 
-static int qq0(char *s, double *v)
-{
-  char key;
-  char plist[20];
-  int i;
-  
-  if(isdigit(*s)) { return 1==sscanf(s,"%lf%s",v,plist);}
-  *v=100;  
-  
-  if(checkPhysVal(s,&key,plist) && strchr("STZM",key)) return 1;
-   
-  for(i=1;i<=nvar_int+nfunc_int;i++)
-   if(strcmp(varName_int[i],s)==0 && strcmp(s,"GG")!=0) return 1;
-   
-  return 0;
-}
 
 int qcdmen_(void)
 {
@@ -145,7 +136,8 @@ L10:{  char strmen[]="\030"
       " order=      NNLO       "
       " mb(mb)=     MbMb       "
       " Mtop(pole)= Mtp        "
-      " Q[Gev] = YYY           "
+      " Qfact= FFF             "
+      " Qren = RRR             "
       " Alpha(Q) plot          ";
 
       if(alphaPDF)
@@ -162,7 +154,8 @@ L10:{  char strmen[]="\030"
       improveStr(strmen,"MbMb","%.3f", MbMb);
       improveStr(strmen,"Mtp","%.2f", Mtp);
       
-      improveStr(strmen,"YYY","%-.14s", scale_str);
+      improveStr(strmen,"FFF","%-.16s", Fscale_str);
+      improveStr(strmen,"RRR","%-.16s", Rscale_str);
 
       menu1(54,8,"QCD alpha",strmen,"n_alpha",&pscr,&mode);
     }
@@ -208,20 +201,31 @@ L10:{  char strmen[]="\030"
       case 7:
          { int npos=1,rc;
            do
-           {  double  dscale;
-              goto_xy(2,12); print("QCD scale: ");
-              if(str_redact(scale_str,npos,60)==KB_ENTER) returnCode=1;
+           { 
+              char mess[200];
+              goto_xy(2,12); print("Fact.scale: ");
+              if(str_redact(Fscale_str,npos,60)==KB_ENTER) returnCode=1;
               goto_xy(2,12); clr_eol();
-              rc=calcExpression(scale_str, qq0, &dscale);
-              if(rc && rc != cannotevaluate)
-              { npos=rderrpos;
-                if(rc==unknownidentifier) messanykey(10,10," Unknown parameter");
-                else messanykey(10,10," Syntax error");
-              }
-           }  while(rc && rc != cannotevaluate);
+              rc=initScales(Fscale_str,Rscale_str, mess);
+              if(rc) messanykey(10,10,mess);
+           }  while(rc);
          }
 	 break;
       case 8:
+         { int npos=1,rc;
+           do
+           { 
+              char mess[200];
+              goto_xy(2,12); print("Renorm. scale: ");
+              if(str_redact(Rscale_str,npos,60)==KB_ENTER) returnCode=1;
+              goto_xy(2,12); clr_eol();
+              rc=initScales(Fscale_str,Rscale_str,mess);
+              if(rc) messanykey(10,10,mess);
+           }  while(rc);
+         }
+	 break;
+	 
+      case 9:
 	{ void * screen;
 	  int i;
 	  double f[150];
@@ -252,63 +256,57 @@ L10:{  char strmen[]="\030"
     goto L10;
 }
 
-int w_qcd__(FILE * mode)
+int w_alphaQCD(FILE * mode)
 {
-  fprintf(mode,"alphaPDF=%d alpha(MZ)=%E NF=%d Order=%d MbMb=%E Mtp=%E Scale= %s",
-              alphaPDF, alphaMZ, alphaNF, alphaOrder, MbMb, Mtp, scale_str);
+  fprintf(mode,"alphaPDF=%d alpha(MZ)=%E NF=%d Order=%d MbMb=%E Mtp=%E",
+                alphaPDF, alphaMZ, alphaNF, alphaOrder, MbMb, Mtp);
   return 0;
 }
 
-void i_qcd(void)
+int w_Scales(FILE * mode)
 {
-   if(nin_int==1) strcpy(scale_str,"M1"); else strcpy(scale_str,"M12");
-   init_alpha();
+  fprintf(mode,"\n Factorization %s\n Renormalization %s",Fscale_str,Rscale_str);
+  return 0;
+}
+                  
+
+void i_alphaQCD(void) { init_alpha();}
+
+void i_Scales(void)
+{
+  int err;  
+  char mess[200];
+ 
+  if(nin_int==1) strcpy(Fscale_str,"M1"); else strcpy(Fscale_str,"M12");
+  strcpy(Rscale_str,"Qfact");
+  err=initScales(Fscale_str,Rscale_str ,mess);
 }
 
-int r_qcd__(FILE *mode)
+int r_alphaQCD(FILE *mode)
 { int n;
-  n=fscanf(mode, "alphaPDF=%d alpha(MZ)=%lf NF=%d Order=%d MbMb=%lf Mtp=%lf Scale= %[^\n]",
-            &alphaPDF, &alphaMZ,&alphaNF,&alphaOrder,&MbMb,&Mtp, scale_str);
-  trim(scale_str);
+  int err;
+  n=fscanf(mode, "alphaPDF=%d alpha(MZ)=%lf NF=%d Order=%d MbMb=%lf Mtp=%lf",
+            &alphaPDF, &alphaMZ,&alphaNF,&alphaOrder,&MbMb,&Mtp);
+  if(n!=6) return 1;
   init_alpha();
-  if(n!=7) return 1; else return 0;
-}
-
-void alf_(double q)
-{
-  static int k=-1;
-  if(!k) return;
-  if(k==-1)
-  {  for(k = 1; k <= nvar_int; ++k) 
-      if (strcmp("GG", varName_int[k]) == 0) break; 
-     if(k>nvar_int) k=0;
-  }
-
-  if(k>0) va_int[k]=sqrt(4*M_PI*alpha_2(q));    
-}
-
-
-static int qq1(char *s,double *v)
-{
-  char key, plist[20];
-  int i;
-
-  if(isdigit(*s)) { sscanf(s,"%lf",v); return 1;}
-  if(checkPhysVal(s,&key,plist)) {*v=calcPhysVal(key,plist); return 1;}
- 
-  for(i=1;i<=nvar_int+nfunc_int;i++)
-    if(strcmp(varName_int[i],s)==0) { *v=va_int[i]; return 1;}
- 
   return 0;
 }
 
-double Scale(void)
-{
-   double dscale;
-   if(calcExpression(scale_str ,qq1, &dscale))
-   {  fprintf(stderr, " ERROR in evaluation of  QCD scale\n");
-      sortie(50);
-   }
-   if (dscale < 1.5*L3 )  dscale = 1.5*L3;
-   return dscale;
+int r_Scales(FILE *mode)
+{ int n,err; 
+  char mess[200];
+
+  n=fscanf(mode," Factorization %[^\n] Renormalization %[^\n]",Fscale_str,Rscale_str);
+  if(n!=2) return 1;      
+  trim(Fscale_str);
+  trim(Rscale_str);
+  err=initScales(Fscale_str,Rscale_str,mess);
+  if(err)
+  { printf("%s\n",mess); 
+    strcpy(Fscale_str,"91.187");
+    strcpy(Rscale_str,"91.187");
+    err=initScales(Fscale_str,Rscale_str,mess);
+    if(err) exit(12);
+  }  
+  return 0;
 }

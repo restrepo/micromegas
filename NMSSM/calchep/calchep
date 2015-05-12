@@ -1,7 +1,8 @@
 :
 
 CALCHEP=`cd ../../CalcHEP_src; pwd`
-export CALCHEP
+WORK=`pwd`
+export CALCHEP WORK
 . $CALCHEP/FlagsForSh
 
 PATH=$PATH:$CALCHEP:`cd ../lib; pwd`

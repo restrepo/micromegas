@@ -1,0 +1,64 @@
+Z3 Inert Dublet
+ Constraints 
+ Name  |> Expression                                                                                                                                                                                           <|
+CW     |sqrt(1-SW^2) % cos of the Weinberg angle
+MW     |MZ*CW
+Lqcd   |initQCD5(alfSMZ, McMc, MbMb, Mtp)
+Mb     |MbEff(Q)
+Mt     |MtEff(Q)
+Mc     |McEff(Q)
+PI     |acos(-1)
+V      |2*MW/EE*SW
+cosDm  |sqrt(1-sinDm^2)
+muSq   |Mdm2^2*sinDm^2+Mdm1^2*cosDm^2-V^2*laS1/2
+mu_sh  |-4*(Mdm2^2-Mdm1^2)*sinDm*cosDm/V/Sqrt2
+mu2q   |MHC^2-la3*V^2/2
+la4    |2*(Mdm1^2*sinDm^2+Mdm2^2*cosDm^2-MHC^2)/V^2
+ahF_c  |(-EE)/MW*Mc/SW/2/Mc
+ahF_b  |(-EE)/MW*Mb/SW/2/Mb
+ahF_t  |(-EE)/MW*Mt/SW/2/Mt
+ahF_l  |(-EE)/MW*Ml/SW/2/Ml
+a_hV_W |EE*MW/SW/MW^2
+a_hS_Hc|-2/EE*MW*SW*la3/MHC^2
+aQCD_h |alphaQCD(Mh)/PI
+Rqcd_h |sqrt(1+aQCD_h*(149/12+aQCD_h*(68.6482-aQCD_h*212.447)))
+Mbp    |MbMb*(1+4/3*alphaQCD(MbMb)/PI)
+Mcp    |McMc*(1+4/3*alphaQCD(McMc)/PI)
+Quq    |4/9
+Qdq    |1/9
+LGGh   |-cabs(hGGeven(Mh, aQCD_h, 3, 1, 3, Mbp, ahF_b, 1, 3, Mcp, ahF_c, 1, 3, Mtp, ahF_t))
+LAAh   |-cabs(Qdq*hAAeven(Mh, aQCD_h, 1, 1, 3, Mbp, ahF_b)+Quq*hAAeven(Mh, aQCD_h, 2, 1, 3, Mtp, ahF_t, 1, 3, Mcp, ahF_c)+hAAeven(Mh, aQCD_h, 3, 1, 1, Ml, ahF_l, 2, 1, MW, a_hV_W, 0, 1, MHC, a_hS_Hc))
+B00000 |1-2*SW^2
+B00001 |-1+2*SW^2
+B00002 |2*MW*SW*Sqrt2*la4*sinDm+EE*cosDm*mu_sh
+B00003 |2*MW*SW*Sqrt2*cosDm*la4-EE*mu_sh*sinDm
+B00004 |4*MW*SW*la3*sinDm^2+4*MW*SW*la4*sinDm^2+4*MW*SW*laS1-4*MW*SW*laS1*sinDm^2+EE*Sqrt2*cosDm*mu_sh*sinDm
+B00005 |8*MW*SW*cosDm*la3*sinDm+8*MW*SW*cosDm*la4*sinDm-8*MW*SW*cosDm*laS1*sinDm+EE*Sqrt2*mu_sh-2*EE*Sqrt2*mu_sh*sinDm^2
+B00006 |4*MW*SW*la3-4*MW*SW*la3*sinDm^2+4*MW*SW*la4-4*MW*SW*la4*sinDm^2+4*MW*SW*laS1*sinDm^2
+B00007 |B00006-EE*Sqrt2*cosDm*mu_sh*sinDm
+B00008 |EE*cosDm*muppS+MW*SW*Sqrt2*laS21*sinDm
+B00009 |3*EE*cosDm*muppS*sinDm-MW*SW*Sqrt2*laS21+3*MW*SW*Sqrt2*laS21*sinDm^2
+B00010 |3*EE*cosDm*muppS*sinDm-2*MW*SW*Sqrt2*laS21+3*MW*SW*Sqrt2*laS21*sinDm^2
+B00011 |EE*muppS*sinDm-MW*SW*Sqrt2*cosDm*laS21
+B00012 |1-4*SW^2+4*SW^4
+B00013 |la3+la4
+B00014 |la3*sinDm^2+cosDm^2*laS1
+B00015 |la3-laS1
+B00016 |cosDm^2*la3+laS1*sinDm^2
+B00017 |la3*sinDm^2+la4*sinDm^2+cosDm^2*laS1
+B00018 |la3+la4-laS1
+B00019 |cosDm^2*la3+cosDm^2*la4+laS1*sinDm^2
+B00020 |1-3*sinDm^2
+B00021 |2-3*sinDm^2
+B00022 |2*la2*sinDm^2+cosDm^2*laS2
+B00023 |2*la2-laS2
+B00024 |2*cosDm^2*la2+laS2*sinDm^2
+B00025 |la2*sinDm^4+laS-2*laS*sinDm^2+laS*sinDm^4+laS2*sinDm^2
+B00026 |B00025-laS2*sinDm^4
+B00027 |2*la2*sinDm^2-2*cosDm^2*laS+laS2-2*laS2*sinDm^2
+B00028 |la2+laS-laS2
+B00029 |4*la2*sinDm^2-4*la2*sinDm^4+4*laS*sinDm^2-4*laS*sinDm^4+laS2
+B00030 |B00029-4*laS2*sinDm^2+4*laS2*sinDm^4
+B00031 |2*cosDm^2*la2-2*laS*sinDm^2-laS2+2*laS2*sinDm^2
+B00032 |la2-2*la2*sinDm^2+la2*sinDm^4+laS*sinDm^4+laS2*sinDm^2
+B00033 |B00032-laS2*sinDm^4

@@ -14,6 +14,8 @@ its interaction with electron (positron)
 bunch, which moves in the opposite
 direction.  It depends on bunch sizes,
 total charge of the bunch, and energy of
-collision.
-
-See Manual for details and references. 
+collision. Bunch size is defined via 
+Gauss widths sigma_y,sigma_y,sigma_z. 
+Longitudinal size sigma_z should be 
+presented in millimeters. Units for 
+transverse  sizes  are nanometers. 

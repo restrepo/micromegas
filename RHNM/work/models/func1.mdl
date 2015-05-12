@@ -1,11 +1,11 @@
-RH neutrino (RS-inspired)
+RH neutrino(RS-insp)
  Constraints 
  Name |> Expression                                                      <|
-QCDok |initQCD(alfSMZ,1.4,MbMb,Mtpole)
-Mb    |MbEff(Q)*one(QCDok)
-Mtp   |MtEff(Q)*one(QCDok)
-Mc    |McEff(Q)*one(QCDok)
-*SC   |sqrt(alphaQCD(Q)*4*3.1415927)*one(QCDok)
+Lqcd  |initQCD(alfSMZ,1.4,MbMb,Mtpole)
+Mb    |MbEff(Q)
+Mtp   |MtEff(Q)
+Mc    |McEff(Q)
+*SC   |sqrt(alphaQCD(Q)*4*3.1415927)
 CW    |sqrt(1-SW^2)                     %     cos of the Weinberg angle
 MW    |MZ*CW                            %     W-boson  mass
 c12   |sqrt(1-s12^2)                    %     parameter  of C-K-M matrix

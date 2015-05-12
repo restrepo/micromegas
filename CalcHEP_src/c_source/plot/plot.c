@@ -3,6 +3,7 @@
 */
 /* Modified by S.A. May 11 1991     */
 #include <math.h>
+#include <unistd.h>
 #include "syst.h"
 #include "crt.h"
 #include "crt_util.h"
@@ -350,13 +351,14 @@ static void plot_hist(double xMin,double xMax,int dim, double *f,double *df)
 
 static void  writetable1(double xMin, double xMax, int dim, double * f, 
 double *df, char*  upstr,  char*  x_str, char*  y_str)
-{  char       filename[STRSIZ], buff[STRSIZ];
+{  char       filename[100], buff[STRSIZ],command[100];
    FILE *     outfile;
    int        i;
    int ID;
    nextFileName(filename,"plot_",".txt");
-   sscanf(filename,"plot_%d",&ID);
-   
+   for(i=strlen(filename)-1; i>0 && filename[i]!='_' ;i--);
+   if(i==0 || 1!=sscanf(filename+i+1,"%d",&ID)) ID=0;   
+//printf("filename=%s ID=%d\n", filename,ID);   
    outfile=fopen(filename,"w");
    if(df) fprintf(outfile,"#type 1  %%1d-histogram\n");
    else   fprintf(outfile,"#type 0  %%curve\n");
@@ -368,6 +370,7 @@ double *df, char*  upstr,  char*  x_str, char*  y_str)
    fprintf(outfile,"#yName %s\n",y_str);
 
    fprintf(outfile,"#--- GNUPLOT section ---\n");
+   fprintf(outfile,"#GNUPLOT set key off\n");
    fprintf(outfile,"#GNUPLOT set title  '%s'\n",upstr);
    fprintf(outfile,"#GNUPLOT set xlabel '%s'\n",x_str);
    fprintf(outfile,"#GNUPLOT set ylabel '%s'\n",y_str);
@@ -376,8 +379,8 @@ double *df, char*  upstr,  char*  x_str, char*  y_str)
        "plot[%G:%G] '%s' using (%G +$0*%G):1 w l\n",
                  xMin,xMax,filename,xMin,(xMax-xMin)/(dim-1));
    else        fprintf(outfile,"#GNUPLOT "
-       "plot[%G:%G] '%s' using (%G +$0*%G):1:(%G):2  w xyerrorb\n",
-         xMin,xMax,filename,xMin,(xMax-xMin)/dim, (xMax-xMin)/2./dim);
+       "plot[%G:%G] '%s' using (%G +$0*%G):1:2  w error\n",
+         xMin,xMax,filename,xMin,(xMax-xMin)/dim);
    fprintf(outfile,"#--- PAW section ---\n");
    if(df==NULL)
    { fprintf(outfile,"#PAW  TITLE '%s'\n",upstr);
@@ -408,10 +411,14 @@ double *df, char*  upstr,  char*  x_str, char*  y_str)
    { fprintf(outfile,"#--- F ---\n");
      for(i=0;i<dim;i++) fprintf(outfile,"%-12E\n",f[i]);
    }
-     
+
    fclose(outfile);
    sprintf(buff," You can find results in the file\n%s",filename);
    messanykey(10,12,buff);
+   sprintf(command,"grep \\#PAW plot_%d.txt |sed s/#PAW// > plot_%d.kumac",ID,ID);
+   system(command);
+   sprintf(command,"grep \\#GNUPLOT plot_%d.txt |sed s/#GNUPLOT// > plot_%d.gnu",ID,ID);
+   system(command);
 }
 
 static void  writetable2(double xMin, double xMax, int dimX, 
@@ -458,7 +465,153 @@ double * f, double *df, char*  upstr,  char*  x_str, char*  y_str)
    messanykey(10,12,buff);
 }
 
+static void  writeMath1(double xMin, double xMax, int dim, double * f, 
+double *df, char*  upstr,  char*  x_str, char*  y_str)
+{  char       filename[STRSIZ], buff[STRSIZ];
+   FILE *     outfile;
+   int        i;
+   int ID;
+   int expon, expon2;
+   double mant, mant2;
+   nextFileName(filename,"plot_",".math");
+   sscanf(filename,"plot_%d",&ID);
+   
+   outfile=fopen(filename,"w");
 
+   getcwd(buff,1000);
+
+   fprintf(outfile,"(*******************************************************\n");
+   fprintf(outfile,"Use the following command to load this data:\n");
+   fprintf(outfile,"Get[\"%s%c%s\"]\n",buff,f_slash,filename);
+   fprintf(outfile,"(If you move this file, then change the path and/or filename accordingly.)\n");
+   fprintf(outfile,"********************************************************)\n\n");
+   
+   mant=frexp(f[0], &expon);
+   fprintf(outfile,"dataCH={\n\t{%-12f,%-12f*2^%-2d}",xMin+(1.0/2.0)*(xMax-xMin)/dim,mant,expon);
+   for(i=1;i<dim;i++) {
+     mant=frexp(f[i], &expon);
+     fprintf(outfile,",\n\t{%-12f,%-12f*2^%-2d}",xMin+(1.0/2.0+i)*(xMax-xMin)/dim,mant,expon);
+   }
+   fprintf(outfile,"\n};\n\n");
+
+   if(df){
+     mant=frexp(df[0], &expon);
+     fprintf(outfile,"uncCH={\n\t{%-12f,%-12f*2^%-2d}",xMin+(1.0/2.0)*(xMax-xMin)/dim,mant,expon);
+     for(i=1;i<dim;i++) {
+       mant=frexp(df[i], &expon);
+       fprintf(outfile,",\n\t{%-12f,%-12f*2^%-2d}",xMin+(1.0/2.0+i)*(xMax-xMin)/dim,mant,expon);
+     }
+     fprintf(outfile,"\n};\n\n");
+   }
+
+   mant=frexp(f[0], &expon);
+   fprintf(outfile,"histDataCH={\n\t{%-12f,%-12f*2^%-2d},{%-12f,%-12f*2^%-2d}",xMin,mant,expon,xMin+(xMax-xMin)/dim,mant,expon);
+   for(i=1;i<dim;i++) {
+     mant=frexp(f[i], &expon);
+     fprintf(outfile,",\n\t{%-12f,%-12f*2^%-2d},{%-12f,%-12f*2^%-2d}",xMin+(xMax-xMin)/dim*i,mant,expon,xMin+(xMax-xMin)/dim*(i+1.0),mant,expon);
+   }
+   fprintf(outfile,"\n};\n\n");
+
+   if(df){
+     mant=frexp(f[0]-df[0], &expon);
+     mant2=frexp(f[0]+df[0], &expon2);
+     fprintf(outfile,"histUncCH={\n\t{%-12f,%-12f,%-12f*2^%-2d,%-12f*2^%-2d}",xMin,xMin+(xMax-xMin)/dim,mant,expon,mant2,expon2);
+     for(i=1;i<dim;i++) {
+       mant=frexp(f[i]-df[i], &expon);
+       mant2=frexp(f[i]+df[i],&expon2);
+       fprintf(outfile,",\n\t{%-12f,%-12f,%-12f*2^%-2d,%-12f*2^%-2d}",xMin+(xMax-xMin)/dim*i,xMin+(xMax-xMin)/dim*(i+1.0),mant,expon,mant2,expon2);
+     }
+     fprintf(outfile,"\n};\n\n");
+   }
+
+   fprintf(outfile,"(*******************************************************\n");
+   fprintf(outfile,"Below is an example of how to plot this data:\n");
+   fprintf(outfile,"********************************************************)\n\n");
+   
+   fprintf(outfile,"histCH=ListPlot[histDataCH,Joined->True, Frame -> True, PlotRange -> Full, Axes->False, FrameLabel -> {\"%s\", \"%s\", \"%s\", \"\"}, PlotStyle->Black];\n\n",x_str,y_str,upstr);
+
+   fprintf(outfile,"ErrBarCH[dt_] := Block[\n");
+   fprintf(outfile,"  {w = dt[[2]] - dt[[1]],\n");
+   fprintf(outfile,"   c = (dt[[1]] + dt[[2]])/2,\n");
+   fprintf(outfile,"   x0 = c - w/4,\n");
+   fprintf(outfile,"   x1 = c + w/4,\n");
+   fprintf(outfile,"   y0 = dt[[3]],\n");
+   fprintf(outfile,"   y1 = dt[[4]]},\n");
+   fprintf(outfile,"   Graphics[{Blue, Line[{\n");
+   fprintf(outfile,"       {{x0, y0}, {x1, y0}},\n");
+   fprintf(outfile,"       {{x0, y1}, {x1, y1}},\n");
+   fprintf(outfile,"       {{c, y0}, {c, y1}}\n");
+   fprintf(outfile,"   }]}]\n");
+   fprintf(outfile,"];\n\n");
+   
+   fprintf(outfile,"errHistCH = Show[ErrBarCH /@ histUncCH];\n\n");
+
+   fprintf(outfile,"histCombCH=Show[{errHistCH, histCH}, Frame -> True, Axes -> False, FrameLabel -> {\"%s\", \"%s\", \"%s\", \"\"}, AspectRatio -> 2/3]\n\n",x_str,y_str,upstr);
+   
+     
+   fclose(outfile);
+   sprintf(buff," You can find the results in the file\n%s",filename);
+   messanykey(10,12,buff);
+}
+
+
+static void  writeMath2(double xMin, double xMax, int dimX, 
+                         double yMin,double yMax, int dimY, 
+double * f, double *df, char*  upstr,  char*  x_str, char*  y_str)
+{  char       filename[STRSIZ], buff[STRSIZ];
+   FILE *     outfile;
+   int        i,j;
+   int ID;
+   int expon;double mant;
+   nextFileName(filename,"plot_",".math");
+   sscanf(filename,"plot_%d",&ID);
+   
+   outfile=fopen(filename,"w");
+
+   getcwd(buff,1000);
+
+
+   fprintf(outfile,"(*******************************************************\n");
+   fprintf(outfile,"Use the following command to load this data:\n");
+   fprintf(outfile,"Get[\"%s%c%s\"]\n",buff,f_slash,filename);
+   fprintf(outfile,"(If you move this file, then change the path and/or filename accordingly.)\n");
+   fprintf(outfile,"********************************************************)\n\n");
+
+
+
+   fprintf(outfile,"dataCH={");
+   for(i=0;i<dimX;i++) 
+     for(j=0;j<dimY;j++){
+       mant=frexp(f[i*dimX+j], &expon);
+       if(i!=0||j!=0)fprintf(outfile,",");
+       fprintf(outfile,"\n\t{%-12f,%-12f,%-12f*2^%-2d}",
+	       xMin+(1.0/2.0+i)*(xMax-xMin)/dimX,yMin+(1.0/2.0+j)*(yMax-yMin)/dimY,mant,expon);
+   }
+   fprintf(outfile,"\n};\n\n");
+   
+   if(df){
+     fprintf(outfile,"uncCH={");
+     for(i=0;i<dimX;i++) 
+       for(j=0;j<dimY;j++){
+	 mant=frexp(df[i*dimX+j], &expon);
+	 if(i!=0||j!=0)fprintf(outfile,",");
+	 fprintf(outfile,"\n\t{%-12f,%-12f,%-12f*2^%-2d}",
+		 xMin+(1.0/2.0+i)*(xMax-xMin)/dimX,yMin+(1.0/2.0+j)*(yMax-yMin)/dimY,mant,expon);
+       }
+     fprintf(outfile,"\n};\n\n");
+   }
+
+   fprintf(outfile,"(*******************************************************\n");
+   fprintf(outfile,"Below is an example of how to plot this data:\n");
+   fprintf(outfile,"********************************************************)\n\n");
+   
+   fprintf(outfile,"histCH=ListContourPlot[dataCH, FrameLabel -> {\"%s\", \"%s\", \"%s\", \"\"}]\n\n",x_str,y_str,upstr);
+
+        
+   fclose(outfile);
+   sprintf(buff," You can find the results in the file\n%s",filename);
+   messanykey(10,12,buff);
+}
 
 
 void  plot_1( double xMin, double xMax, 
@@ -546,7 +699,9 @@ contin:
    
       sprintf(menustr,"%c Y-max = %-9.3G Y-min = %-9.3G Y-scale = %s"
       " Save plot in file"
-      " LaTeX file       ",18,grafminmax.ymax,grafminmax.ymin,sScale);
+      " Math file        "
+      " LaTeX file       ",
+      18,grafminmax.ymax,grafminmax.ymin,sScale);
 
       menu1(nCol0-20, 2 ,"",menustr,"n_plot_*",&pscr,&k);
 
@@ -562,7 +717,7 @@ contin:
            case 4:  writetable1(xMin,xMax,dim,f,ff,upstr,xstr,ystr); 
              break;
            case 0:
-           case 5:  
+           case 6:  
              if(grafminmax.ymin >=ymax|| grafminmax.ymax <=ymin ||
                grafminmax.ymin >= grafminmax.ymax)
              { messanykey(10,10," Wrong Y-range");
@@ -574,8 +729,9 @@ contin:
                                 " please, set Ymin and Ymax limits\n"
                                 " such that Ymax > 10*Ymin > 0"); 
                logScale = 0; 
-             }   
-             if(k==5)
+             } 
+               
+             if(k==6)
              { 
                if( !texmenu(&pictureX,&pictureY,letterSize)) break;
                nextFileName(f_name,"plot_",".tex"); 
@@ -584,8 +740,9 @@ contin:
                                                   pictureX,pictureY);
                f_printf(out_tex,"\\begin{picture}(%d,%d)(0,0)\n",pictureX,pictureY);  
                del_text(&pscr);
-             }    
+             }      
              goto REDRAW;
+           case 5: writeMath1(xMin,xMax,dim,f,ff,upstr,xstr,ystr); 
       }   
       if( nCol0 != maxCol() && nRow0 != maxRow() ) goto REDRAW;
    }  while (1); 
@@ -595,7 +752,6 @@ exi:
    put_text(&prtscr);
 }
 
-/* by A.Pukhov*/
 void plot_2(double hMin1,double hMax1,int nBin1,double hMin2,double hMax2,int nBin2,
             double * f,double *df,char *upstr,char* xstr,char * ystr) 
 {
@@ -642,21 +798,21 @@ REDRAW:
        if(f[i*nBin2+j]<df[i*nBin2+j]) g2=0;
        if(g && fabs((dscx(x-g*DX/2)-dscx(x+g*DX/2))* 
        (dscy(y+g*DY/2)-dscy(y-g*DY/2)))>1 )
-       { 
+       { double dx=0.9*DX,dy=0.9*DY;
          bColor=Black;
-         tg_bar( scx(x-g*DX/2), scy(y+g*DY/2),scx(x+g*DX/2),scy(y-g*DY/2));
+         tg_bar( scx(x-g*dx/2), scy(y+g*dy/2),scx(x+g*dx/2),scy(y-g*dy/2));
 
          fColor=Black; 
-         tg_line(scx(x-g*DX/2)-1,scy(y),       scx(x-g1*DX/2),scy(y)); 
-         tg_line(scx(x+g*DX/2)+1,scy(y),       scx(x+g1*DX/2),scy(y));
-         tg_line(scx(x),         scy(y+g*DY/2)+1,scx(x),        scy(y+g1*DY/2));
-         tg_line(scx(x),         scy(y-g*DY/2)-1,scx(x),        scy(y-g1*DY/2)); 
+         tg_line(scx(x-g*dx/2)-1,scy(y),       scx(x-g1*dx/2),scy(y)); 
+         tg_line(scx(x+g*dx/2)+1,scy(y),       scx(x+g1*dx/2),scy(y));
+         tg_line(scx(x),         scy(y+g*dy/2)+1,scx(x),        scy(y+g1*dy/2));
+         tg_line(scx(x),         scy(y-g*dy/2)-1,scx(x),        scy(y-g1*dy/2)); 
 
          fColor=White;
-         tg_line(scx(x-g2*DX/2),scy(y),       scx(x-g*DX/2),scy(y));
-         tg_line(scx(x+g2*DX/2),scy(y),       scx(x+g*DX/2),scy(y));
-         tg_line(scx(x),       scy(y+g2*DY/2),scx(x),        scy(y+g*DY/2));
-         tg_line(scx(x),       scy(y-g2*DY/2),scx(x),        scy(y-g*DY/2)); 
+         tg_line(scx(x-g2*dx/2),scy(y),       scx(x-g*dx/2),scy(y));
+         tg_line(scx(x+g2*dx/2),scy(y),       scx(x+g*dx/2),scy(y));
+         tg_line(scx(x),       scy(y+g2*dy/2),scx(x),        scy(y+g*dy/2));
+         tg_line(scx(x),       scy(y-g2*dy/2),scx(x),        scy(y-g*dy/2)); 
        }                
      } 
    }
@@ -696,6 +852,7 @@ contin:
    {  char menustr[]="\022"
       " S = F^(power     "
       " Save plot        "
+      " Math  file       "
       " LaTeX file       ";
 
       void * pscr = NULL;
@@ -711,7 +868,10 @@ contin:
            case 2: writetable2(hMin1,hMax1,nBin1,hMin2,hMax2,nBin2,
                                f,df,upstr,xstr,ystr);
                    break;
-           case 3:  
+            case 3: writeMath2(hMin1,hMax1,nBin1,hMin2,hMax2,nBin2,
+                                           f,df,upstr,xstr,ystr); 
+                   break;
+           case 4:  
              if( !texmenu(&pictureX,&pictureY,letterSize)) break;
              nextFileName(f_name,"plot_",".tex"); 
              texStart(f_name,upstr,letterSize);

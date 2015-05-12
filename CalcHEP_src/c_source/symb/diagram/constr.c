@@ -196,12 +196,32 @@ static int  testin(int l,decayDiagram restmp)
       {
          np = -np;
          if (np > prtclbase[np-1].anti) np = prtclbase[np-1].anti;
-         j = 1;
-         while (liminsp[j-1].who != 0 && liminsp[j-1].who != np) j++;
-         if (liminsp[j-1].who != 0)
-           { if (copyins[j-1] == 1) return 0; else copyins[j-1]--;}
+	 for(j=0;liminsp[j].who;j++)
+	 {
+           if (liminsp[j].who == np)
+           { if(copyins[j]>0) { if (copyins[j] == 1) return 0; else copyins[j]--;}
+	     else             { if (copyins[j]<-1) copyins[j]++;} 
+	   }  
+	 }
       }
    }
+
+   if(l==ndecay) 
+   {
+     for(j=0;liminsp[j].who;j++) if(copyins[j]<-1) return 0;
+     int nVV=0,pdg;
+     for (i = 1; i <= 2 * (l - 1); i++)
+     { np = restmp[i-1];
+       if (np < 0)
+       {  np = -np-1;
+          pdg=prtclbase[np].N;
+          if(pdg==23 || abs(pdg)==24)nVV++;               
+       } 
+     }
+     
+     if(nVV > ZWmax || nVV < ZWmin) return 0;
+   }
+   
    return (nneed <= 0);
 }
 
@@ -710,7 +730,6 @@ static int* prclist(long * power )
   int * list;
 
   for(i=0;i<l;i++) N*=hadrons[i].pow;
-
   list=malloc(l*N*sizeof(int));
    
   for(i=0;i<l;i++) num[i]=0;

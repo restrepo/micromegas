@@ -19,6 +19,11 @@ static void fName2c(char*f_name,char*c_name,int len)
   for(;i>=0;i--) c_name[i]=f_name[i];
 }
 
+static void cName2f(char*c_name,char*f_name,int len)
+{ int i; for(i=0;i<len &&c_name[i];i++) f_name[i]=c_name[i];
+         for(   ;i<len            ;i++) f_name[i]=' ';
+}
+         
 
 struct slhacomment_ { char txt[100]; }  slhacomment_;
 
@@ -108,9 +113,9 @@ double slhaval3_(char * Block, double *Q, int *k1,int*k2,int*k3, int len)
    return res;       
 } 
 
-Complex cslhaval0_(char * Block, double *Q, int len)
+double complex cslhaval0_(char * Block, double *Q, int len)
 { char  c_name[200];
-  Complex res;
+  double complex res;
   fName2c(Block,c_name,len);
   res=cslhaVal(c_name, *Q, 0);
   ferror_.ferror=FError;
@@ -118,27 +123,27 @@ Complex cslhaval0_(char * Block, double *Q, int len)
 } 
 
 
-Complex  cslhaval1_(char * Block, double *Q, int *k1, int len)
+double complex  cslhaval1_(char * Block, double *Q, int *k1, int len)
 {  char  c_name[200];
-   Complex res;
+   double complex res;
    fName2c(Block,c_name,len);
    res= cslhaVal(c_name, *Q, 1,*k1);
    ferror_.ferror=FError;
    return res;
 } 
 
-Complex cslhaval2_(char * Block, double *Q, int *k1,int*k2, int len)
+double complex cslhaval2_(char * Block, double *Q, int *k1,int*k2, int len)
 {  char  c_name[200];
-   Complex res;
+   double complex res;
    fName2c(Block,c_name,len);
    res=cslhaVal(c_name, *Q, 2,*k1,*k2); 
    ferror_.ferror=FError;
    return res;       
 } 
 
-Complex cslhaval3_(char * Block, double *Q, int *k1,int*k2,int*k3, int len)
+double complex cslhaval3_(char * Block, double *Q, int *k1,int*k2,int*k3, int len)
 {  char  c_name[200];
-   Complex res;
+   double complex res;
    fName2c(Block,c_name,len);
    res=cslhaVal(c_name, *Q, 3,*k1,*k2,*k3);
    ferror_.ferror=FError;
@@ -170,23 +175,6 @@ int slhavalexists3_(char * Block, int*k1, int*k2, int*k3, int len)
    return slhaValExists(c_name, 3,*k1,*k2,*k3);
 }
 
-int slhawarnings_(int *Nch)
-{
-  char fname[20];
-  FILE*f;
-  int err;
-  if(*Nch)
-  {
-     sprintf(fname,"%d.tmptxt",getpid());
-     f=fopen(fname,"w");
-     err=slhaWarnings(f);
-     fclose(f);
-     fortreread_(Nch,fname,strlen(fname));
-     unlink(fname);   
-     return err;
-  } else return err=slhaWarnings(NULL);   
-}
-
 /*===============  qNumbers ============================= */
 
 int findqnumbers_(int *pdg,int*eQ3,int*spinDim,int*cDim,int*neutral)
@@ -203,7 +191,7 @@ int allqnumbers_(int *i, int*pdg,int*eQ3,int*spinDim,int*cDim,int*neutral)
   return ret;
 }
 
-int allblocks_(int *i,int*j,char*name,int*Len,int*key, Complex * val,int l)       
+int allblocks_(int *i,int*j,char*name,int*Len,int*key, double complex * val,int l)       
 { char c_name[40];
   int k, res= allBlocks(*i,*j,c_name,Len,key,val);
 
@@ -303,6 +291,31 @@ int aprintf5_(char * format, double*x1,double*x2,double*x3,double*x4,double*x5,i
   return aPrintF(c_name,*x1,*x2,*x3,*x4,*x5);
 }
 
+double slhavalformat_(char * Block, double *Q, char * format,int len1,int len2)
+{  char  cBlock[1000], cFormat[1000];
+   double res; 
+   fName2c(Block, cBlock, len1);
+   fName2c(format,cFormat,len2); 
+   
+   res=slhaValFormat(cBlock, *Q, cFormat);
+
+   return res;
+}   
+
+
+int slhastrformat_(char * Block, char * format, char * fRes, int len1,int len2,int len3)
+{  char  cBlock[1000], cFormat[1000], cRes[1000];
+   int res; 
+   fName2c(Block, cBlock, len1);
+   fName2c(format,cFormat,len2); 
+   
+   res=slhaSTRFormat(cBlock, cFormat,cRes);
+   if(res!=0) return res;
+   cName2f(cRes,fRes,len3);
+   return 0;
+}   
+
+
 
 /*================ Diagonalizing ==========================*/
 
@@ -310,9 +323,9 @@ int rjacobi_(double*a,int*n,double*d,double*v){ return rJacobi(a,*n,d,v); }
 
 int rjacobia_(double*a,int*n,double*d,double*u,double*v)
      {return rJacobiA(a,*n,d,u,v);}
-int cjacobih_(Complex*a,int*n,double*d,Complex*v){return cJacobiH(a,*n,d,v);}
-int cjacobis_(Complex*a,int*n,double*d,Complex*v){return cJacobiS(a,*n,d,v);}
-int cjacobia_(Complex*a,int*n,double*d,Complex*u,Complex*v)
+int cjacobih_(double complex*a,int*n,double*d,double complex*v){return cJacobiH(a,*n,d,v);}
+int cjacobis_(double complex*a,int*n,double*d,double complex*v){return cJacobiS(a,*n,d,v);}
+int cjacobia_(double complex*a,int*n,double*d,double complex*u,double complex*v)
      { return  cJacobiA(a,*n,d,u,v);}
 
 int initdiagonal_(void) { return initDiagonal();}
@@ -322,20 +335,20 @@ int rdiagonal3_(aList6(double*))  { return rDiagonal(3,aList6(*));}
 int rdiagonal4_(aList10(double*)) { return rDiagonal(4,aList10(*));}
 int rdiagonal5_(aList15(double*)) { return rDiagonal(5,aList15(*));}
 
-int cdiagonalh2_(aList3(Complex*))  { return cDiagonalH(2,aList3(*));}
-int cdiagonalh3_(aList6(Complex*))  { return cDiagonalH(3,aList6(*));}
-int cdiagonalh4_(aList10(Complex*)) { return cDiagonalH(4,aList10(*));}
-int cdiagonalh5_(aList15(Complex*)) { return cDiagonalH(5,aList15(*));}
+int cdiagonalh2_(aList3(double complex*))  { return cDiagonalH(2,aList3(*));}
+int cdiagonalh3_(aList6(double complex*))  { return cDiagonalH(3,aList6(*));}
+int cdiagonalh4_(aList10(double complex*)) { return cDiagonalH(4,aList10(*));}
+int cdiagonalh5_(aList15(double complex*)) { return cDiagonalH(5,aList15(*));}
 
-int cdiagonals2_(aList3(Complex*))  { return cDiagonalS(2,aList3(*));}
-int cdiagonals3_(aList6(Complex*))  { return cDiagonalS(3,aList6(*));}
-int cdiagonals4_(aList10(Complex*)) { return cDiagonalS(4,aList10(*));}
-int cdiagonals5_(aList15(Complex*)) { return cDiagonalS(5,aList15(*));}
+int cdiagonals2_(aList3(double complex*))  { return cDiagonalS(2,aList3(*));}
+int cdiagonals3_(aList6(double complex*))  { return cDiagonalS(3,aList6(*));}
+int cdiagonals4_(aList10(double complex*)) { return cDiagonalS(4,aList10(*));}
+int cdiagonals5_(aList15(double complex*)) { return cDiagonalS(5,aList15(*));}
 
-int cdiagonala2_(aList4(Complex*))  { return cDiagonalA(2,aList4(*));}
-int cdiagonala3_(aList9(Complex*))  { return cDiagonalA(3,aList9(*));}
-int cdiagonala4_(aList16(Complex*)) { return cDiagonalA(4,aList16(*));}
-int cdiagonala5_(aList25(Complex*)) { return cDiagonalA(5,aList25(*));}
+int cdiagonala2_(aList4(double complex*))  { return cDiagonalA(2,aList4(*));}
+int cdiagonala3_(aList9(double complex*))  { return cDiagonalA(3,aList9(*));}
+int cdiagonala4_(aList16(double complex*)) { return cDiagonalA(4,aList16(*));}
+int cdiagonala5_(aList25(double complex*)) { return cDiagonalA(5,aList25(*));}
 
 int rdiagonala2_(aList4(double*))  { return rDiagonalA(2,aList4(*));}
 int rdiagonala3_(aList9(double*))  { return rDiagonalA(3,aList9(*));}
@@ -354,6 +367,10 @@ double immixmatrixu_(int*id, int*i,int*j){return cimag(cMixMatrixU(*id,*i,*j));}
 
 double  initqcd_(double * alfsMZ, double * McMc, double * MbMb, double * Mtp)
 { return  initQCD(*alfsMZ,*McMc,*MbMb,*Mtp); }
+
+double  initqcd5_(double * alfsMZ, double * McMc, double * MbMb, double * Mtp)
+{ return  initQCD5(*alfsMZ,*McMc,*MbMb,*Mtp); }
+
 double alphaqcd_(double * q) { return alphaQCD(*q);}
 double mcrun_(double *q){ return McRun(*q);}
 double mbrun_(double *q){ return MbRun(*q);}

@@ -6,8 +6,8 @@
 #include "interface.h"
 #include "rd_num.h"
 
-#include "V_and_P.h"
-//#include "dynamic_cs.h"
+#include "VandP.h"
+#include "dynamic_cs.h"
 
 int  rd_num(char* s, double *p)
 {
@@ -20,6 +20,13 @@ int  rd_num(char* s, double *p)
   
   
   if(strcmp("PI",s)==0) { *p=M_PI; return 1;}  
+
+  for(n=0;n<nModelParticles;n++) if(strcmp(s, ModelPrtcls[n].width)==0) 
+  {  *p=pWidth(ModelPrtcls[n].name,NULL);
+     return 1;
+  }      
+  
+  
     
   return 0;   
 }

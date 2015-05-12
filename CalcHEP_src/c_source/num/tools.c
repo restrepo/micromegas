@@ -92,7 +92,7 @@ double gammai_(int n, double a)
 	{
 	    gamma0_param = n;
 	    eps = 1e-8;
-	    ret_val = gauss345(gamma0_, 0., a, eps);
+	    ret_val = gauss345(gamma0_, 0., a, eps,NULL);
 	    if (n <= 100){ iscalk[n - 1] = 1; gmem[n - 1] = ret_val;}
 	    return ret_val;
 	}
@@ -130,7 +130,7 @@ for the case x==0, conv=f1(0)*f2(0)*gamma_(b1)*gamma_(b2)/gamma_(b1+b2)
   conv_c2=pow(0.5,b2)/b2;
   conv_x=x;
  
-  return   gauss345(&(conv_f),0.,1.,eps); 
+  return   gauss345(&(conv_f),0.,1.,eps,NULL); 
   
 
  } /* convol_ */

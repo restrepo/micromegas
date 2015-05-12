@@ -18,7 +18,7 @@
 #include "saveres.h"
 #include "process.h"
 #include "writeF.h"
-
+#include "../../../include/version.h"
 #include "out_serv.h"
 
 
@@ -230,7 +230,7 @@ void writeLabel(char comment)
 {
  if (xpos !=1) writeF("\n");
  fprintf(outFile,"%c    ==============================\n",comment );
- fprintf(outFile,"%c    *  %s *\n",comment,version);
+ fprintf(outFile,"%c    *  %s *\n",comment,VERSION_);
  fprintf(outFile,"%c    ==============================\n",comment);         
 }
 
@@ -275,15 +275,7 @@ void  makeOutput(  void (*startOutput)(int,int*,int),
          {
             if (cr.nsub_ == nsub)
             {  
-               whichArchive(cr.nFile,'r',0);      
-/*               if(ArcNum && ArcNum!= cr.nFile ) fclose(archiv);
-               if(ArcNum==0 || ArcNum!= cr.nFile)
-               {  char archivName[40];
-                  ArcNum=cr.nFile; 
-                  sprintf(archivName,ARCHIV_NAME,ArcNum);
-                  archiv=fopen(archivName,"rb");
-               }
-*/               
+               whichArchive(cr.nFile,'r');      
                if (graphOn)
                {  fseek(diagrq,(cr.ndiagr_+recpos-1)*sizeof(csdiagram),SEEK_SET);
                   FREAD1(csdiagr,diagrq);
@@ -301,7 +293,7 @@ escexit:
    }
    fclose(catalog);
 /*   if(ArcNum)fclose(archiv);*/
-   whichArchive(0,0,0);
+   whichArchive(0,0);
    fclose(menuq);
    if(graphOn) fclose(diagrq);
    informline(ntot,ntot);

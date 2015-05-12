@@ -276,9 +276,9 @@ void  menu0(int col,int row,char* label, char* menstr ,
       ncol=menstr[0];
       sprintf(fmt,"%%%d.%ds",ncol,ncol);
       height=strlen(menstr)/ncol;
+      if(height==0) { *kk=0; return; }
       if (row+height+1 >lastLine-2) height=lastLine-3-row;
       lastpage = 1+    (strlen(menstr)/ncol -1)/height ;
-       
    if(label[0] ==0 || row == 1) 
    { if (*hscr == NULL)  get_text(col,row,col+ncol+1,row+2,hscr);} 
    else

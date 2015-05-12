@@ -38,7 +38,7 @@ int main(int argn, char** argc)
   
   userFuncTxt=argc[1];
   
-  r=gauss345(userFuncNumI,a,b,1.E-6);
+  r=gauss345(userFuncNumI,a,b,1.E-6,NULL);
   if(rderrcode) { printf("Can not calculate function\n");}
   else  printf("%.10G\n",r);
   return rderrcode;

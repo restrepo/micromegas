@@ -48,7 +48,9 @@ int read_prm(struct read_param_tag* param);
 
 
 
-static double H2(double x, double y) { return x*log(x)/(1.0-x)/(x-y)
+static double H2(double x, double y) {
+    if(x-y<0.0001) x+=.0001;
+    return x*log(x)/(1.0-x)/(x-y)
 				+y*log(y)/(1.0-y)/(y-x);}
 #ifdef DEBUG
 
@@ -346,6 +348,8 @@ if(!dMQcorrections) return 0;
 	      /sqrt(1.+9.*ytmt*ytmt/(8.*M_PI*alpsmt)*
 	      (pow(alpssu/alpsmt,1.0/7.0)-1.));
 	yt=mtsu/sq2/param.MW*param.ee/param.sw/sb;
+    
+//    printf("yt 1=%.3e mt=%.3e %.3e %.3e\n",yt,mtsu,param.MW*sq2/param.ee*param.sw,sb);
 	
 	eta_wmu=alpsmw/alps(mub,param.MZ,alpsmz);
 	
@@ -359,7 +363,6 @@ if(!dMQcorrections) return 0;
 /*-----------------------------------------------------------*/
 
    calc_eps(&param, &eps_b, &eps_bp, &eps_tps);
-
    return  eps_b*param.tb;
 }
 
@@ -397,6 +400,30 @@ if(!dMQcorrections) return 0;
    return  eps_s*param.tb;    
 }
 
+
+double deltaMl(void)
+{   
+    struct read_param_tag param;
+    double eps_l,mu;
+    double MSnu=findValW("MSnl");   
+    double msl11,msl21;
+    if(!dMQcorrections) return 0;   
+    read_prm(&param);
+    msl11=findValW("MSl1")*findValW("MSl1")/param.m1/param.m1;
+    msl21=findValW("MSl2")*findValW("MSl2")/param.m1/param.m1;
+   
+    eps_l=-alphew/(1-param.sw*param.sw)/4.0/M_PI*(param.mu/param.m1)*
+    H2(msl11,msl21);
+//    printf("eps_l_m1=%.3e\n",eps_l*param.tb);
+    eps_l+=-alphew/param.sw/param.sw/4.0/M_PI*(param.mu*param.m2)*
+    H2(param.m2*param.m2/MSnu/MSnu,param.mu*param.mu/MSnu/MSnu)/MSnu/MSnu;
+ //   printf("eps_l_tot=%.3e\n",eps_l*param.tb);
+//    printf("m2=%.3e mu=%.3e tb=%.3e h2=%.3e msnu=%.3e\n",param.m2,param.mu,param.tb,H2(param.m2*param.m2/MSnu/MSnu,param.mu*param.mu/MSnu/MSnu)/MSnu/MSnu,MSnu);
+//   printf("g^2/4pi=%.3e sw=%.3e\n",alphew/param.sw/param.sw,param.sw*param.sw);
+    
+    return  eps_l*param.tb;    
+}
+
 double deltaMd(void)
 {   
    struct read_param_tag param;
@@ -431,6 +458,43 @@ if(!dMQcorrections) return 0;
    }
      
    return  eps_s*param.tb;    
+}
+
+double deltaMc(void)
+{   
+    struct read_param_tag param;
+    double q,alpssu,eps_s,alpsmz;
+    double mglu, mLMSG,mRMSG;
+    double MSdL=findValW("MSsL");   
+    double MSuL=findValW("MScL");
+    
+    
+    if(!dMQcorrections) return 0;  
+    read_prm(&param);
+    alpsmz=param.alphS_MZ;
+    mglu=param.mglu;     
+    q=fabs(mglu);
+    alpssu=alps6(q,param.MZ,alpsmz);
+    mLMSG=findValW("MSsL")/mglu;
+    mRMSG=findValW("MScR")/mglu;
+    eps_s=-2.0/3.0*alpssu/M_PI*(param.mu-  findValW("Ad")/param.tb)/mglu*
+    H2(mLMSG*mLMSG, mRMSG*mRMSG);
+    
+    if(fabs(param.mu*param.mu/param.m2/param.m2-1)<.01)
+    {eps_s+=alphew/param.sw/param.sw/4.0/M_PI*(-param.mu*param.m2)*
+        (MSuL*MSuL/(param.m2*param.m2-MSuL*MSuL)/(param.mu*param.mu-MSuL*MSuL)*
+         (log(MSuL*MSuL/param.m2/param.m2)+(param.m2*param.m2/MSuL/MSuL-1.0))
+         +MSdL*MSdL/(param.m2*param.m2-MSdL*MSdL)/(param.mu*param.mu-MSdL*MSdL)*
+         (log(MSdL*MSdL/param.m2/param.m2)+(param.m2*param.m2/MSdL/MSdL-1.0))/2.);
+    }
+    else
+    { 
+        eps_s+=alphew/param.sw/param.sw/4.0/M_PI*(param.mu*param.m2)*
+        (H2(param.m2*param.m2/MSuL/MSuL,param.mu*param.mu/MSuL/MSuL)/MSuL/MSuL
+         +H2(param.m2*param.m2/MSdL/MSdL,param.mu*param.mu/MSdL/MSdL)/MSdL/MSdL/2.);
+    }
+    
+    return  eps_s*param.tb;    
 }
 
 
@@ -796,7 +860,8 @@ void calc_eps(struct read_param_tag* param, double *eps_b, double *eps_bp, doubl
 			H2(param->msb[1]*param->msb[1]/param->mglu/param->mglu,param->msb[2]*param->msb[2]/param->mglu/param->mglu);
 /*	eps_b+=-yt*yt/16.0/M_PI/M_PI*(At/mu-1./tb)*
 			H2(mst[1]*mst[1]/mu/mu,mst[2]*mst[2]/mu/mu);
-*/	
+*/
+  //  printf("eps_b alphas=%f\n",eps_b);
 
 *eps_b+=-yt*yt/16.0/M_PI/M_PI*(param->At-param->mu/param->tb)*
 (param->U[1][2]*param->V[1][2]/param->mc[1]
@@ -804,6 +869,8 @@ void calc_eps(struct read_param_tag* param, double *eps_b, double *eps_bp, doubl
 +param->U[2][2]*param->V[2][2]/param->mc[2]
 *H2(param->mst[1]*param->mst[1]/param->mc[2]/param->mc[2],param->mst[2]*param->mst[2]/param->mc[2]/param->mc[2]));
 
+ 
+ //  printf(" yt=%.3e\n",yt);
 	
 /*	*eps_b-=1.0/3.0*alpssu/M_PI/param->tb*(B1(param->mglu*param->mglu/q/q,param->msb[1]*param->msb[1]/q/q)+	
 		B1(param->mglu*param->mglu/q/q,param->msb[2]*param->msb[2]/q/q));
@@ -828,7 +895,12 @@ void calc_eps(struct read_param_tag* param, double *eps_b, double *eps_bp, doubl
 	+CB*CB*H2(param->m2*param->m2/param->msb[1]/param->msb[1],param->mu*param->mu/param->msb[1]/param->msb[1])/param->msb[1]/param->msb[1]/2.
 	+SB*SB*H2(param->m2*param->m2/param->msb[2]/param->msb[2],param->mu*param->mu/param->msb[2]/param->msb[2])/param->msb[2]/param->msb[2]/2.);	
 	}
-	
+// printf("eps_b ewk=%.3e\n",eps_b);
+//    printf("first=%.3e\n",CT*CT*H2(param->m2*param->m2/param->mst[1]/param->mst[1],param->mu*param->mu/param->mst[1]/param->mst[1])/param->mst[1]/param->mst[1] );
+//    printf("2nd=%.3e\n", ST*ST*H2(param->m2*param->m2/param->mst[2]/param->mst[2],param->mu*param->mu/param->mst[2]/param->mst[2])/param->mst[2]/param->mst[2]);
+//    printf("3rd=%.3e\n", CB*CB*H2(param->m2*param->m2/param->msb[1]/param->msb[1],param->mu*param->mu/param->msb[1]/param->msb[1])/param->msb[1]/param->msb[1]/2.);
+//    printf("4th=%.3e\n", SB*SB*H2(param->m2*param->m2/param->msb[2]/param->msb[2],param->mu*param->mu/param->msb[2]/param->msb[2])/param->msb[2]/param->msb[2]/2.);
+//    printf("factor=%.3e tb=%.3e\n",alphew/param->sw/param->sw/4.0/M_PI*(param->mu*param->m2),param->tb);
 
 /*	yb=yb/(1.0+eps_b*tb);*/
 	*eps_bp=-2.0/3.0*alpssu/M_PI*(param->mu-param->Ab/param->tb)/param->mglu*(
@@ -980,14 +1052,15 @@ int read_prm(struct read_param_tag* param)
    */ 
     err+=findVal("MZ",&param->MZ);
     { double alfEMZ;   
-      err+=findVal("alfEMZ",&alfEMZ); 
+//      err+=findVal("alfEMZ",&alfEMZ);
+      alfEMZ=0.00781806;  
       param->ee=sqrt(alfEMZ*4*M_PI);
     }  
     err+=findVal("SW",&param->sw);
     param->MW=findValW("MZ")*sqrt(1-param->sw*param->sw);
 	err+=findVal("Mtp",&param->Mt);
 	err+=findVal("MHc",&param->Mhc);
-	err+=findVal("tb",&param->tb);
+	err+=findVal("tB",&param->tb);
 /*	err+=findVal("Vts",&param->Vts);
 	err+=findVal("Vtb",&param->Vtb);
 	err+=findVal("Vcb",&param->Vcb);

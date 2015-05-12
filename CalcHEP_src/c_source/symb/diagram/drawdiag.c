@@ -70,6 +70,8 @@ static void  mline(int x1_,int y1,int x2_,int y2,
    { case 0: lt = DottedLn;   break;
      case 1: lt = SolidLn;    break;
      case 2: lt = DashedLn;   break;
+     case 3: lt = SolidLn;   break;
+     case 4: lt = DashedLn;   break;
    }
    tg_setlinestyle(lt,NormWidth);
    
@@ -524,7 +526,7 @@ static void   draw(void)
 
    if ((tpc == 2) && (kl == 4) && (kk == 1))  { yyl = y[6]; yl = y[5]; } 
 
-   if ((tpc == 2)) 
+   if (tpc == 2) 
       if (((tpc == 2) && (kl == 4) && (kk == 1)) || 
           ((kn[0].e2 < 0) && (kn[0].e3 < 0)) ) 
          { 
@@ -577,7 +579,7 @@ void  picture(int squared,void * buff, int x, int y)
 
    ur=1; 
    tpc =nin;
-
+   
    if (squared) {  upr=2; filler(((csdiagram*)buff)->dgrm1);}
    else         {  upr=1; filler((( adiagram*)buff)->dgrm0);}   
  
@@ -618,7 +620,9 @@ void setPictureScale(int squared, int * xn,int *ynu)
    int i;
    int len;
    int dWidth;
+   int nout_;
 
+   if(nout==1) nout_=2; else nout_=nout;
    cHeight=tg_textheight("H");
    cWidth =  tg_textwidth("H");
    
@@ -638,9 +642,9 @@ void setPictureScale(int squared, int * xn,int *ynu)
    quant=quant/2;
 
 /*   *ynu=5+2*cHeight+2*MAX(3,nout)*quant; */
-   *ynu=5+2*cHeight+2*nout*quant;
+   *ynu=5+2*cHeight+2*nout_*quant;
    y[0]=*ynu-3-cHeight; 
-   if(nout==2) y[0]+=2*quant;
+   if(nout_==2) y[0]+=2*quant;
    for(i=1;i<=8;i++) y[i]=y[i-1] - quant;
       
    ys = 2*quant;

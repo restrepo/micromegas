@@ -16,11 +16,10 @@ extern int sortoddparticles_(char * name,int len);
 
 extern  void forceug_(int * G);
 
-extern void newprocess_(char*Process,char* lib, int* address,int len1,int len2);
+extern void newprocess_(char*Process, int* address,int len1);
 /* 
-   Subroutine newProcess(Process, lib, address)
+   Subroutine newProcess(Process, address)
    character *(*) Process
-   character *(*) lib
    integer address(2)
 */
 
@@ -148,7 +147,7 @@ extern double printchannels_(double *Xf,double*cut,double* Beps,int *prcnt,int*N
 /*===============================================
     Annihilation spectra
 =================================================*/
-extern double calcspectrum_(int *key,double *Sg, double *Se, double *Sp, double *Sne, double*Snu, double*Snl,int * err);
+extern double calcspectrum_(int *key,double *Sg, double *Se, double *Sp, double *Sne, double*Snu, double*Snl,int * err, int len);
 /* 
    real*8 function calcSpectrum(key,Sg, Se, Sp, Sne, Snu, Snl,err)
    interger err
@@ -161,12 +160,11 @@ extern void spectrinfo_(double*Xmin,double*tab,double*Ntot,double*Etot);
     real*8 Xmin,tab(250),Ntot,Etot
 */
 
-extern int displayspectrum_(double*tab, char*fmess,double *Emin,double *Emax,int *EU,int len);
-/*  integer function displaySpectrum( tab, mess, Emin,EU)
+extern int displayspectrum_(double*tab, char*fmess,double *Emin,double *Emax,int len);
+/*  integer function displaySpectrum( tab, mess, Emin)
     real*8 tab(250)
     character*(*) mess
     real*8 Emin
-    integer EU
 */
 extern double halofactor_(double *fi,double *dfi);
 /*
@@ -206,14 +204,20 @@ extern void calcscalarff_(double *muDmd,double *msDmd,double *sigmaPiN,double *s
     real*8 muDmd,msDmd,sigmaPiN,sigma0                        
 */
 
+extern void calcscalarquarkff_(double *muDmd,double *msDmd,double *sigmaPiN,double *sigmaS);
+/*
+    subroutine calcScalarFF(muDmd,msDmd,sigmaPiN,sigmaS);
+    real*8 muDmd,msDmd,sigmaPiN,sigmaS                        
+*/
+
 
 extern double noloop_(double*,double*,double*,double*);
 /*  real *8 function NoLoop(sgn, mq,msq,mne)
     real*8 sgn, mq,msq,mne
 */     
 
-extern int nucleonamplitudes_(double (*LF)(double*,double*,double*,double*),
-                         double*pA0,double*pA5,double*nA0,double*nA5);
+extern int nucleonamplitudes_(char*cdm,double (*LF)(double*,double*,double*,double*),
+                         double*pA0,double*pA5,double*nA0,double*nA5,int len);
 /*
     integer function  nucleonAmplitudes(LF,pA0,pA5,nA0,nA5)
     real*8 LF,pA0(2),pA5(2),nA0(2),nA5(2) 
@@ -250,7 +254,7 @@ extern double fdvdelta_(double *v);
 
 extern double nucleusrecoil_(
      double(*fDv)(double*),int*A, int*Z, double*J, 
-     double(*S00)(double*),double(*S01)(double*),double(*S11)(double*),
+     void(*S00)(double*,double*,double*,double*),
      double (*LF)(double*,double*,double*,double*), double * dNdE );
 /*
      real*8 function nucleusRecoil(fDv,A,Z,J,S00,S01,S11,LF,dNdE )
@@ -286,15 +290,10 @@ extern double cutrecoilresult_(double *tab, double *E1, double *E2);
 extern  void wimpannlib_(char * f_name, int len);
 
 
-typedef double (doubleFORTdouble)(double*);
+typedef void (Sxx_type)(double*,double*,double*,double*);
 
-extern doubleFORTdouble 
-s00f19_   ,s11f19_   ,s01f19_   ,s00na23_  ,s11na23_  ,s01na23_  ,s00al27_  ,s11al27_  ,s01al27_,  
-s00si29_  ,s11si29_  ,s01si29_  ,s00K39_   ,s11K39_   ,s01K39_   ,s00ge73_  ,s11ge73_  ,s01ge73_,  
-s00nb93_  ,s11nb93_  ,s01nb93_  ,s00te125_ ,s11te125_ ,s01te125_ ,s00i127_  ,s11i127_  ,s01i127_,  
-s00xe129_ ,s11xe129_ ,s01xe129_ ,s00xe131_ ,s11xe131_ ,s01xe131_ ,s00pb207_ ,s11pb207_ ,s01pb207_, 
-s00na23a_ ,s11na23a_ ,s01na23a_ , s00si29a_,s11si29a_,s01si29a_ ,s00te125a_,s11te125a_,s01te125a_,
-s00i127a_ ,s11i127a_ ,s01i127a_ ,s00xe129a_,s11xe129a_,s01xe129a_,s00xe131a_,s11xe131a_,s01xe131a_,
-s00ge73a_ ,s11ge73a_ ,s01ge73a_ ,s00xe131b_,s11xe131b_,s01xe131b_;                                                                                
+extern Sxx_type 
+sxxf19_  ,sxxna23_  ,sxxal27_  ,sxxsi29_ ,sxxK39_   ,sxxge73_ ,sxxnb93_  ,sxxte125_ ,sxxi127_ ,sxxxe129_ ,
+sxxxe131_,sxxpb207_ ,sxxna23a_ ,sxxsi29a_,sxxte125a_,sxxi127a_,sxxxe129a_,sxxxe131a_,sxxge73a_,sxxxe131b_ ;                                                                                
 
 #endif

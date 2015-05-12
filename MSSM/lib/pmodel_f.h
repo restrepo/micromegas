@@ -128,11 +128,6 @@ void o1contents_(int *N);
 */
 
 
-extern void delfiles_(int *x);
-/* 
-    subroutine delFiles(del)
-    integer del
-*/    
 
 extern double deltamb_(void);
 /* 

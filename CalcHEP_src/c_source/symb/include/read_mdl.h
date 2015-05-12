@@ -10,8 +10,9 @@ extern table modelTab[5];
 #define lgrng_tab modelTab[3]
 
 
-extern void  readModelFiles(char * path, int l);
+extern int  readModelFiles(char * path, int l);
 extern int  loadModel(int check, int ugForce);
-extern void  readEXTLIB(void);
 extern int read2VarsParticles(void);
+extern  int makeVandP(int rd ,char*path,int L, int mode,char*CaLCHEP);
+
 #endif

@@ -1,32 +1,32 @@
 .PHONY: clean all
 
-Tools = NMSSMTools_2.3.1
+NMSSMTools = $(CURDIR)/../../Packages/NMSSMTools_4.5.1
+CALCHEP =    ../../CalcHEP_src
+all:  aLib.a $(NMSSMTools)/main/nmhdecay 
 
 ifneq ($(MAKECMDGOALS),clean)
-include ../../CalcHEP_src/FlagsForMake
+include $(CALCHEP)/FlagsForMake
 endif
 
 aLibOBJ = $(notdir $(subst .c,.o,$(wildcard *.c))) fort.o
 
 
-all:  aLib.a  nmhdecay nmspec 
-
 aLib.a:aLib.a($(aLibOBJ))
 	$(RANLIB) aLib.a
 	rm -f $(aLibOBJ)
 
-aLib.a(calchep_func.o): lpath.h
+aLib.a(calchep_func.o):lpath.h
 
 lpath.h:
-	echo \#define LPATH \"`pwd`\" > lpath.h
+	echo \#define LPATH \"`pwd`\"  >lpath.h
+	echo \#define NMSSMTOOLS \"$(NMSSMTools)\" >> lpath.h
 
-nmhdecay: $(Tools)/nmhdecay.F $(Tools)/sources/*.f
-	echo $(MAKE) -C  $(Tools) ../nmhdecay
-	$(MAKE) -C  $(Tools) ../nmhdecay
- 
-nmspec: $(Tools)/nmspec.F $(Tools)/sources/*.f
-	$(MAKE) -C  $(Tools) ../nmspec
+
+$(NMSSMTools)/main/nmhdecay:
+	make -C $(NMSSMTools) init
+	make -C $(NMSSMTools)/main
+
 
 clean: 
-	rm -f lpath.h *.o *.a  *.exe  
-	$(MAKE) -C $(Tools) clean
+	rm -f lpath.h *.o *.a  
+	make -C nngg clean

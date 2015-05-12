@@ -87,6 +87,7 @@ void * act_c(char * name,int n, void ** args)
 { int l,i;
   char * ans;
   char tp='R';
+  checkNaN=1;
   if(!isalpha(name[0]))
   { 
     if(n==1) return uact5(name,args[0]);

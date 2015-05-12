@@ -50,3 +50,13 @@ void o1contents_(int *Nch)
   fortreread_(Nch,fname,strlen(fname));
   unlink(fname);
 }
+
+int  hbblocks_(char * fname,int len)
+{
+  char * cname=malloc(len+2);
+  int err;
+  fName2c(fname,cname,len);
+  err=HBblocks(cname);
+  free(cname);
+  return err;           
+}

@@ -2,6 +2,7 @@
  Copyright (C) 1997, 1999  Alexander Pukhov 
 */
 
+#include"../../include/nType.h"
 
 #include"q_kin.h"
 #include"decay.h"
@@ -15,17 +16,16 @@
 #include"regfunal.h"
 #include"subproc.h"
 #include"q_kin.h"
-#include"const.h"
 #include"tools.h"
 #include"drandXX.h"
 
 
-static void lorrot(double rapidity, int ntot)
+static void LorRot(REAL rapidity, int ntot,REAL*pvect)
 {
-    static double rapid___ = 0;
-    static double sh = 0;
-    static double ch = 1;
-    double ee, pp;
+    static REAL rapid___ = 0;
+    static REAL sh = 0;
+    static REAL ch = 1;
+    REAL ee, pp;
     int nv;
 
     if (rapidity != rapid___) 
@@ -42,28 +42,65 @@ static void lorrot(double rapidity, int ntot)
     }
 } 
 
+static void AzimuthRot(REAL fi, int ntot,REAL*pvect)
+{
+  REAL sn = sin(fi);
+  REAL cn = cos(fi);
+  int i;
+    
+  for(i=0;i<ntot;i++)
+  {  int nx=4*i+1,ny=4*i+2;
+     REAL X,Y;
+     X=pvect[nx];
+     Y=pvect[ny];
+     pvect[nx]= X*cn+Y*sn;
+     pvect[ny]=-X*sn+Y*cn;
+  }
+} 
 
-static int nstep=0;
+
+static void Rot3D(double  cn0 , double fi, double psi, int ntot, REAL *pvect)
+{
+   REAL cn=cn0, sn=sqrt(fabs(1-cn*cn));
+   REAL fi_1=fi;
+   REAL E[3]={ cn, sn*sin(fi_1), sn*cos(fi_1)};
+   REAL EPS[3][3]= { {  0,  -E[2], E[1]},
+                     { E[2],   0 ,-E[0]},
+                     {-E[1], E[0],  0  }  }; 
+
+   REAL P[3][3]=  {  {1-E[0]*E[0],  -E[0]*E[1], -E[0]*E[2] },
+                     { -E[1]*E[0], 1-E[1]*E[1], -E[1]*E[2] },
+                     { -E[2]*E[0],  -E[2]*E[1],1-E[2]*E[2] } };
+    
+  REAL ROT[3][3],cn2,sn2;
+  double x1,x2,x3,f3; 
+  int i,j,k;
+
+
+  x1=psi;
+  x2=M_PI;
+  for(;;)
+  { x3=0.5*(x1+x2);
+    f3=x3-psi-sin(x3);
+    if(f3<0) x1=x3;else x2=x3;
+    if(fabs(f3)<1.E-4) break;
+  }
+                             
+  cn2=cos(x3),sn2=sin(x3);
+  
+  for(i=0;i<3;i++) for(j=0;j<3;j++) ROT[i][j]= (cn2-1)*P[i][j] + sn2*EPS[i][j]; 
+      
+  for(k=0;k<ntot;k++) 
+  {  REAL * X= pvect+4*k+1;
+     REAL Y[3]={X[0],X[1],X[2]}; 
+     for(i=0;i<3;i++)  for(j=0;j<3;j++) Y[i]+=ROT[i][j]*X[j];  
+     for(i=0;i<3;i++) X[i]=Y[i];
+  }                       
+
+}
 
 
 #define DEPTH 10
-
-static double sqrt_S, rapidity,ssmin, ssmax, stop, sbot, pcm;
-
-static double tfact0;
-static int nout1;
-
-static double pm[PLISTLEN];
-
-static int nvpos0, nvposx, nvposy;
-
-static int nvout[DEPTH][2], nvin[DEPTH];
-static int  lnkbab[DEPTH], lnkleg[DEPTH];
-static double  summas[DEPTH][2];
-static int nmsreg[DEPTH][2], nmscut[DEPTH][2], nss;	
-static int nsph[DEPTH];
-
-static double beta[2];
 
 typedef  struct
 {  int ncsreg[2];
@@ -71,62 +108,107 @@ typedef  struct
    int tcscut[2];
    char  lvpole[PLISTLEN];
    int  itypep;
-   double sph_we;
+   REAL sph_we;
 }  sphereStr;
-   
+
+
+
+static REAL sqrt_S, rapidity, stop, sbot, pcm;
+static double ssmin, ssmax;
+
+static REAL tfact0;
+static int nout1;
+
+static REAL pm[PLISTLEN];
+
+static int nvpos0, nvposx, nvposy;
+
+static int nvout[DEPTH][2], nvin[DEPTH];
+static int  lnkbab[DEPTH], lnkleg[DEPTH];
+static REAL  summas[DEPTH][2];
+static int nmsreg[DEPTH][2], nmscut[DEPTH][2], nss;	
+static int nsph[DEPTH];
+
+static REAL beta[2];
 static  sphereStr  sph_inf[DEPTH][10]; 
 
-static double  cmfun( double E,double PM1,double PM2)
+
+
+static REAL  cmfun( REAL E,REAL PM1,REAL PM2)
 {
-  double e2,s,d;
+  REAL e2,s,d;
   e2=E*E;
   s=PM1+PM2;
-  d=PM1-PM2;
+  d=PM1-PM2;  
   return sqrt((e2-s*s)*(e2-d*d))/(2*E);     
 }
 
-int mkmom(double *x, double *tfact /* ,  double *sf_fact*/)
+int mkmom(double *x, double *tfact, REAL* pvect)
 {
   int i,k,l;
   int nx=0;
   double  fct0, fct1, fct2;
-  double  pIn[2][4]={{0,0,0,0},{0,0,0,0}};
-  double  pXY[2][4]={{0,1,0,0},{0,0,1,0}};
+  REAL  pIn[2][4]={{0,0,0,0},{0,0,0,0}};
+  REAL  pXY[2][4]={{0,1,0,0},{0,0,1,0}};
     
-  double  xcos, cosmin, cosmax, parcos, xfi, parfi;
-  double ytilda=0; 
+  REAL  xcos, xfi, parfi;
+  double cosmin, cosmax, parcos;
+  REAL ytilda=0; 
   
   int  i__2;
-  double d__1;
+  REAL d__1;
 
-  double ff, al;
-  double  xx, bes, fct;
+  REAL ff, al;
+  REAL  xx, bes; 
+  double fct;
  
-  double stilda, rstilda,  pcmtilda, xtilda; 
-
+  double stilda;
+  REAL rstilda,  pcmtilda, xtilda; 
   int  ns;
 
-  double psy1, psy2, x1,x2;
+  REAL psy1, psy2, x1,x2;
 
   double  smin, smax;
-  double  amass[DEPTH][2];
+  REAL  amass[DEPTH][2];
 
   int nvpole;
   int nvpos;
 
-  double hsum[2], hdif;
+  REAL hsum[2], hdif;
 
-  double fct_1__;
+  REAL fct_1__;
   int nsing;
   
+  iDecay memDecay;
+    
   sing_struct singar[200];
 
   *tfact = tfact0;
-
-    ++nstep;
 /* **   MOMENTS */
+    if(nout_int==1)
+    { 
+       REAL s=pm[0]+pm[1], d=pm[0]-pm[1], p=sqrt((pm[2]-s)*(pm[2]+ s)*(pm[2]-d)*(pm[2]+d))/(2*pm[2]);
+       REAL e1=sqrt(p*p+pm[0]*pm[0]), e2=sqrt(p*p+pm[1]*pm[1]);
+       REAL y1= log( (pcm +sqrt(pm[0]*pm[0]+pcm*pcm))/(e1+p) );
+       REAL y2=-log( (pcm +sqrt(pm[1]*pm[1]+pcm*pcm))/(e2+p) );
+       if(pm[0]>0) { REAL y=  log( pm[0]/(e1+p)); if(y2<y) y2=y; }
+       if(pm[1]>0) { REAL y= -log( pm[1]/(e2+p)); if(y1>y) y1=y; }
+       for(i=0;i<12;i++)pvect[i]=0;
+       pvect[0]=e1; pvect[3]=p;
+       pvect[4]=e2; pvect[7]=-p;
+       pvect[8]=pm[2];
+       *tfact=389379660.0*M_PI/(2*p*pm[2]*sqrt_S*sqrt_S);
+       if(sf_num[0] && sf_num[1]) { ytilda=x[0]*y1+ (1-x[0])*y2;    *tfact*=(y1-y2);}   
+        else if(sf_num[0]) ytilda=y2; else if(sf_num[1]) ytilda=y1; else  return 1;
+       LorRot(ytilda,3,pvect);
+       x[0]= sf_num[0]?  pvect[3]/pcm : 1;
+       x[1]= sf_num[1]? -pvect[7]/pcm : 1;
+       
+       LorRot(rapidity,3,pvect);
+       return 0;
+    }
     if (nin_int == 2) 
-    {   double y1,y2;
+    {   REAL y1,y2;
 	if (sf_num[0] || sf_num[1]) 
 	{
 	    nsing = 0;
@@ -156,7 +238,7 @@ int mkmom(double *x, double *tfact /* ,  double *sf_fact*/)
             xtilda=(stilda-sbot)/(stop-sbot);
 
 	    if (sf_num[0] && sf_num[1]) 
-	    { double yy = log(1/xtilda); 
+	    { REAL yy = log(1/xtilda); 
 		xx = x[nx++];
 		if (beta[0] < 1 && beta[1] < 1) 
 		{
@@ -202,12 +284,12 @@ int mkmom(double *x, double *tfact /* ,  double *sf_fact*/)
 		x2 = exp(-y2);
                 ytilda=(y2-y1)/2;
 	    } else if (sf_num[0]) 
-	    {   double e2=sqrt(pm[1]*pm[1]+pcm*pcm);
+	    {   REAL e2=sqrt(pm[1]*pm[1]+pcm*pcm);
 		x1 = xtilda;
 		x2 = 1;
                 ytilda=0.5*log((e2+(2*x1-1)*pcm)/(e2+pcm));
 	    } else 
-	    {   double e1=sqrt(pm[0]*pm[0]+pcm*pcm);
+	    {   REAL e1=sqrt(pm[0]*pm[0]+pcm*pcm);
 		x1 = 1;
 		x2 = xtilda;
                 ytilda=-0.5*log((e1+(2*x2-1)*pcm)/(e1+pcm));
@@ -228,30 +310,32 @@ int mkmom(double *x, double *tfact /* ,  double *sf_fact*/)
 /*  *sf_fact= *tfact/tfact0; */
     }
 /* *  FILLING ZERO COMPONENTS FOR in-PARTICLES */
-    
-    for (k = 0; k < nin_int; ++k) pvFill(pm[k],pIn[k],k+1);
+
+    for (k = 0; k < nin_int; ++k) pvFill(pm[k],pIn[k],k+1,pvect);
 	 
     if (nin_int == 2)   *tfact /= 4*pcmtilda *rstilda; else 
     { rstilda = pm[0]; *tfact /= rstilda * 2; ytilda=0;} 
-
-    
+     
 /* *    X & Y AXISES */
 
-    pvFill(0,pXY[0],nvposx);
-    pvFill(0,pXY[1],nvposy);  
+    pvFill(0,pXY[0],nvposx,pvect);
+    pvFill(0,pXY[1],nvposy,pvect);  
 
     nvpos = nvpos0;
     nvpole =nvpos++;
     
+    
+    
 /* *    MASS INTEGRATION */
 
     for (i = 0; i < nout1; ++i) 
-    {   double sval= i? amass[lnkbab[i]][lnkleg[i]]: rstilda;   
+    {   REAL sval= i? amass[lnkbab[i]][lnkleg[i]]: rstilda;   
 
        	for (k = 0; k < 2; ++k) 
 	{
 	    if (kinmtc_1[i].lvout[k][1]) 
-	    { double sqmass,  xx=x[nx++];
+	    { double sqmass;
+	      REAL  xx=x[nx++];
 	        d__1=  k?  sval - amass[i][0] : sval - summas[i][1];
 		         
 	        smax = d__1 * d__1;
@@ -280,19 +364,19 @@ int mkmom(double *x, double *tfact /* ,  double *sf_fact*/)
 	}
     }
 
-    lvtonv(kinmtc_1[0].lvin, 0 , nvin[0]); /*very stupid*/ 
+    lvtonv(kinmtc_1[0].lvin, 0 , nvin[0],pvect); /*very stupid*/ 
 
         
     for (i = 0; i < nout1; ++i)  /*  MAIN CYCLE */
     {   int ns___=nsph[i]-1;
         double Emax[2];
-	if (i == 0 && nin_int == 1)  xcos = drandXX() /* was fixed  0.1 */; 
+	if (i == 0 && nin_int == 1)  xcos = 0.1 /* was fixed  0.1 */; 
                                else  xcos = x[nx++];
 	al = 0;
 	l = 0;
 	if (i == 0 || (i == 1 && nin_int == 1)) 
 	{
-	    xfi = drandXX();  /* was fixed  0.1;    */
+	    xfi = 0.1;  /* was fixed  0.1;    */
             for(;l<=ns___;l++)
 	    {  al +=  sph_inf[i][l].sph_we;
 	       if (xcos <= al) ns___ = l;
@@ -308,11 +392,16 @@ int mkmom(double *x, double *tfact /* ,  double *sf_fact*/)
 	    }
 	    xfi = (al - xfi) /sph_inf[i][ns___].sph_we;
 	}
-	lvtonv( sph_inf[i][ns___].lvpole,nin_int, nvpole);
+	lvtonv( sph_inf[i][ns___].lvpole,nin_int, nvpole,pvect);
 
-	decay_0(nvin[i], amass[i][0], amass[i][1], &fct0, Emax);
+	decay_0(nvin[i], amass[i][0], amass[i][1], &fct0, Emax,&memDecay,pvect);
 	if(fct0==0) {*tfact=0; return 0;}
-	decay_1(nvpole, hsum, &hdif);
+	if(!isfinite(fct0))
+	{ printf("mkmom infinite factor\n");
+	  *tfact=0;
+	  return 0;
+	}  
+	decay_1(nvpole, hsum, &hdif,&memDecay,pvect);
 
 	cosmin = -1;
 	cosmax = 1;
@@ -330,15 +419,15 @@ int mkmom(double *x, double *tfact /* ,  double *sf_fact*/)
 	regfun_(sph_inf[i][ns___].itypep,nsing,singar,cosmin,cosmax,xcos,&parcos,&fct);
 	fct_1__ = sph_inf[i][ns___].sph_we / fct;
 	parfi = (xfi * 2 - 1) * M_PI;
-	decay_3(nvposy, parcos, parfi, nvout[i][0], nvout[i][1]);
+	decay_3(nvposy, parcos, parfi, nvout[i][0], nvout[i][1],&memDecay,pvect);
 
 	
 	i__2 = nsph[i];
 	for (ns = 0; ns < i__2; ++ns)  if (ns != ns___)
 	{
-	    lvtonv(sph_inf[i][ns].lvpole, nin_int, nvpole);
-	    decay_1(nvpole, hsum, &hdif);
-	    decay_2(nvout[i][1], &parcos);
+	    lvtonv(sph_inf[i][ns].lvpole, nin_int, nvpole,pvect);
+	    decay_1(nvpole, hsum, &hdif,&memDecay,pvect);
+	    decay_2(nvout[i][1], &parcos,&memDecay,pvect);
 	    cosmin = -1;
 	    cosmax = 1;
 	    nsing = 0;
@@ -361,21 +450,25 @@ int mkmom(double *x, double *tfact /* ,  double *sf_fact*/)
     if(nin_int==2)
     { if(sf_num[0]) x[0]= x1;
       if(sf_num[1]) x[1]= x2;
-      lorrot(rapidity+ytilda,nin_int+nout_int);        
-    } else lorrot(rapidity,nin_int+nout_int);
+      LorRot(rapidity+ytilda,nin_int+nout_int,pvect);
+      AzimuthRot(drandXX()*2*M_PI,nout_int, pvect+8);        
+    } else 
+    { 
+        Rot3D(2*(drandXX()-0.5),drandXX()*2*M_PI,drandXX()*M_PI,nout_int,pvect+4); 
+        LorRot(rapidity,nin_int+nout_int,pvect);
+    }
     
-
-    if(!finite(*tfact))
-    { *tfact=0; fprintf(stderr,"mkmom: infinite factor\n");
+    if(!isfinite(*tfact))
+    {  fprintf(stderr,"mkmom: infinite factor\n");
+       *tfact=0;
       return 0;
     }
 
-    for(i=0;i<(nin_int+nout_int)*4;i++) if(!finite(pvect[i])) {*tfact=0; return 0;}
+    for(i=0;i<(nin_int+nout_int)*4;i++) if(!isfinite(pvect[i])) {*tfact=0; return 0;}
 
     return 0;
 }    
 
-    
 
 int imkmom(double P1, double P2)
 {
@@ -388,11 +481,13 @@ int imkmom(double P1, double P2)
     beta[1]=sf_be[1];
     
     if(nin_int==2)  
-    {  
-       ndim = nout_int * 3 - 5;
-       if (sf_num[0]) ndim++;
-       if (sf_num[1]) ndim++;
-       tfact0 = 2*M_PI*389379660.0;
+    {  if(nout_int==1) ndim=1; else
+       { 
+         ndim = nout_int * 3 - 5;
+         if (sf_num[0]) ndim++;
+         if (sf_num[1]) ndim++;
+         tfact0 = 2*M_PI*389379660.0;
+       }  
     }else { tfact0 = 2*M_PI; if(nout_int==2) ndim=1; else ndim = nout_int * 3 - 7;}
     
     for (i=0; i <  nin_int + nout_int; i++) pinf_int(Nsub,i+1,pm+i,NULL);
@@ -428,16 +523,16 @@ int imkmom(double P1, double P2)
 
     for (i = 0; i < nout1; ++i) for (k = 0; k < 2; ++k) 
     {   
-      double ss = 0; 
+      REAL ss = 0; 
       int pn;
       
-      for(j=0; pn=kinmtc_1[i].lvout[k][j];j++) ss += pm[pn - 1];
+      for(j=0; (pn=kinmtc_1[i].lvout[k][j]);j++) ss += pm[pn - 1];
       summas[i][k] = ss;
     }
 
     if (nin_int == 2) 
-    {  double m1=sf_num[0]?sf_mass[0]:pm[0];
-       double m2=sf_num[1]?sf_mass[1]:pm[1];
+    {  REAL m1=sf_num[0]?sf_mass[0]:pm[0];
+       REAL m2=sf_num[1]?sf_mass[1]:pm[1];
        
        incomkin(m1, m2, P1, P2,  &sqrt_S, &pcm, &rapidity);
 
@@ -451,7 +546,7 @@ int imkmom(double P1, double P2)
        else  stop = sqrt_S*sqrt_S;
        ssmax=stop;
     } else 
-    {   double m1=pm[0];
+    {   REAL m1=pm[0];
         rapidity=log((P1+sqrt(P1*P1+m1*m1))/m1 ) ;
     }
     for(i = 0; i < nout1; ++i) 
@@ -535,7 +630,7 @@ int imkmom(double P1, double P2)
     if(nin_int==2) for(l=0;l<nCuts;l++)
     {  int m;
        invcut_ tc=invcut_1[l];
- 
+/* 
        if( tc.key[0]=='T' && tc.key[1]!='^' && tc.minon 
                           && tc.pLists      && tc.pLists->pstr[1]==0 )  
        for(pList=invcut_1[l].pLists;pList;pList=pList->next)for(m=1;m<=2;m++)
@@ -555,6 +650,7 @@ int imkmom(double P1, double P2)
 	     }
 	  }
        }
+*/ 
     }
         
     for(i = 0; i < nout1; ++i) 
@@ -574,7 +670,7 @@ int imkmom(double P1, double P2)
     }
 
     for(i = 0; i<nout1; ++i) 
-    {   double wesum = 0;
+    {   REAL wesum = 0;
 	for (ns = 0; ns<nsph[i]; ++ns) 
 	{
 	    int   nwe = 0;

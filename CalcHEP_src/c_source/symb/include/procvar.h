@@ -3,9 +3,11 @@
 
 #include "physics.h"
 
+#define VAR_NAME_SIZE_EXT  20 
+
 typedef struct
    {
-      char    alias[15];
+      char    alias[VAR_NAME_SIZE_EXT];
       double  tmpvalue;
       int     num; 
       int     used;

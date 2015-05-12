@@ -1,0 +1,138 @@
+<html>
+<head>
+	<title>CalcHEP Batch Help</title>
+	<link rel='stylesheet' href='../style.css' type='text/css'></link>
+</head>
+<body>
+	<div id='links'>
+		<ul>
+			<li><a href='../index.html'>Home</a></li>
+			<li><a href='../symbolic.html'>Symbolic Results</a></li>
+			<li><a href='../numerical.html'>Numerical Results</a></li>
+			<li><a href='../events.html'>Events Library</a></li>
+			<li><a href='../library.html'>Process Library</a></li>
+			<li><a href='index.html'>Help</a>
+				<ul>
+					<li><a href='batch_file.html'>Batch File</a><ul>
+						<li><a href='comment.html'>Comments</a></li>
+						<li><a href='model.html'>Model</a></li>
+						<li><a href='process.html'>Process</a></li>
+						<li><a href='pdf.html'>PDF</a></li>
+						<li><a href='momentum.html'>Momentum</a></li>
+						<li><a href='parameters.html'>Parameters</a></li>
+						<li><a href='runs.html'>Scans</a></li>
+						<li><a href='qcd.html'>QCD</a></li>
+                                                <li><a href='BW.html'>BW</a></li>
+						<li><a href='cuts.html'>Cuts</a></li>
+						<li><a href='kinematics.html'>Kinematics</a></li>
+						<li><a href='regularization.html'>Regularization</a></li>
+						<li><a href='distributions.html'>Distribution</a></li>
+						<li><a href='events.html'>Events</a></li>
+						<li><a href='parallelization.html'>Parallelization</a></lii>
+						<li><a href='vegas.html'>Vegas</a></li>
+						<li><a href='generator.html'>Generator</a></li>
+						<li><a href='example1.html'>Example 1</a></li>
+						<li><a href='example2.html'>Example 2</a></li>
+						<li><a href='example3.html'>Example 3</a></li>
+					</ul></li>
+					<li><a href='process_library.html'>Process Library</a></li>
+					<li><a href='event_library.html'>Event Library</a></li>
+				</ul>
+			</li>
+			<br>
+			<li>Thank you for using <a href='http://theory.sinp.msu.ru/~pukhov/calchep.html'>CalcHEP</a>!</li>
+			<li>Please cite <a href='http://inspirehep.net/record/1123804'>arXiv:1207.6082</a></li>
+		</ul>
+	</div>
+	<div id='help_main'>
+		<h1>Example 2</h1>
+		<p>
+			This example gives the invariant mass distribution for the two leptons in the final state of p,p->l,l.
+			<table>
+				<tr><td colspan="3">##################################</td>
+				<tr><td colspan="3">#  Model Info                     </td>
+				<tr><td colspan="3">##################################</td>
+				<tr><td>Model</td><td>:</td><td>3-Site</td></tr>
+				<tr><td>Gauge</td><td>:</td><td>Feynman</td></tr>
+				<tr><td></td></tr>
+				<tr><td colspan="3">##################################</td>
+				<tr><td colspan="3">#  Process Info                   </td>
+				<tr><td colspan="3">##################################</td>
+				<tr><td>Process</td><td>:</td><td>p,p->l,l</td></tr>
+				<tr><td>Alias</td><td>:</td><td>p=u1,U1,d1,D1,G</td></tr>
+				<tr><td>Alias</td><td>:</td><td>l=e1,E1,e2,E2</td></tr>
+				<tr><td></td></tr>
+				<tr><td colspan="3">##################################</td>
+				<tr><td colspan="3">#  PDF Info                       </td>
+				<tr><td colspan="3">##################################</td>
+				<tr><td>pdf1</td><td>:</td><td>cteq6l (proton)</td></tr>
+				<tr><td>pdf2</td><td>:</td><td>cteq6l (proton)</td></tr>
+				<tr><td></td></tr>
+				<tr><td colspan="3">##################################</td>
+				<tr><td colspan="3">#  Momentum Info                  </td>
+				<tr><td colspan="3">##################################</td>
+				<tr><td>p1</td><td>:</td><td>7000</td></tr>
+				<tr><td>p2</td><td>:</td><td>7000</td></tr>
+				<tr><td></td></tr>
+				<tr><td colspan="3">##################################</td>
+				<tr><td colspan="3">#  Parameter Info                 </td>
+				<tr><td colspan="3">##################################</td>
+				<tr><td>Parameter</td><td>:</td><td>MF=4000</td></tr>
+				<tr><td></td></tr>
+				<tr><td colspan="3">##################################</td>
+				<tr><td colspan="3">#  Scan Info                       </td>
+				<tr><td colspan="3">##################################</td>
+				<tr><td>Scan parameter</td><td>:</td><td>MWP</td></tr>
+				<tr><td>Scan begin</td><td>:</td><td>400</td></tr>
+				<tr><td>Scan step size</td><td>:</td><td>50</td></tr>
+				<tr><td>Scan n steps</td><td>:</td><td>17</td></tr>
+				<tr><td></td></tr>
+				<tr><td colspan="3">##################################</td>
+				<tr><td colspan="3">#  Cut Info                       </td>
+				<tr><td colspan="3">##################################</td>
+				<tr><td>Cut parameter</td><td>:</td><td>T(l)</td></tr>
+				<tr><td>Cut min</td><td>:</td><td>20</td></tr>
+				<tr><td>Cut max</td><td>:</td><td></td></tr>
+				<tr><td></td></tr>
+				<tr><td>Cut parameter</td><td>:</td><td>N(l)</td></tr>
+				<tr><td>Cut min</td><td>:</td><td>0.4</td></tr>
+				<tr><td>Cut max</td><td>:</td><td></td></tr>
+				<tr><td></td></tr>
+				<tr><td>Cut parameter</td><td>:</td><td>J(l,l)</td></tr>
+				<tr><td>Cut min</td><td>:</td><td>0.2</td></tr>
+				<tr><td>Cut max</td><td>:</td><td></td></tr>
+				<tr><td></td></tr>
+				<tr><td>Cut parameter</td><td>:</td><td>M(l,l)</td></tr>
+				<tr><td>Cut min</td><td>:</td><td>MWP-100</td></tr>
+				<tr><td>Cut max</td><td>:</td><td>MWP+100</td></tr>
+				<tr><td></td></tr>
+				<tr><td colspan="3">##################################</td>
+				<tr><td colspan="3">#  Distribution Info              </td>
+				<tr><td colspan="3">##################################</td>
+				<tr><td>Dist parameter</td><td>:</td><td>M(l,l)</td></tr>
+				<tr><td>Dist min</td><td>:</td><td>MWP-100</td></tr>
+				<tr><td>Dist max</td><td>:</td><td>MWP+100</td></tr>
+				<tr><td>Dist n bins</td><td>:</td><td>100</td></tr>
+				<tr><td>Dist title</td><td>:</td><td>p,p->l,l</td></tr>
+				<tr><td>Dist x-title</td><td>:</td><td>M(l,l) (GeV)</td></tr>
+				<tr><td></td></tr>
+				<tr><td colspan="3">##################################</td>
+				<tr><td colspan="3">#  Parallelization Info           </td>
+				<tr><td colspan="3">##################################</td>
+				<tr><td>Parallelization method</td><td>:</td><td>local</td></tr>
+				<tr><td>Max number of cpus</td><td>:</td><td>2</td></tr>
+				<tr><td>sleep time</td><td>:</td><td>3</td></tr>
+				<tr><td></td></tr>
+				<tr><td colspan="3">##################################</td>
+				<tr><td colspan="3">#  Vegas Info                     </td>
+				<tr><td colspan="3">##################################</td>
+				<tr><td>nSess_1</td><td>:</td><td>5</td></tr>
+				<tr><td>nCalls_1</td><td>:</td><td>100000</td></tr>
+				<tr><td>nSess_2</td><td>:</td><td>5</td></tr>
+				<tr><td>nCalls_2</td><td>:</td><td>100000</td></tr>
+			</table>
+
+		</p>
+	</div>
+</body>
+</html>

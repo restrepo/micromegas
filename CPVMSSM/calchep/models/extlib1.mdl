@@ -1,4 +1,6 @@
-Standard Model(CKM=1)
+CPV-MSSM/CPSH
 Libraries
-External libraries  and citation                                      <|
-========================================================================
+External libraries  and citation                                     <|
+$CALCHEP/../CPVMSSM/lib/aLib.a
+% cite hep-ph/0604150 and hep-ph/0307377
+=======================================================================

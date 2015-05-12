@@ -1,0 +1,30 @@
+
+---------------------------------------------------------------
+Mass term for particle Z :
+(+1/CW**2*MW**2) = +91.187000**2
+This particles was declared with mass MZ = 91.187000
+
+---------------------------------------------------------------
+Mass term for particle 'Z.f' :
+(+1/CW**2*MW**2) = +91.187000**2
+This particles was declared with mass MZ = 91.187000
+
+---------------------------------------------------------------
+Mass term for particle '~sc' :
+(+1*muSq+2/EE**2*MW**2*SW**2*laS1) = +103.000000**2
+This particles was declared with mass Msc = 103.000000
+
+---------------------------------------------------------------
+Mass term for particle '~~H+' :
+(+1*mu2q+2/EE**2*MW**2*SW**2*la3) = +100.000000**2
+This particles was declared with mass MHC = 100.000000
+
+---------------------------------------------------------------
+Mass term for particle '~~H3' :
+(+1*mu2q+2/EE**2*MW**2*SW**2*la3+2/EE**2*MW**2*SW**2*la4-2/EE**2*MW**2*SW**2*la5) = +101.000000**2
+This particles was declared with mass MH3 = 101.000000
+
+---------------------------------------------------------------
+Mass term for particle '~~X' :
+(+1*mu2q+2/EE**2*MW**2*SW**2*la3+2/EE**2*MW**2*SW**2*la4+2/EE**2*MW**2*SW**2*la5) = +102.000000**2
+This particles was declared with mass MHX = 102.000000

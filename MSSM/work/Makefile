@@ -23,5 +23,5 @@ path.c:
 
 clean:
 	rm -f *.a *.o  lock_ LOCK  tmp/*  so_generated/* lock_
-	rm -f  path.c VandP.c  autoprot.h
+	rm -f  path.c VandP.c autoprot.h
 	rm -rf _*_*_ results/*

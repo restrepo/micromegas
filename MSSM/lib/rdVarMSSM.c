@@ -5,13 +5,11 @@
 
 int readVarMSSM(char * fname)
 { int rdCode;
-  char*vlist[38]={
-"alfEMZ","alfSMZ","SW","MZ","Ml","McMc","MbMb","Mtp","tb","MG1","MG2",
+  char*vlist[34]={ "alfSMZ","MW","MZ","Ml","McMc","MbMb","Mtp","tb","MG1","MG2",
 "MG3","Am","Al","At","Ab","Au","Ad","MH3","mu","Ml1","Ml2",
-"Ml3","Mr1","Mr2","Mr3","Mq1","Mq2","Mq3","Mu1","Mu2","Mu3","Md1","Md2","Md3","wt",
-"wZ","wW"};
+"Ml3","Mr1","Mr2","Mr3","Mq1","Mq2","Mq3","Mu1","Mu2","Mu3","Md1","Md2","Md3"};
 
-  rdCode = readVarSpecial(fname,38,vlist);
+  rdCode = readVarSpecial(fname,34,vlist);
 
   return rdCode;
 } 

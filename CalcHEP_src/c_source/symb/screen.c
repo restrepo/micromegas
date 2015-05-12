@@ -26,12 +26,12 @@
 #include "cweight.h"
 #include "procvar.h"
 #include "viewdir.h"
-
+#include "dynamic_cs.h"
 #define tcol Green
 #define mpos 7
 #define graphpos 8
 
-int    menulevel;
+//int    menulevel;
 
 static void diag_stat(int type,int*n_sub,int*n_del,int*n_calc,int*n_rest)
 {
@@ -83,11 +83,12 @@ void  editModel( int  edit)
   int ok=1;
   char  tabMenu[STRSIZ], tabName[80];
   char menuName[30]; 
-  char tabhelp[5][10]={ "s_mdl_1", "s_mdl_2", "s_mdl_3", "s_mdl_4","s_mdl_5"};
+  char * tabhelp[5]={ "s_mdl_1", "s_mdl_2", "s_mdl_3", "s_mdl_4","s_mdl_5"};
 
   n = 1;
  
 cont:
+  if(edit) f3_key[7]=NULL;
   do
   { 
     if(edit) strcpy(menuName,"Edit  model"); else strcpy(menuName,"View   model");
@@ -103,7 +104,8 @@ cont:
                              "   CHECK MODEL ");
     if(edit) menu1(56,7,"",tabMenu,"s_mdl_e",&pscr,&n);
        else  menu1(17,15,"",tabMenu,"s_mdl_v",&pscr,&n); 
-    switch(n)
+    
+    switch(n) 
     { case 0:
         if( edited || renamed )
         {
@@ -119,6 +121,7 @@ cont:
             }       
           }else  readModelFiles("./models",n_model);   
         }
+        f3_key[7]=f10_key_prog;
         return;
     
       case 1: case 2: case 3: case 4: case 5:    
@@ -161,21 +164,32 @@ void         menuhelp(void)
   print("  high level of automatization.\n");
   print("     Use F2 key to get information about interface \n");   
   print("  facilities and F1 - as online help.              \n");
- 
+  scrcolor(Yellow,BGmain);print("  Questions:"); scrcolor(Black,BGmain);
+  print("https://answers.launchpad.net/calchep\n");
+  scrcolor(Yellow,BGmain);print("       Bugs:");   
   scrcolor(Black,BGmain);
-  chepbox(1,5,53,15);
+  print("https://bugs.launchpad.net/calchep\n");
+           
+  scrcolor(Black,BGmain);
+  chepbox(1,5,53,17);
   scrcolor(FGmain,BGmain);
 }
 
+char * currentModelName(void)
+{ static char name[40];
+  int size=modelmenu[0];
+  if(n_model<=0) name[0]=0; else 
+    sprintf(name,"%*.*s",size,size,modelmenu+(n_model*size-size+1));
+  trim(name);
+  return name;
+}
 
 void modelinfo(void)
-{ char buff[30];
-  int size=modelmenu[0]; 
+{ 
   goto_xy(5,1);
   scrcolor(Red,BGmain); print("   Model:  ");
   scrcolor(FGmain,BGmain);
-  sprintf(buff,"%*.*s",size,size,modelmenu+(n_model*size-size+1));
-  trim(buff); print(buff);
+  print(currentModelName());
   if(forceUG) print("/Unitary Gauge/");
   else        print("                  ");
 }
@@ -250,7 +264,7 @@ static void f7_key_prog(int x)
 
 static void f8_key_prog(int x)
 {
-  static char delstr[5]="}R{";
+  static char delstr[5]="{R}";
   inkeyString=delstr;   
 }
 
@@ -306,8 +320,10 @@ void  viewsqdiagr(void)
    {
       sqdiagrmenu();
       if (nsub != 0)
-      { if(nin+nout<7)  showgraphs(2); else
-         messanykey(10,15,"The editor does not work if the number of legs exceed 6.");
+      { 
+//      if(nin+nout<7)  
+        showgraphs(2); 
+//        else  messanykey(10,15,"The editor does not work if the number of legs exceed 6.");
       }
       sq_diagramsinfo();
    }  while (!(nsub == 0 || subproc_sq == 1));   /*  Esc  */
@@ -369,7 +385,22 @@ label_1:
         if(blind) { printf("%s\n",mess); sortie(102);} 
         else { messanykey(3,13,mess); break;}
       } 
-      if ( mess_y_n( 6,13," Delete files ") ) system("rm -r results; mkdir results");
+      if ( mess_y_n( 6,13," Delete files ") ) 
+      {  struct dirent **namelist;
+         int n,i;
+         n = scandir("./results", &namelist, NULL, NULL);
+         for(i=0; i<n;i++)
+         { 
+           char buff[100];
+           if(strcmp(namelist[i]->d_name,"aux") && strcmp(namelist[i]->d_name,"..") && strcmp(namelist[i]->d_name,".")  )
+           { 
+             sprintf(buff,"rm -rf results/%s",namelist[i]->d_name);  
+             if(unlink(buff+7)) system(buff);
+           }  
+         }
+         for(i=0; i<n;i++) free(namelist[i]);
+         free(namelist);
+      }
       put_text(&pscr);
       return 1;
      case 3:
@@ -389,8 +420,11 @@ label_1:
          {
             trim(newname);
             if(rename("results",newname)==0)
-            {
-               mkdir("results",-1);
+            {  char command[200];
+               mkdir("results",0755);
+               sprintf(command," cp -rp  %s/aux results",newname);
+               system(command);
+               
                put_text(&pscr);
                put_text(&pscr3);
                return 1;
@@ -443,14 +477,16 @@ void f5_key_prog(int x)
   while(kmenu) 
   {  
     char strmen[]="\040"
-                  " Symbolic conservation low   OF1"
+/*                  " Symbolic conservation low   OF1"   */
                   " Number of QCD colors =      Nc "
                   " Diagrams in C-output        OF3"
-                  " Widths in t-channels        OF4";
-                   
+                  " Widths in t-channels        OF4"
+                  " Virtual W  decays           OF5"
+                  " Virtual Z  decays           OF6";
+/*                   
     if(consLow) improveStr(strmen,"OF1","ON ");
        else     improveStr(strmen,"OF1","OFF");
-
+*/
     if(NcInfLimit) improveStr(strmen,"Nc","Inf");
        else        improveStr(strmen,"Nc","3");
 /*
@@ -460,14 +496,25 @@ void f5_key_prog(int x)
     if(noPict) improveStr(strmen,"OF3","OFF");
         else      improveStr(strmen,"OF3","ON ");
     if(tWidths) improveStr(strmen,"OF4","ON ");
-        else      improveStr(strmen,"OF4","OFF");                                   
+        else      improveStr(strmen,"OF4","OFF"); 
+        
+    if(VWdecay)  improveStr(strmen,"OF5","ON ");
+        else     improveStr(strmen,"OF5","OFF");    
+    if(VZdecay)  improveStr(strmen,"OF6","ON ");
+        else     improveStr(strmen,"OF6","OFF");
+            
+                                          
                   
     menu1(20,18,"Switches",strmen,"s_switch_*",&pscr,&kmenu);
     switch (kmenu)
-    { case 1: consLow=!consLow;       break;
-      case 2: NcInfLimit=!NcInfLimit; break;
-      case 3: noPict=!noPict;         break;
-      case 4: tWidths=!tWidths;         break;     
+    {
+    
+//      case 1: consLow=!consLow;       break;
+      case 1: NcInfLimit=!NcInfLimit; break;
+      case 2: noPict=!noPict;         break;
+      case 3: tWidths=!tWidths;       break; 
+      case 4: VWdecay=!VWdecay;cleanDecayTable();       break; 
+      case 5: VZdecay=!VZdecay;cleanDecayTable();       break;   
 /*      case 5: noCChain=!noCChain;     break; */
     }
     
@@ -500,7 +547,7 @@ void f9_key_prog(int x)
 {
   FILE*f;
   char fname[200]; 
-  sprintf(fname,"%s%cCITE",pathtocomphep,f_slash);
+  sprintf(fname,"%s%cCITE",pathtocalchep,f_slash);
   f=fopen(fname,"r");
   showtext (1, 1, 80,1,"",f);
   fclose(f);

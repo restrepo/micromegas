@@ -35,7 +35,7 @@ int viewDir(char * dirName)
   k=1;
   
   while((dp=readdir(dirPtr)) && k<=2000)
-  if(strcmp(dp->d_name,".")&&strcmp(dp->d_name,".."))
+  if(strcmp(dp->d_name,".")&&strcmp(dp->d_name,"..")&& strcmp(dp->d_name,"aux") )
   {
     for(i=0; (i <strlen(dp->d_name))&&(i<16);i++) menustr[k++]=dp->d_name[i];
     for(; i <16; i++) menustr[k++]=' ';
@@ -78,7 +78,7 @@ int checkDir(char * dirName)
     return 0;    
   }
   while((dp=readdir(dirPtr)))
-  if(strcmp(dp->d_name,".")&&strcmp(dp->d_name,".."))
+  if(strcmp(dp->d_name,".")&&strcmp(dp->d_name,"..")&& strcmp(dp->d_name,"aux")  )
   {   closedir(dirPtr); return 1;
   }
   closedir(dirPtr); return 0;

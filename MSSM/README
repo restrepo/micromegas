@@ -1,88 +1,59 @@
-1. ============  read  ../README ===========
+The MSSM can be treated in 4 different models with input parameters defined either at the GUT scale or the weak scale. To define the model one has to uncomment one of the lines near the top of the main.c/F files,  
 
-2.=================== Spectrum Calculation ======================
-By default we use SuSpect-2.40 for RGE solution and calculation of particle
-spectrum. To use other RGE codes such as  SPHENO or SOFTSUSY the corresponding
-variables have to be defined in lib/Makefile. These variables have to contain
-the path to the executable program of the corresponding package. 
-For example, 
-    SOFTSUSY=$HOME/softsusy 
-    SPHENO=$HOME/SPheno3.0.beta50/bin
-We use the SLHA file interface to pass data from the RGE code to micrOMEGAs.
-We also support an interface with ISAJET despite the fact that ISAJET does not 
-have a complete SLHA interface. To this end one has to define the paths to the
-Isajet and CERNlib libraries via the ISAJET and CERNLIB  variables 
-in   lib/Makefile.  After that  
-       make -C lib isajet_slha 
-will generate the lib/isajet_slha  file needed for the micrOMEGAs/ISAJET
-interface. For Isajet versions before 7.79 add the flag -Dlt779 to $(FC) compiler. 
-Often computers contain two different Fortran compilers f77(g77)
-and gfortran which are not compatible. Please check that
-CERNlib/Isajet/micrOMEGAs are compiled with the same compiler.
+#define SUGRA   
+   The parameters of the CMSSM 
+      m0      common scalar mass at GUT scale
+      mhf     common gaugino mass at GUT scale
+      a0      trilinear soft breaking parameter at GUT scale
+      tb      tan(beta) 
+   are specified via a command line:
+               ./main m0 mhf a0 tb 
+   in addition, some auxiliary parameters can be defined to replace the default
+   values:
+      sgn     +/-1,  sign of Higgsino mass term (default 1)
+      Mtp     top quark pole mass
+      MbMb    Mb(Mb) scale independent b-quark mass
+      alfSMZ  strong coupling at MZ
 
-3.  main.c/main.F are  standard main programs for micrOMEGAs and contain 
-all options of micrOMEGAs. Note that these options can be switched 
-ON/OFF by defining the variables near the top of the main file:
+      
+#define SUGRANUH  
+   The parameters of the CMSSM with non-universal Higgs condition include those of the 
+   SUGRA switch as well as two parameters of the Higgs sector defined at the EWSB scale  
+      mu(EWSB)                 
+      MH3 pole mass of all odd Higgs
+             ./main m0 mhf a0 tb  mu MH3 
 
-#define MASSES_INFO      
-#define CONSTRAINTS     
-#define OMEGA            
-#define INDIRECT_DETECTION  
-/*#define RESET_FORMFACTORS*/
-#define CDM_NUCLEON 
-/* #define TEST_Direct_Detection */
-/*#define CDM_NUCLEUS */
-/*#define DECAYS */
-/* #define CROSS_SECTIONS */
-/* #define SHOWPLOTS */
-The names of variables should be self-explanatory.
-    
-The name of the RGE package is defined by the variable 'RGE'
-possible values of this variable are 'suspect','isajet','softSusy','spheno'.
-See item 2 above.
+#define AMSB     
+   The input parameters of the Anomaly-Mediated Symmetry Breaking model are                
+      m0      common scalar mass at GUT scale
+      m3/2    gravitino mass
+      tb      tan(beta) 
+             ./main m0 m3/2 tb 
+      The Auxiliary parameters listed above for SUGRA can also be added to the
+      command line    
+  
+#define EWSB    
+   The input parameters of the pMSSM  are defined at the SUSY scale and read from a file
+   specified in the command line:
+                  ./main mssm1.par
 
-The MSSM scenario is also specified  by 'define', possible scenarios are SUGRA, AMSB, or EWSB.
-If none of these are defined the program will read the MSSM parameters from an 
-SLHA file  whose name should be passed to the program as a parameter.
-In general, if you launch  ./main without parameters the program 
-writes on the screen  which parameters are expected. 
- 
-4. Example files 
-    a) cycle2.c and cycle5.c  are test programs which should reproduce 
-       Table_2 and Table_5 in Comput.Phys.Commun.180:747-767,2009.
-       (arXiv:0803.2360). 
-    b) mssm1.par is a file with EWSB parameters which is called from cycle2.c.
-       It also can by used  with main.c/main.F.
-       mssm2.par is another sample input file for EWSB parameters.
-    c)  model1.slha and  model2.slha are SLHA input files used in
-      arXiv:1004.1092. See section "Examples and results", Table4, Figures
-     3,5,6.  To use such input file (SLHA) the user has to 
-     comment all RGE definition in main.c(F)
-/* #define SUGRA */
-/* #define AMSB  */
-/* #define EWSB  */
-     recompile the program 
-                 make main=main.c 
-     and launch it with   
-                 ./main model2.slha 
+If all these definitions are commented  ./main will read a Les Houches spectrum file (SLHA)
+to be specified  in the command line:
 
+                     ./main suspect2_out.lha
 
-5. The directory nngg contains the code for calculating the loop-induced cross sections
-  ~o1,~o1 -> A,Z and ~o1,~o1->A,A 
-This code is rather cumbersome. So, it is not compiled by default. 
-If you need such cross sections  launch 'make' inside this directory.
-or 
-              make -C nngg
-After compilation the corresponding cross section can be obtained by 
-the 'loopGamma' function call written in main.c(F). 
-   
-6.======= Special citation ========
-If you use SuSpect please cite
+In general ./main launched without parameters explains which parameters are  needed.
 
-%\cite{Djouadi:2002ze}
-\bibitem{Djouadi:2002ze}
-A.~Djouadi, J.~L.~Kneur and G.~Moultaka,
-%``SuSpect: A Fortran code for the supersymmetric and Higgs particle spectrum in
-%the MSSM,''
-arXiv:hep-ph/0211331.
+By default SuSpect is used to compute the particle spectrum with loop corrections. The SuSpect 
+code is attached to micrOMEGAs  and  located in the  directory Packages.   To use other
+programs (SPHENO, SOFTSUSY, ISAJET) for spectrum generation  one has to define the path
+to the corresponding package in lib/Makefile and  define the  switch RGE in main.c/main.F
+#define RGE  suspect
+     /* choose 'suspect','isajet','softSusy','spheno'*/
+
+1) Djouadi, Abdelhak and Kneur, Jean-Loic and Moultaka, Gilbert,
+   "SuSpect: A Fortran code for the supersymmetric and Higgs  particle spectrum in the MSSM",
+    Comput. Phys. Commun.,176(2007),pp 426-455,   
+   hep-ph/0211331 
+
 

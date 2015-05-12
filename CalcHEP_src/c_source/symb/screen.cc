@@ -26,7 +26,7 @@
 #include "cweight.h"
 #include "procvar.h"
 #include "viewdir.h"
-
+#include "dynamic_cs.h"
 #define tcol Green
 #define mpos 7
 #define graphpos 8
@@ -79,16 +79,17 @@ void writeModelFiles(int l)
 void  editModel( int  edit)
 { int  n,i,j;
   void *  pscr = NULL;
-  int edited=0;
+  int edited=0,renamed=0;
+  int ok=1;
   char  tabMenu[STRSIZ], tabName[80];
   char menuName[30]; 
-  char tabhelp[5][10]={ "s_mdl_1", "s_mdl_2", "s_mdl_3", "s_mdl_4","s_mdl_5"};
+  char * tabhelp[5]={ "s_mdl_1", "s_mdl_2", "s_mdl_3", "s_mdl_4","s_mdl_5"};
 
   n = 1;
  
 cont:
   do
-  {
+  { 
     if(edit) strcpy(menuName,"Edit  model"); else strcpy(menuName,"View   model");
     strcpy(tabMenu,"\017");
     for (i=0;i<5;i++)
@@ -98,21 +99,46 @@ cont:
       tabName[14]=0;
       strcat(tabMenu," "); strcat(tabMenu,tabName);
     }
+    if(edit)  strcat(tabMenu,"      RENAME   "
+                             "   CHECK MODEL ");
     if(edit) menu1(56,7,"",tabMenu,"s_mdl_e",&pscr,&n);
-       else  menu1(17,15,"",tabMenu,"s_mdl_v",&pscr,&n);  
-    if(n >0 && n<=5)
-	 edited=edittable(1,1,&modelTab[n-1],1,tabhelp[n-1],!edit) || edited;
+       else  menu1(17,15,"",tabMenu,"s_mdl_v",&pscr,&n); 
+    switch(n)
+    { case 0:
+        if( edited || renamed )
+        {
+          if(mess_y_n(15,19," Save corrections ?") )
+          {
+            if (ok||loadModel(1,0) ) writeModelFiles(n_model); else  goto cont;
+            if(renamed) 
+            { int i,size=modelmenu[0]; 
+              for(i=0;modelTab[0].mdlName[i]&&i<size-1;i++)
+              modelmenu[(n_model-1)*size +2+i]=modelTab[0].mdlName[i];
+              for(;i<size-1;i++) modelmenu[(n_model-1)*size +2+i]=' ';
+              modelinfo();
+            }       
+          }else  readModelFiles("./models",n_model);   
+        }
+        return;
+    
+      case 1: case 2: case 3: case 4: case 5:    
+        edited=edittable(1,1,&modelTab[n-1],1,tabhelp[n-1],!edit) || edited;
+	if(edited) ok=0;
+    	break; 
+      case 6:
+        if(correctStr (10,17,"New name:",modelTab[0].mdlName,29,1))
+        { trim(modelTab[0].mdlName);
+          for(i=1;i<5;i++)strcpy(modelTab[i].mdlName,modelTab[0].mdlName);
+          renamed=1;
+        }         
+        break;
+      case 7:
+        if (!loadModel(1,0) ) goto cont; 
+        else {ok=1; messanykey(10,15,"The model is Ok");}
+        break;
+    }       
   }while(n);
 
-   if( edited)
-   {
-      if  (mess_y_n(15,19," Save corrections ?") )
-      {
-         if (loadModel(1,0) ) writeModelFiles(n_model); else  goto cont;
-
-      }
-      else  readModelFiles(n_model);
-   }
 }
 
 
@@ -141,16 +167,23 @@ void         menuhelp(void)
   scrcolor(FGmain,BGmain);
 }
 
+char * currentModelName(void)
+{ static char name[40];
+  int size=modelmenu[0];
+  if(n_model<=0) name[0]=0; else 
+    sprintf(name,"%*.*s",size,size,modelmenu+(n_model*size-size+1));
+  trim(name);
+  return name;
+}
 
 void modelinfo(void)
-{    char buff[30];
-     goto_xy(5,1);
-     scrcolor(Red,BGmain); print("   Model:  ");
-     scrcolor(FGmain,BGmain);
-     sprintf(buff,"%*.*s",22,22,modelmenu+(n_model * 22 - 21));
-     trim(buff); print(buff);
-     if(forceUG) print("/Unitary Gauge/");
-      else       print("                  ");
+{ 
+  goto_xy(5,1);
+  scrcolor(Red,BGmain); print("   Model:  ");
+  scrcolor(FGmain,BGmain);
+  print(currentModelName());
+  if(forceUG) print("/Unitary Gauge/");
+  else        print("                  ");
 }
 
 
@@ -265,7 +298,7 @@ void  sqdiagrmenu(void)
 {  void * pscr = NULL ;
 
    if (subproc_sq == 1) { nsub = 1; return;}
-   menu_f(9,16,"NN      Subprocess                Del   Calc  Rest ",
+   menu_f(5,15,"NN      Subprocess                                 Del   Calc  Rest ",
        MENUQ_NAME,"s_sq_proc",&pscr,&nsub);
   if(nsub) put_text(&pscr);
 
@@ -279,9 +312,12 @@ void  viewsqdiagr(void)
    {
       sqdiagrmenu();
       if (nsub != 0)
-      { if(nin+nout<7)  showgraphs(2); else  
-        messanykey(10,15,"The editor does not work if the number of legs exceed 6."); }
-        sq_diagramsinfo();
+      { 
+//      if(nin+nout<7)  
+        showgraphs(2); 
+//        else  messanykey(10,15,"The editor does not work if the number of legs exceed 6.");
+      }
+      sq_diagramsinfo();
    }  while (!(nsub == 0 || subproc_sq == 1));   /*  Esc  */
    sq_diagramsinfo();
 }
@@ -298,7 +334,7 @@ void  viewfeyndiag(int del_mode)
    {
       if (subproc_f == 1)  nsub = 1; else
       {
-         menu_f(9,11,"NN        Subprocess              Del   Rest ",
+         menu_f(9,11,"NN        Subprocess                               Del   Rest ",
           MENUP_NAME,"s_proc",&pscr,&nsub);
       }
       if (nsub > 0) {/*showgraphs2(upr);*/ showgraphs(upr);  if(del_mode) diagramsinfo();}         
@@ -341,7 +377,21 @@ label_1:
         if(blind) { printf("%s\n",mess); sortie(102);} 
         else { messanykey(3,13,mess); break;}
       } 
-      if ( mess_y_n( 6,13," Delete files ") ) system("rm -r results; mkdir results");
+      if ( mess_y_n( 6,13," Delete files ") ) 
+      {  struct dirent **namelist;
+         int n,i;
+         n = scandir("./results", &namelist, NULL, NULL);
+         for(i=0; i<n;i++)
+         { 
+           char buff[100];
+           if(strcmp(namelist[i]->d_name,"aux"))
+           { 
+             sprintf(buff,"results/%s",namelist[i]->d_name);  
+             unlink(buff);
+           }  
+         }
+         free(namelist);
+      }
       put_text(&pscr);
       return 1;
      case 3:
@@ -361,8 +411,11 @@ label_1:
          {
             trim(newname);
             if(rename("results",newname)==0)
-            {
+            {  char command[200];
                mkdir("results",-1);
+               sprintf(command," cp -rp  %s/aux results",newname);
+               system(command);
+               
                put_text(&pscr);
                put_text(&pscr3);
                return 1;
@@ -415,14 +468,15 @@ void f5_key_prog(int x)
   while(kmenu) 
   {  
     char strmen[]="\040"
-                  " Symbolic conservation low   OF1"
+/*                  " Symbolic conservation low   OF1"   */
                   " Number of QCD colors =      Nc "
                   " Diagrams in C-output        OF3"
-                  " Widths in t-channels        OF4";
-                   
+                  " Widths in t-channels        OF4"
+                  " Virtual W/Z decays          OF5";
+/*                   
     if(consLow) improveStr(strmen,"OF1","ON ");
        else     improveStr(strmen,"OF1","OFF");
-
+*/
     if(NcInfLimit) improveStr(strmen,"Nc","Inf");
        else        improveStr(strmen,"Nc","3");
 /*
@@ -432,14 +486,20 @@ void f5_key_prog(int x)
     if(noPict) improveStr(strmen,"OF3","OFF");
         else      improveStr(strmen,"OF3","ON ");
     if(tWidths) improveStr(strmen,"OF4","ON ");
-        else      improveStr(strmen,"OF4","OFF");                                   
+        else      improveStr(strmen,"OF4","OFF"); 
+        
+    if(VVdecay)  improveStr(strmen,"OF5","ON ");
+        else     improveStr(strmen,"OF5","OFF");    
+                                          
                   
     menu1(20,18,"Switches",strmen,"s_switch_*",&pscr,&kmenu);
     switch (kmenu)
-    { case 1: consLow=!consLow;       break;
-      case 2: NcInfLimit=!NcInfLimit; break;
-      case 3: noPict=!noPict;         break;
-      case 4: tWidths=!tWidths;         break;     
+    {
+    
+//      case 1: consLow=!consLow;       break;
+      case 1: NcInfLimit=!NcInfLimit; break;
+      case 2: noPict=!noPict;         break;
+      case 3: tWidths=!tWidths;         break;     
 /*      case 5: noCChain=!noCChain;     break; */
     }
     

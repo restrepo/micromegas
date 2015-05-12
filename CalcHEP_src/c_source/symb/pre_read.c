@@ -75,7 +75,7 @@ void * rd_pre(char* s)
    }
    else
    {
-      if (strlen(s) > 6)  rderrcode = toolongidentifier;
+      if (strlen(s) >= VAR_NAME_SIZE)  rderrcode = toolongidentifier;
       else
       {
          newrecord(&m);
@@ -227,6 +227,11 @@ static void *  bact(char ch,void * mm1,void * mm2)
             return NULL;
          }
 */
+         if(m1->tp > m2->tp &&  m2->tp ==rationtp) 
+         {  rderrcode = unexpectedoperation;
+            return 0;
+         }
+
          m1->num *= m2->num;
          m1->maxp = MAX(m1->maxp,m2->maxp);
          m1->degp += m2->degp;
@@ -252,8 +257,14 @@ static void *  bact(char ch,void * mm1,void * mm2)
       break;
 
       case '^':
+         if (m2->tp != numbertp )
+         {
+            rderrcode =  unexpectedoperation;
+            return NULL;
+         }
+      
          d = m2->num;
-         if (m2->tp != numbertp || d <= 0 || d > 255)
+         if( d <= 0 || d > 255)
          {
             rderrcode = rangecheckerror;
             return NULL;
@@ -261,7 +272,7 @@ static void *  bact(char ch,void * mm1,void * mm2)
 
          if (m1->tp > rationtp)
          {
-            rderrcode = typemismatch;
+            rderrcode = unexpectedoperation;
             return NULL;
          }
 

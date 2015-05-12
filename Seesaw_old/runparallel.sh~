@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+function setfalse {
+    sed 's/tbd_eq_tbl=True/tbd_eq_tbl=False/' "$1"|
+    sed 's/tbu_eq_tbl=True/tbu_eq_tbl=False/'|
+    sed 's/tbu_eq_tbd=True/tbu_eq_tbd=False/' > "$2"
+}
+
+#setfalse $1 $2
+#exit
+
+k=1
+for i in tbd_eq_tbl tbu_eq_tbl tbu_eq_tbd
+do
+    for j in 180 350 800 
+    do 
+	if [ ! -d tmp$k ];then 
+	    mkdir tmp$k
+	fi
+	cd tmp$k
+	ln -s ../CalcLH . 2> /dev/null
+	ln -s ../pyslha.py . 2> /dev/null
+	ln -s ../pythdmiii_bsgcontour.py . 2> /dev/null
+	ln -s ../py2hdmc.py . 2> /dev/null
+	ln -s ../pythdmiii.py . 2> /dev/null
+	ln -s ../thdmname.x . 2> /dev/null
+	setfalse pythdmiii_bsgcontour.py kkk.py
+	sed -r 's/'$i'=False/'$i'=True/' kkk.py >kkint.py 
+
+	sed -r 's/^(mHcg=)[0-9]+/\1'$j'/' kkint.py  > kk.py  
+	echo run $i $j... 
+	python kk.py > log$i$j &
+	k=$(($k+1))
+	cd ../
+    done
+done
+
+
+#echo -n "open pdfs? (y/n): "
+#read open
+#if [ "$open" = "y" ]; then
+#    acroread $(ls R[0-9][0-9][0-0]t*_c.pdf)
+#fi

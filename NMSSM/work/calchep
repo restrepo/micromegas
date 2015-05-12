@@ -6,7 +6,7 @@ EXTLIB=
 # ===============  below should work without user intervention, but ...  ====================== 
 lpath=`cd ..; pwd`
 
-CALCHEP=`cd ../../CalcHEP_src; pwd`
+CALCHEP=`cd ../../sources/micromegas/CalcHEP_src; pwd`
 SRC=`cd ../../sources; pwd`
 export CALCHEP
 

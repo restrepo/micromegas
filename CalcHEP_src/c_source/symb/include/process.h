@@ -12,11 +12,11 @@ typedef struct whohow
 
 typedef struct hadron
 {
-   char        name[8];
+   char        name[P_NAME_SIZE];
    shortstr    contents;
    int         pow;
-   int         parton[100];
-   int         polarized[100];
+   int         parton[1000];
+   int         polarized[1000];
 }  hadron;
 
 extern whohow     liminsp, LimQ;
@@ -31,5 +31,7 @@ extern int  enter(void);
 extern  hadron hadrons[MAXINOUT];
 
 extern int polarized(int p, int Prtcl);
+
+extern int ZWmax,ZWmin;
 
 #endif

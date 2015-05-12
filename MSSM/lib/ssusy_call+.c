@@ -17,3 +17,8 @@
 #define xxxEwsbMSSM  softSusyEwsbMSSM
 #define xxxewsbmssm_ softsusyewsbmssm_ 
 #include "pmssm.inc"
+
+#define xxxSUGRAnuhc  softSusySUGRAnuhc
+#define xxxSUGRAnuh   softSusySUGRAnuh
+#define xxxsugranuhs_  softSusysugranuh_
+#include "sugracHiggs.inc"

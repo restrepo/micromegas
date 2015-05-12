@@ -3,6 +3,7 @@
 
 #include"lnum.h"
 
+#define VAR_NAME_SIZE 12
 
 #define poly struct monom *
 typedef struct monom
@@ -27,7 +28,7 @@ typedef struct tensor_str * tensor;
 
 typedef struct  varinfo
 {
-   char  name[12];  
+   char  name[VAR_NAME_SIZE+6];  
    unsigned long maxdeg,  zerodeg;
    int  wordpos;
    int  num;

@@ -13,6 +13,7 @@ extern void sqdiagrmenu(void);
 extern void viewfeyndiag(int  del_mode);
 extern int  viewresults(void);
 extern void showheap(void);
+extern char* currentModelName(void);
 
 extern void f3_key_prog(int x);
 extern void f4_key_prog(int x);

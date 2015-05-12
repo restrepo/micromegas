@@ -1,4 +1,4 @@
-RH neutrino (RS-inspired)
+RH neutrino(RS-insp)
  Particles 
  Full  name  |A  |A+ | number |2*spin| mass |width |color|aux|>LaTex(A)<|>LaTeX(A+)   <|
 photon       |A  |A  |22      |2     |0     |0     |1    |G  |\gamma    |\gamma
@@ -16,15 +16,15 @@ s-quark      |s  |S  |3       |1     |Ms    |0     |3    |   |s         |\bar{s}
 t-quark      |t  |T  |6       |1     |Mtp   |wtp   |3    |   |t         |\bar{t}
 b-quark      |b  |B  |5       |1     |Mb    |0     |3    |   |b         |\bar{b}
 Higgs        |H  |H  |25      |0     |MH    |!wH   |1    |   |H         |H
-W-boson      |W+ |W- |24      |2     |MW    |wW    |1    |   |W^+       |W^-
-Z-boson      |Z  |Z  |23      |2     |MZ    |wZ    |1    |   |Z         |Z
+W-boson      |W+ |W- |24      |2     |MW    |!wW   |1    |   |W^+       |W^-
+Z-boson      |Z  |Z  |23      |2     |MZ    |!wZ   |1    |   |Z         |Z
 KK t_L       |tl |TL |101006  |1     |Mtl   |!wtl  |3    |2  |          |
 KK b_L       |bl |BL |101005  |1     |Mbl   |!wbl  |3    |   |          |
-LZP          |~n4|~N4|100000  |1     |MLZP  | wn4  |1    |   |          |
-KK b_R       |br |BR |102005  |1     |Mbr   |wbr   |3    |   |          |
-KK tau_R     |~ur|~UR|102015  |1     |Mur   | wur  |1    |-3 |          |
-KK tau_L     |~ul|~UL|101015  |1     |Mul   | wul  |1    |-3 |          |
-KK nu_L      |~n5|~N5|100016  |1     |Mn5   | wn5  |1    |   |          |
+LZP          |~n4|~N4|100000  |1     |MLZP  | 0    |1    |   |          |
+KK b_R       |br |BR |102005  |1     |Mbr   |!wbr  |3    |   |          |
+KK tau_R     |~ur|~UR|102015  |1     |Mur   |!wur  |1    |-3 |          |
+KK tau_L     |~ul|~UL|101015  |1     |Mul   |!wul  |1    |-3 |          |
+KK nu_L      |~n5|~N5|100016  |1     |Mn5   |!wn5  |1    |   |          |
 KK Zp-boson  |Zp |Zp |100023  |2     |MZp   |!wZp  |1    |   |Z'        |
 KK Wp-boson  |Y+ |Y- |100024  |2     |MWp   |!wWp  |1    |   |W'^+      |W'^-
 ========================================================================================

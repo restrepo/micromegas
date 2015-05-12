@@ -8,6 +8,8 @@
 #include<stdio.h>
 #include<stdarg.h>
 
+#define alfEMZ  0.00781806
+
 static double findX0(int NX,...)
 {
    double X[20],Y[20],Xav,dX;
@@ -51,7 +53,7 @@ int sugraLesH(char *fname,  double tb, double gMG1,double gMG2,double gMG3,
    fprintf(f,"Block MODSEL                 # Select model\n"   
            " 1    1                      # sugra\n"
            "Block SMINPUTS               # Standard Model inputs\n");
-   fprintf(f," 1   %.8E       # alpha_em^(-1)(MZ) SM MSbar\n",1/findValW("alfEMZ"));
+   fprintf(f," 1   %.8E       # alpha_em^(-1)(MZ) SM MSbar\n",1/alfEMZ);
    fprintf(f," 2   %.8E       # G_Fermi \n",1.16637E-5); 
    fprintf(f," 3   %.8E       # alpha_s(MZ) SM MSbar\n",findValW("alfSMZ"));
    fprintf(f," 5   %.8E       # mb(mb) SM MSbar\n", findValW("MbMb"));
@@ -119,7 +121,7 @@ int amsbLesH(char * fname, double m0,double m32, double  tb, int  sgn)
    fprintf(f,"Block MODSEL                 # Select model\n"
              " 1    3                      # amsb\n"
              "Block SMINPUTS               # Standard Model inputs\n");
-   fprintf(f," 1   %.8E       # alpha_em^(-1)(MZ) SM MSbar\n",1/findValW("alfEMZ"));
+   fprintf(f," 1   %.8E       # alpha_em^(-1)(MZ) SM MSbar\n",1/alfEMZ);
    fprintf(f," 2   %.8E       # G_Fermi \n",1.16637E-5);
    fprintf(f," 3   %.8E       # alpha_s(MZ) SM MSbar\n",findValW("alfSMZ"));
    fprintf(f," 5   %.8E       # mb(mb) SM MSbar\n", findValW("MbMb"));
@@ -142,7 +144,7 @@ int gmsbLesH(char *fname, double L, double Mmess, double tb, int sgn,int  N5, do
    fprintf(f,"Block MODSEL                 # Select model\n"
              " 1    3                      # gmsb\n"
              "Block SMINPUTS               # Standard Model inputs\n");
-   fprintf(f," 1   %.8E       # alpha_em^(-1)(MZ) SM MSbar\n",1/findValW("alfEMZ"));
+   fprintf(f," 1   %.8E       # alpha_em^(-1)(MZ) SM MSbar\n",1/alfEMZ);
    fprintf(f," 2   %.8E       # G_Fermi \n",1.16637E-5);
    fprintf(f," 3   %.8E       # alpha_s(MZ) SM MSbar\n",findValW("alfSMZ"));
    fprintf(f," 5   %.8E       # mb(mb) SM MSbar\n", findValW("MbMb"));
@@ -170,7 +172,7 @@ int EWSBLesH(char * fname, double tb, double MG1, double MG2, double MG3, double
    fprintf(f,"Block MODSEL                 # Select model\n"   
            " 1    0                        # Low energy MSSM\n"
            "Block SMINPUTS               # Standard Model inputs\n");
-   fprintf(f," 1   %.8E       # alpha_em^(-1)(MZ) SM MSbar\n",1/findValW("alfEMZ"));
+   fprintf(f," 1   %.8E       # alpha_em^(-1)(MZ) SM MSbar\n",1/alfEMZ);
    fprintf(f," 2   %.8E       # G_Fermi \n",1.16637E-5); 
    fprintf(f," 3   %.8E       # alpha_s(MZ) SM MSbar\n",findValW("alfSMZ"));
    fprintf(f," 5   %.8E       # mb(mb) SM MSbar\n", findValW("MbMb"));
@@ -210,5 +212,79 @@ int EWSBLesH(char * fname, double tb, double MG1, double MG2, double MG3, double
    fprintf(f," 48  %.8E      # Md2\n",Md2); 
    fprintf(f," 49  %.8E      # Md3\n",Md3);
    fclose(f);
+   return 0;
+}
+
+int sugraHiggsLesH(char *fname,  double tb, double gMG1,double gMG2,double gMG3,
+    double gAl, double gAt, double gAb, double gMl2,double gMl3,double gMr2,double gMr3,
+    double gMq2,double gMq3,double gMu2,double gMu3,double gMd2,double gMd3,double mu,double MA) 
+{  double m0,mh,a0, m0_,mh_,a0_; 
+   double c=1.E-8;
+   FILE*  f=fopen(fname,"w");
+   if(f==NULL) return -1;
+   
+   fprintf(f,"Block MODSEL                 # Select model\n"   
+           " 1    1                      # sugra\n"
+           "Block SMINPUTS               # Standard Model inputs\n");
+   fprintf(f," 1   %.8E       # alpha_em^(-1)(MZ) SM MSbar\n",1/alfEMZ);
+   fprintf(f," 2   %.8E       # G_Fermi \n",1.16637E-5); 
+   fprintf(f," 3   %.8E       # alpha_s(MZ) SM MSbar\n",findValW("alfSMZ"));
+   fprintf(f," 5   %.8E       # mb(mb) SM MSbar\n", findValW("MbMb"));
+   fprintf(f," 6   %.8E       # mtop(pole)\n",      findValW("Mtp"));
+   fprintf(f," 7   %.8E       #  Mtau     \n",      findValW("Ml"));
+   fprintf(f,"Block MINPAR                 # Input parameters\n");
+   
+   a0=findX0(3,gAl, gAt, gAb);
+   mh=findX0(3,gMG1,gMG2,gMG3); 
+   m0=findX0(15,gMl2,gMl2,gMl3,gMr2,gMr2,gMr3,gMq2,gMq2,gMq3,gMu2,gMu2,gMu3,gMd2,gMd2,gMd3);
+   if(m0<0) m0=-m0;
+   
+   a0_=fabs(a0)*c;
+   m0_=fabs(m0)*c;
+   mh_=fabs(mh)*c;    
+   
+   fprintf(f," 1   %.8E       # m0\n",       m0); 
+   fprintf(f," 2   %.8E       # m1/2\n",     mh);   
+   fprintf(f," 3   %.8E       # tanb\n",     tb);
+//   fprintf(f," 4   %d     # sign(mu)\n", mu>0? 1:-1);
+   fprintf(f," 5   %.8E       # A0\n",       a0);
+
+
+   fprintf(f,"Block EXTPAR\n");
+
+   fprintf(f,"# GUT parameters\n");
+   if(fabs(mh-gMG1)>mh_)  fprintf(f," 1   %.8E      # MG1\n",  gMG1);
+   if(fabs(mh-gMG2)>mh_)  fprintf(f," 2   %.8E      # MG2\n",  gMG2);
+   if(fabs(mh-gMG3)>mh_)  fprintf(f," 3   %.8E      # MG3\n",  gMG3);
+
+   if(fabs(a0-gAt)>a0_)   fprintf(f," 11  %.8E      # At \n",  gAt);
+   if(fabs(a0-gAb)>a0_)   fprintf(f," 12  %.8E      # Ab \n",  gAb);
+   if(fabs(a0-gAl)>a0_)   fprintf(f," 13  %.8E      # Al\n",   gAl);
+   if(fabs(m0-gMl2)>m0_) {fprintf(f," 31  %.8E      # Ml1\n",  gMl2);
+                          fprintf(f," 32  %.8E      # Ml2\n",  gMl2);}
+   if(fabs(m0-gMl3)>m0_)  fprintf(f," 33  %.8E      # Ml3\n",  gMl3);
+   if(fabs(m0-gMr2)>m0_) {fprintf(f," 34  %.8E      # MR1\n",  gMr2);
+                          fprintf(f," 35  %.8E      # MR2\n",  gMr2);}
+   if(fabs(m0-gMr3)>m0_)  fprintf(f," 36  %.8E      # MR3\n",  gMr3);
+
+   if(fabs(m0-gMq2)>m0_) {fprintf(f," 41  %.8E      # Mq1\n",  gMq2);
+                          fprintf(f," 42  %.8E      # Mq2\n",  gMq2);}
+   if(fabs(m0-gMq3)>m0_)  fprintf(f," 43  %.8E      # Mq3\n",  gMq3);
+   if(fabs(m0-gMu2)>m0_) {fprintf(f," 44  %.8E      # Mu1\n",  gMu2);
+                          fprintf(f," 45  %.8E      # Mu2\n",  gMu2);}
+   if(fabs(m0-gMu3)>m0_)  fprintf(f," 46  %.8E      # Mu3\n",  gMu3);
+   if(fabs(m0-gMd2)>m0_) {fprintf(f," 47  %.8E      # Md1\n",  gMd2);
+                          fprintf(f," 48  %.8E      # Md2\n",  gMd2);}
+   if(fabs(m0-gMd3)>m0_)  fprintf(f," 49  %.8E      # Md3\n",  gMd3);
+   fprintf(f,"# EWSB  parameters\n");
+   
+//   fprintf(f," 0   -1       #  EWSB \n"); 
+   fprintf(f," 23  %.8E      # mu\n",  mu);
+   fprintf(f," 26  %.8E      # MA\n",  MA);
+   
+//   fprintf(f,"Block QEXTPAR\n");
+//   fprintf(f," 23  -1      # mu\n");
+
+   fclose(f); 
    return 0;
 }

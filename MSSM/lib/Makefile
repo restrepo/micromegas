@@ -1,10 +1,10 @@
 
-SPHENO   = $(HOME)/Packages/SPheno3.1.3/bin
-SOFTSUSY = $(HOME)/Packages/softsusy-3.1.6
-ISAJET   = $(HOME)/Packages/Isajet
+SPHENO   = $(CURDIR)/../../Packages/SPheno-3.3.4/bin
+SOFTSUSY = $(CURDIR)/../../Packages/softsusy-3.5.1
+ISAJET   = $(CURDIR)/../../Packages/Isajet
 CERNLIB  = $(HOME)/Packages/cern/pro/lib
 #======================
-SUSPECT=$(CURDIR)
+SUSPECT= $(CURDIR)/../../Packages/SuSpect_2.41
 
 #read compiler options ..
 
@@ -29,7 +29,7 @@ else
 endif
 
 suspect.exe: $(SuSpectSRC) 
-	$(MAKE) -C SuSpect
+	$(MAKE) -C $(SUSPECT)
 		
 aLib.a(suspect_call.o):suspect_path.h
 aLib.a(isasugra_call.o):isajet_path.h
@@ -56,4 +56,4 @@ isajet_slha: isasugra_slha.F isajetLesH.c
 
 clean: 
 	rm -f *.o *.a  *.so *.dll *.exe *_path.h isajet_slha so_locations 
-	$(MAKE) -C SuSpect  clean
+	$(MAKE) -C nngg     clean

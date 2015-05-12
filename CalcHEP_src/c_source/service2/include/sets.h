@@ -20,5 +20,6 @@ extern int  set_eq(set a,set b);
 
 extern void set_add1(set *a, int k);
 extern void set_del1(set *a, int k);
+extern void set_print(set s);
 
 #endif

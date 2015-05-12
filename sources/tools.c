@@ -1,46 +1,6 @@
 #include"micromegas.h"
 #include"micromegas_aux.h"
-
-
-double gauss( double (*func)(double),double a,double b, int n)
-{
-  double X2[2]={2.113249E-01,7.886751E-01 };
-  double F2[2]={5.000000E-01,5.000000E-01 };
-  double X3[3]={1.127017E-01,5.000000E-01 ,8.872983E-01 };
-  double F3[3]={2.777778E-01,4.444444E-01 ,2.777778E-01 };
-  double X4[4]={6.943185E-02,3.300095E-01 ,6.699905E-01 ,9.305682E-01 };
-  double F4[4]={1.739274E-01,3.260726E-01 ,3.260726E-01 ,1.739274E-01 };
-  double X5[5]={4.691008E-02,2.307653E-01 ,5.000000E-01 ,7.692347E-01 ,9.530899E-01 };
-  double F5[5]={1.184634E-01,2.393143E-01 ,2.844445E-01 ,2.393143E-01 ,1.184634E-01 };
-  double X6[6]={3.376523E-02,1.693953E-01 ,3.806904E-01 ,6.193096E-01 ,8.306047E-01 ,9.662348E-01 };
-  double F6[6]={8.566223E-02,1.803808E-01 ,2.339570E-01 ,2.339570E-01 ,1.803808E-01 ,8.566225E-02 };
-  double X7[7]={2.544604E-02,1.292344E-01 ,2.970774E-01 ,5.000000E-01 ,7.029226E-01 ,8.707656E-01 ,9.745540E-01 };
-  double F7[7]={6.474248E-02,1.398527E-01 ,1.909150E-01 ,2.089796E-01 ,1.909150E-01 ,1.398527E-01 ,6.474248E-02 };
-        
-        
-        
-  double ans=0;
- 
-  switch(n)
-  {  int i;
-    case 1: ans=(b-a)*func((a+b)/2);  break;
-    case 2:
-      for(i=0;i<n;i++) ans+=F2[i]*func(a+ (b-a)*X2[i]); break;
-    case 3: 
-      for(i=0;i<n;i++) ans+=F3[i]*func(a+ (b-a)*X3[i]); break;
-    case 4:
-      for(i=0;i<n;i++) ans+=F4[i]*func(a+ (b-a)*X4[i]); break;
-    case 5:
-      for(i=0;i<n;i++) ans+=F5[i]*func(a+ (b-a)*X5[i]); break;
-    case 6:
-      for(i=0;i<n;i++) ans+=F6[i]*func(a+ (b-a)*X6[i]); break;
-    case 7:
-      for(i=0;i<n;i++) ans+=F7[i]*func(a+ (b-a)*X7[i]); break;      
-    default: 
-      return 0;
-  }
-  return ans*(b-a);                       
- }
+#include"../CalcHEP_src/c_source/ntools/include/vegas.h"
 
 /* Numerical recipes codes */
 
@@ -82,7 +42,7 @@ static int rkqc(double * y, double * dydx, int n, double * x, double htry,
    for (;;) 
    {  double hh= 0.5*h, errmax=0;
       rk4(ysav,dysav,n,xsav,hh,ytemp,derivs);
-      *x=xsav+hh;
+      *x=xsav+hh; 
       (*derivs)(*x,ytemp,dydx);
       rk4(ytemp,dydx,n,*x,hh,y,derivs);
       *x=xsav+h;
@@ -117,7 +77,7 @@ static int rkqc(double * y, double * dydx, int n, double * x, double htry,
    return 0;
 }
 
-#define MAXSTP 10000
+#define MAXSTP 10000000
 #define TINY 1.0e-30
 
 
@@ -268,14 +228,38 @@ double K1pol(double x)
 }
 
 static double  polintN(double x, int n,  double *xa, double *ya)
-{  double z[10];
+{  double z[20];
    int i,m;
-                                                                                
    for(i=0;i<n;i++) z[i]=ya[i];
-                                                                                
    for(m=1;m<n;m++) for(i=0;i<n-m;i++)
    z[i]=(z[i]*(xa[i+m]-x) - z[i+1]*(xa[i]-x))/(xa[i+m]-xa[i]);
    return z[0];
+}
+
+static int  leftXN(int n,int dim,  double * xa, double x)
+{  int k1,k2,k3;
+
+   k1=n/2;                         
+   k2=dim-(n+1)/2-1;
+
+   if(xa[0]< xa[dim-1])
+   {              
+     if(x<=xa[k1]) return 0;
+     if(x>=xa[k2]) return dim-n;                   
+     while(k2-k1>1)                
+     { k3=(k1+k2)/2;               
+       if(xa[k3]>x)k2=k3; else k1=k3;
+     }
+   } else 
+   {  
+     if(x>=xa[k1]) return 0;
+     if(x<=xa[k2]) return dim-n;
+     while(k2-k1>1)                
+     { k3=(k1+k2)/2;               
+       if(xa[k3]<x)k2=k3; else k1=k3;
+     }
+   }
+   return k1+1-n/2;
 }
 
 static int  leftX(int dim, double * xa, double x)
@@ -295,30 +279,38 @@ static int  leftX(int dim, double * xa, double x)
 }
 
 
-double polint3(double x, int n,  double *xa, double *ya)
-{ int shift=leftX(n, xa, x);
-   return polintN(x,3,xa+shift, ya+shift);
+double polint2(double x, int n,  double *xa, double *ya)
+{ int shift=leftXN(2,n, xa, x);
+   return polintN(x,2,xa+shift, ya+shift);
 }
 
-static int  leftX4(int dim, double * xa, double x)
-{  int k1,k2,k3;
-                                                                                
-   if(x<=xa[1]) return 0;
-   if(x>=xa[dim-4]) return dim-4;
-                                                                                
-   k1=1;
-   k2=dim-4;
-                                                                                
-   while(k2-k1>1)
-   { k3=(k1+k2)/2;
-     if(xa[k3]>x)k2=k3; else k1=k3;
-   }
-   return k1-1;
+double polint2Exp(double x, int n,  double *xa, double *ya)
+{ int shift=leftXN(2,n, xa, x);
+  double  x1=xa[shift], x2=xa[shift+1],y1=ya[shift],y2=ya[shift+1];
+  double alpha= (x-x1)/(x2-x1);
+  
+  if(y1>0 && y2>0) return  pow(y1,1-alpha)*pow(y2,alpha);
+  return  y1*(1-alpha)+y2*alpha;  
+//   return polintN(x,2,xa+shift, ya+shift);
+
+}
+
+
+
+
+double polint3(double x, int n,  double *xa, double *ya)
+{ int shift=leftXN(3,n, xa, x);
+  double ar;
+  ar=polintN(x,3,xa+shift, ya+shift);
+return ar;  
+  if(shift==0) return ar;
+  shift--;
+  return 0.5*( ar+ polintN(x,3,xa+shift, ya+shift));
 }
 
 
 double polint4(double x, int n,  double *xa, double *ya)
-{ int shift=leftX4(n, xa, x);
+{ int shift=leftXN(4,n, xa, x);
    return polintN(x,4,xa+shift, ya+shift);
 }
 
@@ -336,28 +328,23 @@ static void ins(int k,  double x, double y, int*N,double *xa,double *ya)
    xa[k]=x;ya[k]=y; (*N)++;        
 }
 
-void printInterpolation(int N,double *xa, double * ya)
-{ int i; for(i=0;i<N;i++) printf("{ %E %E}\n",xa[i],ya[i]);
-  printf("\n");
-}
-
-int buildInterpolation( double (*Fun)(double), double x1,double x2, double eps,
-int * N_, double ** xa_, double **ya_)
+int buildInterpolation(double (*Fun)(double), double x1,double x2, double eps,double delt, int*N_, double**xa_, double**ya_)
 {  int i,cnt,N,k;
-   double *xa,*ya, M;
-      
+   double *xa,*ya,dx0;
+   dx0=fabs(x2-x1)*delt;   
    N=5;
    xa=malloc(N*sizeof(double));
    ya=malloc(N*sizeof(double));
    
    for(i=0;i<5;i++) {xa[i]=x1+ (x2-x1)/4*i; ya[i]=Fun(xa[i]);}  
-   for(M=0,i=0;i<5;i++) if(M<fabs(ya[i])) M=fabs(ya[i]);
-
 
    for(cnt=1;cnt;)
    { cnt=0; 
      for(i=0; i<N; i++)
-     {  double x=xa[i], y=ya[i], yy;      
+     {  double x=xa[i], y=ya[i], yy;  
+        if(i<N-1 && fabs(xa[i+1]-xa[i]) < dx0) continue; else
+        if(i>0   && fabs(xa[i]-xa[i-1]) < dx0) continue;
+         
         del(i,&N,xa,ya);
         yy=polint4(x, N, xa, ya);
         ins(i, x, y, &N,xa, ya);
@@ -366,17 +353,16 @@ int * N_, double ** xa_, double **ya_)
            cnt=1;
            xa=realloc(xa,sizeof(double)*(N+1));
            ya=realloc(ya,sizeof(double)*(N+1));
-           if(i==0)       { k=1;   x=(xa[0]+xa[1])/2;  }
-           else if(i==N-1){ k=N-1; x=(xa[N-2]+xa[N-1])/2; }  
-           else  if(fabs(xa[i-1]-xa[i])< fabs(xa[i]-xa[i+1]))
-           {  k=i+1; x=(xa[i]+xa[i+1])/2.;}
-           else {k=i; x=(xa[i-1]+xa[i])/2.;}
+                if(i==0)   k=1;  
+           else if(i==N-1) k=N-1;  
+           else if(fabs(xa[i-1]-xa[i])< fabs(xa[i]-xa[i+1])) k=i+1;
+           else  k=i;
+           
+           x=(xa[k-1]+xa[k])/2;
            y=Fun(x); 
            ins(k,x,y,&N,xa,ya);
-           y=fabs(y); if(M<y)M=y;
            i++;     
-        }
-         
+        }  
      }
    }   
    *N_=N;
@@ -447,11 +433,183 @@ double MaxGapLim(double x, double mu)
   return C0;   
 }
 
-/*
-int main(void)
-{ double x;
-  for(x=0.00001; x<1; x*=1.5)
-  printf("x=%e bessk2=%e\n",x,  bessk2(x)*x*x); 
 
+#define BUFFSIZE 500
+
+int readTable(char * fileName, int *Ncolumn, double **tab)
+{  FILE *f;
+   char buff[BUFFSIZE];   
+   int nRec=0,nCol=0,nCom=0;
+
+   f=fopen(fileName,"r");
+   
+   
+   if(!f) return 0;
+
+   while(fgets(buff,BUFFSIZE,f))
+   { int i;
+     char*ch;
+     for(i=0; buff[i] && buff[i]==' ';i++);
+     if(buff[i]==0 || buff[i]=='#') {nCom++; continue;}
+     ch=strtok(buff," \n");
+     if(ch[0]=='#' || ch[0]==0) continue;
+     for(i=0;ch;i++,ch=strtok(NULL," \n"))
+     { 
+       if(nRec==0) {tab[i]=malloc(sizeof(double)); nCol++;} 
+       else
+       { if(i==nCol){fclose(f); for(i=0;i<nCol;i++) free(tab[i]);  return -(nRec+1+nCom);}
+         tab[i]=realloc(tab[i],(nRec+1)*sizeof(double));
+       }
+       if(1!=sscanf(ch,"%lf",tab[i]+nRec)) break;
+     } 
+     nRec++;
+   }
+   fclose(f);
+   if(Ncolumn) *Ncolumn=nCol;
+   return nRec;
 }
-*/
+
+static double amotry(double *p, double *y, int ndim,
+	     double (*f)(double *), int ilo, double fac)
+{
+   int i,j;
+   double  ytry, fac1=(1.0-fac)/ndim;
+   double * p_buff=p+(ndim+1)*ndim;
+   double * p_ilo =p+ilo*ndim;
+   
+   for(j=0;j<ndim;j++) p_buff[j]=p_ilo[j]*fac;
+   for(i=0;i<=ndim;i++)  if(i!=ilo) 
+     {double *p_i=p+i*ndim;  for(j=0;j<ndim;j++) p_buff[j] +=p_i[j]*fac1;} 
+   ytry=(*f)(p_buff);
+   
+   if (ytry > y[ilo]) 
+   {  for(j=0;j<ndim;j++) p_ilo[j]=p_buff[j];
+      y[ilo]=ytry;
+   }
+//printf("amotry returns fac=%f %E\n",fac,  ytry);   
+   return ytry;
+}
+
+double amoeba(double *p, double * y, int ndim, double (*f)(double *), 
+                                                    double eps, int *nCalls)
+{
+   int i,ilo,ihi,inlo,j;
+   double ysave,ytry;
+
+   for (;;) 
+   {
+      ihi=0;									     
+      ilo = y[0]<y[1] ? (inlo=1,0) : (inlo=0,1);				     
+      for (i=0;i<=ndim;i++)							     
+      {										     
+     	 if (y[i] >= y[ihi]) ihi=i;
+     	 if (y[i] < y[ilo]) { inlo=ilo; ilo=i; } 
+     	 else if (y[i] < y[inlo] && i != ilo) inlo=i;
+      }										     
+
+//printf("nCall=%d  ndim=%E\n",*nCalls,y[ilo]);   
+     										     
+      if((*nCalls)<=0||2*(y[ihi]-y[ilo])/(fabs(y[ilo])+fabs(y[ihi]))<eps)break;
+     										     
+      ytry=amotry(p,y,ndim,f,ilo,-1.0); (*nCalls)--;				     
+      if (ytry >= y[ihi]) {ytry=amotry(p,y,ndim,f,ilo,2.); (*nCalls)--;}	     
+      else if (ytry <= y[inlo])							     
+      {										     
+         ysave=y[ilo];								     
+     	 ytry=amotry(p,y,ndim,f,ilo,0.5);  (*nCalls)--;
+     	 if (ytry <= ysave)
+     	 {  
+     	    for (i=0;i<=ndim;i++)
+     	    {  double * p_ihi=p+ihi*ndim;
+               if (i != ihi)
+     	       {  double * p_i=p+i*ndim;
+     		  for(j=0;j<ndim;j++) p_i[j]=0.5*(p_i[j]+p_ihi[j]);
+     		  y[i]=(*f)(p_i);
+     	       }
+            }
+/*printf("srink\n");            */
+     	    (*nCalls) -= ndim;
+         }									     
+      }										     
+   }
+   return y[ihi];
+}
+/*========================== end of amoeba ================*/
+
+#define MAXSTEP 15
+double vegas_chain(int ndim, double (*Integrand)(double*, double),
+int N0, double Nfact, double eps,double * dI)   
+{ vegasGrid *vegPtr=NULL;
+  int k,l;
+  double ti[MAXSTEP],dti[MAXSTEP];
+  double ii,dii,chi2;
+
+  vegPtr=vegas_init(ndim,50);
+  
+  for(k=0;k<MAXSTEP;k++)
+  { double s0=0,s1=0,s2=0; 
+    vegas_int(vegPtr, N0 , 1.5, Integrand, ti+k, dti+k);
+    printf("ti=%E dti=%E\n",ti[k], dti[k]);
+    if(dti[k]==0) break;
+    for(l=k;l>=k/2;l--)
+    { s0+=1/(dti[l]*dti[l]);
+      s1+=ti[l]/(dti[l]*dti[l]);
+      s2+=ti[l]*ti[l]/(dti[l]*dti[l]);
+      if(l!=k)
+      { 
+        ii=s1/s0;
+        dii=1/sqrt(s0);
+        chi2=(s2-s1*s1/s0)/(k-l+1);
+        if(chi2> 1 )dii*=sqrt(chi2);
+        if(dii<eps*fabs(ii)) break;
+      }  
+    }
+    if(k && dii<eps*fabs(ii)) break;
+    N0*=Nfact;    
+  }
+  vegas_finish(vegPtr);
+  if(dI) *dI=dii;
+  return ii;
+}  
+
+void spline(double x[], double y[], int n, double y2[])
+{
+	int i,k;
+	double p,qn,sig,un,*u;
+
+	u=malloc(n*sizeof(double));
+	
+	y2[0]=u[0]=0.0;
+	for (i=1;i<n-1;i++) 
+	{
+		sig=(x[i]-x[i-1])/(x[i+1]-x[i-1]);
+		p=sig*y2[i-1]+2;
+		y2[i]=(sig-1)/p;
+		u[i]=(y[i+1]-y[i])/(x[i+1]-x[i]) - (y[i]-y[i-1])/(x[i]-x[i-1]);
+		u[i]=(6*u[i]/(x[i+1]-x[i-1])-sig*u[i-1])/p;
+	}
+	
+	qn=un=0;
+	y2[n-1]=(un-qn*u[n-2])/(qn*y2[n-2]+1);
+	for (k=n-2;k>=0;k--) y2[k]=y2[k]*y2[k+1]+u[k];
+	free(u);
+}
+
+void splint(double xa[], double ya[], double y2a[], int n, double x, double *y)
+{
+	int klo,khi,k;
+	double h,b,a;
+
+        if(xa[0]<xa[n-1]) {klo=0;  khi=n-1;} 
+        else              {klo=n-1;khi=0;  }
+	while (abs(khi-klo) > 1) {
+		k=(khi+klo) >> 1;
+		if (xa[k] > x) khi=k;
+		else klo=k;
+	}   
+	h=xa[khi]-xa[klo];
+	if (h == 0.0) printf("Bad xa input to routine splint");
+	a=(xa[khi]-x)/h;
+	b=(x-xa[klo])/h;
+	*y=a*ya[klo]+b*ya[khi]+((a*a*a-a)*y2a[klo]+(b*b*b-b)*y2a[khi])*(h*h)/6.0;
+}

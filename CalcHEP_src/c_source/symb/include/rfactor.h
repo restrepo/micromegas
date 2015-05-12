@@ -1,12 +1,13 @@
 #ifndef __RFACTOR_
 #define __RFACTOR_
 #include"lnum.h"
+#include"procvar.h"
 
 #define vmptr struct vmrec * 
 typedef struct vmrec 
    { 
       vmptr        next; 
-      char         name[7];
+      char         name[VAR_NAME_SIZE_EXT];
       unsigned         deg;
    }  vmrec;
 #undef vmptr

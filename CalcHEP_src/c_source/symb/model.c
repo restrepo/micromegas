@@ -69,7 +69,7 @@ int zeromass(int p)
 
 int photonp(int p)
 { 
-   return (vectorp(p) && zeromass(p) || pseudop(p));
+   return ((vectorp(p) && zeromass(p)) || pseudop(p));
 } 
 
 int ghostp(int p)

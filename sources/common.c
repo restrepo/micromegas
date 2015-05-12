@@ -4,9 +4,9 @@ MOcommonSTR mocommon_=
 {{
   0        , /* 0      null         */
   100      , /* 1      Mcdm         */
-  0.03302  , /* 2      ScalarFFPd   */
-  0.02348  , /* 3      ScalarFFPu   */ 
-  0.2594   , /* 4      ScalarFFPs   */
+  0.0191   , /* 2      ScalarFFPd   */
+  0.0153   , /* 3      ScalarFFPu   */ 
+  0.0447   , /* 4      ScalarFFPs   */
   -0.427   , /* 5      pVectorFFPd  */
    0.842   , /* 6      pVectorFFPu  */
   -0.085   , /* 7      pVectorFFPs  */
@@ -14,9 +14,9 @@ MOcommonSTR mocommon_=
    0.84    , /* 9      SigmaFFPu    */
    -0.046  , /* 10     SigmaFFPs    */
 
-  0.04241  , /* 11     ScalarFFNd   */
-  0.01823  , /* 12     ScalarFFNu   */
-  0.2594   , /* 13     ScalarFFNs   */
+  0.0273   , /* 11     ScalarFFNd   */
+  0.0110   , /* 12     ScalarFFNu   */
+  0.0447   , /* 13     ScalarFFNs   */
   0.842    , /* 14     pVectorFFNd  */
   -0.427   , /* 15     pVectorFFNu  */
   -0.085   , /* 16     pVectorFFNs  */
@@ -27,7 +27,7 @@ MOcommonSTR mocommon_=
    -0.6    , /* 21     Fermi_b      */
    1.23    , /* 22     Fermi_c      */
    8.0     , /* 23     Rsun         */
-   0.3     , /* 24     rhoDM(Run)   */
+   0.3     , /* 24     rhoDM(Sun)   */
   225.2    , /* 25     Vearth       */ 
    0.0112  , /* 26     K_dif        */
    4       , /* 27     L_dif        */
@@ -36,7 +36,18 @@ MOcommonSTR mocommon_=
    12      , /* 30     Vc_dif       */
    20      , /* 31     Rdisk        */
    0       , /* 32     deltaY  (abandence asymmtry) */
-   0         /* 33     dmAsymm (log(dm/dm_bar)) */
+   0       , /* 33     dmAsymm (log(dm/dm_bar)) */
+   600     , /* 34     Vesc         */
+   220     , /* 35     Vrot         */
+   0       , /* 36     FracCDM2     */
+   100     , /* 37 Mcdm1            */
+   100     , /* 38 Mcd2             */ 
+   0.001   , /* 39 Tstatrt          */
+   0.001     /* 40 Tend             */
+//   225       /* 37    Vearth       */
 }};
+                              
+
+MoCommonCH mocommonch_;
 
 void forceug_(int * key) { ForceUG=*key;}

@@ -5,7 +5,6 @@
 #include "crt_util.h"
 int err_code=0;
 
-
 void  errormessage(void)
 {
    switch(err_code)

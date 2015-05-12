@@ -1,0 +1,85 @@
+<html>
+<head>
+	<title>CalcHEP Batch Help</title>
+	<link rel='stylesheet' href='../style.css' type='text/css'></link>
+</head>
+<body>
+	<div id='links'>
+		<ul>
+			<li><a href='../index.html'>Home</a></li>
+			<li><a href='../symbolic.html'>Symbolic Results</a></li>
+			<li><a href='../numerical.html'>Numerical Results</a></li>
+			<li><a href='../events.html'>Events Library</a></li>
+			<li><a href='../library.html'>Process Library</a></li>
+			<li><a href='index.html'>Help</a>
+				<ul>
+					<li><a href='batch_file.html'>Batch File</a><ul>
+						<li><a href='comment.html'>Comments</a></li>
+						<li><a href='model.html'>Model</a></li>
+						<li><a href='process.html'>Process</a></li>
+						<li><a href='pdf.html'>PDF</a></li>
+						<li><a href='momentum.html'>Momentum</a></li>
+						<li><a href='parameters.html'>Parameters</a></li>
+						<li><a href='runs.html'>Scans</a></li>
+						<li><a href='qcd.html'>QCD</a></li>
+                                                <li><a href='BW.html'>BW</a></li>
+						<li><a href='cuts.html'>Cuts</a></li>
+						<li><a href='kinematics.html'>Kinematics</a></li>
+						<li><a href='regularization.html'>Regularization</a></li>
+						<li><a href='distributions.html'>Distribution</a></li>
+						<li><a href='events.html'>Events</a></li>
+						<li><a href='parallelization.html'>Parallelization</a></lii>
+						<li><a href='vegas.html'>Vegas</a></li>
+						<li><a href='generator.html'>Generator</a></li>
+						<li><a href='example1.html'>Example 1</a></li>
+						<li><a href='example2.html'>Example 2</a></li>
+						<li><a href='example3.html'>Example 3</a></li>
+					</ul></li>
+					<li><a href='process_library.html'>Process Library</a></li>
+					<li><a href='event_library.html'>Event Library</a></li>
+				</ul>
+			</li>
+			<br>
+			<li>Thank you for using <a href='http://theory.sinp.msu.ru/~pukhov/calchep.html'>CalcHEP</a>!</li>
+			<li>Please cite <a href='http://inspirehep.net/record/1123804'>arXiv:1207.6082</a></li>
+		</ul>
+	</div>
+	<div id='help_main'>
+		<h1>QCD Help</h1>
+		<h3>QCD</h3>
+		<p>
+			The parameters of the QCD menu of the numerical session can be specified as in the following example:<br>
+			<table>
+				<tr><td>parton dist. alpha</td><td>:</td><td>ON</td></tr>
+				<tr><td>alpha(MZ)</td><td>:</td><td>0.118</td></tr>
+				<tr><td>alpha nf</td><td>:</td><td>5</td></tr>
+				<tr><td>alpha order</td><td>:</td><td>NLO</td></tr>
+				<tr><td>mb(mb)</td><td>:</td><td>4</td></tr>
+				<tr><td>Mtop(pole)</td><td>:</td><td>174</td></tr>
+				<tr><td>alpha Q</td><td>:</td><td>M45</td></tr>
+			</table>
+			The default values are the ones in CalcHEP itself.  Not all the keywords have to be included in the batch file.  It is sufficient to include the ones that need to be changed.  For example, if only the QCD scale needs to be changed, it can be specified as:<br>
+			<table>
+				<tr><td>alpha Q</td><td>:</td><td>Mt/2</td></tr>
+			</table>
+			The QCD scale can be specified in terms of the invariant mass of certain final state particles as in "Mij" which means that the QCD scale is taken to be the invariant mass of particles i and j.  Or, it can be specified as a formula in terms of the parameters of the model as in "Mt/2" which means half of the top quark mass.  When specifying the scale in terms of the invariant mass of final state particles, the numbers are taken from the way the processes are entered with the "Process" keyword.  So, if the process is specified as "p,p->j,l,n", "M45" means the invariant mass of the lepton and neutrino (l,n).  The batch script will take care of renumbering if the subprocesses have the final state particles in a different order.  It is also sometimes useful to use a different scale for different processes.  For example, suppose the two processes "p,p->j,l,n" and "p,p->j,j,l,n" are specified in the batch file, the scales could be specified as in this example:<br>
+			<table>
+				<tr><td>alpha Q</td><td>:1:</td><td>M45</td></tr>
+				<tr><td>alpha Q</td><td>:2:</td><td>M56</td></tr>
+			</table>
+			The number between the :: specifies which process to apply this scale and corresponds to the order in which the user specified the processes.  If more than one process is specified, but the same non default scale is desired for all of them, this can be specified as in:<br>
+			<table>
+				<tr><td>alpha Q</td><td>:</td><td>Mt/2</td></tr>
+			</table>
+			This specification will apply the same scale "Mt/2" to all processes.
+		</p>
+                <p>
+                        The key phrase "alpha Q" will apply the same scale to the couplings and to the parton distribution functions.  If, however, the user would like to apply different scales to the couplings and the parton distribution functions, he or she should use the key phrases "alpha Fact Q" for the parton distribution functions and "alpha Ren Q" for the renormalization scale for the couplings.  For example,
+                        <table>
+				<tr><td>alpha Fact Q</td><td>:</td><td>Mt/2</td></tr>
+				<tr><td>alpha Ren Q</td><td>:</td><td>MZ</td></tr>
+			</table>
+                        which specifies that the parton distribution scale should be half the top quark mass and the renormalization scale should be the Z boson mass.  Individual processes can be given different factorization and renormalization scales using the :N: notation (where N is the process).  The default is "M12".  If "alpha Q" is used in the batch file, it takes precedence over "alpha Fact Q" and "alpha Ren Q".  Either "alpha Q" should be used or "alpha Fact Q" and "alpha Ren Q", but not both.
+	</div>
+</body>
+</html>

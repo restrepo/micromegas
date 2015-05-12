@@ -1,11 +1,12 @@
-
 #include"interface.h"
-
 #include"subproc.h"
 #include"rw_sess.h"
 #include"kininpt.h"
 #include"alphas2.h"
 #include"runVegas.h"
+#include"dynamic_cs.h"
+
+#include "nType.h"
 
 int nin_int;
 int nout_int;
@@ -13,29 +14,27 @@ int nprc_int;
 int nvar_int;
 int nfunc_int;
 
-char * (*pinf_int)(int nsub, int nprtcl, double* pmass,long * num);
-long (*pinfAux_int)(int nsub, int nprtcl, int*spin2,int*color,int*neutral);
+char * (*pinf_int)(int nsub, int nprtcl, REAL * pmass,int * num);
+int (*pinfAux_int)(int nsub, int nprtcl, int*spin2,int*color,int*neutral);
 char ** polarized_int;
 char ** varName_int;
 
-double (*sqme_int)(int nsub, double * momenta, int * err);
+double (*sqme_int)(int nsub,double GG, REAL * momenta, int * err);
 int (*calcFunc_int)(void);
 double *BWrange_int;
 int *twidth_int, *gtwidth_int, *gswidth_int;
-double *va_int;
+REAL *va_int;
 
 void (*build_cb_int)(int nsub); 
 void (*destroy_cb_int)(void);    
 int *cb_pow_int;   
 int *cb_nc_int; 
 int ** cb_chains_int;
-double ** cb_coeff_int;
+REAL ** cb_coeff_int;
 
 #include"../../include/num_out.h"
 
 char * hiddenf=NULL;
-
-extern double aWidth(char *);
 
 void link_process( CalcHEP_interface * interface)
 { int i;
@@ -73,7 +72,8 @@ void link_process( CalcHEP_interface * interface)
   wrtprc_();
 
   stdkin_();
-  i_qcd();
+  i_alphaQCD();
+  i_Scales();
   nSess = 1;
 
   integral.n_it=0;

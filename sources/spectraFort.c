@@ -3,12 +3,12 @@
 #include"micromegas_f.h"
 
 
-double hprofilestd_(double *r) {return hProfileABG(*r);}
+double hprofilezhao_(double *r) {return hProfileZhao(*r);}
 double noclamps_(double *r) {return 1;}
 
 
-void setprofilestd_(double *alpha, double*beta, double*gamma, double*rc)
-{ setProfileABG(*alpha, * beta, *gamma, *rc );} 
+void setprofilezhao_(double *alpha, double*beta, double*gamma, double*rc)
+{ setProfileZhao(*alpha, * beta, *gamma, *rc );} 
 
 double hprofileeinasto(double * r){ return hProfileEinasto(*r);}
 void  setprofileeinasto_(double *alpha){ setProfileEinasto(*alpha);}
@@ -19,22 +19,32 @@ static double dFdC1(double x) {return (*dFdF1)(&x);}
 static double (*dFdF2)(double *);
 static double dFdC2(double x) {return (*dFdF2)(&x);}
 
-void sethaloprofiles_(double(*hProfile)(double*),double(*cProfile)(double*))
+void sethaloprofile_(double(*hProfile)(double*))
 {
   dFdF1=hProfile;
-  dFdF2=cProfile;
-  setHaloProfiles(dFdC1,dFdC2); 
+  setHaloProfile(dFdC1); 
 }
-double calcspectrum_(int*key, double *Sg, double *Se, double *Sp, double *Sne, double *Snm,double *Snl , int *err)
+
+void setrhoclumps_(double(*cProfile)(double*))
+{
+  dFdF2=cProfile;
+  setRhoClumps(dFdC2); 
+}
+
+void setclumpconst_(double*f,double*rho) {  setClumpConst(*f,*rho); }
+
+
+double calcspectrum_(int*key, double *Sg, double *Se, double *Sp, double *Sne, double *Snm,double *Snl , int *err,int len)
 {  
   double *Sg_=NULL, *Se_=NULL, *Sp_=NULL, *Sne_=NULL, *Snm_=NULL, *Snl_=NULL;
+  
   if(Sg !=mocommon_.par) Sg_=Sg;
   if(Se !=mocommon_.par) Se_=Se;
   if(Sp !=mocommon_.par) Sp_=Sp;
   if(Sne!=mocommon_.par) Sne_=Sne;
   if(Snm!=mocommon_.par) Snm_=Snm;
   if(Snl!=mocommon_.par) Snl_=Snl;
-   
+
   return calcSpectrum(*key,Sg_, Se_, Sp_, Sne_, Snm_, Snl_ ,err); 
 }
 
@@ -46,11 +56,11 @@ double zinterp_(double*x, double*tab) {  return zInterp(*x, tab);}
 
 double spectdnde_(double *E, double *tab){ return SpectdNdE(*E, tab); }   
  
-int displayspectrum_(double*tab, char*fmess,double *Emin,double *Emax,int*EU,int len)
+int displayspectrum_(double*tab, char*fmess,double *Emin,double *Emax,int len)
 {
    char cmess[200];
    fName2c(fmess,cmess, len);
-   return  displaySpectrum(tab, cmess,*Emin,*Emax,*EU);
+   return  displaySpectrum(tab, cmess,*Emin,*Emax);
 } 
 
 
@@ -72,8 +82,13 @@ void pbarfluxtab_(double* Emin, double*sigmav, double *tab,double *tabOut)
 extern void  solarmodulation_(double *PHI, double *mass, double * inTab, double * outTab)
 {   solarModulation(*PHI, *mass, inTab, outTab);}
 
-int basicspectra_(int *pdgN, int *outN, double * tab)
-{ return basicSpectra(*pdgN, *outN, tab);}
+int basicspectra_(double *Mass, int *pdgN, int *outN, double * tab)
+{ return basicSpectra(*Mass,*pdgN, *outN, tab);}
+
+int basicnuspectra_(int*forSun, double *Mass, int *pdgN, int *outN, double * tab)
+{ return basicNuSpectra(*forSun,*Mass, *pdgN, *outN, tab);}
+
+
 
 static double (*dFdF_displayFunc)(double *);
 static double dFdC_displayFunc(double x) {return (*dFdF_displayFunc)(&x);}

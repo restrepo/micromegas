@@ -1,0 +1,144 @@
+% scenarios:  
+%      micro - generic MSSM  for micrOMEGAs, 
+%      EWSB  - slha  EWSB for calchep,
+%      SUGRA - slha SUGRA for calchep,
+%      SLHA  - slha input for calchep,
+%      Tree  - tree level EWSM MSSM
+
+keys scenario=SLHA.  % micro EWSB  SUGRA SLHA  Tree
+
+%  default keys:
+keys gauge_fixing=Feynman.  % if not, then unitary
+
+% keys defined in scenarios below: 
+%  inputPar
+%              ewsb   - includes EWSB parameters as independent variables.
+%              sugra - for SUGRA scenarion 
+%              Off   - for slha file  scenario   
+
+% calcSpect 
+%              Ext     -  external call  
+%              SuSpect 
+%              file    - read SLHA file 
+%              Tree    -  tree level calculations  
+
+
+% mix2g
+%              On-  % include  light quark masses for Direct Detection.
+%              Off 
+                              
+% gi_neutralino 
+%              On -  improves interaction of neutralino for GI 
+
+% gi_higgs
+%              On - improve la2,la4,la5,la5 for gauge invariance in Higgs sector
+
+% gi_squarks
+%              On - improve  squark sector  for GI. It is switched Off, because generates large couplings.
+
+
+
+do_if scenario==micro.
+   keys inputPar=ewsb.       
+   keys calcSpect=Ext.
+   keys mix2g=On.
+
+   keys gi_neutralino=On.
+   keys gi_higgs=On.
+   keys gi_squarks=Off.
+
+   keys hgg=On.
+   
+   model 'MSSM(micro)'/1.
+
+   parameter Am=0.
+
+end_if.
+
+do_if scenario==EWSB.
+   keys inputPar=ewsb.
+   keys calcSpect=SuSpect.
+   keys mix2g=Off.
+
+   keys gi_neutralino=On.
+   keys gi_higgs=On.
+   keys gi_squarks=Off.
+
+   keys hgg=Off.
+   
+   model 'MSSM(EWSB)'/1.
+end_if.
+
+
+do_if scenario==SUGRA.
+   keys inputPar=sugra.
+   keys calcSpect=SuSpect.
+   keys mix2g=Off.
+
+   keys gi_neutralino=On.
+   keys gi_higgs=On.
+   keys gi_squarks=Off.
+
+   keys hgg=Off.
+
+   model 'MSSM(SUGRA)'/3.
+end_if.
+
+do_if scenario==SLHA.
+   keys inputPar=Off.
+   keys calcSpect=File.
+   keys mix2g=Off.
+   keys gi_neutralino=On.
+   keys gi_higgs=On.
+   keys gi_squarks=Off.
+   keys hgg=Off. 
+   model 'MSSM(../slha.in)'/5.
+end_if.
+
+do_if scenario==Tree.
+   keys inputPar=ewsb.
+   keys calcSpect=Tree.
+   keys mix2g=Off.
+   keys dlh=On.
+   keys gi_neutralino=Off.
+   keys gi_higgs=On.
+   keys gi_squarks=Off.
+   keys hgg=Off.
+   model 'MSSM(tree)'/7.
+end_if.
+
+
+keys  LambdaTH=Off.
+keys  Zhij=Off.
+
+% =============== Table  setup =====.
+
+option chepCFWidth=60.
+option chepLPWidth=1000.
+option chepPDWidth=750.
+
+let g5=gamma5.
+let eps2 = {{0,1},{-1,0}}.
+special sigma:(spinor2, spinor2, vector).
+
+read 'var.lhp'.         %  independent and constrained variables 
+read "2genDDmix.lhp".   %  mixing for light squarks 
+read 'prtcls.lhp'.      %  list of particles
+read 'Let.lhp'.         %  'let' substitutions
+read 'improve_squarks.lhp'.
+read 'ggi.lhp'.         % gauge fields interaction
+read 'gmi.lhp'.         % gauge-matter interaction
+read 'DD.lhp'.          % DD terms
+read 'higgsPot.lhp'.    % improved Higgs potential
+read 'W.lhp'.           % Terms going from super-potential (FF & Yukawa)
+read 'Yukawa.lhp'.      % Correction of mass terms
+read "gi_Nmass.lhp".    % neutralino mass matrix is reproduced by Lagrangian.
+read 'softsbt.lhp'.     % Soft SUSY-breaking terms
+read 'fgauge.lhp'.      % Faddeev-Popov ghosts
+do_if hgg==On.
+  read 'gg+.lhp'.
+end_if.
+SetEM(A,EE).
+CheckHerm.
+CheckMasses.
+

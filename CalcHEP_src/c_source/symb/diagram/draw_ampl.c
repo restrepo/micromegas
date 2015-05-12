@@ -44,7 +44,7 @@ static int         LASTDIR;
 
 
 int amplitudeFrameX(int nin, int nout)
-{
+{ if(nout==1) nout=2;
  cWidth=tg_textwidth("H");
  cHeight=tg_textheight("H");
 
@@ -57,7 +57,7 @@ return XX;
 }
 
 int amplitudeFrameY(int nin, int nout)
-{
+{ if(nout==1) nout=2;
   cWidth=tg_textwidth("H");
   cHeight=tg_textheight("H");
   YY=8*cHeight;
@@ -467,10 +467,18 @@ static void getPositions(vampl*v,position*vertexPos,position*edgePos)
   for(i=0;i<(nin+nout);i++)
         edgePos[i].x=edgePos[i].x+xshift;
   for(i=0;i<v->size;i++) vertexPos[i].x=vertexPos[i].x+xshift;
+
+  if(nout==1)
+  { int yshift=quant;
+    for(i=0;i<v->size;i++) vertexPos[i].y=vertexPos[i].y+quant/2;
+    for(i=0;i<(nin+nout);i++)
+           edgePos[i].y=edgePos[i].y+quant/2;
+  }         
+
 }
 
 
-void drawAmpitudeDiagram(vampl* diagr, int x, int y)
+void drawAmpitudeDiagram(vampl* diagr,int mode, int x, int y)
 {
   int i,j;
 
@@ -478,7 +486,14 @@ void drawAmpitudeDiagram(vampl* diagr, int x, int y)
   cWidth=tg_textwidth("H");
        
   getPositions(diagr, vertexPos,edgePos);
-
+  if(mode&1)
+  for(i=0;i<diagr->size;i++) 
+  { vertexPos[i].x *=-1;
+    for(j=0;j<diagr->valence[i];j++)
+    { edgeinvert *v=&diagr->vertlist[i][j];
+      if(v->link.vno==nullvert) edgePos[v->link.edno].x *=-1;  
+    }
+  }    
   for(i=0;i<diagr->size;i++) 
   { position in=vertexPos[i];
     for(j=0;j<diagr->valence[i];j++)
@@ -488,11 +503,11 @@ void drawAmpitudeDiagram(vampl* diagr, int x, int y)
       { out=edgePos[v->link.edno];
         drawPropagator(x+in.x,y+in.y,x+out.x,y+out.y,v->partcl,0);
         if(v->prop&IN_PRTCL) 
-        { tg_settextjustify(RightText,CenterText);
+        { if(mode&1) tg_settextjustify(LeftText,CenterText); else tg_settextjustify(RightText,CenterText);
           tg_outtextxy(x+out.x,y+out.y,prtclbase[prtclbase[v->partcl-1].anti -1].name); 
         }else 
         { 
-          tg_settextjustify(LeftText,CenterText); 
+          if(mode&1)tg_settextjustify(RightText,CenterText);else  tg_settextjustify(LeftText,CenterText); 
           super_outtextxy(x+out.x,y+out.y,prtclbase[v->partcl-1].name);
 /*
           sprintf(num,"%d",v->link.edno+1);

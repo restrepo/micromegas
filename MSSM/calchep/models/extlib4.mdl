@@ -1,4 +1,5 @@
-Standard Model(CKM=1)
+MSSM(../slha.in)
 Libraries
-External libraries  and citation                                          <|
-============================================================================
+External libraries and  function prototypes                             <|
+$CALCHEP/../MSSM/lib/aLib.a
+==========================================================================

@@ -1,9 +1,10 @@
-2 2 50 Conservation low 
-  If the switch is set "ON" then energy-momentum 
-conservation low for incoming and outgoing 
-particles is substituted at the level of symbolic 
-calculation. Usually, but not always, it leads to 
-more compact  expressions in comparing with the 
-"OFF" setting.  
-  In the time of numeric calculation   the 
-conservation low is satisfied anyway.
+2 2 50  Nc
+  This  switch has two positions, "3" and "inf".
+"3"  corresponds to normal SU(3) chromodynamic. 
+If the switch is in the "inf" position then 
+symbolic calculation occur for SU(Nc) color 
+group and only the leading term of 1/Nc expansion
+is saved.  Nc=3 is substituted into the  final 
+answer.  This trick allows to remove a lot 
+of interference diagram, which are zero in the
+leading term of 1/Nc expansion.

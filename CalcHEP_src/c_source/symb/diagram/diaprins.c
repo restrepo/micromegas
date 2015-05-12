@@ -85,7 +85,7 @@ typedef int interscreen[koder][yend + ystep];
 typedef struct spool 
    { 
       pnt          add; 
-      char         stn[81]; 
+      char         stn[100]; 
    }  spool;
 
 #undef pnt
@@ -120,21 +120,11 @@ static void cr(int n,int x,int y,int ivr,int slt)
 }   /* The end of Cr's body */
 
 
-static char * cmp(char* nm)
-{int         i;
- static char  n[6];
-
-   for (i = 0; (nm[i] != '\0') && (nm[i] != chsp); i++)
-      n[i] = nm[i];
-   n[i] = '\0';
-   return n; 
-} 
-
 
 static void hline(int xs,int xe,int y,int ivr,int slt)
 {int    linech, arrow; 
  int i, j, k, l; 
- char    nm[6]; 
+ char    nm[P_NAME_SIZE]; 
 
    k = hcontr ? (xs + xe) / 2 : res->mhor - (xstep / 2) + 1; 
    if (y > res->mxy) res->mxy = y;
@@ -146,7 +136,7 @@ static void hline(int xs,int xe,int y,int ivr,int slt)
       arrow = l > prtclbase[l-1].anti ? '<' : '>'; 
       if (!(((IN_PRTCL|OUT_PRTCL) & with1->prop) || l < prtclbase[l-1].anti)) 
          l = prtclbase[l-1].anti; 
-      strcpy(nm,cmp(prtclbase[l-1].name)); 
+      strcpy(nm,prtclbase[l-1].name); 
       l = strlen(nm); 
       for (i = xs; i <= xe; i++)
          res->scr[i-1][y-1] = linech; 
@@ -201,7 +191,7 @@ static void hline(int xs,int xe,int y,int ivr,int slt)
 static void vline(int x,int ys,int ye,int ivr,int slt,  int txt) 
 {int     linech /*, arrow */; 
  int  i, j, k, l; 
- char     nm[6]; 
+ char     nm[P_NAME_SIZE]; 
 
    if (ys > ye) 
    {  --(ys);
@@ -221,7 +211,7 @@ static void vline(int x,int ys,int ye,int ivr,int slt,  int txt)
 
       if (!(((IN_PRTCL|OUT_PRTCL)&with1->prop)   ||  l < prtclbase[l-1].anti)) 
          l = prtclbase[l-1].anti; 
-      strcpy(nm,cmp(prtclbase[l-1].name)); 
+      strcpy(nm,prtclbase[l-1].name); 
       l = strlen(nm); 
       if (ye > ys) 
          for (i = ys; i <= ye; i++) res->scr[x-1][i-1] = linech; 
@@ -388,12 +378,19 @@ static void lot(int* ylo,int* yhi,int ivr,int slt,int hor)
    } 
 }   /* The end of Lot's body */ 
 
+//static int deep=0;
 
 static void painter(int xc,int yc,int ivr,int slt,int hor)
 {int    tp, l, xcnt, ycnt, xx, yy, hh, 
          ylo, yhi, start, ks, kk, pp; 
  int flag; 
+/*
+char buff[10];
+for(l=0;l<deep;l++) buff[l]=' ';
+buff[l]=0; deep++;
 
+printf("New vertex vrt=%d slt=%d \n",ivr,slt);
+*/
    flag = 0; 
    start = 2; 
    xcnt = xc; 
@@ -404,6 +401,9 @@ static void painter(int xc,int yc,int ivr,int slt,int hor)
         diag.valence[ivr-1] - 1   : 
         diag.valence[ivr-1]       ; 
    lot(&ylo,&yhi,ivr,kk,hor); 
+   
+//printf("%s vert=%d  kk=%d hor=%d ylo=%d yhi=%d\n",buff,ivr,kk,hor,ylo,yhi);
+   
    pp = ks == kk - 1 ? kk - 2 : kk - 1; 
    if (tp == 2) 
    { 
@@ -423,6 +423,7 @@ static void painter(int xc,int yc,int ivr,int slt,int hor)
          if (hor && diag.valence[ivr-1] == 4) 
          { 
             lot(&hh,&yy,ivr,pp,hor); 
+//printf("%s tp=1, ivr=%d pp=%d hh=%d yy=%d\n",buff, ivr,pp,hh,yy);            
             ycnt += (yhi + hh + 1) * ystep; 
             start = 1; 
          } 
@@ -438,6 +439,9 @@ static void painter(int xc,int yc,int ivr,int slt,int hor)
             if (hor && (OUT_PRTCL&diag.vertlist[ivr-1][1].prop) 
                     && (OUT_PRTCL&diag.vertlist[ivr-1][2].prop)) 
                start = 1; 
+
+//printf("%s first start=%d\n",buff,start);
+
    res->scr[xcnt-1][ycnt-1] = vertsign; 
    if (xcnt > res->mhor) 
       res->mhor = xcnt; 
@@ -446,7 +450,13 @@ static void painter(int xc,int yc,int ivr,int slt,int hor)
       if (!(IN_PRTCL & with1->prop)) 
       { 
          if (flag) 
-            lot(&ylo,&yhi,ivr,l,start != 3); 
+{
+//            lot(&ylo,&yhi,ivr,l,start != 3); 
+
+             
+                         lot(&ylo,&yhi,ivr,l,start==2);
+//printf("%s start=%d  vrt=%d l=%d   hor=%d ylo=%d yhi=%d\n",buff, start, ivr,l, start==2, ylo,yhi);  
+}          
          else 
             flag = 1; 
          xx = (OUT_PRTCL&with1->prop) ? xend : 
@@ -454,27 +464,33 @@ static void painter(int xc,int yc,int ivr,int slt,int hor)
          {vertlink *with2 = &with1->nextvert; 
             if (start == 1) 
             { 
-               lot(&hh,&yy,ivr,pp,1); 
-               yy = ycnt - (yhi + hh + 1) * ystep;
+               
+//               lot(&hh,&yy,ivr,pp,1); 
+                 lot(&hh,&yy,ivr,l-1,1);
+//printf("%s statr1 vrt=%d l-1=%d hh=%d yy=%d\n",buff, ivr, l-1,hh,yy);
+               yy = ycnt - (hh +1) * ystep;
                mline(xcnt,ycnt,xx,yy,with2->vno,with2->edno,0); 
-               if (!(OUT_PRTCL & with1->prop)) 
-                  painter(xx,yy,with2->vno,with2->edno,1); 
+               if (!(OUT_PRTCL & with1->prop))  painter(xx,yy,with2->vno,with2->edno,1); 
             } 
             else 
                if (start == 2) 
                { 
+                  lot(&hh,&yhi,ivr,l,1);
                   mline(xcnt,ycnt,xx,ycnt,with2->vno,with2->edno,1); 
-                  if (!(OUT_PRTCL&with1->prop)) 
-                     painter(xx,ycnt,with2->vno,with2->edno,1); 
-                  yy = yhi; 
+                  if (!(OUT_PRTCL&with1->prop)) painter(xx,ycnt,with2->vno,with2->edno,1); 
+                  yy = yhi;
+//                  yy=ylo; 
                } 
                else 
                { 
-                  yy += ylo + 1; 
+//printf("%s start=? %d yy=%d  ylo=%d\n",buff,start,yy,ylo);
+                  yy += ylo + 1;
+//                    yy+=yhi+1;
+//printf("%s down %d\n",buff,yy);
                   yy = ycnt + yy * ystep; 
+                  
                   mline(xcnt,ycnt,xx,yy,with2->vno,with2->edno,0); 
-                  if (!(OUT_PRTCL&with1->prop)) 
-                     painter(xx,yy,with2->vno,with2->edno,0); 
+                  if (!(OUT_PRTCL&with1->prop)) painter(xx,yy,with2->vno,with2->edno,0); 
                } 
          } 
          ++(start); 
@@ -484,28 +500,24 @@ static void painter(int xc,int yc,int ivr,int slt,int hor)
 
 
 static void diaprin(dscreen* res1)
-{int      i, j; 
+{  int i, j; 
 
    res = res1; 
-   for (i = 1; i <= xend; i++) 
-      for (j = 1; j <= yend; j++) 
-         res->scr[i-1][j-1] = chsp; 
+   for (i = 0; i < xend; i++) for (j = 0; j < yend; j++)  res->scr[i][j] = chsp; 
    res->mver = 0; 
    res->mhor = 0; 
    res->mxy  = 0; 
 
    hcontr = 1; 
-   if (left) 
-      painter(xstart + xstep,ystart,1,1,1); 
-   else 
-      painter(xstart + xstep,ystart,diag.sizel + 1,1,1); 
+   if (left)  painter(xstart + xstep,ystart,1,1,1); 
+        else  painter(xstart + xstep,ystart,diag.sizel + 1,1,1); 
    res->mhor += xstep - 1; 
    hcontr = 0; 
 
-   for (i = 1; i <= res->mver; i++) 
-   {intsect *with1 = &res->ints[i-1]; 
-      hline(with1->xst,res->mhor,with1->y,
-      with1->selfvert,with1->selfslot); 
+// outgoing particles 
+   for (i = 0; i < res->mver; i++)     
+   {  intsect *with1 = &res->ints[i]; 
+      hline(with1->xst,res->mhor,with1->y,with1->selfvert,with1->selfslot); 
    }
 
 }   /* The end of Diaprin's body */ 
@@ -544,6 +556,7 @@ static void lv(void)
 
 static int isector(void)
 {int  k, y1, y2, vv, ss, pp=0, tt=0, sh=0; 
+ int count=0;
 
    /* Nested function: lh */ 
    /* Nested function: lv */ 
@@ -570,14 +583,16 @@ static int isector(void)
                if (y1 == with1->y - ystep) 
                   ++(tt); 
       } 
-   } 
+   }
    sh = tt > sh ? - ystep : pp > sh ?  ystep : 0; 
    goto b;
 
-a: if (sh < 0) 
-      ++(sh); 
-   else 
-      --(sh); 
+a: count++;
+    if(sh==0) sh=-1;   else {if(sh<0) sh=-sh; else sh=-sh-1;}
+//   if (sh < 0) 
+//      ++(sh); 
+//   else 
+//      --(sh); 
 
 b: pp = sh < 0 ? resl.mxy - sh : resr.mxy + sh; 
    if (resr.mxy > pp) pp = resr.mxy; 
@@ -589,7 +604,8 @@ b: pp = sh < 0 ? resl.mxy - sh : resr.mxy + sh;
          is[isect-1][jsect-1] = chsp; 
 
    for (isect = 1; isect <= k; isect++) 
-   { 
+   {  
+       
       {intsect *with1 = &resl.ints[isect-1]; 
          y1 = with1->y; 
          ssect = with1->sp % 2 == 0 ? 1 : 0; 
@@ -600,6 +616,7 @@ b: pp = sh < 0 ? resl.mxy - sh : resr.mxy + sh;
       while (resr.ints[jsect-1].selfvert != vv || 
              resr.ints[jsect-1].selfslot != ss) 
          ++(jsect); 
+          
       y2 = resr.ints[jsect-1].y; 
       if (sh < 0) 
          y1 -= sh; 
@@ -613,35 +630,35 @@ b: pp = sh < 0 ? resl.mxy - sh : resr.mxy + sh;
          { 
             for (jsect = 1; jsect <= isect - 1; jsect++) 
                if (lh(y1) == 1) 
-                  goto a;
+                  {if(count<5)goto a;}
             if (is[isect-1][y1-1] != chsp) 
-               goto a;
+               {if(count<5)goto a;}
             is[isect-1][y1-1] = ssect ? chrBF : chrBB; 
             for (jsect = y1 + 1; jsect <= y2 - 1; jsect++) 
                lv(); 
             if (is[isect-1][y2-1] != chsp) 
-               goto a;
+               {if(count<5)goto a;}
             is[isect-1][y2-1] = ssect ? chrC0 : chrC8; 
             for (jsect = isect + 1; jsect <= k; jsect++) 
                if (lh(y2) == 1) 
-                  goto a;
+                  {if(count<5)goto a;}
          } 
          else 
          { 
             for (jsect = 1; jsect <= isect - 1; jsect++) 
                if (lh(y1) == 1) 
-                  goto a;
+                  {if(count<5)goto a;}
             if (is[isect-1][y1-1] != chsp) 
-               goto a;
+               {if(count<5)goto a;}
             is[isect-1][y1-1] = ssect ? chrD9 : chrBC; 
             for (jsect = y2 + 1; jsect <= y1 - 1; jsect++) 
                lv(); 
             if (is[isect-1][y2-1] != chsp) 
-               goto a;
+               {if(count<5)goto a;}
             is[isect-1][y2-1] = ssect ? chrDA : chrC9; 
             for (jsect = isect + 1; jsect <= k; jsect++) 
                if (lh(y2) == 1) 
-                  goto a;
+                  {if(count<5)goto a;}
          } 
    } 
    return sh; 
@@ -653,18 +670,25 @@ static void diaprt(pnt* fout)
  int  sh, p, k, kk; 
  pnt      po, pn = NULL; 
 
-
    left = 1; 
    diaprin(&resl);
    left = 0; 
    diaprin(&resr); 
-   sh = isector(); 
+
+
+//   sh = isector(); 
+sh=0;   
+//printf("isector ok  sh=%d  \n",sh);
    kk = scrwidth - resl.mhor - resl.mver - resr.mhor - 2; 
    if (kk < 0) kk = 0; 
    kk = kk / 2; 
    r = sh < 0 ? resl.mxy - sh : resr.mxy + sh; 
    if (resr.mxy > r) r = resr.mxy; 
    if (resl.mxy > r) r = resl.mxy; 
+
+//for(j=0;j<r;j++) for(i=0;i<resl.mver;i++)  is[i][j]=' ';
+
+   
    p = 68 - 1 - kk - resl.mhor - resl.mver - resr.mhor;   
 /* Pukhov   80 -> 68  */ 
    ++(r); 
@@ -703,13 +727,16 @@ static void diaprt(pnt* fout)
             k += resl.mhor;
          }
       for (i = 0; i < resl.mver; i++) 
-         pn->stn[k + i] = is[i][j-1];
+         pn->stn[k + i] = ' ';  //   is[i][j-1];
       k += i;
+/*      
 #ifdef BLOCK_GRAPHICS
       pn->stn[k++] = '|';
 #else
       pn->stn[k++] = '!';
 #endif
+*/
+      pn->stn[k++] = ' ';
       if (sh > 0) 
          if (j <= sh)
          {
@@ -791,7 +818,9 @@ void writeAmDiagram(vampl* diag1,int label,char comment,FILE* outfile)
 
 
 void writeTextDiagram(vcsect* diag1,int label,char comment,FILE* outfile)
-{pnt  pp, pict; 
+{  pnt  pp, pict; 
+//   outfile=stdout;
+// deep=0;
    diag= *diag1;
    debug=label;
    diaprt(&pp); 

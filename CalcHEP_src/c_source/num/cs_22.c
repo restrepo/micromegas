@@ -7,17 +7,20 @@
 #include "num_serv.h"
 #include "simpson.h"
 #include "cs_22.h"
-#include "const.h"
 #include "interface.h"
 #include "subproc.h"
 #include "mc_menu.h"
-#include "4_vector.h"
 #include "err_code.h"
 #include "mc_menu.h"
-#include "cut.h"
+//#include "cut.h"
 #include "kinaux.h"
 #include "param.h"
 #include "alphas2.h"
+#include "usrfun.h"
+#include "nType.h"
+#include "rw_sess.h"
+
+static REAL pvect4[16];
 
 static double         totcoef;
 static double         cos1, cos2;
@@ -25,8 +28,8 @@ static double         eps=0.001;
 static int            recalc;
 static char           procname[STRSIZ];
 
-static double pmass[4];
-static double pRestIn,pRestOut;
+static REAL pmass[4];
+static REAL pRestIn,pRestOut;
 
 
 static void  infotext(void)
@@ -52,8 +55,7 @@ static void  writeinformation(void)
 
 static void  calccoef(void)
 {int i;
-   double  lambda12, lambda34, s_, ms, mdiff;
-   double sqrt_S;
+   REAL  lambda12, lambda34, s_, ms, mdiff, sqrt_S;
    
    pRestIn=Pcm22;
    err_code = 0;
@@ -76,14 +78,14 @@ static void  calccoef(void)
    
    totcoef = 3.8937966E8 * lambda34 /(32.0 * M_PI * lambda12 * s_);
 
-   for(i=0;i<16;i++)pvect[i]=0;
+   for(i=0;i<16;i++)pvect4[i]=0;
    
-   pvect[3] = pRestIn; 
-   pvect[7] =-pRestIn;
-   pvect[0] = sqrt(pRestIn*pRestIn + pmass[0]*pmass[0]);
-   pvect[4] = sqrt(pRestIn*pRestIn + pmass[1]*pmass[1]);
-   pvect[8] = sqrt(pRestOut*pRestOut + pmass[2]*pmass[2]);
-   pvect[12]= sqrt(pRestOut*pRestOut + pmass[3]*pmass[3]);
+   pvect4[3] = pRestIn; 
+   pvect4[7] =-pRestIn;
+   pvect4[0] = sqrt(pRestIn*pRestIn + pmass[0]*pmass[0]);
+   pvect4[4] = sqrt(pRestIn*pRestIn + pmass[1]*pmass[1]);
+   pvect4[8] = sqrt(pRestOut*pRestOut + pmass[2]*pmass[2]);
+   pvect4[12]= sqrt(pRestOut*pRestOut + pmass[3]*pmass[3]);
 
    err_code = 0;
    return;
@@ -95,21 +97,25 @@ errorexit:
 
 static void  calcscalars(double  cos_f)
 {
-   double sin_f=sqrt(fabs((1-cos_f)*(1+cos_f)));
-   pvect[11]=pRestOut*cos_f;
-   pvect[15]=-pvect[11];
-   pvect[10]=pRestOut*sin_f;
-   pvect[14]=-pvect[10];
+   REAL sin_f=sqrt(fabs((1-cos_f)*(1+cos_f)));
+   pvect4[11]=pRestOut*cos_f;
+   pvect4[15]=-pvect4[11];
+   pvect4[10]=pRestOut*sin_f;
+   pvect4[14]=-pvect4[10];
 } 
 
 
 static double  cross_section(double  x)
-{ double  r;
+{ double  r,GG,qF,qR,pvect4_[16];
+  int i; 
+  
   calcscalars(x);
-  alf_(Scale()); 
-    
-  r = sqme_int( Nsub,pvect,&err_code)/*calcCutFactor()*/;
-
+  for(i=0;i<16;i++) pvect4_[i]=pvect4[i];
+ 
+  Scale(pvect4_,&qF,&qR);
+  GG=sqrt(4*M_PI*alpha_2(qR));
+      
+  r = sqme_int( Nsub,GG,pvect4,&err_code)*usrFF(2,2,pvect4_,p_names,p_codes);
   if (err_code != 0) return 0; 
   return r * totcoef; 
 } 
@@ -163,7 +169,7 @@ static void  drawgraph(void)
 static double  totcs(void)
 {  double  int_val = 0.0;
    calccoef();
-   if (err_code == 0) int_val=gauss345(cross_section,cos1,cos2,eps);
+   if (err_code == 0) int_val=gauss345(cross_section,cos1,cos2,eps,&err_code);
    return int_val;
 }
 
@@ -179,7 +185,7 @@ static void  total_cs(void)
    calccoef(); 
    if (err_code ) print("incorrect"); else 
    {
-      totcs= gauss345(cross_section, cos1,cos2,eps); 
+      totcs= gauss345(cross_section, cos1,cos2,eps,&err_code); 
       if (err_code<=0 ) { print("%-G [pb]",totcs);} 
       if(err_code==1)  print("?");
    }
@@ -218,7 +224,7 @@ int  cs_numcalc(double Pcm)
    
     cos1=-0.999;
     cos2= 0.999;
-      
+
    infotext();
    writeinformation();
    k = 1;
@@ -234,6 +240,7 @@ int  cs_numcalc(double Pcm)
          " Angular dependence     "
          " Parameter dependence   "
          " sigma*v plots          ";
+
       if (recalc)
       {  
          total_cs();

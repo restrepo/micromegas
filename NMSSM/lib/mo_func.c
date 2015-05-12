@@ -9,11 +9,11 @@
 
 int readVarNMSSM(char * fname)
 {
-  char*vlist[36]={"alfEMZ","alfSMZ","McMc","MbMb","Mtp","tb","MG1","MG2","MG3",
+  char*vlist[37]={"alfSMZ","McMc","MbMb","Mtp","tb","MG1","MG2","MG3",
   "Ml2","Ml3","Mr2","Mr3","Mq2","Mq3","Mu2","Mu3","Md2","Md3","At","Ab","Al",
-  "Au","Ad","Am","mu","LambdQ","KappaQ","aLmbdQ","aKappQ","MZ","Mm","Ml","wt",
-  "wZ","wW"};
-  return readVarSpecial(fname,36,vlist);
+  "Au","Ad","Am","mu","Lambda","Kappa","aLambda","aKappa","MZ","Mm","Ml","muP",
+  "m3h","msP","mXiF","mXiS"};
+  return readVarSpecial(fname,37,vlist);
 } 
 
 void o1Contents(FILE * f)
@@ -46,76 +46,68 @@ void o1Contents(FILE * f)
 static void FillVal(int mode)
 { char name[10];
   int i,j,k;
-  char* Zf[3]={"Zb","Zt","Zl"};
-  char* Qmix[3]={"SBOTMIX","STOPMIX","STAUMIX"};
   double Pa[2][3]={{0,0,0},{0,0,0}};
   double Q;
-  
-  char* massName[35]={"Mha","Mhb","Mh1","Mh2","Mh3","MHc", "MNE1", "MNE2", "MNE3", "MNE4", "MNE5",    "MC1",  "MC2",  "MSG", "MSne", "MSnm", "MSnl", "MSeL", "MSeR", "MSmL", "MSmR", "MSl1", "MSl2", "MSdL", "MSdR", "MSuL", "MSuR", "MSsL", "MSsR", "MScL", "MScR", "MSb1", "MSb2", "MSt1","MSt2"};
-  int   massId[35]  ={ 36  ,  46,  25,   35,   45,     37,1000022,1000023,1000025,1000035, 1000045, 1000024,1000037,1000021,1000012,1000014,1000016,1000011,2000011,1000013,2000013,1000015,2000015,1000001,2000001,1000002,2000002,1000003,2000003,1000004,2000004,1000005,2000005,1000006,2000006};   
+  char format[20];
+  char fmt[20];     
 
   char * softName[13]={"MG1","MG2","MG3","Ml2","Ml3","Mr2","Mr3","Mq2","Mq3","Mu2","Mu3","Md2","Md3"};
   int      softId[13]={   1 ,   2 ,   3 ,  32 ,  33 ,  35 ,  36 ,  42 ,  43 ,  45 ,  46 ,  48 ,  49};
 
-  char * mohName[11]={"Lambda","Kappa","aLmbd0","dMb","vev","Mh1R","Mh2R","Mh3R","MhaR","MhbR","MHcR"};
-  int    mohId[11]  ={      1 ,     2 ,      3 ,   4 ,   5 ,   25 ,   35 ,   45 ,   36 ,   46 , 37 };
+  char * nmssmName[7]={"Lambda","Kappa", "aLambda","aKappa","xif","xis","muP"};
+  int    nmssmId[7]  ={    1   ,   2   ,   3     ,  4  ,      6,    7,   8   };
 
-  for(i=0;i<35;i++) assignValW(massName[i],slhaVal("MASS",0.,1,massId[i]));
-  Q=sqrt(fabs(findValW("MSt1")*findValW("MSt2"))); 
-  for(i=0;i<11;i++) assignValW(mohName[i],slhaVal("MO_HIGGS",Q,1,mohId[i]));
   
-  for(i=1;i<=5;i++) for(j=1;j<=5;j++) 
-  { sprintf(name,"Zn%d%d",i,j); assignValW(name,slhaVal("NMNMIX",Q,2,i,j));}
-  for(i=1;i<=3;i++) for(j=1;j<=3;j++) 
-  { sprintf(name,"Zh%d%d",i,j); assignValW(name,slhaVal("NMHMIX",Q,2,i,j));}
-
-  for(i=1;i<=2;i++) for(j=1;j<=3;j++) Pa[i-1][j-1]=slhaVal("NMAMIX",Q,2,i,j);
-  { double tb;
-    assignValW("Pa12",Pa[0][2]);
-    assignValW("Pa22",Pa[1][2]);
-    if(Pa[0][1]==0)  assignValW("Pa11",0); else
-    {
-      tb=Pa[0][0]/Pa[0][1];
-      assignValW("Pa11",Pa[0][1]*sqrt(1+tb*tb));
-    }
-    if(Pa[1][1]==0)  assignValW("Pa21",0); else
-    {
-      tb=Pa[1][0]/Pa[1][1];
-      assignValW("Pa21",Pa[1][1]*sqrt(1+tb*tb));
-    }
+  { // Masses
+    char* massName[35]={"Mha","Mhb","Mh1","Mh2","Mh3","MHc", "MNE1", "MNE2", "MNE3", "MNE4", "MNE5",    "MC1",  "MC2",  "MSG", "MSne", "MSnm", "MSnl", "MSeL", "MSeR", "MSmL", "MSmR", "MSl1", "MSl2", "MSdL", "MSdR", "MSuL", "MSuR", "MSsL", "MSsR", "MScL", "MScR", "MSb1", "MSb2", "MSt1","MSt2"};
+    int   massId[35]  ={ 36  ,  46,  25,   35,   45,     37,1000022,1000023,1000025,1000035, 1000045, 1000024,1000037,1000021,1000012,1000014,1000016,1000011,2000011,1000013,2000013,1000015,2000015,1000001,2000001,1000002,2000002,1000003,2000003,1000004,2000004,1000005,2000005,1000006,2000006};   
+    for(i=0;i<35;i++) assignValW(massName[i],slhaVal("MASS",0.,1,massId[i]));
+    Q=sqrt(fabs(findValW("MSt1")*findValW("MSt2"))); 
   }
-  
-  for(i=1;i<=2;i++) for(j=1;j<=2;j++)
-  { sprintf(name,"Zu%d%d",i,j);assignValW(name,slhaVal("UMIX",Q,2,i,j));
-    sprintf(name,"Zv%d%d",i,j);assignValW(name,slhaVal("VMIX",Q,2,i,j));
-  }
-   
-  for(k=0;k<3;k++)
-  { double M[3];
-    for(i=1;i<=2;i++) 
-    {M[i]=slhaVal(Qmix[k],Q,2,1,i);
-     sprintf(name,"%s1%d",Zf[k],i); assignValW(name,M[i]);
-    }  
-    M[2]*=-1;
-    for(i=1;i<=2;i++) 
-    { sprintf(name,"%s2%d",Zf[k],i); assignValW(name,M[3-i]); }  
+  { // Mixing
+    char* Zf[55]={"Zb","Zt","Zl","Zu","Zv"};
+    char* Qmix[5]={"SBOTMIX","STOPMIX","STAUMIX","UMIX","VMIX"};
+    for(i=1;i<=5;i++) for(j=1;j<=5;j++) { sprintf(name,"Zn%d%d",i,j); assignValW(name,slhaVal("NMNMIX",Q,2,i,j));}
+    for(i=1;i<=3;i++) for(j=1;j<=3;j++) { sprintf(name,"Zh%d%d",i,j); assignValW(name,slhaVal("NMHMIX",Q,2,i,j));}
+    for(i=1;i<=2;i++) for(j=1;j<=3;j++) { sprintf(name,"Za%d%d",i,j); assignValW(name,slhaVal("NMAMIX",Q,2,i,j));} 
+    for(k=0;k<5;k++) for(i=1;i<=2;i++) for(j=1;j<=2;j++) { sprintf(name,"%s%d%d",Zf[k],i,j); assignValW(name, slhaVal(Qmix[k],Q,2,i,j));}  
   }   
-  
+  //EFFECTIVE_COUPLINGS
+  for(i=1;i<=7;i++) { sprintf(name,"la%d",i);  sprintf(fmt,"L%d %%lf",i); assignValW(name,slhaValFormat("EFFECTIVE_COUPLINGS", Q,fmt));}
+  for(i=1;i<=8;i++) { sprintf(name,"la%ds",i); sprintf(fmt,"K%d %%lf",i); assignValW(name,slhaValFormat("EFFECTIVE_COUPLINGS", Q,fmt));}
+  for(i=1;i<=6;i++) { sprintf(name,"aa%d",i);  sprintf(fmt,"A%d %%lf",i); assignValW(name,slhaValFormat("EFFECTIVE_COUPLINGS", Q,fmt));}
+  for(i=1;i<=2;i++) { sprintf(name,"B%d",i);   sprintf(fmt,"B%d %%lf",i); assignValW(name,slhaValFormat("EFFECTIVE_COUPLINGS", Q,fmt));}
+
+  assignValW("X",   slhaValFormat("EFFECTIVE_COUPLINGS", Q, "X %lf"    ));
+//  assignValW("tB", slhaVal("HMIX",Q,1,2) );
+  assignValW("tB",slhaVal("MINPAR",Q,1,3) );
+  assignValW("dMb", slhaValFormat("EFFECTIVE_COUPLINGS", Q, "DELMB %lf"));  
+  assignValW("xvev",slhaValFormat("EFFECTIVE_COUPLINGS", Q, "XVEV %lf"));
+  if(mode==0) for(i=4;i<6;i++) 
+      assignValW(nmssmName[i],slhaVal("NMSSMRUN",Q,1,nmssmId[i]));
+
   if(mode>0)
-  {  
-    for(i=0;i<13;i++) assignValW(softName[i],slhaVal("MSOFT",Q,1,softId[i])); 
-    assignValW("mu", slhaVal("HMIX",Q,1,1));    
+  { double z; 
+    for(i=0;i<13;i++) assignValW(softName[i],slhaVal("MSOFT",Q,1,    softId[i])); 
+    for(i=0;i<7;i++) assignValW(nmssmName[i],slhaVal("NMSSMRUN",Q,1,nmssmId[i]));
+    assignValW("mu", slhaVal("HMIX",Q,1,1));
     assignValW("Al", slhaVal("Ae",Q,2,3,3));
     assignValW("Ab", slhaVal("Ad",Q,2,3,3));
     assignValW("At", slhaVal("Au",Q,2,3,3));
     assignValW("Am", slhaValExists("Ae",2,2,2)>0 ? slhaVal("Ae",Q,2,2,2):slhaVal("Ae",Q,2,3,3));
     assignValW("Au", slhaValExists("Au",2,2,2)>0 ? slhaVal("Au",0.,2,2,2):slhaVal("Au",0.,2,3,3));
-    assignValW("Ad", slhaValExists("Ad",2,2,2)>0 ? slhaVal("Ad",0.,2,2,2):slhaVal("Ad",0.,2,3,3));
-    assignValW("tb",slhaVal("MINPAR",Q,1,3) );
+    assignValW("Ad", slhaValExists("Ad",2,2,2)>0 ? slhaVal("Ad",0.,2,2,2):slhaVal("Ad",0.,2,3,3)); 
+    z=findValW("xif"); if(z>=0) assignValW("mXiF",sqrt(z)); else  assignValW("mXiF",-sqrt(-z));
+    z=findValW("xis"); if(z>=0) assignValW("mXiS",sqrt(z)); else  assignValW("mXiS",-sqrt(-z));
+    assignValW("mXiS",pow(z,1./3.));
+    z=slhaVal("NMSSMRUN",Q,1,9); 
+    if(z>=0) assignValW("msP",sqrt(z)); else  assignValW("msP",-sqrt(-z));
+    z=slhaVal("NMSSMRUN",Q,1,12); 
+    if(z>=0) assignValW("m3h",sqrt(z)); else  assignValW("m3h",-sqrt(-z)); 
   }
   
   if(mode==2)
-  {    assignValW("alfSMZ",slhaVal("SMINPUTS",Q,1,3) );
+  { assignValW("alfSMZ",slhaVal("SMINPUTS",Q,1,3) );
     assignValW("MbMb",  slhaVal("SMINPUTS",Q,1,5) );
     assignValW("Mtp",   slhaVal("SMINPUTS",Q,1,6) );
     assignValW("Ml",    slhaVal("SMINPUTS",Q,1,7) );
@@ -192,27 +184,28 @@ int nmssmEWSB(void)
 
    err=ewsbNMSSM(V(tb),V(MG1),V(MG2),V(MG3),V(Ml2),V(Ml3),V(Mr2),V(Mr3),
      V(Mq2),V(Mq3),V(Mu2),V(Mu3),V(Md2),V(Md3),V(At),V(Ab),V(Al),V(mu),
-     V(LambdQ),V(KappaQ),V(aLmbdQ),V(aKappQ));
+     V(Lambda),V(Kappa),V(aLambda),V(aKappa),
+     V(mXiF),V(mXiS),V(muP),V(msP),V(m3h));
 
-   if(delFiles) system("rm -f  inp.dat spectr.dat omega.dat decay.dat out.dat");
    if(err) return err;
    FillVal(0);
-   CharginoZM();   
+//   CharginoZM();   
    return err; 
 }
 
 #undef V
 
 int nmssmSUGRA(double  m0,double mhf, double a0,double tb, double sgn,
-double  Lambda, double aLambda, double aKappa)
+double  Lambda, double aLambda, double aKappa, double mXiF, double mXiS,  
+     double muP, double msP,double m3h)
 {  int err;
 
-   err= sugraNMSSM(m0, mhf, a0, tb, sgn, Lambda, aLambda,aKappa);
-   if(delFiles) system("rm -f  inp.dat spectr.dat omega.dat decay.dat out.dat");
+   err= sugraNMSSM(m0, mhf, a0, tb, sgn, Lambda, aLambda,aKappa, 
+    mXiF, mXiS, muP,msP, m3h);
    if(err==0)
    { 
      FillVal(1);
-     CharginoZM();
+//     CharginoZM();
    }
    return err;
 }
@@ -221,17 +214,8 @@ int readSLHA(char * fname)
 {  double maxl;
    int err=slhaRead(fname, 0);   
    if(err) return err;
-
-printf("readSLHA calls higgspotent\n");
-   
-   maxl=higgspotent(0);
-
-   if(maxl<0) return -1;
-   if(maxl>=1)  printf("Warning! max of Higgs coupling restored by micromegas"
-                       " is %.1E\n",maxl);
-   
    FillVal(2);
-   CharginoZM();
+//   CharginoZM();
    return 0;
 }
 

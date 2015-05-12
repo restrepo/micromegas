@@ -1,3 +1,4 @@
+
       REAL FUNCTION DTOF(X)
       DOUBLE PRECISION X
       DTOF=X
@@ -59,7 +60,7 @@ C      DOUBLE PRECISION M0,MHF,A0,TANB,SGNMU,MT
      $,AMW1SS,AMW2SS
      $,GAMMAL,GAMMAR,AMHL,AMHH,AMHA,AMHC,ALFAH,AAT,THETAT
      $,AAB,THETAB,AAL,THETAL,AMGVSS,MTQ,MBQ,MLQ,FBMA,
-     $VUQ,VDQ
+     $VUQ,VDQ,SGNM3
       LOGICAL GORGE
       REAL AMGLSS,AMULSS,AMURSS,AMDLSS,AMDRSS,AMSLSS
      $,AMSRSS,AMCLSS,AMCRSS,AMBLSS,AMBRSS,AMB1SS,AMB2SS
@@ -68,25 +69,28 @@ C      DOUBLE PRECISION M0,MHF,A0,TANB,SGNMU,MT
      $,TWOM1,RV2V1,AMZ1SS,AMZ2SS,AMZ3SS,AMZ4SS,ZMIXSS
      $,AMW1SS,AMW2SS
      $,GAMMAL,GAMMAR,AMHL,AMHH,AMHA,AMHC,ALFAH,AAT,THETAT
-     $,AAB,THETAB,AAL,THETAL,AMGVSS,MTQ,MBQ,MLQ,FBMA,VUQ,VDQ
+     $,AAB,THETAB,AAL,THETAL,AMGVSS,MTQ,MBQ,MLQ,FBMA,VUQ,VDQ,SGNM3
       SAVE /SSPAR/
 
 C     XISAIN contains the MSSMi inputs in natural order.
       COMMON /SUGXIN/ XISAIN(24),XSUGIN(7),XGMIN(14),XNRIN(4),
-     $XAMIN(7)
+     $XAMIN(11)
       REAL XISAIN,XSUGIN,XGMIN,XNRIN,XAMIN
       SAVE /SUGXIN/
 
-
       COMMON /SUGPAS/ XTANB,MSUSY,AMT,MGUT,MU,G2,GP,V,VP,XW,
      $A1MZ,A2MZ,ASMZ,FTAMZ,FBMZ,B,SIN2B,FTMT,G3MT,VEV,HIGFRZ,
-     $FNMZ,AMNRMJ,NOGOOD,IAL3UN,ITACHY,MHPNEG,ASM3,
-     $VUMT,VDMT,ASMTP,ASMSS,M3Q
+     $FNMZ,AMNRMJ,NOGOOD,IAL3UN,ITACHY,MHPNEG,IGUTST,ASM3,
+     $VUMT,VDMT,ASMTP,ASMSS,M3Q,MHDSQ,MHUSQ,MHDSMG,MHUSMG,MUMG,BMG,
+     $FT2Z1,FB2Z1,FL2Z1
       REAL XTANB,MSUSY,AMT,MGUT,MU,G2,GP,V,VP,XW,
      $A1MZ,A2MZ,ASMZ,FTAMZ,FBMZ,B,SIN2B,FTMT,G3MT,VEV,HIGFRZ,
-     $FNMZ,AMNRMJ,ASM3,VUMT,VDMT,ASMTP,ASMSS,M3Q
-      INTEGER NOGOOD,IAL3UN,ITACHY,MHPNEG
+     $FNMZ,AMNRMJ,ASM3,VUMT,VDMT,ASMTP,ASMSS,M3Q,MHDSQ,MHUSQ,
+     $MHDSMG,MHUSMG,MUMG,BMG,FT2Z1,FB2Z1,FL2Z1
+
+      INTEGER NOGOOD,IAL3UN,ITACHY,MHPNEG,IGUTST
       SAVE /SUGPAS/
+
       COMMON /SUGMG/ MSS(32),GSS(31),MGUTSS,GGUTSS,AGUTSS,FTGUT,
      $FBGUT,FTAGUT,FNGUT
       REAL MSS,GSS,MGUTSS,GGUTSS,AGUTSS,FTGUT,FBGUT,FTAGUT,FNGUT
@@ -197,22 +201,27 @@ c      call assignValW('MStth',dble(thetat))
       INTEGER I
       COMMON /SUGPAS/ XTANB,MSUSY,AMT,MGUT,MU,G2,GP,V,VP,XW,
      $A1MZ,A2MZ,ASMZ,FTAMZ,FBMZ,B,SIN2B,FTMT,G3MT,VEV,HIGFRZ,
-     $FNMZ,AMNRMJ,NOGOOD,IAL3UN,ITACHY,MHPNEG,ASM3,
-     $VUMT,VDMT,ASMTP,ASMSS,M3Q
+     $FNMZ,AMNRMJ,NOGOOD,IAL3UN,ITACHY,MHPNEG,IGUTST,ASM3,
+     $VUMT,VDMT,ASMTP,ASMSS,M3Q,MHDSQ,MHUSQ,MHDSMG,MHUSMG,MUMG,BMG,
+     $FT2Z1,FB2Z1,FL2Z1
       REAL XTANB,MSUSY,AMT,MGUT,MU,G2,GP,V,VP,XW,
      $A1MZ,A2MZ,ASMZ,FTAMZ,FBMZ,B,SIN2B,FTMT,G3MT,VEV,HIGFRZ,
-     $FNMZ,AMNRMJ,ASM3,VUMT,VDMT,ASMTP,ASMSS,M3Q
-      INTEGER NOGOOD,IAL3UN,ITACHY,MHPNEG     
+     $FNMZ,AMNRMJ,ASM3,VUMT,VDMT,ASMTP,ASMSS,M3Q,MHDSQ,MHUSQ,
+     $MHDSMG,MHUSMG,MUMG,BMG,FT2Z1,FB2Z1,FL2Z1
+
+      INTEGER NOGOOD,IAL3UN,ITACHY,MHPNEG,IGUTST     
       SAVE /SUGPAS/
       
       COMMON /SUGXIN/ XISAIN(24),XSUGIN(7),XGMIN(14),XNRIN(4),
-     $XAMIN(7)
+     $XAMIN(11)
       REAL XISAIN,XSUGIN,XGMIN,XNRIN,XAMIN
       SAVE /SUGXIN/
 
-      COMMON /SUGNU/ XNUSUG(18)
+      COMMON /SUGNU/ XNUSUG(20),INUHM
       REAL XNUSUG
+      INTEGER INUHM
       SAVE /SUGNU/
+
 
       REAL DTOF 
       REAL Mt,Mhlf,A0,M0
@@ -266,22 +275,157 @@ c
        return 
       end
 
+      integer FUNCTION isajetBDR(tb,gMG1,gMG2,gMG3,gAl,gAt,gAb,
+     >gMl2,gMl3,gMr2,gMr3,gMq2,gMq3,gMu2,gMu3,gMd2,gMd3,EWmu,EWmA)
+c------------------------------------------------------------------------
+c     sugra with non-univ Higgs masses and input of mu(Q) and mA(Q) 
+c     instead of mHu and mHd; note that some mHu!=mHd!=m0 have to 
+c     be given nevertheless as initial guesses for the RGE iteration 
+c
+c     SK, 2 Oct 2007, last modified on 3/10/2007 
+
+      IMPLICIT NONE
+      real*8 tb,gMG1,gMG2,gMG3,gAl,gAt,gAb,
+     >gMl2,gMl3,gMr2,gMr3,gMq2,gMq3,gMu2,gMu3,gMd2,gMd3,EWmu,EWmA
+
+      INTEGER I
+      COMMON /SUGPAS/ XTANB,MSUSY,AMT,MGUT,MU,G2,GP,V,VP,XW,
+     $A1MZ,A2MZ,ASMZ,FTAMZ,FBMZ,B,SIN2B,FTMT,G3MT,VEV,HIGFRZ,
+     $FNMZ,AMNRMJ,NOGOOD,IAL3UN,ITACHY,MHPNEG,IGUTST,ASM3,
+     $VUMT,VDMT,ASMTP,ASMSS,M3Q,MHDSQ,MHUSQ,MHDSMG,MHUSMG,MUMG,BMG,
+     $FT2Z1,FB2Z1,FL2Z1
+
+      REAL XTANB,MSUSY,AMT,MGUT,MU,G2,GP,V,VP,XW,
+     $A1MZ,A2MZ,ASMZ,FTAMZ,FBMZ,B,SIN2B,FTMT,G3MT,VEV,HIGFRZ,
+     $FNMZ,AMNRMJ,ASM3,VUMT,VDMT,ASMTP,ASMSS,M3Q,MHDSQ,MHUSQ,MHDSMG,
+     $MHUSMG,MUMG,BMG,FT2Z1,FB2Z1,FL2Z1
+
+      INTEGER NOGOOD,IAL3UN,ITACHY,MHPNEG,IGUTST     
+      SAVE /SUGPAS/
+      
+      COMMON /SUGXIN/ XISAIN(24),XSUGIN(7),XGMIN(14),XNRIN(4),
+     $XAMIN(11)
+      REAL XISAIN,XSUGIN,XGMIN,XNRIN,XAMIN
+      SAVE /SUGXIN/
+
+      COMMON /SUGNU/ XNUSUG(20),INUHM
+      REAL XNUSUG
+      INTEGER INUHM
+      SAVE /SUGNU/
+
+
+      REAL DTOF 
+      REAL Mt,Mhlf,A0,M0,sgn
+      DOUBLE PRECISION  findValW
+      INTEGER IALLOW
+
+      COMMON/SSPAR/ 
+#ifndef lt779
+     $ GORGE, 
+#endif    
+     $ AMGLSS,AMULSS,AMURSS,AMDLSS,AMDRSS,AMSLSS
+     $,AMSRSS,AMCLSS,AMCRSS,AMBLSS,AMBRSS,AMB1SS,AMB2SS
+     $,AMTLSS,AMTRSS,AMT1SS,AMT2SS,AMELSS,AMERSS,AMMLSS,AMMRSS
+     $,AMLLSS,AMLRSS,AML1SS,AML2SS,AMN1SS,AMN2SS,AMN3SS
+     $,TWOM1,RV2V1,AMZ1SS,AMZ2SS,AMZ3SS,AMZ4SS,ZMIXSS(4,4)
+     $,AMW1SS,AMW2SS
+     $,GAMMAL,GAMMAR,AMHL,AMHH,AMHA,AMHC,ALFAH,AAT,THETAT
+     $,AAB,THETAB,AAL,THETAL,AMGVSS,MTQ,MBQ,MLQ,FBMA,
+     $VUQ,VDQ,SGNM3
+      LOGICAL GORGE
+      REAL AMGLSS,AMULSS,AMURSS,AMDLSS,AMDRSS,AMSLSS
+     $,AMSRSS,AMCLSS,AMCRSS,AMBLSS,AMBRSS,AMB1SS,AMB2SS
+     $,AMTLSS,AMTRSS,AMT1SS,AMT2SS,AMELSS,AMERSS,AMMLSS,AMMRSS
+     $,AMLLSS,AMLRSS,AML1SS,AML2SS,AMN1SS,AMN2SS,AMN3SS
+     $,TWOM1,RV2V1,AMZ1SS,AMZ2SS,AMZ3SS,AMZ4SS,ZMIXSS
+     $,AMW1SS,AMW2SS
+     $,GAMMAL,GAMMAR,AMHL,AMHH,AMHA,AMHC,ALFAH,AAT,THETAT
+     $,AAB,THETAB,AAL,THETAL,AMGVSS,MTQ,MBQ,MLQ,FBMA,VUQ,VDQ,SGNM3
+      REAL AMZISS(4)
+      EQUIVALENCE (AMZISS(1),AMZ1SS)
+      SAVE /SSPAR/
+
+      if(EWmu.gt.0) then
+        sgn=1
+      else 
+        sgn=-1
+      endif
+      XNUSUG(1)   =gMG1
+      XNUSUG(2)   =gMG2
+      XNUSUG(3)   =gMG3
+       Mhlf=findValW('Mhlf')      
+      XNUSUG(4)   =gAl
+      XNUSUG(5)   =gAb
+      XNUSUG(6)   =gAt
+       A0=findValW('A0')
+    
+      XNUSUG(10)  =gMl2
+      XNUSUG(15)  =gMl3
+      XNUSUG(9)   =gMr2
+      XNUSUG(14)  =gMr3
+      XNUSUG(13)  =gMq2
+      XNUSUG(18)  =gMq3
+      XNUSUG(12)  =gMu2
+      XNUSUG(11)  =gMd2
+      XNUSUG(17)  =gMu3
+      XNUSUG(16)  =gMd3
+      M0=findValW('M0')
+      XNUSUG(8)   =M0
+      XNUSUG(7)   =M0
+
+      XNUSUG(19)  =EWmu
+      XNUSUG(20)  =EWmA
+      MU=XNUSUG(19)
+      AMHA=XNUSUG(20)
+      TWOM1=-MU
+      INUHM=1
+
+      isajetBDR=0
+      ial3un=0
+      XNRIN(2)=1.E20
+      Mt=findValW('Mtp')  
+      call sugra(M0,Mhlf,A0,DTOF(tb),sgn,Mt,1)
+
+      if(MHPNEG.EQ.1) NOGOOD=3
+      if(nogood.ne.0) then
+         isajetBDR=-iabs(nogood) 
+         return
+       endif
+
+        CALL SSMSSM(XISAIN(1),XISAIN(2),XISAIN(3),
+     $ XISAIN(4),XISAIN(5),XISAIN(6),XISAIN(7),XISAIN(8),XISAIN(9),
+     $ XISAIN(10),XISAIN(11),XISAIN(12),XISAIN(13),XISAIN(14),
+     $ XISAIN(15),XISAIN(16),XISAIN(17),XISAIN(18),XISAIN(19),
+     $ XISAIN(20),XISAIN(21),XISAIN(22),XISAIN(23),XISAIN(24),
+     $ Mt,IALLOW,1)
+       
+       call isajet2micromegas()         
+       call assignValW('Am',findValW('Al')) 
+       call assignValW('tb',tb)
+       return 
+      end
+
+
 
       INTEGER  function isajetAMSB(AM0,M32,tanb,sgnmu)
       IMPLICIT NONE
       DOUBLE PRECISION AM0,M32,TANB,SGNMU,MT
       COMMON /SUGPAS/ XTANB,MSUSY,AMT,MGUT,MU,G2,GP,V,VP,XW,
      $A1MZ,A2MZ,ASMZ,FTAMZ,FBMZ,B,SIN2B,FTMT,G3MT,VEV,HIGFRZ,
-     $FNMZ,AMNRMJ,NOGOOD,IAL3UN,ITACHY,MHPNEG,ASM3,
-     $VUMT,VDMT,ASMTP,ASMSS,M3Q
+     $FNMZ,AMNRMJ,NOGOOD,IAL3UN,ITACHY,MHPNEG,IGUTST,ASM3,
+     $VUMT,VDMT,ASMTP,ASMSS,M3Q,MHDSQ,MHUSQ,MHDSMG,MHUSMG,MUMG,BMG,
+     $FT2Z1,FB2Z1,FL2Z1
+
       REAL XTANB,MSUSY,AMT,MGUT,MU,G2,GP,V,VP,XW,
      $A1MZ,A2MZ,ASMZ,FTAMZ,FBMZ,B,SIN2B,FTMT,G3MT,VEV,HIGFRZ,
-     $FNMZ,AMNRMJ,ASM3,VUMT,VDMT,ASMTP,ASMSS,M3Q
-      INTEGER NOGOOD,IAL3UN,ITACHY,MHPNEG
+     $FNMZ,AMNRMJ,ASM3,VUMT,VDMT,ASMTP,ASMSS,M3Q,MHDSQ,MHUSQ,MHDSMG,
+     $MHUSMG,MUMG,BMG,FT2Z1,FB2Z1,FL2Z1
+
+      INTEGER NOGOOD,IAL3UN,ITACHY,MHPNEG,IGUTST
 
       SAVE /SUGPAS/
       COMMON /SUGXIN/ XISAIN(24),XSUGIN(7),XGMIN(14),XNRIN(4),
-     $XAMIN(7)
+     $XAMIN(11)
       REAL XISAIN,XSUGIN,XGMIN,XNRIN,XAMIN
       SAVE /SUGXIN/
 
@@ -322,16 +466,19 @@ C  n5_3                   SU(3)
 
       COMMON /SUGPAS/ XTANB,MSUSY,AMT,MGUT,MU,G2,GP,V,VP,XW,
      $A1MZ,A2MZ,ASMZ,FTAMZ,FBMZ,B,SIN2B,FTMT,G3MT,VEV,HIGFRZ,
-     $FNMZ,AMNRMJ,NOGOOD,IAL3UN,ITACHY,MHPNEG,ASM3,
-     $VUMT,VDMT,ASMTP,ASMSS,M3Q
+     $FNMZ,AMNRMJ,NOGOOD,IAL3UN,ITACHY,MHPNEG,IGUTST,ASM3,
+     $VUMT,VDMT,ASMTP,ASMSS,M3Q,MHDSQ,MHUSQ,MHDSMG,MHUSMG,MUMG,BMG,
+     $FT2Z1,FB2Z1,FL2Z1
       REAL XTANB,MSUSY,AMT,MGUT,MU,G2,GP,V,VP,XW,
      $A1MZ,A2MZ,ASMZ,FTAMZ,FBMZ,B,SIN2B,FTMT,G3MT,VEV,HIGFRZ,
-     $FNMZ,AMNRMJ,ASM3,VUMT,VDMT,ASMTP,ASMSS,M3Q
-      INTEGER NOGOOD,IAL3UN,ITACHY,MHPNEG
+     $FNMZ,AMNRMJ,ASM3,VUMT,VDMT,ASMTP,ASMSS,M3Q,MHDSQ,MHUSQ,MHDSMG,
+     $MHUSMG,MUMG,BMG,FT2Z1,FB2Z1,FL2Z1
+
+      INTEGER NOGOOD,IAL3UN,ITACHY,MHPNEG,IGUTST
       SAVE /SUGPAS/
 
       COMMON /SUGXIN/ XISAIN(24),XSUGIN(7),XGMIN(14),XNRIN(4),
-     $XAMIN(7)
+     $XAMIN(11)
       REAL XISAIN,XSUGIN,XGMIN,XNRIN,XAMIN
       SAVE /SUGXIN/
 
@@ -347,7 +494,7 @@ C  n5_3                   SU(3)
      $,AMW1SS,AMW2SS
      $,GAMMAL,GAMMAR,AMHL,AMHH,AMHA,AMHC,ALFAH,AAT,THETAT
      $,AAB,THETAB,AAL,THETAL,AMGVSS,MTQ,MBQ,MLQ,FBMA, 
-     $VUQ,VDQ
+     $VUQ,VDQ,SGNM3
       LOGICAL GORGE
       REAL AMGLSS,AMULSS,AMURSS,AMDLSS,AMDRSS,AMSLSS
      $,AMSRSS,AMCLSS,AMCRSS,AMBLSS,AMBRSS,AMB1SS,AMB2SS
@@ -356,7 +503,7 @@ C  n5_3                   SU(3)
      $,TWOM1,RV2V1,AMZ1SS,AMZ2SS,AMZ3SS,AMZ4SS,ZMIXSS
      $,AMW1SS,AMW2SS
      $,GAMMAL,GAMMAR,AMHL,AMHH,AMHA,AMHC,ALFAH,AAT,THETAT
-     $,AAB,THETAB,AAL,THETAL,AMGVSS,MTQ,MBQ,MLQ,FBMA,VUQ,VDQ
+     $,AAB,THETAB,AAL,THETAL,AMGVSS,MTQ,MBQ,MLQ,FBMA,VUQ,VDQ,SGNM3
       REAL AMZISS(4)
       EQUIVALENCE (AMZISS(1),AMZ1SS)
       SAVE /SSPAR/
@@ -394,12 +541,15 @@ C      if(MHPNEG.EQ.1) NOGOOD=3
     
       COMMON /SUGPAS/ XTANB,MSUSY,AMT,MGUT,MU,G2,GP,V,VP,XW,
      $A1MZ,A2MZ,ASMZ,FTAMZ,FBMZ,B,SIN2B,FTMT,G3MT,VEV,HIGFRZ,
-     $FNMZ,AMNRMJ,NOGOOD,IAL3UN,ITACHY,MHPNEG,ASM3,
-     $VUMT,VDMT,ASMTP,ASMSS,M3Q
+     $FNMZ,AMNRMJ,NOGOOD,IAL3UN,ITACHY,MHPNEG,IGUTST,ASM3,
+     $VUMT,VDMT,ASMTP,ASMSS,M3Q,MHDSQ,MHUSQ,MHDSMG,MHUSMG,MUMG,BMG,
+     $FT2Z1,FB2Z1,FL2Z1
       REAL XTANB,MSUSY,AMT,MGUT,MU,G2,GP,V,VP,XW,
      $A1MZ,A2MZ,ASMZ,FTAMZ,FBMZ,B,SIN2B,FTMT,G3MT,VEV,HIGFRZ,
-     $FNMZ,AMNRMJ,ASM3,VUMT,VDMT,ASMTP,ASMSS,M3Q
-      INTEGER NOGOOD,IAL3UN,ITACHY,MHPNEG
+     $FNMZ,AMNRMJ,ASM3,VUMT,VDMT,ASMTP,ASMSS,M3Q,MHDSQ,MHUSQ,MHDSMG,
+     $MHUSMG,MUMG,BMG,FT2Z1,FB2Z1,FL2Z1
+
+      INTEGER NOGOOD,IAL3UN,ITACHY,MHPNEG,IGUTST
       SAVE /SUGPAS/
 
 c      REAL*8 tb,MG1,MG2,MG3,Am,Al,At,Ab,MH3,mu,Ml1,Ml2,Ml3,
@@ -449,7 +599,7 @@ c     >Mr1,Mr2,Mr3,Mq1,Mq2,Mq3,Mu1,Mu2,Mu3,Md1,Md2,Md3
 
       REAL Mtp 
       COMMON /SUGXIN/ XISAIN(24),XSUGIN(7),XGMIN(14),XNRIN(4),
-     $XAMIN(7)
+     $XAMIN(11)
       REAL XISAIN,XSUGIN,XGMIN,XNRIN,XAMIN
       REAL*8 SSMQCD
       REAL AMASS
@@ -526,7 +676,7 @@ c    mH1^2= ..
 
 c***************************** main program ***************      
 
-      integer model,err
+      integer model,err,paramExists
       real*8 findValW,Rsl,dmH_d2,dmH_u2,d_Y
       character*100  fInput
       character*100  fOutput 
@@ -544,28 +694,52 @@ c***************************** main program ***************
       if(model.eq.0) then 
        err=isajetEwsbTot()
       else if(model.eq.1) then
-        err=isajetSUGRA(
-     $ findValW('tb'),
-     $ findValW('gMG1'),
-     $ findValW('gMG2'),
-     $ findValW('gMG3'),
-     $ findValW('gAl'),
-     $ findValW('gAt'),
-     $ findValW('gAb'),
-     $ findValW('sgn'),
-     $ findValW('gMHu'),
-     $ findValW('gMHd'),
-     $ findValW('gMl2'),
-     $ findValW('gMl3'),
-     $ findValW('gMr2'),
-     $ findValW('gMr3'),
-     $ findValW('gMq2'),
-     $ findValW('gMq3'),
-     $ findValW('gMu2'),
-     $ findValW('gMu3'),
-     $ findValW('gMd2'),
-     $ findValW('gMd3')
-     $ )
+        if((paramExists('mu').eq.1).and.(paramExists('MH3').eq.1)) then 
+          err=isajetBDR(
+     $    findValW('tb'),
+     $    findValW('gMG1'),
+     $    findValW('gMG2'),
+     $    findValW('gMG3'),
+     $    findValW('gAl'),
+     $    findValW('gAt'),
+     $    findValW('gAb'),
+     $    findValW('gMl2'),
+     $    findValW('gMl3'),
+     $    findValW('gMr2'),
+     $    findValW('gMr3'),
+     $    findValW('gMq2'),
+     $    findValW('gMq3'),
+     $    findValW('gMu2'),
+     $    findValW('gMu3'),
+     $    findValW('gMd2'),
+     $    findValW('gMd3'),
+     $    findValW('mu'),
+     $    findValW('MH3')
+     $    )
+          else 
+          err=isajetSUGRA(
+     $    findValW('tb'),
+     $    findValW('gMG1'),
+     $    findValW('gMG2'),
+     $    findValW('gMG3'),
+     $    findValW('gAl'),
+     $    findValW('gAt'),
+     $    findValW('gAb'),
+     $    findValW('sgn'),
+     $    findValW('gMHu'),
+     $    findValW('gMHd'),
+     $    findValW('gMl2'),
+     $    findValW('gMl3'),
+     $    findValW('gMr2'),
+     $    findValW('gMr3'),
+     $    findValW('gMq2'),
+     $    findValW('gMq3'),
+     $    findValW('gMu2'),
+     $    findValW('gMu3'),
+     $    findValW('gMd2'),
+     $    findValW('gMd3')
+     $     )
+         endif
        else if(model.eq.2) then 
         Rsl=0
         dmH_d2=0
@@ -581,4 +755,3 @@ c***************************** main program ***************
        endif
        call writelesh(-err,VISAJE(),fOutput)
       end
- 

@@ -4,6 +4,6 @@
 
 extern int amplitudeFrameX(int nin, int nout);
 extern int amplitudeFrameY(int nin, int nout);
-extern void drawAmpitudeDiagram(vampl* diagr, int x, int y);
+extern void drawAmpitudeDiagram(vampl* diagr,int mode, int x, int y);
 
 #endif

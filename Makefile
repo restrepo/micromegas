@@ -1,12 +1,16 @@
 
 .PHONY: all clean flags
 
-all:
+all:sources/microPath.h
 	$(MAKE) -C CalcHEP_src
 	$(MAKE) -C sources
+
+sources/microPath.h:
+	echo \#define micrO \"$(CURDIR)\"  > sources/microPath.h
+        
    
 clean:  
-	rm -f manual24.log manual24.aux manual24.dvi manual24.ps manual24.pdf
+	rm -f sources/microPath.h
 	./clean
 
 flags: 

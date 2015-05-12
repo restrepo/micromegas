@@ -27,7 +27,7 @@ typedef longstr *longstrptr;
 typedef struct degreerec
    {
       struct degreerec *    next;
-      char         name[10];
+      char         name[20];
       int         deg;
    }  degreerec;
 

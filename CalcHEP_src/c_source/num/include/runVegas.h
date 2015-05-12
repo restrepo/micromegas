@@ -20,12 +20,19 @@ typedef struct vegas_integral
 {  int itmx[2];
    long ncall[2];
    int freeze;
-   double I, dI,khi2; 
+   double In, dI,khi2; 
    double s0,s1,s2;
    long  nCallTot;
-   int n_it,old;   
+   int n_it,old,tp;   
 }vegas_integral;
 
+
 extern vegas_integral integral; 
+
+extern char * effInfo(void);
+
+int saveEventSettings(FILE * f);
+int readEventSettings(FILE * f);
+
 
 #endif

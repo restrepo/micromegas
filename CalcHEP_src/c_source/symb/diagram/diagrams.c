@@ -194,7 +194,7 @@ static void  mkcsections(csdiagram* diagr,vcsect* vcs)
    for(i=vcs->sizel;i<vcs->sizet;i++)
    for(j=0;j<vcs->valence[i];j++)
    {  edgeinvert * v=&vcs->vertlist[i][j];  
-      v->partcl = prtclbase[v->partcl-1].anti; 
+      if(!prtclbase[v->partcl-1].nHerm) v->partcl = prtclbase[v->partcl-1].anti; 
       if(v->nextvert.vno !=nullvert) v->nextvert.vno +=shift;
       if(v->link.vno !=nullvert) v->link.vno +=shift;
    }

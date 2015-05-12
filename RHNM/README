@@ -1,10 +1,4 @@
-1. ============  read  ../README ===========
-
-3. ======= Special citations ========
-
-  %\cite{Belanger:2007dx}
-  \bibitem{Belanger:2007dx}
-  G.~Belanger, A.~Pukhov and G.~Servant,
-  %`Dirac Neutrino Dark Matter,''
-  arXiv:0706.0526 [hep-ph].
-  %%CITATION = ARXIV:0706.0526;%%
+1) Belanger, Genevieve and Pukhov, Alexander and Servant, Geraldine",
+  "Dirac Neutrino Dark Matter",
+  JCAP, 0801,009,(2008)
+  arXiv:0706.0526[hep-ph]

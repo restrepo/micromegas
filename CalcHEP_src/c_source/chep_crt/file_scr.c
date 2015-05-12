@@ -16,12 +16,14 @@ static char buff[90]=
 
 static int fgets1(char *  c,int  n, FILE * fp)
 {  int l;
-   char buff[STRSIZ];
-   
    if(fgets(c,n,fp)==NULL) return 0;	
-   l=(int)strlen(c) - 1;
-   if (c[l] == '\n')  c[l] = '\0';  else fgets(buff,STRSIZ,fp);
-   return 1;	
+   l= strlen(c) - 1;
+   if (c[l] == '\n')  { c[l] = '\0'; return 1;}  
+   else 
+   { fscanf(fp,"%*[^\n]");
+     fscanf(fp,"%*c");
+     return -1;
+   }  	
 }
 
 
@@ -195,15 +197,15 @@ void showtext(int x1, int y1, int x2, int y2, char* headline,
 int  readtable0(table*  tab,FILE * txt)
 {  
   linelist lastln,newline;                                                     
-  int len,i;                                                                   
+  int len,i;
   linerec zeroline;                                                            
                                                                           
   if(txt==NULL) return 1;                                                      
   cleartab(tab);                                                               
   if(!fgets1(tab->mdlName,STRSIZ,txt)) return 1;                                             
-  if(!fgets1(tab->headln,70,txt))return 1;                                                  
-  if(!fgets1(tab->format,STRSIZ,txt))return 1;                                              
-  len=strlen(tab->format);                                                     
+  if(!fgets1(tab->headln,70,txt))return 1;
+  if(fgets1(tab->format,STRSIZ,txt)<=0)return -2;                                              
+  len=strlen(tab->format);
   while( len && tab->format[len] !='|')  len--;  
   if(len==0) return 1;                                    
   tab->format[len+1]=0;                                                        
@@ -235,7 +237,7 @@ int  readtable(table*  tab, char* fname)
   txt=fopen(fname,"r");
   if(txt==NULL) return -1;
   err=readtable0(tab,txt);
-  fclose(txt);
+  fclose(txt);   
   return err;
 }
 

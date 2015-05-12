@@ -1,0 +1,47 @@
+% Higgs effective vertices
+
+external_func(hGGeven,*).
+external_func(hAAeven,*).
+external_func(hGGodd,*).
+external_func(hAAodd,*).
+
+external_func(MbRun,1).
+external_func(MtRun,1).  
+
+% Amplitudes 
+			  
+_p=[c,b,t,l] in   parameter ahF__p=CoefVrt([anti(_p),_p,h]) /(mass _p).
+
+ parameter a_hV_W=CoefVrt(['W+','W-', h]) /MW**2,
+ a_hS_Hc=CoefVrt(['~H+','~H-', h], [abbr]) /MHC**2.
+        
+
+parameter aQCD_h =alphaQCD(Mh)/PI.
+parameter Rqcd_h=sqrt(1+ aQCD_h*(149/12+ aQCD_h*(68.6482-aQCD_h*212.447))).
+parameter Mbp=MbMb*(1+4/3*alphaQCD(MbMb)/PI).
+parameter Mcp=McMc*(1+4/3*alphaQCD(McMc)/PI). 
+
+parameter Quq=4/9, Qdq=1/9.
+
+          
+parameter LGGh=-cabs(hGGeven(Mh,aQCD_h,3,
+   1,3,Mbp,ahF_b,
+   1,3,Mcp,ahF_c,
+   1,3,Mtp,ahF_t)).
+   
+parameter    LAAh=-cabs(
+   Qdq*hAAeven(Mh,aQCD_h,1, 1,3,Mbp,ahF_b)+
+   Quq*hAAeven(Mh,aQCD_h,2, 1,3,Mtp, ahF_t, 1,3,Mcp,ahF_c )+
+       hAAeven(Mh,aQCD_h, 3,
+       1,1,Ml,ahF_l,
+       2,1,MW,a_hV_W,
+       0,1,MHC,a_hS_Hc)).
+
+let F_A^mu^nu=deriv^mu*A^nu-deriv^nu*A^mu.
+let F_G^mu^nu^a=deriv^mu*G^nu^a-deriv^nu*G^mu^a.
+let dF_G^mu^nu^a=i*GG*f_SU3^a^b^c*G^mu^b*G^nu^c.
+
+lterm  Rqcd_h*LGGh*h*F_G*(F_G+2*dF_G).
+lterm  LAAh*h*F_A**2.
+
+clear F_G,F_A,dF_G.

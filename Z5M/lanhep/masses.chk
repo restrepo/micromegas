@@ -1,0 +1,20 @@
+
+---------------------------------------------------------------
+Mass term for particle Z :
+(+1/CW**2*MW**2) = +91.187000**2
+This particles was declared with mass MZ = 91.187000
+
+---------------------------------------------------------------
+Mass term for particle 'Z.f' :
+(+1/CW**2*MW**2) = +91.187000**2
+This particles was declared with mass MZ = 91.187000
+
+---------------------------------------------------------------
+Mass term for particle '~x1' :
+(+1*muSq1+2/EE**2*MW**2*SW**2*laS1) = +50.000000**2
+This particles was declared with mass Mdm1 = 50.000000
+
+---------------------------------------------------------------
+Mass term for particle '~~x2' :
+(+1*muSq2+2/EE**2*MW**2*SW**2*laS2) = +200.000000**2
+This particles was declared with mass Mdm2 = 200.000000

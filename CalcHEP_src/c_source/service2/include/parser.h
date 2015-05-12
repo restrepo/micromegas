@@ -38,8 +38,6 @@ typedef void  ( *clear)(void *);
 
 
 
-
-
 extern int  rderrcode, rderrpos;
 
 

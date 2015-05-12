@@ -1,8 +1,6 @@
 #ifndef  __MICROMEGAS__
 #define  __MICROMEGAS__
 
-
-
 #ifdef __cplusplus
 extern "C" {
 #endif 
@@ -15,19 +13,22 @@ extern "C" {
 
 #include"../CalcHEP_src/include/num_out.h"
 
+extern char * CDM1, *CDM2, *aCDM1, *aCDM2;
+
 typedef struct numout
 {
   void * handle;
   double ** link;
-  double *Q,*SC,*GG;
+  double *Q,*SC;
   int init;
   CalcHEP_interface * interface; 
 } numout;
 
+extern int VVdecay;
 
 extern int sortOddParticles(char * name);
 
-typedef  struct { double par[34]; }  MOcommonSTR;
+typedef  struct { double par[41]; }  MOcommonSTR;
 
 extern   MOcommonSTR  mocommon_;
 
@@ -69,6 +70,21 @@ extern   MOcommonSTR  mocommon_;
 
 #define deltaY      mocommon_.par[32]
 #define dmAsymm     mocommon_.par[33]
+#define Vesc        mocommon_.par[34]
+#define Vrot        mocommon_.par[35]
+#define fracCDM2    mocommon_.par[36]
+#define Mcdm1       mocommon_.par[37]
+#define Mcdm2       mocommon_.par[38]
+#define Tstart      mocommon_.par[39]
+#define Tend        mocommon_.par[40]
+
+typedef  struct { char txt1[20]; char txt2[20];} MoCommonCH; 
+
+extern  MoCommonCH mocommonch_;
+         
+#define CDM1_ mocommonch_.txt1 
+#define CDM2_ mocommonch_.txt2 
+
 
 extern double sWidth;
 
@@ -77,9 +93,9 @@ extern int ForceUG;
      Particles
 ==============================*/
 
-extern long pNum(char * name);  /* returns PDG code */
+extern int  pNum(char * name);  /* returns PDG code */
 extern double pMass(char * name); /* returns particle mass */
-
+extern char *   pdg2name(int pdg); 
 /*======= Subprocesses ===========*/
   typedef struct txtListStr
   {  struct txtListStr * next;
@@ -91,7 +107,7 @@ extern double pMass(char * name); /* returns particle mass */
 extern txtList  makeDecayList(char * pname, int nx);
 extern void massFilter(double M, txtList * List);
 extern void gammaGluFilter(txtList* List);
-extern void process2Lib(char * process,char * lib);
+extern int process2Lib(char * process,char * lib);
 extern void cleanTxtList(txtList L);
 extern double findBr(txtList L, char * pattern);
 extern void printTxtList(txtList L, FILE *f);
@@ -100,25 +116,24 @@ extern void printTxtList(txtList L, FILE *f);
      (1)2->2 matrix elements
 =============================*/
 extern double decay2Info(char * pname, FILE* f);
-extern numout *  newProcess(char*Process,char* lib);
+extern numout *  newProcess(char*Process);
 extern double GGscale;
 extern double cs22(numout * cc, int nsub,double P,  double cos1, double cos2 , int * err);
 extern int  procInfo1(numout*cc, int *nsub, int * nin, int *nout);
 extern int procInfo2(numout*cc,int nsub,char**name,double*mass);
-extern double Helicity[2];
-extern double hCollider(double Pcm, int pp, int sc, char * name1,char *name2);
-double pWidth(char *name, txtList *L,int *dim);
+extern REAL Helicity[2];
+extern double hCollider(double Pcm, int pp, int nf, double Qren,double Qfact, char * name1,char *name2,double pTmin);
+double pWidth(char *name, txtList *L);
 
-extern int slhaDecayPrint(char * name,FILE*f);
 
 /*===================
       Variables 
 =====================*/
 
-extern double*varAddress(char * name); 
+extern REAL*varAddress(char * name); 
 extern int    assignVal(char * name, double val);
 extern int    findVal(char * name,double * val);
-extern void   assignValW(char * name, double val);
+extern int    assignValW(char * name, double val);
 extern double findValW(char * name);
 extern int    readVar(char *fname);
   
@@ -133,18 +148,53 @@ extern char * nextOdd(int N,double * Mass);
     Relic density evaluation 
   =====================================*/
   
-typedef struct { double weight; char*prtcl[4];} aChannel;
+typedef struct { double weight; char*prtcl[5];} aChannel;
 extern aChannel*omegaCh;  
 extern aChannel* vSigmaTCh;
+
+extern double vSigmaCC(double T,numout* cc);
    
-extern double vSigma(double T,double Beps ,int Fast);
+extern int loadHeffGeff(char*fname);
+extern double  hEff(double T);
+extern double  gEff(double T);
+extern double vSigma(double T,double Beps ,int Fast,double *alpha);
 extern double darkOmega(double *Xf,int Fast, double Beps);
+extern double darkOmega2(double fast, double Beps0);
+
+extern double vs1120F(double T);       
+extern double vs2200F(double T);          
+extern double vs1100F(double T);      
+extern double vs1210F(double T);       
+extern double vs1122F(double T);       
+extern double vs2211F(double T);
+extern double vs1110F(double T);
+extern double vs2220F(double T);
+extern double vs1112F(double T);
+extern double vs1222F(double T);
+extern double vs1220F(double T);
+extern double vs2210F(double T);
+extern double vs2221F(double T);
+extern double vs1211F(double T);
+
+
+extern double dY1F(double T);
+extern double dY2F(double T);
+extern double Y1F(double T);
+extern double Y2F(double T);
+extern double YF(double T);
+
 extern double darkOmegaFO(double *Xf,int fast,double Beps);
 extern double printChannels(double Xf,double cut,double Beps,int prcnt,FILE *f );   
 extern double oneChannel(double Xf,double Beps,char*n1,char*n2,char*n3,char*n4);
 extern void improveCrossSection(long n1,long n2,long n3,long n4,double Pcm, 
                                                             double * addr);
-extern char * wimpAnnLib(void);
+
+extern double Yeq(double T);
+extern double Yeq1(double T);
+extern double Yeq2(double T);
+
+extern double Beps;
+extern int Fast_;
 /*===============================================
     Annihilation spectra
 =================================================*/
@@ -178,8 +228,8 @@ extern double Zi(int i);
 */
 
 extern double SpectdNdE(double E, double * tab);
-
-extern void spectrInfo(double Emin,double*tab, double * Ntot,double*Etot);
+extern void   addSpectrum(double*Spect,double*toAdd);
+extern void   spectrInfo(double Emin,double*tab, double * Ntot,double*Etot);
 /* input parameters:
   a)    Emin - minimal energy under considerstion
   b)    double tab[250]  - table for spectrum distribution.
@@ -187,11 +237,16 @@ extern void spectrInfo(double Emin,double*tab, double * Ntot,double*Etot);
   a)    Ntot - total number of particles with energy E> Xmin*mLsp
   b)    Everage energy of particle  divided on mLsp
 */
-                                                                                
 
-extern int displaySpectrum(double*tab, char*mess,double Emin,double Emax,int EU);
+extern void boost(double Y, double Emax, double mDecay, double mx, double*tab);
+extern int displaySpectrum(double*tab, char*mess,double Emin,double Emax);
 
-extern void setHaloProfiles( double (*haloProfile)(double), double (*clampProfile)(double));
+extern void setHaloProfile( double (*haloProfile)(double));
+extern void setClumpConst(double f,double rho);
+extern double rhoClumpsConst(double r);
+extern void setRhoClumps(double (*cProfile)(double));
+
+
 extern double HaloFactor(double fi,double dfi);
 /*
   Intergates halo squred density along the ling of slight.
@@ -204,18 +259,25 @@ extern double HaloFactor(double fi,double dfi);
 extern int Gtot_style;
 extern void gammaFluxTab(double fi,double  dfi, double sigmaV, double *Sp, double *Sobs);
 extern double gammaFlux(double fi, double dfi,  double dSigmadE); 
+
+extern void gammaFluxTabGC(double l,double b, double dl,double db, double sigmaV, double *Sp, double *Sobs);
+extern double gammaFluxGC(double l, double b, double dl,double db, double dSigmadE);
       
 extern void solarModulation(double PHI, double mass, double * inTab, double * outTab);
-
    
-extern double hProfileABG(double r);
-extern void setProfileABG(double alpha, double beta ,double gamma,double Rc);
+extern double hProfileZhao(double r);
+extern void setProfileZhao(double alpha, double beta ,double gamma,double Rc);
 
 extern double hProfileEinasto(double r);
 extern void setProfileEinasto(double alpha);
 extern double noClumps(double r); 
 
 /*============ Positron and antiproton propagation =================*/
+
+extern int vcsMode;
+extern double pBarBackgroundFlux(double E);
+extern void pBarBackgroundTab(double Emax, double *pBarTab);
+
 extern double posiFlux(double E, double sigmav, double *iSpect);
 
 extern void posiFluxTab(double Emin, double sigmav, double *iSpect, double *outSpect);
@@ -228,28 +290,36 @@ extern double pbarFlux(double ek, double dSigmadE);
                                                                                 
 extern char * outNames[6];
 
-extern int basicSpectra(int pgdN, int outN, double * tab);
+extern int basicSpectra(double Mass,int pdgN, int outN, double * tab);
 
 extern void displayFunc(double (*F)(double), double x1,double x2, char * mess);
 extern void displayFunc10(double (*F)(double), double x1,double x2, char * mess);
+
+/*=========== Neutrino from Sun and Earth ==================*/
+
+extern void ATMnuBackgroundTab(double Fi, double dFi, double *nuTab,double *nuBarTab);
+extern int neutrinoFlux(double (*vfv)(double), int forSun,double *nu, double *nu_bar);
+extern int basicNuSpectra(int forSun, double Mass,int pdgN, int outN, double * tab); 
+extern void muonContained(double*nu,double*Nu,double rho, double*mu);
+extern void muonUpward(double*nu,double*Nu,double*mu);
+extern double  captureAux(double(*vfv)(double),int forSun, double csIp, double csIn,double csDp,double csDn);
+extern double  ATMmuonUpward(double cosFi, double E);
+extern double  ATMmuonContained(double cosFi, double E, double rho);
+
 /*  Direct Detection */
 extern int QCDcorrections, Twist2On;
 extern void calcScalarFF(double muDmd,double msDmd,double sigmaPiN,double sigma0);
-
+extern void calcScalarQuarkFF(double muDmd, double msDmd, double sigmaPiN, double sigmaS);
 extern double FeScLoop(double sgn, double mq,double msq,double mne);
-extern int nucleonAmplitudes( double (*LF)(double,double,double,double), 
+extern int nucleonAmplitudes(char * WINP, double(*LF)(double,double,double,double), 
                   double*pA0,double*pA5,double*nA0,double*nA5); 
 
 extern void  SetFermi(double C,double B, double a);
 extern double FermiFF(int A, double Qfermi);
 
-extern void SetfMaxwell(
-double DV,    
-double vmax
-);
 
 extern double Maxwell(double v);
-
+extern double maxwell_(double*v);
 extern void SetfDelta(double V0);
 extern double fDvDelta(double v);
 
@@ -260,7 +330,8 @@ double(*fDv)(double),   /*  f(v)/v where f(v) is velocity distribution,
                             v in km/s  */
 int A, int Z, double J, /* nuclear atomic number, charge and spin   */
 
-      double(*S00)(double),double(*S01)(double),double(*S11)(double),
+void (*Sxx)(double,double*,double*,double*), /* SD formfactors */
+
 double(*LF)(double,double,double,double),     
 double * dNdE   /* distribution of number of events respect to recoil 
                  energy  in 1/(Kg*Day*Kev) inits. Presinted as array 
@@ -268,14 +339,14 @@ double * dNdE   /* distribution of number of events respect to recoil
 );
 /* nucleusRecoil returns the total number of events for 1day*1Kg */
                   
-extern double nucleusRecoil0( double (*vfv)(double),
+extern double nucleusRecoil0(double (*vfv)(double),
  int A,int Z,double J,double Sp,double Sn,
  double(*LF)(double,double,double,double), double*dNdE);
  
 extern double nucleusRecoilAux(
       double(*vfv)(double),
       int A, int Z, double J,
-      double(*S00)(double),double(*S01)(double),double(*S11)(double),
+      void (*Sxx)(double,double*,double*,double*),
       double cs_SI_P,double cs_SI_N,  double cs_SD_P, double cs_SD_N,
       double * dNdE);
 
@@ -293,7 +364,11 @@ extern double MaxGapLim(double x, double mu);
   where according to theory x point are expected. Then the theoretical model
   is non-confirmed with probability MaxGap
 */
-                                                                                                                                    
+
+extern double widthSMh(double Mh);
+extern double brSMhGG(double Mh);
+extern double brSMhAA(double Mh);
+
 
 extern int displayRecoilPlot(double * tab, char * text, double E1, double E2);
 
@@ -302,19 +377,13 @@ extern double dNdERecoil(double *tab, double E);
 
 extern void killPlots(void);
 
+typedef void (SxxType)(double,double*,double*,double*);
+
+extern SxxType SxxF19,SxxNa23, SxxAl27, SxxSi29, SxxK39, SxxGe73, SxxNb93,SxxTe125,SxxI127,SxxXe129,SxxXe131,SxxPb207,
+SxxNa23A,SxxSi29A,SxxTe125A,SxxI127A,SxxXe129A,SxxXe131A,SxxGe73A,SxxXe131B;
+
+
 typedef double (double2double)(double);
-
-extern  double2double     S00F19,S11F19,S01F19,       S00Na23,S11Na23,S01Na23,
-S00Al27,S11Al27,S01Al27,  S00Si29,S11Si29,S01Si29,    S00K39,S11K39,S01K39,
-S00Ge73,S11Ge73,S01Ge73,  S00Nb93,S11Nb93,S01Nb93,    S00Te125,S11Te125,S01Te125,
-S00I127,S11I127,S01I127,  S00Xe129,S11Xe129,S01Xe129, S00Xe131,S11Xe131,S01Xe131,
-S00Pb207,S11Pb207,S01Pb207;
-
-extern  double2double     S00Na23A,S11Na23A,S01Na23A, S00Si29A,S11Si29A,S01Si29A, 
-S00Te125A,S11Te125A,S01Te125A,   S00I127A,S11I127A,S01I127A,
-S00Xe129A,S11Xe129A,S01Xe129A,   S00Xe131A,S11Xe131A,S01Xe131A,
-S00Ge73A,S11Ge73A,S01Ge73A;
-extern  double2double S00Xe131B,S11Xe131B,S01Xe131B;
 
 /* for testing SD form factors */
 extern  int PlotSS(double (*f)(double),  int A,char * title, double Emax);

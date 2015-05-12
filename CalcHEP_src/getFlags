@@ -22,7 +22,7 @@ $MAKE
 defaultFlags()
 {
 
-HXll=
+HXll=  
 LX11=-lX11
 SNUM=
 SO=so
@@ -30,34 +30,34 @@ echo UNIX `uname`
 case `uname` in
 
 Linux) CC=gcc
-       CFLAGS="-fsigned-char -Wstrict-prototypes -Wimplicit  -Wmissing-prototypes"
+       CFLAGS="-g -fsigned-char -Wstrict-prototypes -Wimplicit  -Wmissing-prototypes -std=gnu99"
 #       CFLAGS="-fsigned-char -Wall"
        lDL="-rdynamic -ldl"       
-       CFLAGSD=
        SHARED=-shared
        SONAME=
        FC=gfortran
        FFLAGS="-fno-automatic"       
        lFort=-lgfortran
        CXX=g++
+       CXXFLAGS=-g
        RANLIB=ranlib
      ;;
 
 OSF1)  CC=cc
-       CFLAGS="-std1 -ieee" 
+       CFLAGS="-g -std1 -ieee -std=gnu99" 
        FC=f77
        FFLAGS="-O0 -fpe2" 
        FFLAGSD=
-       SONAME=-soname
+       SONAME="-soname "
        SHARED=-shared
        lFort=-lfor
        lDL=
        CXX=c++
+       CXXFLAGS=-g
        RANLIB=ranlib
      ;;
 SunOS) CC=cc
-       CFLAGS=
-       CFLAGSD=
+       CFLAGS="-g -std=gnu99"
        SHARED=-G
        SONAME=
        FC=f77
@@ -65,25 +65,25 @@ SunOS) CC=cc
        lFort="-lF77 -lM77 -lsunmath"
        lDL=-ldl
        CXX=c++
+       CXXFLAGS=-g
        RANLIB=ranlib
      ;;
 Darwin)CC=gcc
-       CFLAGS=-fsigned-char
+       CFLAGS="-g -fsigned-char -std=gnu99 "
        lDL=-ldl
-       CFLAGSD=-dynamic
        SHARED=-dynamiclib
-       SONAME=
+       SONAME="-install_name "
        FC=gfortran
        FFLAGS= 
-       lFort="-L/usr/local/gfortran/lib  -lgfortran"
+       lFort="-L/sw/lib  -lgfortran"
        CXX=g++
+       CXXFLAGS=-g
        RANLIB="ranlib -c"
      ;;
 CYGWIN*)
        CC=gcc
-       CFLAGS=-fsigned-char
+       CFLAGS="-g -fsigned-char -std=gnu99"
        lDL=
-       CFLAGSD=
        SHARED=-shared
        SONAME=
        SO=dll
@@ -91,22 +91,23 @@ CYGWIN*)
        FFLAGS=-fno-automatic 
        lFort=-lg2c
        CXX=g++
+       CXXFLAGS=-g
        RANLIB="ranlib"
      ;;
 
 
-   *) CC=cc
+   *) CC=gcc
+      CFLAGS="-g -std=gnu99" 
       FC=f77
       lFort=
       lDL=
       SO=so
       RANLIB=ranlib
       CXX=c++ 
+      CXXFLAGS=-g
       echo Unknown Unix  
      ;;
 esac
-
-
 
 }
 
@@ -115,7 +116,10 @@ writeFlags()
 echo "# C compiler
 CC=\"$CC\" 
 
-# Flags for C compiler
+# Flags for C compiler 
+# Use -D_LONG_ to implement 'long double' for numerical calculations with gcc compiler. 
+# Use '-Qoption,cpp,--extended_float_type  -D_QUAD_'  flag for icc compiler to works
+# with quadrouple precision  
 CFLAGS=\"$CFLAGS\"
 
 # Disposition of header files for X11 
@@ -127,14 +131,11 @@ LX11=\"$LX11\"
 # Library which supports runtime  loading of shared libraries  
 lDL=\"$lDL\"
 
-# Addition flags needed to compile objet files for shared libraries
-CFLAGSD=\"$CFLAGSD\"
-
 # C Flag which forces compilation of  shared library 
 SHARED=\"$SHARED\"
 
 # FLAG to define  "shared_object_name" for shared library
-SONAME=$SONAME
+SONAME=\"$SONAME\"
 
 #Suffix for shared libraies
 SO=$SO
@@ -164,7 +165,7 @@ RANLIB=\"$RANLIB\"
 # MAKE 
 MAKE=$MAKE        
 
-export CC CFLAGS CFLAGSD lDL LX11 SHARED SONAME SO FC FFLAGS RANLIB CXX CXXFLAGS lFort MAKE
+export CC CFLAGS  lDL LX11 SHARED SONAME SO FC FFLAGS RANLIB CXX CXXFLAGS lFort MAKE
 " > ../FlagsForSh    
 }
 
@@ -177,9 +178,8 @@ CFLAGS = $CFLAGS
 HX11 = $HX11
 LX11 = $LX11
 lDL = $lDL 
-CFLAGSD = $CFLAGSD
 SHARED = $SHARED
-SONAME = $SONAME
+SONAME = "$SONAME"
 SO = $SO
 SNUM = $SNUM
 
@@ -191,7 +191,7 @@ CXX=$CXX
 CXXFLAGS = $CXXFLAGS 
 CALCHEP = `pwd`
 UNAME = `uname`
-export CC CFLAGS CFLAGSD lDL LX11 SHARED SONAME SO FC FFLAGS RANLIB CXX CXXFLAGS lFort
+export CC CFLAGS  lDL LX11 SHARED SONAME SO FC FFLAGS RANLIB CXX CXXFLAGS lFort
 
 " > FlagsForMake
 }
@@ -245,21 +245,6 @@ if(test $? -ne 0) then
   echo  C compiler uses unsigned char type. 
   echo  Improve CFLAGS  in FlagsForSh file to have char signed.
   return  1
-fi 
-
-# Testing Complex Numbers
-
-cat >test.c <<EOF 
-#ifndef noCMPLX   
-#include<complex.h>
-#endif
-
-int main(void){return 0;}
-EOF
-
-$CC $CFLAGS  test.c  1>/dev/null 2>/dev/null
-if(test $? -ne 0)then
-  CFLAGS="$CFLAGS -DnoCMPLX"
 fi 
 
 echo C compiler detected
@@ -349,7 +334,6 @@ XLIST="X11R7/Z X11R6/Z X11R5/Z X11R4/Z  Z/X11R7 Z/X11R6 Z/X11R5 Z/X11R4
   return 1
 } 
 
-
 testFC()
 {  
 cat >test.f <<EOF
@@ -430,30 +414,6 @@ extern int xxxx(void);
 int main(void) {  return xxxx_(); }
 EOF
 
- 
-$CC $CFLAGS -c ctest.c 
-$FC $FFLAGS -c test.f
-
-if(test `uname` = Darwin) then 
-which file
-if(test $? -eq 0) then 
-
-c64=`file ctest.o|grep 64`
-f64=`file test.o |grep 64`
-
-if(test -n "$c64") then 
-  if(test  -z "$f64") then  
-     FFLAGS="$CFLAGS -m64"
-  fi
-else 
-  if(test -n "$f64") then      
-     $FFLAGS="$FFLAGS -m32"
-  fi
-fi 
-
-fi
-fi
-
 $CC $CFLAGS -o a.out ctest.c test.o  $lFort 1>/dev/null 2>/dev/null
 if(test $? -ne 0) then
    echo Problem with C-FORTRAN linking. Not fatal.
@@ -529,6 +489,7 @@ if(test $? -ne 0) then
 #  if(test $CC = gcc) then 
      echo tring to add -fPIC option 
      CFLAGS="$CFLAGS -fPIC"
+     CXXFLAGS="$CXXFLAGS -fPIC"
      $CC $CFLAGS $SHARED -o test.$SO  test.c  1>/dev/null 2>/dev/null
      if(test $? -ne 0) then
        echo .. it does not help
@@ -588,6 +549,11 @@ cd fTest
 
 if(test -r ../FlagsForSh) then
   . ../FlagsForSh
+
+if(test -z "$LX11") then
+    LX11=-lX11
+fi
+
 else 
   findMAKE
 echo MAKE= $MAKE
@@ -620,12 +586,7 @@ checkNUM
 # FORTRAN COMPILER
 
 testFC;  if(test $? -ne 0 ) then exit 1; fi
-if(test -n "$FC" ) then 
-  checklFort 
-  if(test $? -eq 2) then 
-     exit 1
-  fi
-fi
+if(test -n "$FC" ) then checklFort; fi
 
 writeFlags
 cd ..

@@ -1,6 +1,4 @@
-/*
- Copyright (C) 1997, Alexander Pukhov, e-mail: pukhov@theory.npi.msu.su
-*/
+#include <stdio.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/wait.h>
@@ -28,11 +26,41 @@
 
 #include "saveres.h"
 #include "out_serv.h"
-
+#include "fcompare.h"
+#include "numcheck.h"
+#include "../../include/version.h"
+#include "dynamic_cs.h"
 
 static int errorcode=0;
 
 static void xw_error(void) { sortie(80);}
+int    menulevel;
+
+static  void checkAuxDir( int nmod)
+{  char  n1[50],n2[50];
+   char *fList[5]= {"vars","prtcls","extlib","func","lgrng",};   
+   int i;
+   for(i=0;i<5;i++)
+   { sprintf(n1,"models/%s%d.mdl",fList[i],nmod); 
+     sprintf(n2,"results/aux/models/%s1.mdl",fList[i]);
+     if(fcompare(n1,n2)) break;
+   }   
+   if(i!=5)
+   {
+     delAllLib();
+     system("if(test -d results/aux) then\n"
+            "rm  -r results/aux\n"
+            "fi\n"
+            "mkdir results/aux; cd results/aux;\n"
+            " mkdir models tmp results so_generated");
+     for(i=0;i<5;i++)
+     { char command[100];
+       sprintf(command,"cp models/%s%d.mdl results/aux/models/%s1.mdl", fList[i],nmod,fList[i]);
+       system(command); 
+     } 
+   }
+}  
+
 
 int main(int argc,char** argv)
 {   
@@ -56,10 +84,12 @@ int main(int argc,char** argv)
   int pid=0;
   char LOCKtxt[]="Directory 'results/' contains the .lock file created by n_calchep.\n"
                  "To continue you may a)Close the n_calchep session, or b)Rename 'results/',\n";
+
+
   blind=0;
-  strcpy(pathtocomphep,argv[0]);
-  for(n=strlen(pathtocomphep)-1; n && pathtocomphep[n]!=f_slash; n--);
-  pathtocomphep[n-3]=0;                                         
+  strcpy(pathtocalchep,argv[0]);
+  for(n=strlen(pathtocalchep)-1; n && pathtocalchep[n]!=f_slash; n--);
+  pathtocalchep[n-3]=0;                                         
      
    for ( n=1;n<argc;n++) 
    { if (strcmp(argv[n],"-blind")==0 && n<argc-1 )
@@ -67,6 +97,7 @@ int main(int argc,char** argv)
         inkeyString=argv[++n];
      }
      if (strcmp(argv[n],"+blind")==0 )  blind=2;                                     
+     if (strcmp(argv[n],"--version")==0 ) { printf("%s\n", VERSION_); exit(0);}
    }    
 
    if(!writeLockFile(".lock")) 
@@ -74,15 +105,24 @@ int main(int argc,char** argv)
       exit(100);
    }
    strcpy(pathtouser,"");  
-   sprintf(pathtohelp,"%shelp%c",pathtocomphep,f_slash);
+   sprintf(pathtohelp,"%shelp%c",pathtocalchep,f_slash);
    outputDir="results/";        
-   { char * icon=(char *) malloc(strlen(pathtocomphep)+10);
+   { char * icon=(char *) malloc(strlen(pathtocalchep)+20);
+     char  title[30];
      int err;
-     sprintf(icon,"%sicon",pathtocomphep);
-     err=start1("CalcHEP/symb",icon,"calchep.ini",&xw_error);
+     sprintf(icon,"%s/include/icon",pathtocalchep);
+     sprintf(title,"CalcHEP_%s/symb", VERSION);
+     err=start1(title,icon,"calchep.ini",&xw_error);
      if(err && blind==0)
      { printf("Error:You have launched interactive session for version compiled  without X11 library.\n");
-       printf("Options: a) Use blind session; b) Recompile CalcHEP with X11\n");
+       printf(" Presumably X11 development package is not installed in your computer.\n");
+       printf(" In this case directory /usr/include/X11/ is empty.\n");       
+       printf("Options: a) Use blind session; b) Update Linux and recompile CalcHEP \n");
+       printf("Name of needed package\n");
+       printf("     libX11-devel      Fedora/Scientific Linux/CYGWIN/Darwin(MAC)\n");
+       printf("     libX11-dev        Ubuntu/Debian\n");
+       printf("     xorg-x11-devel    SUSE\n");
+
        exit(66);
      }      
      free(icon);
@@ -164,14 +204,22 @@ label_20:   /*  Menu3:Enter Process  */
 
    menulevel = 2;
    saveent(menulevel);
-   readModelFiles("./models",n_model);
+   
+   if(readModelFiles("./models",n_model)) 
+   { 
+     if(blind) sortie(133);
+     goto label_10;
+   }   
    modelinfo();
    k2 = 1;
+   
    do
    {  char strmen[]="\026"
         " Enter Process        "
-        " Force Unit.Gauge OFF "
+        " Force Unit.Gauge= OFF"
         " Edit model           "
+        " Numerical Evaluation "
+        "======================"
         " Delete model         ";
 
       if(forceUG)improveStr(strmen,"OFF","ON");
@@ -181,7 +229,9 @@ label_20:   /*  Menu3:Enter Process  */
          case 0:  goto_xy(1,1); clr_eol(); goto label_10;
          case 2:  forceUG=!forceUG;   modelinfo(); break;
 	 case 3:  editModel(1); break;
-         case 4: 
+	 case 4:  numcheck();   
+	 case 5:  break;
+         case 6: 
 	    if ( deletemodel(n_model) )
             {
                goto_xy(1,1);
@@ -195,12 +245,14 @@ label_20:   /*  Menu3:Enter Process  */
    }  while (k2 != 1);
 
    loadModel(0,forceUG);
+   
 label_21:
 
    f3_key[0]=NULL; 
    f3_key[1]=NULL; 
-
+   
    menulevel=2;
+   checkAuxDir(n_model);
    errorcode=enter();   /*  Enter a process  */
    newCodes=0;
    showheap();
@@ -247,7 +299,7 @@ label_31:
       menu1(56,4,"","\026"
          " View diagrams        "
 /*         " Amplitude calculation" */
-         " Squaring technique   "
+         " Square diagrams      "
          " Write down processes ","s_squa_*",&pscr3,&k3);
       switch (k3)
       {
@@ -341,14 +393,9 @@ restart2:
          case 4:
             if(res==2) messanykey(3,10,LOCKtxt); else
             { char command[100];
-              FILE *f=fopen("results/EXTLIB","w");
-              fprintf(f,"EXTLIB=\"%s\"\nexport EXTLIB\n",EXTLIB);
-              fclose(f); 
               saveent(menulevel);
-{ char command[100];
-  sprintf(command,"cd results; $CALCHEP/bin/make_VandP  ../models  %d",n_model);
-  system(command);
-}                 
+              chdir("results");
+              makeVandP(0,"../models",n_model,2,pathtocalchep);
               finish();
               sortie(22);
             }
@@ -389,32 +436,30 @@ label_50:
            c_prog(); newCodes=0; saveent(menulevel);
            break;
          case 2:
-           if(newCodes) { c_prog(); newCodes=0; saveent(menulevel);} 
+           if(newCodes) { c_prog(); newCodes=0; saveent(menulevel);}
+           fflush(NULL); 
            pid=fork();
            if(pid==0)
-           { 
-             char * command;
-             n_calchep_id=setLockFile("results/.lock"); 
-             if(n_calchep_id)
-             {  
-               command=(char*)malloc(strlen(pathtocomphep)+strlen(EXTLIB)+100);
-               sprintf(command,"EXTLIB=\"%s\"\n"
-                               "export EXTLIB\n"
-                               "cd results\n"
-                               "xterm -e %s/make__n_calchep %d",
-                               EXTLIB,pathtocomphep,n_model);                                 
-               system(command);
-               sprintf(command,"cd results; ./n_calchep"); 
-               unLockFile(n_calchep_id);
-               system(command); 
-               free(command);
+           { if(chdir("results")==0)
+             { 
+                n_calchep_id=setLockFile(".lock"); 
+                if(n_calchep_id)
+                {  char*command=malloc(100+strlen(pathtocalchep));
+                   makeVandP(0,"../models",n_model,2,pathtocalchep); 
+                   sprintf(command,"xterm -e %s/sbin/make__n_calchep %d", pathtocalchep,n_model);                                 
+                   system(command);
+                   sprintf(command," ./n_calchep"); 
+                   system(command); 
+                   chdir("../");
+                   unLockFile(n_calchep_id);
+                   free(command);
+                }   
              }
              exit(0);
            }
            break;
          case 3: if(edittable(1,1,&modelTab[4],1," ",0))
                  {  char fName[STRSIZ];
-                    readEXTLIB();
                     sprintf(fName,"%smodels%c%s%d.mdl",pathtouser,f_slash,mdFls[4],n_model);
                     writetable( &modelTab[4],fName); 
                  }

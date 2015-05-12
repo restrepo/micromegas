@@ -1,6 +1,7 @@
 /*
  Copyright (C) 1997, Alexander Pukhov 
 */
+#include <unistd.h>
 #include "chep_crt.h"
 #include "getmem.h"
 #include "syst2.h"
@@ -11,6 +12,11 @@
 #include "prepdiag.h"   /* longDouble */
 #include "process.h"
 #include "cweight.h"
+#include "dynamic_cs.h"
+#include "VandP.h"
+#ifdef pow
+#undef pow
+#endif
 
 int forceUG=0;
 int newCodes=0;
@@ -57,12 +63,13 @@ void restoreent(int * exitlevel)
        ||1!=fscanf(ff,"#Remove_X%[^\n]\n",deloutch)
        ||1!=fscanf(ff,"#nSubproc(ampl) %d\n", &subproc_f)
        ||1!=fscanf(ff,"#nSubproc(squared) %d\n", &subproc_sq)
-       ||1!=fscanf(ff,"#ConservationLow %d\n",&consLow)
+/*       ||1!=fscanf(ff,"#ConservationLow %d\n",&consLow)  */
        ||1!=fscanf(ff,"#Nc==inf  %d\n",&NcInfLimit)
        ||1!=fscanf(ff,"#NoColorChains %d\n",&noCChain)
        ||1!=fscanf(ff,"#NoDiagrams  %d\n", &noPict)
        ||1!=fscanf(ff,"#T-widths    %d\n", &tWidths)    
-       ||1!=fscanf(ff,"#NewCodes  %d\n", &newCodes)             
+       ||2!=fscanf(ff,"#VVdecays  %d  %d \n", &VWdecay,&VZdecay)
+       ||1!=fscanf(ff,"#NewCodes  %d\n", &newCodes) 
        ||1!=fscanf(ff,"#ExitCode %d\n",exitlevel) )  init_safe(exitlevel);
 
       fclose(ff);
@@ -73,10 +80,11 @@ void restoreent(int * exitlevel)
 
 
 void saveent(int  exitlevel)
-{  FILE * ff=fopen("tmp/safe","w"); 
+{  FILE * ff; 
    int i;
    int ntot=0;
-   
+   if(strcmp(outputDir,"results/")) chdir("../"); 
+   ff=fopen("tmp/safe","w");
    fprintf(ff,"#Model %d\n",n_model);
    fprintf(ff,"#ForceUG %d\n",forceUG);
    fprintf(ff,"#nIn %d\n",nin);
@@ -90,13 +98,16 @@ void saveent(int  exitlevel)
    fprintf(ff,"#Remove_X %s\n",deloutch);
    fprintf(ff,"#nSubproc(ampl) %d\n", subproc_f);
    fprintf(ff,"#nSubproc(squared) %d\n", subproc_sq);
-   fprintf(ff,"#ConservationLow %d\n",consLow);
+/*   fprintf(ff,"#ConservationLow %d\n",consLow); */
    fprintf(ff,"#Nc==inf  %d\n",NcInfLimit);
    fprintf(ff,"#NoColorChains %d\n",noCChain);
    fprintf(ff,"#NoDiagrams  %d\n", noPict); 
    fprintf(ff,"#T-widths    %d\n", tWidths);
-   fprintf(ff,"#NewCodes  %d\n", newCodes);             
+   fprintf(ff,"#VVdecays    %d  %d\n", VWdecay,VZdecay);
+   fprintf(ff,"#NewCodes  %d\n", newCodes);   
    fprintf(ff,"#ExitCode %d\n",exitlevel);
+//   fprintf(ff,"#Model paramters:\n");
+//   { for(i=0;i<nModelVars;i++) fprintf(ff,"%s\n",varNames[i]);}
    fclose(ff);
 }
 

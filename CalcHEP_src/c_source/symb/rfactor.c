@@ -375,9 +375,9 @@ static void *  rd_rat(char* s)
    }
    else
    {
-      if (strlen(s) > 6)
-         rderrcode = toolongidentifier;
-      else
+//      if (strlen(s) > 6)
+//         rderrcode = toolongidentifier;
+ //     else
       {
          m = (rmptr) m_alloc(sizeof(struct r_monom));
          m->n.c = 1;

@@ -17,20 +17,20 @@ int rDiagonalA3(aList9(double))  {return rDiagonalA(3,aList9());}
 int rDiagonalA4(aList16(double)) {return rDiagonalA(4,aList16());}
 int rDiagonalA5(aList25(double)) {return rDiagonalA(5,aList25());}
 
-int cDiagonalH2(aList3(Complex)) {return cDiagonalH(2,aList3());}
-int cDiagonalH3(aList6(Complex)) {return cDiagonalH(3,aList6());}
-int cDiagonalH4(aList10(Complex)){return cDiagonalH(4,aList10());}
-int cDiagonalH5(aList15(Complex)){return cDiagonalH(5,aList15());}
+int cDiagonalH2(aList3(double complex)) {return cDiagonalH(2,aList3());}
+int cDiagonalH3(aList6(double complex)) {return cDiagonalH(3,aList6());}
+int cDiagonalH4(aList10(double complex)){return cDiagonalH(4,aList10());}
+int cDiagonalH5(aList15(double complex)){return cDiagonalH(5,aList15());}
 
-int cDiagonalS2(aList3(Complex)) {return cDiagonalS(2,aList3());}
-int cDiagonalS3(aList6(Complex)) {return cDiagonalS(3,aList6());}
-int cDiagonalS4(aList10(Complex)){return cDiagonalS(4,aList10());}
-int cDiagonalS5(aList15(Complex)){return cDiagonalS(5,aList15());}
+int cDiagonalS2(aList3(double complex)) {return cDiagonalS(2,aList3());}
+int cDiagonalS3(aList6(double complex)) {return cDiagonalS(3,aList6());}
+int cDiagonalS4(aList10(double complex)){return cDiagonalS(4,aList10());}
+int cDiagonalS5(aList15(double complex)){return cDiagonalS(5,aList15());}
 
-int cDiagonalA2(aList4(Complex)) {return cDiagonalA(2,aList4());}
-int cDiagonalA3(aList9(Complex)) {return cDiagonalA(3,aList9());}
-int cDiagonalA4(aList16(Complex)){return cDiagonalA(4,aList16());}
-int cDiagonalA5(aList25(Complex)){return cDiagonalA(5,aList25());}
+int cDiagonalA2(aList4(double complex)) {return cDiagonalA(2,aList4());}
+int cDiagonalA3(aList9(double complex)) {return cDiagonalA(3,aList9());}
+int cDiagonalA4(aList16(double complex)){return cDiagonalA(4,aList16());}
+int cDiagonalA5(aList25(double complex)){return cDiagonalA(5,aList25());}
 
 int System1(char*format){ return System(format);}
 int System2(char*format,char*path){ return System(format,path);}

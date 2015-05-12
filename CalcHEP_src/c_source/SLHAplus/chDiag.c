@@ -1,5 +1,7 @@
 
 #include"SLHAplus.h"
+#include"../../include/nType.h"
+
 
 /* 
    This file contains diagonalizing routines presented in the format adopted 
@@ -20,11 +22,11 @@ extern int FError;
 
 static int idMax=-1;
 static int * dim=NULL;
-static double **  rV=NULL;
-static double **  rU=NULL;
-static Complex ** cV=NULL;
-static Complex ** cU=NULL;
-static double ** ev=NULL;
+static REAL **  rV=NULL;
+static REAL **  rU=NULL;
+static COMPLEX ** cV=NULL;
+static COMPLEX ** cU=NULL;
+static REAL ** ev=NULL;
 static int idCur=0;
 
 /*idLim  maximum  id. id is increased automatically until  
@@ -44,11 +46,11 @@ static void extendData(int id, int nDim, int std)
 { int i;
   if(id>idMax)
   {
-    rV=(double **)  realloc( rV,(id+1)*sizeof(double*));
-    rU=(double **)  realloc( rU,(id+1)*sizeof(double*));
-    cV=(Complex **) realloc( cV,(id+1)*sizeof(Complex*));
-    cU=(Complex **) realloc( cU,(id+1)*sizeof(Complex*));  
-    ev=(double **)  realloc(ev, (id+1)*sizeof(double*));
+    rV=(REAL **)  realloc( rV,(id+1)*sizeof(REAL*));
+    rU=(REAL **)  realloc( rU,(id+1)*sizeof(REAL*));
+    cV=(COMPLEX **) realloc( cV,(id+1)*sizeof(COMPLEX*));
+    cU=(COMPLEX **) realloc( cU,(id+1)*sizeof(COMPLEX*));  
+    ev=(REAL **)  realloc(ev, (id+1)*sizeof(REAL*));
     dim=(int*)      realloc(dim,(id+1)*sizeof(int));
     for(i=idMax+1;i<=id;i++) 
     { rV[i]=NULL;rU[i]=NULL;cV[i]=NULL;cU[i]=NULL;ev[i]=NULL; dim[id]=0;}
@@ -72,11 +74,11 @@ static void extendData(int id, int nDim, int std)
      }
      
      if(dim[id]==0)
-     { rV[id]=malloc(sizeof(double)*nDim*nDim);
-       ev[id]=malloc(sizeof(double)*nDim);
+     { rV[id]=malloc(sizeof(REAL)*nDim*nDim);
+       ev[id]=malloc(sizeof(REAL)*nDim);
        dim[id]=nDim;
      } 
-     if(rU[id]==NULL && std==2) rU[id]=malloc(sizeof(double)*nDim*nDim);       
+     if(rU[id]==NULL && std==2) rU[id]=malloc(sizeof(REAL)*nDim*nDim);       
   }
 
   if(std==3 || std==4)
@@ -96,11 +98,11 @@ static void extendData(int id, int nDim, int std)
      }
      
      if(dim[id]==0)
-     { cV[id]=malloc(sizeof(Complex)*nDim*nDim);
-       ev[id]=malloc(sizeof(double)*nDim);
+     { cV[id]=malloc(sizeof(COMPLEX)*nDim*nDim);
+       ev[id]=malloc(sizeof(REAL)*nDim);
        dim[id]=nDim;
      } 
-     if(cU[id]==NULL && std==4) cU[id]=malloc(sizeof(Complex)*nDim*nDim);       
+     if(cU[id]==NULL && std==4) cU[id]=malloc(sizeof(COMPLEX)*nDim*nDim);       
   }
 }
 
@@ -114,11 +116,12 @@ int initDiagonal(void){ idCur=0; return 0;}
 
 int rDiagonal(int nDim,...) 
 { va_list ap;
-  double*MassM=malloc(sizeof(double)*nDim*nDim);
+  REAL*MassM=malloc(sizeof(REAL)*nDim*nDim);
   int i,j,id;
    
   va_start(ap,nDim);
-  for(i=0;i<nDim;i++)for(j=i;j<nDim;j++) MassM[sMT(i,j)]=va_arg(ap, double); 
+  for(i=0;i<nDim;i++)for(j=i;j<nDim;j++) MassM[sMT(i,j)]=va_arg(ap, REAL); 
+//for(i=0;i<nDim;i++)for(j=i;j<nDim;j++) printf("%d %d %E\n",i,j, (doubble)MassM[sMT(i,j)]);
   va_end(ap);
 
   if(idCur>idLIM) idCur=0;
@@ -126,18 +129,19 @@ int rDiagonal(int nDim,...)
   extendData(id,nDim,1);
   FError=FError|rJacobi(MassM, nDim, ev[id], rV[id]); 
   free(MassM);
-  
-  if(!FError){ return id;}
-  else return -1;
+//for(i=0;i<nDim;i++) printf(" %E ",(double)ev[id][i]);
+//printf("\n");  
+
+  return id;
 }
 
 int cDiagonalH(int nDim,...) 
 { va_list ap;
-  Complex*MassM=malloc(sizeof(Complex)*nDim*nDim);
+  COMPLEX*MassM=malloc(sizeof(COMPLEX)*nDim*nDim);
   int i,j,id;
    
   va_start(ap,nDim);
-  for(i=0;i<nDim;i++)for(j=i;j<nDim;j++) MassM[sMT(i,j)]=va_arg(ap, Complex); 
+  for(i=0;i<nDim;i++)for(j=i;j<nDim;j++) MassM[sMT(i,j)]=va_arg(ap, COMPLEX); 
   va_end(ap);
 
   if(idCur>idLIM) idCur=0;
@@ -146,17 +150,16 @@ int cDiagonalH(int nDim,...)
   FError=FError|cJacobiH(MassM, nDim, ev[id], cV[id]); 
   free(MassM);
   
-  if(!FError){ return id;}
-  else return -1;
+  return id;
 }
 
 int cDiagonalA(int nDim,...) 
 { va_list ap;
-  Complex*MassM=malloc(sizeof(Complex)*nDim*nDim);
+  COMPLEX*MassM=malloc(sizeof(COMPLEX)*nDim*nDim);
   int i,j,id;
    
   va_start(ap,nDim);
-  for(i=0;i<nDim;i++)for(j=0;j<nDim;j++) MassM[i*nDim+j]=va_arg(ap, Complex); 
+  for(i=0;i<nDim;i++)for(j=0;j<nDim;j++) MassM[i*nDim+j]=va_arg(ap, COMPLEX); 
   va_end(ap);
 
   if(idCur>idLIM) idCur=0;
@@ -164,18 +167,16 @@ int cDiagonalA(int nDim,...)
   extendData(id,nDim,4);
   FError=FError|cJacobiA(MassM, nDim, ev[id],  cU[id], cV[id]); 
   free(MassM);
-  
-  if(!FError){ return id;}
-  else return -1;
+  return id;
 }
 
 int cDiagonalS(int nDim,...) 
 { va_list ap;
-  Complex*MassM=malloc(sizeof(Complex)*nDim*nDim);
+  COMPLEX*MassM=malloc(sizeof(COMPLEX)*nDim*nDim);
   int i,j,id;
    
   va_start(ap,nDim);
-  for(i=0;i<nDim;i++)for(j=i;j<nDim;j++) MassM[sMT(i,j)]=va_arg(ap, Complex); 
+  for(i=0;i<nDim;i++)for(j=i;j<nDim;j++) MassM[sMT(i,j)]=va_arg(ap, COMPLEX); 
   va_end(ap);
 
   if(idCur>idLIM) idCur=0;
@@ -184,20 +185,18 @@ int cDiagonalS(int nDim,...)
   FError=FError|cJacobiS(MassM, nDim, ev[id], cV[id]); 
   free(MassM);
   
-  if(!FError){ return id;}
-  else return -1;
+  return id;
 }
-
 
 
 int rDiagonalA(int nDim,...) 
 { va_list ap;
 
-  double* MassM=malloc(sizeof(double)*nDim*nDim);
+  REAL* MassM=malloc(sizeof(REAL)*nDim*nDim);
   int i,j,id;
    
   va_start(ap,nDim);
-  for(i=0;i<nDim;i++) for(j=0;j<nDim;j++)  MassM[i*nDim+j]=va_arg(ap, double);
+  for(i=0;i<nDim;i++) for(j=0;j<nDim;j++)  MassM[i*nDim+j]=va_arg(ap,REAL);
   va_end(ap);
   
   if(idCur>idLIM) idCur=0;
@@ -211,27 +210,27 @@ int rDiagonalA(int nDim,...)
 
 /* CalcHEP adopted output of eigenvalues and rotation matrices */
 
-double MassArray(int id,  int i)
+REAL MassArray(int id,  int i)
 { if(id>idMax||i<1 ||i>dim[id]) {FError=1; return 0;}
   return  ev[id][i-1];  
 }
 
-double MixMatrix(int id, int i,int j)
+REAL MixMatrix(int id, int i,int j)
 { if(id>idMax|| i<1 || i>dim[id] ||j<1 ||j>dim[id]) {FError=1; return 0;}
   return  rV[id][j-1+dim[id]*(i-1)];  
 }
 
-double MixMatrixU(int id, int i,int j)
+REAL MixMatrixU(int id, int i,int j)
 { if(id>idMax || i<1 || i>dim[id] ||j<1 ||j>dim[id]||!rU[id]) {FError=1; return 0;}
   return  rU[id][j-1+dim[id]*(i-1)];  
 }
 
-Complex cMixMatrix(int id, int i,int j)
+COMPLEX cMixMatrix(int id, int i,int j)
 { if(id>idMax || i<1 || i>dim[id] ||j<1 ||j>dim[id]){FError=1; return 0;}
   return  cV[id][j-1+dim[id]*(i-1)];  
 }
 
-Complex cMixMatrixU(int id, int i,int j)
+COMPLEX cMixMatrixU(int id, int i,int j)
 { if(id>idMax || i<1 || i>dim[id] ||j<1 ||j>dim[id]||!cU[id]) {FError=1; return 0;}
   return  cU[id][j-1+dim[id]*(i-1)];  
 }

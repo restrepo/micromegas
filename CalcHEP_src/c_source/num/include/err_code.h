@@ -3,5 +3,4 @@
 
 extern int err_code;
 extern void errormessage(void);
-
 #endif

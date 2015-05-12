@@ -21,11 +21,12 @@
 #include "n_calchep_.h"
 #include "plot.h"
 #include "param.h"
-#include "events.h"
 #include "vegas.h"
 #include "mc_menu.h"
 #include "4_vector.h"
+#include "spectrum.h"
 #include "num_in.h"
+#include "comp.h"
 
 static int sub_men__(void)
 {
@@ -104,7 +105,8 @@ static void f7_prog(int mode)
                   " x-Max = YYY            "
                   " Npoints = NNN          "
                   " QCD-scale= QQQ         "
-                  " Display plot           ";
+                  " Display plot x*F(x)    "
+                  " Display plot F(x)      ";
      
      improveStr(strmen,"XXX","%.3f",xMin);
      improveStr(strmen,"YYY","%.3f",xMax);
@@ -128,7 +130,7 @@ static void f7_prog(int mode)
         case 4: 
           correctDouble(50,18,"QCD-scale = ",&scale,1);
           break;
-        case 5:
+        case 5: case 6:
          if(xMin>=0 && xMax>xMin && xMax<=1 
             && nPoints>=3 && nPoints<=150 && scale>0.5)
          {
@@ -139,14 +141,14 @@ static void f7_prog(int mode)
            get_text(1,1,maxCol(),maxRow(),&screen);
            for(i=0;i<nPoints;i++)
            {  double x=xMin+(i+0.5)*(xMax-xMin)/nPoints;
-              f[i]=x*strfun_(mode,x,scale);
+              f[i]=strfun_(mode,x,scale);
+              if(pos==5) f[i]*=x;
               if(be!=1.) f[i]*=be*pow(1.-x,be-1.);
            }
-           
            {
-              char p_name[10], mess[STRSIZ];
+              char p_name[20], mess[STRSIZ];
               strcpy(p_name,pinf_int(Nsub,mode,NULL,NULL));
-              strcat(p_name,"(x)*x");
+              if(pos==5) strcat(p_name,"(x)*x"); else strcat(p_name,"(x)");
               strFunName(mode,mess);
               trim(mess);
               sprintf(mess+strlen(mess)," [QCD-scale = %.1f GeV]",scale); 
@@ -171,7 +173,7 @@ static int  in_setting(void)
   void (*f7_tmp)(int)=f3_key[4];
   char * f7_mess_tmp= f3_mess[4];
   char sf_txt[STRSIZ];
-  double mass[2];
+  REAL mass[2];
   int i;
   int returnCode=0;
 
@@ -185,12 +187,12 @@ static int  in_setting(void)
   for(;;)
   {    
     char strmen[] = "*"
-    " S.F.1: First_structure_function                "
-    " S.F.2: Second_structure_function               "
-    " First  particle momentum[GeV] = PPP1           "
-    " Second particle momentum[GeV] = PPP2           "
-    " FirstPol                                       "
-    " SecondPol                                      ";
+    " S.F.1: First_structure_function                     "
+    " S.F.2: Second_structure_function                    "
+    " First  particle momentum[GeV] = PPP1                "
+    " Second particle momentum[GeV] = PPP2                "
+    " FirstPol                                            "
+    " SecondPol                                           ";
 
     Pcm=va_int[0];
 
@@ -202,13 +204,13 @@ static int  in_setting(void)
     improveStr(strmen,"SecondPol","Helicity of second particle   %.3G",Helicity[1]); 
     else improveStr(strmen,"SecondPol", "Second particle unpolarized");
 
-    strFunName(1,sf_txt); improveStr(strmen,"First","%-40.40s", sf_txt);
-    strFunName(2,sf_txt); improveStr(strmen,"Second","%-40.40s",sf_txt);
+    strFunName(1,sf_txt); improveStr(strmen,"First","%-45.45s", sf_txt);
+    strFunName(2,sf_txt); improveStr(strmen,"Second","%-45.45s",sf_txt);
     improveStr(strmen,"PPP1","%-10.4G",inP1);
     improveStr(strmen,"PPP2","%-10.4G",inP2);
 
     f3_key[4]=f7_prog;   f3_mess[4]="Plot";
-    menu1(30,7,"",strmen,"n_in_*",&pscr,&mode);
+    menu1(25,7,"",strmen,"n_in_*",&pscr,&mode);
     f3_key[4]= f7_tmp;  f3_mess[4]=f7_mess_tmp;
 
     switch(mode)
@@ -235,12 +237,34 @@ static int  in_setting(void)
       case 4: correctDouble(50,12,"Enter new value ",&inP2,1); 
               returnCode=returnCode|1; break;
       case 5: if(is_polarized(1,Nsub))
-              {  correctDouble(50,12,"Enter new value ",Helicity,1);
-                 returnCode=returnCode|1;
-              }    break;
+              {  double buf=Helicity[0]; 
+                 int spin2; 
+                 char txt[60];
+                  (*pinfAux_int)(Nsub,1, &spin2,NULL,NULL);
+                  sprintf(txt, "Enter new value [%.1f,%.1f] :", -(spin2/2.),(spin2/2.));
+                  correctDouble(40,12,txt,&buf,1);
+                  if(fabs(2*buf)>spin2) 
+                  { messanykey( 10,10,"Helicity out of limits");
+                    if(blind) exit(111);
+                  }else 
+                  { Helicity[0]=buf;
+                    returnCode=returnCode|1;
+                  }   
+              }   break;
       case 6: if(is_polarized(2,Nsub))
-              {  correctDouble(50,12,"Enter new value ",Helicity+1,1);
-                 returnCode=returnCode|1; 
+              {  double buf=Helicity[1];
+                 int spin2; 
+                 char txt[60];
+                  (*pinfAux_int)(Nsub,2, &spin2,NULL,NULL);
+                  sprintf(txt, "Enter new value [%.1f,%.1f] :", -(spin2/2.),(spin2/2.));
+                  correctDouble(40,12,txt,&buf,1);
+                  if(fabs(2*buf)>spin2) 
+                  { messanykey( 10,10,"Helicity out of limits");
+                    if(blind) exit(111);
+                  }else 
+                  { Helicity[1]=buf;
+                    returnCode=returnCode|1;
+                  }   
               }   break;                            
     }
   }
@@ -284,7 +308,7 @@ L1:
 
 static int checkEnergy(void)
 {  int i;
-   double ms,m_;
+   REAL ms,m_;
 
    for(i=nin_int+1,ms=0; i<=nin_int+nout_int;i++)
    {  
@@ -298,7 +322,7 @@ static int checkEnergy(void)
       if(m_<=ms) return 1;
    } else 
    {                                                         
-     double S=0,m1,m2;
+     REAL  S,m1,m2;
      pinf_int(Nsub,1,&m1,NULL);
      pinf_int(Nsub,2,&m2,NULL); 
      incomkin(m1,m2,inP1,inP2,&S,NULL,NULL);
@@ -314,10 +338,25 @@ static void infor(void)
   scrcolor(FGmain,BGmain);  
   clrbox(1,1,53,4);
   goto_xy(4,3); scrcolor(Red,BGmain);    print("(sub)Process: ");
-  scrcolor(FGmain,BGmain); print(Process);
+  scrcolor(FGmain,BGmain); print("%s",Process);
   goto_xy(4,4); scrcolor(Red,BGmain);    print("Monte Carlo session: ");
   scrcolor(Black,BGmain);  print("%d",nSess);
-  if(integral.old)  print("(continue)");  else 
+  if(integral.old) 
+  { print("(continue)");     
+    if(integral.n_it>0)
+    {
+      goto_xy(1,7); scrcolor(Blue, BGmain);
+      print(" #IT %s Error[%%]  nCall    Eff.  chi^2", nin_int == 2? "Cross section[pb]":"   Width[GeV]    ");
+      goto_xy(1,8);scrcolor(FGmain, BGmain);
+      integral.In=integral.s1/integral.n_it;               
+      integral.dI=sqrt(integral.s0)/integral.n_it;                        
+      if(integral.n_it<=1 || integral.s0==0 ) integral.khi2=0; else           
+      integral.khi2=(integral.s2-integral.s1*integral.s1/integral.n_it)*integral.n_it/(integral.n_it-1)/fabs(integral.s0);
+      print(" < >   %12.4E %10.2E %8d %8.8s %8.1G" ,
+      integral.In, fabs(integral.In)? 100*integral.dI/(double)fabs(integral.In):0., integral.nCallTot, effInfo(),integral.khi2);
+    }      
+  }  
+  else 
   {   print("(begin)");
       scrcolor(FGmain,BGmain);                 
       clrbox(1,8,53,maxRow()-2);      
@@ -370,14 +409,15 @@ int monte_carlo_menu(void)
                   " Constraints            "
                   " QCD coupling           "
                   " Breit-Wigner           "
+	          " Aliases                "
 	          " Cuts                   "
 	          " Phase space mapping    "
-                  " Vegas                  "
-                  " Generate events        "
-                  " Easy 2->2              ";
+                  " Monte Carlo simulation "
+                  " Easy                   ";
                   
-   if(nout_int>2) menutxt[menutxt[0]*10+1]=0;
-   if(nin_int==1) improveStr(menutxt,"2->2","1->2");
+   if(nout_int!=2  ) menutxt[menutxt[0]*10+1]=0;
+   if(nin_int==1)  improveStr(menutxt,"Easy", "Total width"); 
+           else    improveStr(menutxt,"Easy", "1D integration");
  
    get_text(1,10,80,24,&pscr_mem);
    wrtprc_();
@@ -394,15 +434,36 @@ int monte_carlo_menu(void)
         case  1: r=r|3*sub_men__(); break;
         case  2: r=r|in_setting(); break;
         case  3: r=r|change_parameter(54,7,0);  break;
-        case  4: show_depend(54,7); break;
+        case  4: { int modeC=1;
+                   for(;;)
+                   { char menuC[]="\030"
+                     " All Constraints        " 
+                     " Masses,Widths,Branching"; 
+                     void * pscrC=NULL;
+                     menu1(54,6,"",menuC,"n_constr_*",&pscrC, &modeC);
+                     switch(modeC)
+                     { case 0: put_text(&pscr_mem); break;
+                       case 1: show_depend(54,7); break;
+                       case 2: show_spectrum(54,9); break;
+                     } 
+                     if(!modeC) break;
+                   } break;
+                 }     
         case  5: r=r|qcdmen_();  break;
         case  6: r=r|w_men__();  break;
-        case  7: do r=r|(3*edittable(1,4,&cutTab,1,"n_cut",0));
-                 while (fillCutArray()); 
+        case  7: do r=r|(3*edittable(1,4,&compTab,1,"n_comp",0)); while (fillCompositeArray());
+	         break;     
+        case  8: do r=r|(3*edittable(1,4,&cutTab,1,"n_cut",0)); while (fillCutArray()); 
                  break;             
-        case  8: r=r|mappingMenu(); break;                      
-        case  9: 
-        case 10:
+        case  9: r=r|mappingMenu(); break;                      
+        case  10: 
+                 if(nout_int==1 && !sf_num[0] && !sf_num[1]  ) 
+                 { if(blind)  return 1;                     
+                   messanykey(15,15,"Phase space integration for 2->1 processes\n needs distribution functions.");
+                   break;
+                 }
+                                                                        
+                 
                  if(checkEnergy())   
                  { if(blind)  return 1;                  
                    messanykey(15,15,"Energy is too small!");                   
@@ -413,7 +474,7 @@ int monte_carlo_menu(void)
                  { if(blind) return 2;
                    messanykey(15,15,"Can not evaluate cuts limlts"); 
                    break;
-                 }
+                 }  
         case 11:
                 if(mode==11) 
                 {  void (*f10_tmp)(int);
@@ -421,15 +482,12 @@ int monte_carlo_menu(void)
                    f10_tmp=f3_key[7];
                    f3_key[7]=f10_key_prog_for22;
                    if(nin_int==1) decay12(); else
-                   { double m1,m2,Pcm;
+                   { REAL m1,m2, Pcm;
                      pinf_int(Nsub,1,&m1,NULL); 
                      pinf_int(Nsub,2,&m2,NULL);  
                      incomkin(m1,m2,inP1,inP2,NULL,&Pcm,NULL); 
                      if(sf_num[0]||sf_num[1]||nCuts)
-                     { messanykey(10,10,
-                           "Structure functions and cuts are ignored\n");  
-                       printf(" %d %d %d\n",sf_num[0],sf_num[1],nCuts);
-                     }                                       
+                      messanykey(10,10,"Structure functions and cuts are ignored\n");                                       
                      cs_numcalc(Pcm);
                    }
                    f3_key[7]= f10_tmp;
@@ -443,9 +501,7 @@ int monte_carlo_menu(void)
                    break;    
                 }
    
-                if(mode==9)  runVegas(); 
-                if(mode==10)  runEvents(); 
-
+                if(mode==10)  runVegas(); 
                 r=0;  
                 break;
                  

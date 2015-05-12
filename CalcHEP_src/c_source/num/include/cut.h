@@ -10,7 +10,7 @@ extern int fillCutArray(void);
 extern int rdrcut_(FILE *);
 extern int wrtcut_(FILE *);
 
-extern double  calcCutFactor(void);
+extern double  calcCutFactor(double*V);
 
 extern int rancor_(double *vmin, double *vmax, double shift, double fmult, int n);
 
@@ -21,6 +21,7 @@ extern table cutTab;
 
 
 typedef struct {
+       int aux;
        char title[50];
        char key[4];
        physValRec *pLists;

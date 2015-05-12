@@ -157,7 +157,7 @@ static void  emitdenoms(void)
      if (ln->moment > 0 && !(ln->prop & (IN_PRTCL|OUT_PRTCL)) )
      {
         if (!pseudop(ln->partcl))
-        {  char width[10]="0";
+        {  char width[VAR_NAME_SIZE]="0";
            if(denrno) writeF("*");
            denrno++;
 /*           if(!ttypepropag(j,k))*/ strcpy(width,prtclbase1[ln->partcl].imassidnt);

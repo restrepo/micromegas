@@ -2,24 +2,28 @@
 
 include ../../FlagsForMake
 
-Idir = .. num chep_crt service2 getmem
+Idir = .. num chep_crt service2 getmem mix_events dynamicME
 
 override CFLAGS += -Iinclude $(patsubst %,-I../%/include ,$(Idir))
 
-lib = $(CALCHEP)/lib
+lib = ../../lib
 bin = ../../bin
-LIBS =   $(lib)/num_c.a  $(lib)/sqme_aux.$(SO) $(lib)/serv.a  $(lib)/dummy.a
-#$(lib)/dynamic_me.a  $(lib)/serv.a $(lib)/dummy.a  $(lib)/sqme_aux.$(SO) 
 
-# all: $(bin)/events2tab $(bin)/show_distr $(bin)/sum_distr
+#LIBS = $(lib)/num_c.a $(lib)/serv.a $(lib)/dummy.a  $(lib)/sqme_aux.so
 
-all:  $(bin)/show_distr $(bin)/sum_distr
+#LIBS = $(lib)/serv.a  
+LIBS =
 
-#$(bin)/events2tab:events2tab.c e_tools.c $(LIBS)
-#	$(CC) $(CFLAGS) -o $@ $^ $(LX11) -lm
+all: $(bin)/events2tab $(bin)/show_distr $(bin)/sum_distr $(bin)/lhe2tab
+#$(lib)/num_c.a  $(lib)/serv.a $(lib)/dummy.a
+$(bin)/events2tab:events2tab.c  dummy_output.c  $(lib)/num_c.a    $(lib)/serv.a ../../include/VandPgate.c   $(lib)/dummy.a $(lib)/ntools.a 
+	$(CC) $(CFLAGS)  -o $@ $^ $(LX11) $(lDL)  -lm 
 
-$(bin)/show_distr:show_distr.c $(LIBS) 
-	$(CC) $(CFLAGS) -o $@ $^ $(LX11) -lm
+$(bin)/show_distr:show_distr.c  dummy_output.c   $(lib)/num_c.a  ../../include/VandPgate.c    $(lib)/serv.a $(lib)/dummy.a $(lib)/ntools.a
+	$(CC) $(CFLAGS)  -o $@ $^ $(LX11) $(lDL)  -lm
 
-$(bin)/sum_distr:sum_distr.c $(LIBS)
-	$(CC) $(CFLAGS) -o $@ $^ $(LX11) -lm
+$(bin)/sum_distr:sum_distr.c  dummy_output.c  $(lib)/num_c.a  $(lib)/serv.a ../../include/VandPgate.c   $(lib)/dummy.a $(lib)/ntools.a
+	$(CC) $(CFLAGS)  -o $@ $^ $(LX11) $(lDL) -lm
+	
+$(bin)/lhe2tab:lhe2tab.c  ../mix_events/readLHE.c  dummy_output.c   $(lib)/num_c.a  $(lib)/serv.a ../../include/VandPgate.c   $(lib)/dummy.a $(lib)/ntools.a
+	$(CC) $(CFLAGS)  -o $@ $^  $(LX11) $(lDL) -lm

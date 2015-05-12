@@ -10,7 +10,7 @@
 vcsect     vcs;
 
 
-unsigned    subproc_f, subproc_sq;
+int    subproc_f, subproc_sq;
 
 char  modelmenu[STRSIZ];
 int   maxmodel;

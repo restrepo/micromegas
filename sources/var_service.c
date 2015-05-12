@@ -8,23 +8,18 @@ void printVar(FILE *f)
   fprintf(f,"\n# Model parameters:\n");
   for(i=0;i<nModelVars;i++) fprintf(f,"%-6.6s   %f\n", varNames[i], varValues[i]);
 }
-/*
-double * varAddress(char *name)
-{int i;
- for(i=0;i<nModelVars+nModelFunc;i++)if(!strcmp(name,varNames[i]))return varValues+i;
- return NULL;
-}
-*/
+
 int assignVal(char * name, double val)
 {
-  double * a=varAddress(name);
+  REAL * a=varAddress(name);
   if(a && a<=varValues+nModelVars )  {*a=val; return 0;} else return 1;
 }
 
 
-void assignValW(char*name, double  val)
+int  assignValW(char*name, double  val)
 { 
-  if(assignVal(name,val)==1) printf(" %s not found\n",  name); 
+  if(assignVal(name,val)==1) { printf(" %s not found\n",  name); return 1;}
+  return 0; 
 }
 
 /*
@@ -43,8 +38,8 @@ double  findValW(char*name)
      return 0;
   } else return val;
 }
-*/
 
+*/
 int readVar(char *fname)
 {
   double val;
@@ -96,7 +91,7 @@ int readVarSpecial(char *fname, int nVar, char ** names)
   }
   fclose(f);
   for(i=0,k=0;i<nVar;i++) if(rdOn[i]==0)
-  { if(!k){printf("The following parapeters keep default values:\n"); k=1;} 
+  { if(!k){printf("The following parameters keep default values:\n"); k=1;} 
     { printf("%8.8s=%.4E", names[i],findValW(names[i]));
       if(k==4) {printf("\n");k=1;}else k++;
     }   

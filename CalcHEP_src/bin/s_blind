@@ -26,6 +26,13 @@ do
 done
 
 
-rm -f results/* tmp/*
+for FILE in  results/* tmp/*
+do 
+   if(test ! -d  $FILE) then 
+     rm -f $FILE
+   fi 
+done
+
+
 $bin/s_calchep -blind "$model"{{"$2"{{[{[{{f" $3 "{{0
 err=$?; if(test $err -ne 0) then exit $err; fi

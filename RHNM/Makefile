@@ -13,15 +13,18 @@ endif
 cLib = $(CALCHEP)/lib
 
 # files to compile
-SSS =  ../sources/micromegas.a  $(cLib)/dynamic_me.a  ../sources/micromegas.a  work/work_aux.a \
- $(wildcard lib/aLib.a)   $(cLib)/sqme_aux.$(SO) $(cLib)/libSLHAplus.a   \
- ../CalcHEP_src/lib/num_c.a  ../CalcHEP_src/lib/serv.a $(LX11)  
+SSS =  work/work_aux.a  lib/aLib.a  ../sources/micromegas.a  $(cLib)/dynamic_me.a  work/work_aux.a lib/aLib.a  $(cLib)/sqme_aux.$(SO) $(cLib)/libSLHAplus.a \
+ ../CalcHEP_src/lib/num_c.a ../CalcHEP_src/lib/ntools.a   ../CalcHEP_src/lib/serv.a $(LX11)
+
+ifeq (,$(main)) 
+  $(warning Main program is not specified. Use gmake main='<code of main program>')
+  $(warning Default  main=main.c)
+  main = main.c
+endif
+
 
 
 all: $(main) libs
-ifeq (,$(main)) 
-	@echo Main program is not specified. Use gmake main='<code of main program>'
-else  
   ifeq (.cpp,$(suffix $(main)))
 	$(CXX)  -o $(main:.cpp=) $(main) $(SSS)  $(lDL)  -lm
   else  
@@ -32,14 +35,14 @@ else
         ifeq ($(FC), )
 	$(error  Fortran compiler was not detected.)
         else 
-	$(FC) $(FFLAGS) -o $(main:.F=) $(main)  $(SSS)  $(lDL)  -lm
+	$(FC) $(FFLAGS) -ffixed-line-length-none  -o $(main:.F=) $(main) $(cLib)/faux.o  $(SSS)  $(lDL)  -lm
         endif
       else
 	$(error Only .c, .cpp, and .F  main programs  are supported).
       endif
     endif
   endif  
-endif
+
 
 libs:
 	$(MAKE) -C work

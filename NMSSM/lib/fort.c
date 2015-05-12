@@ -34,10 +34,12 @@ void o1contents_(int *Nch)
 }
 int nmssmewsb_(void){ return nmssmEWSB();}
 
-int  nmssmsugra_(double *m0, double* mhf, double* a0, double* tb,
-double*sgn, double*Lambda, double *aLambda, double*aKappa)
+int  nmssmsugra_(double*m0, double*mhf, double*a0, double*tb,
+double*sgn, double*Lambda, double*aLambda, double*aKappa, 
+double*xif, double*xis, double*muP, double*MSPQ, double*M3HQ)
 {
-  return  nmssmSUGRA(*m0, *mhf, *a0, *tb, *sgn, *Lambda,*aLambda, *aKappa);
+  return  nmssmSUGRA(*m0, *mhf, *a0, *tb, *sgn, *Lambda,*aLambda, *aKappa,
+  *xif,*xis,*muP,*MSPQ,*M3HQ );
 } 
 
 int readslha_(char * fname, int len)
@@ -53,3 +55,9 @@ int  readvarnmssm_(char * f_name,int len)
   
   return readVarNMSSM(c_name);
 }
+
+int hbblocks_(char*fname, int len)
+{  char cname[100];
+   fName2c(fname,cname,len);
+   return   HBblocks(cname);
+}  

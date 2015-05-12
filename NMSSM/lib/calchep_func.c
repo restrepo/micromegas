@@ -6,26 +6,25 @@
 
 #include"lpath.h"
 
+
 static int runTools(char * cmd, char * fout,int mode)
 {  char * command;
    int err;
    double maxl;
    
    if(access(fout,F_OK)==0) unlink(fout);
-   command=malloc(100+strlen(LPATH));
+   command=malloc(100+strlen(NMSSMTOOLS ));
 
    sprintf(command,
-    "lPath=%s;EXPCON_PATH=$lPath/NMSSMTools_2.3.1/EXPCON;export EXPCON_PATH;$lPath/%s"
-    ,LPATH,cmd); 
+    "lPath=%s;EXPCON_PATH=$lPath/EXPCON;export EXPCON_PATH;$lPath/main/%s"
+    ,NMSSMTOOLS ,cmd); 
+//printf("command:%s\n", command);    
    err=System(command);
    free(command);
    if(err>=0) err=slhaRead(fout,0);
-   if(delFiles) { unlink(fout); unlink("inp.dat");}
 
    return err; 
 }
-
-
      
 /* =====  end of header part ========= */
 
@@ -33,21 +32,22 @@ static int runTools(char * cmd, char * fout,int mode)
   double Ml2, double Ml3, double Mr2, double Mr3, double Mq2, double Mq3,   
   double Mu2, double Mu3, double Md2, double Md3, 
   double At, double Ab, double Al, double mu,     
-  double LambdQ,double KappaQ,double aLmbdQ,double aKappQ)
+  double LambdQ,double KappaQ,double aLmbdQ, double aKappQ,
+  double mXiF,double mXiS, double muP, double msP,double m3h)
 { 
 
    int err,nw;
-   FILE*  f=fopen("inp.dat","w");
+   FILE*  f=fopen("inp","w");
    if(f==NULL) return -1;
-                                    
+                                       
    fprintf(f,"Block MODSEL    # Select model\n"   
              "  1    0           # EWSB input\n"
              "  3    1           # NMSSM PARTICLE CONTENT\n"
              "  9    0           # FLAG FOR MICROMEGAS (0=NO, 1=YES\n"
              " 10    0           # No scan, no ...\n"
            "Block SMINPUTS    # Standard Model inputs\n");
-   fprintf(f," 1   %.8E       # alpha_em^(-1)(MZ) SM MSbar\n",1/findValW("alfEMZ"));
-   fprintf(f," 2   %.8E       # G_Fermi \n",1.16637E-5); 
+//   fprintf(f," 1   %.8E       # alpha_em^(-1)(MZ) SM MSbar\n",1/findValW("alfEMZ"));
+//   fprintf(f," 2   %.8E       # G_Fermi \n",1.16637E-5); 
    fprintf(f," 3   %.8E       # alpha_s(MZ) SM MSbar\n",findValW("alfSMZ"));
    fprintf(f," 5   %.8E       # mb(mb) SM MSbar\n", findValW("MbMb"));
    fprintf(f," 6   %.8E       # mtop(pole)\n",      findValW("Mtp"));
@@ -91,10 +91,16 @@ static int runTools(char * cmd, char * fout,int mode)
    fprintf(f," 63  %.8E      # AL\n", aLmbdQ);
    fprintf(f," 64  %.8E      # AK\n", aKappQ);
    fprintf(f," 65  %.8E      # MU\n", mu);
-   
+
+   fprintf(f," 66  %.8E        # XiF \n",  mXiF*fabs(mXiF));
+   fprintf(f," 67  %.8E        # XiS \n",  pow(mXiS,3));
+   fprintf(f," 68  %.8E        # muP \n",  muP);
+   fprintf(f," 69  %.8E        # MS'^2 \n", msP*fabs(msP));
+   fprintf(f," 72  %.8E        # M3H^2\n", m3h*fabs(m3h));
+     
    fclose(f);
 
-   err= runTools("nmhdecay","spectr.dat",0);
+   err= runTools("nmhdecay","spectr",0);
 
    if(err) {FError=1;}
 //   nw= slhaWarnings(NULL);
@@ -102,10 +108,11 @@ static int runTools(char * cmd, char * fout,int mode)
 }
 
 double sugraNMSSM( double m0, double mhf, double a0, double tb, double sgn,  
-     double Lambda,double aLambda, double aKappa)
+     double Lambda,double aLambda, double aKappa, double mXiF, double mXiS,
+     double muP, double msP,double m3h)
 {
   int nw=0,err;
-  FILE*  f=fopen("inp.dat","w");  
+  FILE*  f=fopen("inp","w");  
    if(f==NULL) return -1;
    
    fprintf(f,
@@ -115,8 +122,8 @@ double sugraNMSSM( double m0, double mhf, double a0, double tb, double sgn,
            "  9    0            # FLAG FOR MICROMEGAS (0=NO)\n" 
            " 10    0            # No scan, no ...\n"
            "Block SMINPUTS               # Standard Model inputs\n");
-   fprintf(f," 1   %.8E       # alpha_em^(-1)(MZ) SM MSbar\n",1/findValW("alfEMZ"));
-   fprintf(f," 2   %.8E       # G_Fermi \n",1.16637E-5); 
+//   fprintf(f," 1   %.8E       # alpha_em^(-1)(MZ) SM MSbar\n",1/findValW("alfEMZ"));
+//   fprintf(f," 2   %.8E       # G_Fermi \n",1.16637E-5); 
    fprintf(f," 3   %.8E       # alpha_s(MZ) SM MSbar\n",findValW("alfSMZ"));
    fprintf(f," 5   %.8E       # mb(mb) SM MSbar\n", findValW("MbMb"));
    fprintf(f," 6   %.8E       # mtop(pole)\n",      findValW("Mtp"));
@@ -133,14 +140,20 @@ double sugraNMSSM( double m0, double mhf, double a0, double tb, double sgn,
    fprintf(f," 61  %.8E        # L \n",  Lambda);
    fprintf(f," 63  %.8E        # A_LAMBDA\n", aLambda);
    fprintf(f," 64  %.8E        # A_K\n", aKappa);
+
+   fprintf(f," 66  %.8E        # XiF \n",  mXiF*fabs(mXiF));
+   fprintf(f," 67  %.8E        # XiS \n",  mXiS*mXiS*mXiS);
+   fprintf(f," 68  %.8E        # muP \n", muP);
+   fprintf(f," 69  %.8E        # MS'2 \n", msP*fabs(msP));
+   fprintf(f," 72  %.8E        # M3H^2\n", m3h*fabs(m3h));
+                           
    fclose(f);
      
-  err= runTools("nmspec","spectr.dat",0);
-  
-  if(err) {FError=1; nw=-1; return -1;} 
-  nw= slhaWarnings(NULL);
-  if(nw==-1) FError=1;
-  return nw;  
+  err= runTools("nmspec","spectr",0);
+  if(err) {FError=1;} 
+//  nw= slhaWarnings(NULL);
+//  if(nw==-1) FError=1;
+  return err;
 }
 
 

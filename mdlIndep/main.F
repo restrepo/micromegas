@@ -53,7 +53,7 @@ C  for CDM_NUCLEUS
 
 C  for NEUTRINO 
       integer forSun
-      real*8 IntFlux, rhoDet
+      real*8 rhoDet
       real*8 nu(NZ),nu_bar(NZ),FluxN(NZ),FluxNb(NZ),FluxMu(NZ) 
       real*8 Prop,cRate,R       
 
@@ -102,7 +102,7 @@ C** fi angle of sight [rad], dfi - half of cone angle
       write(*,fmt="('and spherical region described by cone with angle ',F4.2,'[rad]' )") 2*dfi
 #ifdef SHOWPLOTS      
       write(mess,fmt="('gamma flux[cm^2 s GeV]^{-1} at fi=',F4.2,' from cone with angle=',F4.2,'[rad]')")fi,dfi*2  
-      err= displaySpectrum(FluxA,mess,Emin,Mcdm)
+      err= displaySpectrum(mess,Emin,Mcdm,FluxA)
 #endif
       write(*,fmt="('Photon flux =',1PE8.2,'[cm^2 s GeV]^{-1} for E=',0PF5.1,'[GeV]')")
      > SpectdNdE(Etest, FluxA), Etest
@@ -111,8 +111,8 @@ C** fi angle of sight [rad], dfi - half of cone angle
       call  posiFluxTab(Emin, sigmaV, SpE,  FluxE)
       if(SMmev.gt.0)  call solarModulation(SMmev,5D-4,FluxE,FluxE)
 #ifdef SHOWPLOTS      
-      err=displaySpectrum(FluxE,'positron flux [cm^2 s sr GeV]^{-1}',
-     >Emin,Mcdm)
+      err=displaySpectrum('positron flux [cm^2 s sr GeV]^{-1}',
+     >Emin,Mcdm,FluxE)
 #endif
       write(*,fmt="('Positron flux  = ',1PE8.2,
      >'[cm^2 sr s GeV]^{-1} for E=',0PF6.1,'[GeV]')")
@@ -122,8 +122,8 @@ C** fi angle of sight [rad], dfi - half of cone angle
       call  pbarFluxTab(Emin, sigmaV, SpP,  FluxP)
       if(SMmev.gt.0)  call solarModulation(SMmev,1.d0,FluxP,FluxP)
 #ifdef SHOWPLOTS      
-      err=displaySpectrum(FluxP,'a-proton flux [cm^2 s sr GeV]^{-1}',
-     >Emin,Mcdm)
+      err=displaySpectrum('a-proton flux [cm^2 s sr GeV]^{-1}',
+     >Emin,Mcdm,FluxP)
 #endif
 
       write(*,fmt="('Anti proton flux  = ',1PE8.2,
@@ -192,17 +192,13 @@ C rhoDet - detector density
 
        DO n=1,nCH
          if(fracCH(n).gt.0) then 
-           err=  basicNuSpectra(forSun, Mcdm,pdgCH(n), 1, buff) 
+           err=  basicNuSpectra(forSun, Mcdm,pdgCH(n),0, bn,bn_) 
            DO i=2,NZ
-              nu(i) = nu(i)+buff(i)*fracCH(n)
-           ENDDO
-           err=basicNuSpectra(forSun, Mcdm, pdgCH(n),-1, buff)
-           DO  i=2,NZ 
-             nu_bar(i)=nu_bar(i)+buff(i)*fracCH(n)
+              nu(i)    = nu(i)    +bn(i) *fracCH(n)
+              nu_bar(i)= nu_bar(i)+bn_(i)*fracCH(n)
            ENDDO
          endif
        ENDDO  
-
 
 C distance in km
        if(forSun.ne.0) then 
@@ -220,31 +216,32 @@ C flux normalization in  in Year*km^2
        ENDDO
 
 #ifdef SHOWPLOTS
-      err=displaySpectrum(FluxN, "nu flux from Sun [1/Year/km^2/GeV]",Emin,Mcdm)
-      err=displaySpectrum(FluxNb,"nu-bar from Sun  [1/Year/km^2/GeV]",Emin,Mcdm)
+      err=displaySpectrum("nu flux from Sun [1/Year/km^2/GeV]",Emin,Mcdm,FluxN)
+      err=displaySpectrum("nu-bar from Sun  [1/Year/km^2/GeV]",Emin,Mcdm,FluxNb)
 #endif
-      call spectrInfo(Emin/Mcdm,FluxN, IntFlux,NULL)
-      write(*,fmt='("E>", 1PE8.2," GeV neutrino flux =", E8.2," [1/Year/km^2]")') Emin,IntFlux
-      call  spectrInfo(Emin/Mcdm,FluxNb, IntFlux,NULL)
-      write(*,fmt='("E>", 1PE8.2," GeV anti-neutrino flux =", E8.2," [1/Year/km^2]")') Emin,IntFlux 
+      write(*,fmt='("E>", 1PE8.2," GeV neutrino flux =", E8.2," [1/Year/km^2]")') Emin,spectrInfo(Emin,FluxN,NULL)
+      write(*,fmt='("E>", 1PE8.2," GeV anti-neutrino flux =", E8.2," [1/Year/km^2]")') Emin,spectrInfo(Emin,FluxNb,NULL) 
+C!  ICE CUBE
+      if(forSun.eq.1) then 
+         write(*,fmt='("IceCube22 exclusion confidence level = ",1PE8.2,"%")')  100*exLevIC22(FluxN,FluxNb,NULL)
+      endif
+
   
 C ======  Upward events
   
       call muonUpward(FluxN,FluxNb,FluxMu)
 #ifdef SHOWPLOTS  
-      err= displaySpectrum(FluxMu,"Upward muons[1/Year/km^2/GeV]",Emin,Mcdm/2)
+      err= displaySpectrum("Upward muons[1/Year/km^2/GeV]",Emin,Mcdm/2,FluxMu)
 #endif
 
-      call spectrInfo(Emin/Mcdm,FluxMu, IntFlux,NULL)
-      write(*,fmt='("E>", 1PE8.2," GeV Upward muon flux =", E8.2," [1/Year/km^2]")') Emin,IntFlux
+      write(*,fmt='("E>", 1PE8.2," GeV Upward muon flux =", E8.2," [1/Year/km^2]")') Emin,spectrInfo(Emin,FluxMu, NULL)
   
 C ======  Contained events 
       call muonContained(FluxN,FluxNb,rhoDet, FluxMu)
 #ifdef SHOWPLOTS  
-      err=displaySpectrum(FluxMu,"Contained  muons[1/Year/km^3/GeV]",Emin,Mcdm)
+      err=displaySpectrum("Contained  muons[1/Year/km^3/GeV]",Emin,Mcdm,FluxMu)
 #endif
-      call spectrInfo(Emin/Mcdm,FluxMu, IntFlux,NULL)
-      write(*,fmt='("E>", 1PE8.2," Contained muon flux =", E8.2," [1/Year/km^3]")') Emin,IntFlux
+      write(*,fmt='("E>", 1PE8.2," Contained muon flux =", E8.2," [1/Year/km^3]")') Emin,spectrInfo(Emin,FluxMu,NULL)
 #endif
 
 

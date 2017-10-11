@@ -8,7 +8,7 @@
 #include"runVegas.h"
 #include"subproc.h"
 #include"4_vector.h"
-#include"plot.h" 
+#include"plot.h"
 
 #define NPOINTS 100
 #define   EM     5.1099906e-4

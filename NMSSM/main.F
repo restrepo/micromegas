@@ -28,9 +28,6 @@ C     Compute spectra of gamma/positron/neutrinos
 C     for DM annihilation; calculate <sigma*v> and
 C     integrate gamma signal over DM galactic squared
 C     density for given line of sight.
-C#define LoopGAMMA
-C     Calculate discrete  photon spectrum caused by annihilation of
-C      neutralinos into two photons and Z-photon
 
 C!#define RESET_FORMFACTORS
 C     Modify default nucleus form factors, 
@@ -43,11 +40,13 @@ C#define CDM_NUCLEUS
 C     Calculate number of events for 1kg*day
 C     and recoil energy distibution for various nuclei
 
+#define NEUTRINO   neutrino telescope
+
 C#define DECAYS
 C     Calculates particle widths and branchings
 
 
-C#define CROSS_SECTIONS
+#define CROSS_SECTIONS
 C     Calculate cross sections and widths for
 C      reactions specified by the user
  
@@ -86,11 +85,11 @@ C Variables
       character*10 cdmName
       integer spin2,charge3,cdim,PDGcdm
       real*8 Pcm,cosmin, cosmax,rw,width
-      integer cc(2),txtL(2),dim
+      integer*8 cc,txtL
       integer ntot,l, nin,nout
       character*6 name(4)
       real*8 mass(4)
-      real*8 Etest,cs
+      real*8 Etest,cs,Qren,Qfact,pTmin
       integer outP
       real*8 Emin,NGtot,Xtot,sigmaV,v/0.001/,tab(NZ),fi,dfi
       character*100 mess
@@ -110,6 +109,10 @@ C for CDM_NUCLEON
 
 C  for CDM_NUCLEUS
       real*8  dNdE(200),rho,nEvents
+C  for NEUTRINO 
+      integer forSun
+      real*8  rhoDet
+      real*8 FluxN(NZ),FluxNb(NZ),FluxMu(NZ) 
 
 C   to save the SLHA  input/output file  uncomment  
 c       call delFiles(0)
@@ -390,7 +393,7 @@ C  Use SpectdNdE(E, SpX) to calculate energy distribution in 1/GeV units.
 #ifdef SHOWPLOTS      
       write(mess,fmt="('gamma flux[cm^2 s GeV]^{-1} at fi=',F4.2,
      > ' from cone with angle=',F4.2,'[rad]')")fi,dfi*2  
-      err= displaySpectrum(FluxA,mess,Emin,Mcdm)
+      err= displaySpectrum(mess,Emin,Mcdm,FluxA)
 #endif
       write(*,fmt="('Photon flux =',1PE8.2,
      >'[cm^2 s GeV]^{-1} for E=',0PF5.1,'[GeV]')")
@@ -400,8 +403,8 @@ C  Use SpectdNdE(E, SpX) to calculate energy distribution in 1/GeV units.
       call  posiFluxTab(Emin, sigmaV, SpE, FluxE)
 
 #ifdef SHOWPLOTS      
-      err=displaySpectrum(FluxE,'positron flux [cm^2 s sr GeV]^{-1}',
-     >Emin,Mcdm)
+      err=displaySpectrum('positron flux [cm^2 s sr GeV]^{-1}',
+     >Emin,Mcdm,FluxE)
 #endif
       write(*,fmt="('Positron flux  = ',1PE8.2,
      >'[cm^2 sr s GeV]^{-1} for E=',0PF6.1,'[GeV]')")
@@ -411,8 +414,8 @@ C  Use SpectdNdE(E, SpX) to calculate energy distribution in 1/GeV units.
       call  pbarFluxTab(Emin, sigmaV, SpP,  FluxP)
 
 #ifdef SHOWPLOTS      
-      err=displaySpectrum(FluxP,'a-proton flux [cm^2 s sr GeV]^{-1}',
-     >Emin,Mcdm)
+      err=displaySpectrum('a-proton flux [cm^2 s sr GeV]^{-1}',
+     >Emin,Mcdm,FluxP)
 #endif
 
       write(*,fmt="('Anti proton flux  = ',1PE8.2,
@@ -420,24 +423,6 @@ C  Use SpectdNdE(E, SpX) to calculate energy distribution in 1/GeV units.
      > SpectdNdE(Etest, FluxP),  Etest     
 
 #endif
-
-#ifdef LoopGAMMA
-        
-      if(loopGamma(vcs_zg, vcs_gg).eq.0) then 
-         write(*,*) '=========== Gamma ray lines =============:'
-         write(*,*)    
-         write(*,fmt="('E=',F6.1,'[GeV] vcs(Z,A)=', 1PE8.2,
-     >        '[cm^2/s] flux=',E8.2,'[cm^2 s]^{-1}')") 
-     >   Mcdm-91.19*91.19/4/Mcdm, vcs_zg, 
-     >   gammaFlux(fi,dfi,vcs_zg)
-
-         write(*,fmt="('E=',F6.1,'[GeV] vcs(A,A)=', 1PE8.2,
-     >        '[cm^2/s] flux=',E8.2,'[cm^2 s]^{-1}')") 
-     >   Mcdm, vcs_gg, 
-     >   2*gammaFlux(fi,dfi,vcs_gg)
-
-      endif
-#endif   
 
 
 #ifdef RESET_FORMFACTORS
@@ -477,7 +462,7 @@ C    All parameters are  in [km/s] units.
       write(*,*) '==== Calculation of CDM-nucleons amplitudes  ====='   
 
 
-      err=nucleonAmplitudes(CDM1,FeScLoop, pA0,pA5,nA0,nA5)
+      err=nucleonAmplitudes(CDM1, pA0,pA5,nA0,nA5)
       write(*,*)'CDM-nucleon amplitudes:'
       write(*,fmt="(' proton:  SI=',1PE9.2,' SD=',E9.2)")pA0(1),pA5(1)
       write(*,fmt="(' neutron: SI=',1PE9.2,' SD=',E9.2)")nA0(1),nA5(1) 
@@ -503,7 +488,7 @@ C  nucleon mass
       write(*,*) 'Ge:'
 
       nEvents=nucleusRecoil(Maxwell,73,Z_Ge,J_Ge73,
-     >S00Ge73,S01Ge73,S11Ge73,FeScLoop,dNdE)
+     >S00Ge73,S01Ge73,S11Ge73,dNdE)
 C  See '../sources/micromegas.h' for description of arguments
 C  Instead of Maxwell  one can use 'fDvDelta' Delta-function
 C  velocity distribution.
@@ -522,7 +507,7 @@ C  velocity distribution.
        write(*,*)
        write(*,*) '131Xe:'  
        nEvents=nucleusRecoil(Maxwell,131,Z_Xe,J_Xe131,
-     > S00Xe131,S01Xe131,S11Xe131,FeScLoop,dNdE)
+     > S00Xe131,S01Xe131,S11Xe131,dNdE)
 
       write(*,fmt=
      >"('Total number of events=',1PE9.2,' /day/kg')")nEvents
@@ -536,6 +521,73 @@ C  velocity distribution.
 #endif
 
 #endif
+
+#ifdef NEUTRINO 
+      forSun=1
+      Emin=1
+C rhoDet - detector density
+      rhoDet=1     
+      write(*,*)  
+      write(*,fmt='("===============Neutrino Telescope=======  for  ",$)') 
+
+      if(forSun.ne.0) then 
+         write(*,*) "Sun"
+      else 
+         write(*,*) "Earth"  
+      endif 
+
+      err=neutrinoFlux(Maxwell,forSun, FluxN,FluxNb)
+#ifdef SHOWPLOTS
+      err=displaySpectrum("nu flux from Sun [1/Year/km^2/GeV]",Emin,Mcdm,FluxN)
+      err=displaySpectrum("nu-bar from Sun  [1/Year/km^2/GeV]",Emin,Mcdm,FluxNb)
+#endif
+      write(*,fmt='("E>", 1PE8.2," GeV neutrino flux =", E8.2," [1/Year/km^2]")') Emin,spectrInfo(Emin,FluxN,NULL)
+      write(*,fmt='("E>", 1PE8.2," GeV anti-neutrino flux =", E8.2," [1/Year/km^2]")') Emin, spectrInfo(Emin,FluxNb,NULL) 
+
+C!  ICE CUBE
+      if(forSun.eq.1) then 
+         write(*,fmt='("IceCube22 exclusion confidence level = ",1PE8.2,"%")') 100*exLevIC22(FluxN,FluxNb,NULL)
+      endif
+  
+C ======  Upward events
+  
+      call muonUpward(FluxN,FluxNb,FluxMu)
+#ifdef SHOWPLOTS  
+      err= displaySpectrum("Upward muons[1/Year/km^2/GeV]",Emin,Mcdm/2,FluxMu)
+#endif
+
+      write(*,fmt='("E>", 1PE8.2," GeV Upward muon flux =", E8.2," [1/Year/km^2]")') Emin,spectrInfo(Emin,FluxMu,NULL)
+  
+C ======  Contained events 
+      call muonContained(FluxN,FluxNb,rhoDet, FluxMu)
+#ifdef SHOWPLOTS  
+      err=displaySpectrum("Contained  muons[1/Year/km^3/GeV]",Emin,Mcdm,FluxMu)
+#endif
+      write(*,fmt='("E>", 1PE8.2," Contained muon flux =", E8.2," [1/Year/km^3]")') Emin,spectrInfo(Emin,FluxMu,NULL)
+#endif
+
+#ifdef DECAYS
+
+      write(*,*)
+      write(*,*)'======Calculations of widths======='
+
+      write(*,*) 
+      pname = 'h'
+      width=pWidth(pname,txtL)
+      write(*,fmt="(A8, ':  total width ',1PE8.2,'[GeV]')") pname, width
+      write(*,*)'and Branchings:'
+      call printTxtList(txtL,6)
+
+      write(*,*) 
+      pname = '~o2'
+      width=pWidth(pname,txtL)
+      write(*,fmt="(A8,':  total width ',1PE8.2,'[GeV]')")pname, width
+      write(*,*)'and Branchings:'
+      call printTxtList(txtL,6)
+
+#endif
+
+
 
 #ifdef DECAYS
 
@@ -570,26 +622,18 @@ C   pname = "~o2";
 #ifdef CROSS_SECTIONS
       write(*,*)
       write(*,*)'======Calculations of cross sections======='
-
-      Pcm=500
-      cosmin=-0.99
-      cosmax=0.99
-      write(*,fmt="('Process e,E->2*x at Pcm= ',F6.1,'[GeV]')") Pcm
-      call setHelicities(0.5D0,-0.5D0)
-      call newProcess('e%,E%->2*x','eE_2x',cc)
-      if(cc(1).ne.0 ) then
-        call procInfo1(cc,ntot,nin,nout)
-        do l=1,ntot
-          cs= cs22(cc,l,Pcm,cosmin,cosmax,err)
-          if((err.eq.0) .and. (cs.ne.0)) then 
-            call procInfo2(cc,l,name,mass)
-            write(*,fmt='(A3,1x,A3,A4,A3,1x,A3,$)')
-     >      name(1),name(2),' -> ', name(3),name(4)
-            write(*,fmt="(1PE8.2,'[pb]')") cs
-          endif 
-        enddo
-      endif     
+      write(*,*) ' Process p,p -> ~o1,~o2'
+      Pcm=4000 
+      Qren=pMass("~o2")
+      Qfact=Qren
+      pTmin=0
+      cs=hCollider(Pcm,1,3,Qren, Qfact, "~o1","~o2",pTmin,1)
+      write(*,fmt="(1PE8.2,'[pb]')") cs 
     
 #endif
-        call killPlots
+
+#ifdef CLEAN
+      call killPlots
+      call system("rm -f inp spectr decay nngg.out Lilith_*.* ")
       END
+#endif

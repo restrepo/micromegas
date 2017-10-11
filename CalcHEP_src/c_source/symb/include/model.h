@@ -47,8 +47,8 @@ typedef struct prtcl_base
       char         massidnt[VAR_NAME_SIZE], imassidnt[VAR_NAME_SIZE];
       int          cdim;
       int          q3;
-      int          hlp; 
-      int          nHerm;     
+      int          hlp;
+      int          nHerm;      
       char *       latex;
       decaylink    top;
    }  prtcl_base;

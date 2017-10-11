@@ -174,7 +174,6 @@ int slhavalexists3_(char * Block, int*k1, int*k2, int*k3, int len)
    fName2c(Block,c_name,len);
    return slhaValExists(c_name, 3,*k1,*k2,*k3);
 }
-
 /*===============  qNumbers ============================= */
 
 int findqnumbers_(int *pdg,int*eQ3,int*spinDim,int*cDim,int*neutral)
@@ -367,10 +366,6 @@ double immixmatrixu_(int*id, int*i,int*j){return cimag(cMixMatrixU(*id,*i,*j));}
 
 double  initqcd_(double * alfsMZ, double * McMc, double * MbMb, double * Mtp)
 { return  initQCD(*alfsMZ,*McMc,*MbMb,*Mtp); }
-
-double  initqcd5_(double * alfsMZ, double * McMc, double * MbMb, double * Mtp)
-{ return  initQCD5(*alfsMZ,*McMc,*MbMb,*Mtp); }
-
 double alphaqcd_(double * q) { return alphaQCD(*q);}
 double mcrun_(double *q){ return McRun(*q);}
 double mbrun_(double *q){ return MbRun(*q);}

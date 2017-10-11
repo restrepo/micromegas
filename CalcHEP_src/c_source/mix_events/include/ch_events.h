@@ -3,6 +3,8 @@
 
 #include "model.h"
 
+extern void ch2pythColors(int*CC,int nin, int nout, int * ch_color, int * pth_color);
+
 
 typedef struct eventfile_info
 { 
@@ -37,7 +39,7 @@ typedef struct decay_info
 
 extern int nFiles;
 extern eventfile_info * initEventFile(char* fname);
-extern int readEvent(eventfile_info *Finfo, int *Nmom, double * mom, int * clr1, int * clr2, double *Qf, double *alphaQCD, int * w);
+extern int readEvent(eventfile_info *Finfo, int *Nmom, double * mom, int * clr, double *Qf, double *alphaQCD, int * w);
 
 extern eventfile_info * All;
 

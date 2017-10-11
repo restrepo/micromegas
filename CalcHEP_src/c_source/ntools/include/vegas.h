@@ -1,56 +1,63 @@
 #ifndef __VEGAS__
 #define __VEGAS__
 
+#include <pthread.h>
+#include "n_proc.h"
+
+#define MAX_DIM   15
+#define MAX_NDMX  50
+
 
 typedef  struct vegasGrid 
 {
-   
-int ndim,     /* number of dimensions */ 
-    ndmx;   
-    long nCubes;
-    double * x_grid;
-    double * c_grid;
+    int  dim;                           // dimension 
+    double(*fxn)(double *,double);  // integrand
+    int  ndmx;   
+    double  x_grid[MAX_DIM][MAX_NDMX+1];
+    long intCubes;
+    long evnCubes;
+    int NgI[MAX_DIM];
+    int NgE[MAX_DIM];
     float  * fMax;
+    pthread_mutex_t key;
 } vegasGrid;
+
         
 extern vegasGrid *  vegas_init
-(int dim,  /* number of dimensions */
- int ndmx   /* size of grid */
+(  int dim,                        // dimension 
+   double(*fxn)(double *,double),  // integrand
+   int ndmx                        // size of grid 
 );
 
 extern void vegas_finish( vegasGrid * vegPtr);
 
-extern int vegas_int(vegasGrid * vegPtr, 
- long ncall0,                       /* number of integrand calls */
- double alph,                       /* rate of grid improvement  */
- double(*fxn)(double *,double),     /* integrand */
- double *ti,                        /* integral estimation */ 
- double *tsi                        /* standard deviation */
+extern int (*vegas_control)(double x); 
+
+extern long vegas_int(vegasGrid * vegPtr, 
+   long ncall0,                       /* number of integrand calls */
+   double alph,                       /* rate of grid improvement  */
+   int nCore,                         /* number of cores */ 
+   double *ti,                        /* integral estimation */ 
+   double *tsi                        /* standard deviation */
 );
 
-
-extern int vegas_max(
-vegasGrid * vegPtr, 
-long  nCubes, 
-long nRandom,
-long nSimplex,
-double milk,
-double (*fxn)( double *,double,double*), 
-double * eff
-);
-
+typedef struct 
+{ double  eff;  /* efficiency */
+  int     nexc;    /* number of points where max was improved */
+  double  rmax;    /*  rate new/old max for such points */
+  int     lmax;    /* number of subsequent  events from one cube */
+  int     neg;     /* number of negative events */
+  int     nan;      /* number of points with NaN */
+} event_stat; 
 
 extern long vegas_events(
 vegasGrid * vegPtr, 
 long  nEvents,
-double gmax, 
-double (*fxn)( double *,double,double*), 
-void (*out)(long ,int,char*,double*),
-int recalc,   /* recalculate events in cube in case of new maximum */
-double * eff,  /* efficiency */
-int * nmax, /* max reached */
-int * mult, /* partion of multiple events */
-int * neg   /* partion of events with negative weght */
+double gmax,  
+void (*out)(double* ,int),
+int recalc,    /* recalculate events in cube in case of new maximum */
+int nCore,     /* number of cores */ 
+event_stat * stat
 );
 
 #endif

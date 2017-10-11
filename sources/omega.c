@@ -163,6 +163,7 @@ static double sigma23(double PcmIn)
 
 static  double sigma(double PcmIn)
 { double r; 
+
   if(AUX[nsub22].nTab>0 && PcmIn<=AUX[nsub22].pcmTab[AUX[nsub22].nTab-1])
   {  if(PcmIn<AUX[nsub22].pcmTab[0]) r= 0; else 
      { 
@@ -1129,14 +1130,14 @@ exit(1);
 }
 
 
-double vSigma(double T,double Beps ,int Fast,double *alpha)
+double vSigma(double T,double Beps ,int Fast)
 {
     double X=Mcdm/T;
     double res;
     if(assignVal("Q",2*Mcdm+T)==0) calcMainFunc();
     GGscale=(2*Mcdm+T)/3; 
     MassCut=Mcdm*(2-log(Beps)/X);    
-    res= 3.8937966E8*aRate(X, 0 ,Fast,alpha,&vSigmaTCh,NULL);
+    res= 3.8937966E8*aRate(X, 0 ,Fast,NULL,&vSigmaTCh,NULL);
     return res;
 }
 
@@ -1281,8 +1282,12 @@ static double darkOmega1(double * Xf,double Z1,double dZ1,int Fast,double Beps)
   if(Beps>=1) Beps=0.999;
   vSigmaGrid.pow=0;
   
-  ddY=dY(polint2(Mcdm/X,Tdim,t_,s3_) ,Beps,Fast); if(FError || ddY==0)  return -1;
-  if(fabs(CCX-ddY)<dCCX) { *Xf=X; MassCut=Mcdm*(2-log(Beps)/X); return Yeq(Mcdm/X)*sqrt(Mcdm/(1+ddY));} 
+  ddY=dY(polint2(Mcdm/X,Tdim,t_,s3_) ,Beps,Fast); 
+  if(FError || ddY==0)  return -1;
+  if(fabs(CCX-ddY)<dCCX) 
+  { *Xf=X; MassCut=Mcdm*(2-log(Beps)/X); 
+    return Yeq(Mcdm/X)*sqrt(1+ddY);
+  } 
    
   dCC1=dCC2=ddY-CCX; ;X1=X2=X; 
   while(dCC2>0) 
@@ -1384,8 +1389,6 @@ static double *Ytab=NULL;
 double YF(double T){ return polint2Exp(T,Ntab,Ttab, Ytab) ;}
 
 
-
-
 double darkOmega(double * Xf, int Fast, double Beps)
 {
   double Yt,Yi,Xt=25;
@@ -1417,6 +1420,7 @@ double darkOmega(double * Xf, int Fast, double Beps)
   Xf1=Xt;
   
   Tstart=Mcdm/Xt;
+//printf("Tstart=%e\n",Tstart);
 
 //printf("Yt=%E deltaY=%E\n", Yt,deltaY);
   
@@ -1439,6 +1443,7 @@ double darkOmega(double * Xf, int Fast, double Beps)
     alpha=vSigmaGrid.alpha[i];    
 
     if(Xt>X2*0.999999) continue; 
+
     
     if(Yt*Yt>=Z2*Z2*( alpha*Yt*yeq+(1-alpha)*yeq*yeq))  break;
     if(Yt<fabs(deltaY*1E-15))
@@ -1465,6 +1470,8 @@ double darkOmega(double * Xf, int Fast, double Beps)
     Ttab[Ntab]=Tend;
     Ntab++;
   }
+//printf("Ntab=%d\n",Ntab);
+//for(int i=0;i<Ntab;i++) printf("Y(%.2E)=%.2E\n",Ttab[i], Ytab[i]); 
   
   if(Xf) *Xf=0.5*(Xf1+Xt);
   Yi=1/( (Mcdm/Xt)*sqrt(M_PI/45)*MPlank*aRate(Xt,1,Fast,NULL,NULL,NULL));
@@ -1560,7 +1567,7 @@ static double geff1_(double T)
        double M=inMass[k];
        t=T/M;
        if(t<0.1) bsk2=K2pol(t)*exp((Mcdm1-M)/T)*sqrt(M_PI*t/2);
-        else     bsk2=bessk2(1/t)*exp(Mcdm1/T);
+        else     bsk2=bessK2(1/t)*exp(Mcdm1/T);
        sum+=inG[k]*M*M*bsk2;
      }
    }      
@@ -1577,7 +1584,7 @@ static double geff2_(double T)
        double M=inMass[k];
        t=T/M;
        if(t<0.1) bsk2=K2pol(t)*exp(-1/t+Mcdm2/T)*sqrt(M_PI*t/2);
-        else     bsk2=bessk2(1/t)*exp(Mcdm2/T);
+        else     bsk2=bessK2(1/t)*exp(Mcdm2/T);
        sum+=inG[k]*M*M*bsk2;
      }
    }  
@@ -1600,7 +1607,7 @@ static double s_integrandT(double  sqrtS )
    sv_tot=sigma(PcmIn);         
    t=T_/sqrtS; 
    if(t<0.1) bsk1=K1pol(t)*exp(-1/t+McdmSum/T_)*sqrt(M_PI*t/2);
-   else      bsk1=bessk1(sqrtS/T_)*exp(McdmSum/T_);
+   else      bsk1=bessK1(sqrtS/T_)*exp(McdmSum/T_);
       
    res= sqrtS*sqrtS*(PcmIn*PcmIn)*sv_tot*bsk1/T_;
    return res;
@@ -1724,11 +1731,15 @@ for(N12=0;N12<=2;N12++)
     factor=inC[k1*NC+k2]*inG[k1]*inG[k2];
 
     CI=code->interface;
-    AUX=code22Aux0[k1*NC+k2];          
+    switch(N12)
+    { case 0:  AUX=code22Aux0[k1*NC+k2]; break;
+      case 1:  AUX=code22Aux1[k1*NC+k2]; break;
+      case 2:  AUX=code22Aux0[k1*NC+k2]; break;
+    }                      
     for(nsub22=1; nsub22<= CI->nprc;nsub22++)
     { double smin;
       double a=0;
-     
+
       int z4[4];
       for(i=0;i<4;i++)  pname[i]=CI->pinf(nsub22,i+1,pmass+i,pdg+i);
 

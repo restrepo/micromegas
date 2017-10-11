@@ -1,0 +1,83 @@
+# Input file for NMSSMTools
+# Based on SUSY LES HOUCHES ACCORD II
+#
+BLOCK MODSEL
+	3	1		# NMSSM particle content
+	1	2		# IMOD (0=general NMSSM, 1=SUGRA, 2=GMSB
+#				  3=Z3 inv NMSSM, 4=Z3 inv SUGRA, 5=Z3 inv GMSB)
+	10	3		# ISCAN (0=no scan, 1=grid scan, 2=random scan, 3=MCMC)
+	8       0               # Precision for Higgs masses (default 0: as before,
+#                                 1: full 1 loop + full 2 loop from top/bot Yukawas
+#				  2: as 1 + pole masses - 1&2 by courtesy of P. Slavich)
+	12      0               # GMSB model above MMESS (default 0: no,
+#				  1: Delgado/Giudice/Slavich model, unified singlet-messenger coupling,
+#				  2: Delgado/Giudice/Slavich model, no unified singlet-messenger coupling
+	11      0               # Constraints on (g-2)_muon (1=yes, 0=no, default=1)
+	13      0               # 1: Sparticle decays via NMSDECAY (default 0)
+	14      0               # 0: H-> VV,VV* (default); 1: H->VV,VV*,V*V*
+#
+BLOCK SMINPUTS
+	1	127.92d0	# ALPHA_EM^-1(MZ)
+	2	1.16639d-5	# GF
+	3	.1172d0		# ALPHA_S(MZ)
+	4	91.187d0	# MZ
+	5	4.214d0		# MB(MB) (running mass)
+	6	173.1d0		# MTOP (pole mass)
+	7	1.777d0		# MTAU
+#
+BLOCK MINPAR
+	1	4d4		# MSUSYEFF = m^2/MMESS
+	2	1d7		# MMESS
+	3	1.5d0		# TANB at MZ
+	4	1d0		# SIGMU (If KAPPA or MUEFF are not input)
+	5	2d0		# N5 = number of messenger 5-plets
+#	16	1d-2		# MSUSYEFFDEV (If =/= 0)
+#	26	1d-2		# MMESSDEV (If =/= 0)
+	36	1d-2		# TBDEV (If =/= 0)
+#	17	1d1		# MSUSYEFFMIN (If =/= 0)
+#	27	1d1		# MMESSMIN (If =/= 0)
+#	37	1d0		# TBMIN (If =/= 0)
+#
+BLOCK EXTPAR
+#	0	1000d0		# MSUSY (If =/= SQRT(2*MQ1+MU1+MD1)/2)
+#	-1	1d-1		# STD DEV FOR THE MCMC
+#	-2	0d0		# DMIN (for GMFLAG=/=0)
+	61	0.42d0		# LAMBDA at MSUSY
+#	62	0d0		# KAPPA at MSUSY (If XIF is not an input and GMFLAG=0)
+#	63	0d0	 	# ALAMBDA at MMESS (If =/= 0 and GMFLAG=0)
+	66      5d4		# XIF in GeV^2 at MMESS (If =/= 0, KAPPA is not an input and GMFLAG=0)
+#				  If KAPPA+XIF are not inputs: XIF=0 and KAPPA is computed
+#	67	0d0	 	# XIS in GeV^3 at MMESS (If =/= 0, MS^2 is not an input and GMFLAG=0)
+#				  If MS^2+XIS are not inputs: XIS=0 and MS^2 is computed
+#	68	0d0		# MU' at MMESS (If =/= 0 and GMFLAG=0)
+#	69	0d0		# MS'^2 at MMESS (If =/= 0 and GMFLAG=0)
+	70	0d0		# MS^2 at MMESS (If XIS is not an input and GMFLAG=0)
+#	71	0d0		# XiU at MGUT (If =/= 0 and GMFLAG=1)
+#	73	0d0		# LPP at MMESS (If =/= 0 and GMFLAG=2)
+#	74	0d0		# LTT at MMESS (If =/= 0 and GMFLAG=2)
+	616	1d-2		# LDEV (If =/= 0)
+#	626	1d-2		# KDEV (If =/= 0)
+#	636	1d-2		# ALDEV (If =/= 0)
+#	666	1d-2		# XIFDEV (If =/= 0)
+#	676	1d-2		# XISDEV (If =/= 0)
+#	686	1d-2		# MUPDEV (If =/= 0)
+#	696	1d-2		# MSPDEV (If =/= 0)
+#	706	1d-2		# MSDEV (If =/= 0)
+#	716	1d-2		# XIUDEV (If =/= 0)
+#	736	1d-2		# LPPDEV (If =/= 0)
+#	746	1d-2		# LTTDEV (If =/= 0)
+	617	1d-5		# LMIN (If =/= 0)
+#	627	1d-5		# KMIN (If =/= 0)
+#	637	1d1		# ALMIN (If =/= 0)
+#	667	1d2		# XIFMIN (If =/= 0)
+#	677	1d3		# XISMIN (If =/= 0)
+#	687	1d1		# MUPMIN (If =/= 0)
+#	697	1d2		# MSPMIN (If =/= 0)
+#	707	1d2		# MSMIN (If =/= 0)
+#	737	1d-5		# XIUMIN (If =/= 0)
+#	747	1d-5		# LTTMIN (If =/= 0)
+#	757	1d-5		# LPPMIN (If =/= 0)
+#
+BLOCK STEPS
+	0	100		# NTOT
+	1	1		# ISEED

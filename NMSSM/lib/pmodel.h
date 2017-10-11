@@ -25,6 +25,7 @@ extern double  bsmumu_(double *M, double*P);
 extern double  btaunu_(double *M, double*P);
 extern double  gmuon_(double *M, double*P);
 extern int     HBblocks(char * fname);
+extern int     LiLithF(char*fname);
 extern int     loopGamma(double * csAA, double *csAZ);
 
 #define bsgnlo     bsgnlo_

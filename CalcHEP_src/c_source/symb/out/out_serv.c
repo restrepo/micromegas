@@ -33,7 +33,7 @@ poly readBuff=NULL;
 int outputLanguage=0;
 
 void seekArchiv(long n)
-{  fseek(archiv,n,SEEK_SET);}
+{ fseek(archiv,n,SEEK_SET);}
 
 
 void DiagramToOutFile(vcsect * vcs, int label,char comment)
@@ -273,7 +273,7 @@ void  makeOutput(  void (*startOutput)(int,int*,int),
          fseek(catalog,0,SEEK_SET);
          while (FREAD1(cr,catalog))
          {
-            if (cr.nsub_ == nsub)
+            if (cr.status==1 && cr.nsub_ == nsub)
             {  
                whichArchive(cr.nFile,'r');      
                if (graphOn)

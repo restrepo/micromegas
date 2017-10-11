@@ -1,12 +1,23 @@
+//  SECTION  MODEL GENERATION 
+//  SECTION  SCALAR COEFFICIENTS
+//  SECTION  LOOP CORRECTIONS 
+//  SECTION  nucleonAmplitudes
+//  SECTION  NUCLEI  
+//  SECTIONS Nuclear Form Factors for vector current
+
 #include"micromegas_aux.h"
 #include"micromegas_f.h"
 #define  NEWMODEL
 #define  GG_NLO
 
+
+int DDLflag=1;
 int QCDcorrections=1;
 int Twist2On=1;
 
 #define INMAX 100
+
+//  SECTION  MODEL GENERATION 
 
 static int  create2_th_model(char * disp,char * pname,char *ProcNameSI, char* ProcNameSD)
 {  
@@ -60,14 +71,7 @@ static int  create2_th_model(char * disp,char * pname,char *ProcNameSI, char* Pr
      printf("with zero PDG code %s\n",  pInvolved[i].name);
      return 10;     
    }
-   
-   for(i=1;i<K;i++) switch(pInvolved[i].num)
-   { case  81: pInvolved[i].num= 1; break;
-     case  83: pInvolved[i].num= 3; break;
-     case -81: pInvolved[i].num=-1; break;
-     case -83: pInvolved[i].num=-3; break;
-   }
-   
+      
    for(i=1;i<K;i++)
    if(pInvolved[i].num>=-6 && pInvolved[i].num<=6 && strcmp(pInvolved[i].mass,"0")==0)
    {  printf("\n Error! Direct detection module can not work because the model contains\n");
@@ -77,9 +81,9 @@ static int  create2_th_model(char * disp,char * pname,char *ProcNameSI, char* Pr
 #ifdef NEWMODEL  
    command=malloc(strlen(WORK)+strlen(calchepDir)+7000);
    sprintf(command,"cd %s;  %s/bin/s_calchep -blind "
-   "\"{[[{[{\\19\\24{{MDD__\\091\\09"
+   "\"{[[{[{\\19\\24{{MDD__\\091\\09"    //   new  parameter MDD__ for mass of auxilarry particles  
 
-   "{sqrt6D\\092.449489742783178\\09"
+   "{sqrt6D\\092.449489742783178\\09"   //     sqrt(6) constant
    
    "}}0\"",disp,calchepDir);
    err=system( command);
@@ -92,8 +96,8 @@ static int  create2_th_model(char * disp,char * pname,char *ProcNameSI, char* Pr
       
  
     sprintf(command,"cd %s;  %s/bin/s_calchep -blind \"[[{[[{"   
-   "{_S0_\\09_S0_\\09_S0_\\090\\090\\09MDD__\\090\\091\\09*\\09_S0_\\09_S0_\\09"
-   "{_V5_\\09_V5_\\09_V5_\\090\\092\\09MDD__\\090\\091\\09*\\09_V5_\\09_V5_\\09"
+   "{_S0_\\09_S0_\\09_S0_\\090\\090\\09MDD__\\090\\091\\09*\\09_S0_\\09_S0_\\09"   // new point-like scalar _S0_
+   "{_V5_\\09_V5_\\09_V5_\\090\\092\\09MDD__\\090\\091\\09*\\09_V5_\\09_V5_\\09"   // new point-like vector _V5_
       
    "}"
    
@@ -107,14 +111,14 @@ static int  create2_th_model(char * disp,char * pname,char *ProcNameSI, char* Pr
  
      if(pInvolved[i].spin2==1)
      {      sprintf(command+strlen(command),     
-       "{%s\\09_S0_\\09\\09MDD__\\091\\09"
-       "{%s\\09_V5_\\09\\09-MDD__\\09G5*G(m3)\\09"
+       "{%s\\09_S0_\\09\\09MDD__\\091\\09"                  //   (F f _S0_)   MDD__ interaction for fermions     
+       "{%s\\09_V5_\\09\\09-MDD__\\09G5*G(m3)\\09"          //   (F f _V5_)  -MDD__*G5*G(m3) interaction
        ,aP_P,aP_P);        
      }
      else  if(pInvolved[i].spin2==0)
      {
        sprintf(command+strlen(command),
-       "{%s\\09_S0_\\09\\09MDD__\\091\\09",aP_P);
+       "{%s\\09_S0_\\09\\09MDD__\\091\\09",aP_P);          // (s S _S0_) MDD__   interaction for scalars  
      }
    }
    sprintf(command+strlen(command),"}}0\""); 
@@ -126,23 +130,23 @@ static int  create2_th_model(char * disp,char * pname,char *ProcNameSI, char* Pr
 
    neutr=strcmp(pInvolved[0].name,pInvolved[0].aname)==0; 
    sprintf(aP_P,"%s\\09%s", pInvolved[0].aname, pInvolved[0].name); 
-   if (pInvolved[0].spin2==0)
-   {  sprintf(buff,"_S0_\\09\\092*MDD__*2*%s\\091\\09",pInvolved[0].mass);
+   if (pInvolved[0].spin2==0)                                               // for scalar DM:
+   {  sprintf(buff,"_S0_\\09\\092*MDD__*2*%s\\091\\09",pInvolved[0].mass);  //  (DM  dm _S0_)*2*MDD__*Mdm  interaction
       nAuxVerts=1;
       auxVert[0]=buff;
    }else 
-   if(pInvolved[0].spin2==1)
+   if(pInvolved[0].spin2==1)                             // for spinor DM:
    {  
-      nAuxVerts=2;
-      auxVert[0]="_S0_\\09\\092*MDD__\\091\\09";               
-      auxVert[1]="_V5_\\09\\092*MDD__\\09G5*G(m3)\\09";
+      nAuxVerts=2;                                              
+      auxVert[0]="_S0_\\09\\092*MDD__\\091\\09";         // (DM  dm _S0_)*2*MDD__ 
+      auxVert[1]="_V5_\\09\\092*MDD__\\09G5*G(m3)\\09";  // (DM  dm _V5_)*2*MDD__*G5*G(m3)
    }else 
-   if (pInvolved[0].spin2==2) 
+   if (pInvolved[0].spin2==2)                            // for vector DM:    
    { 
       nAuxVerts=2;
-      sprintf(buff,"_S0_\\09\\092*MDD__*2*%s\\09m1.m2\\09",pInvolved[0].mass);
+      sprintf(buff,"_S0_\\09\\092*MDD__*2*%s\\09m1.m2\\09",pInvolved[0].mass); //(DM dm _S0_)*2*MDD__*Mdm*m1.m2
       auxVert[0]=buff;
-      auxVert[1]="_V5_\\09\\092*i*MDD__*sqrt6D\\09eps(m1,m2,(p1-p2),m3)\\09";
+      auxVert[1]="_V5_\\09\\092*i*MDD__*sqrt6D\\09eps(m1,m2,(p1-p2),m3)\\09";  //(DM dm _V5_)*2*i*MDD__*sqrt(6)*eps(m1,m2,(p1-p2),m3)
    }   
    for(i=0;i<nAuxVerts;i++) 
    sprintf(command+strlen(command),"{%s\\09%s",aP_P,auxVert[i]);
@@ -215,6 +219,7 @@ static int getAuxCodesForDD(char*pname,numout**ccSI,numout**ccSD)
   return 0;
 }
 
+// SECTION SCALAR COEFFICIENTS
 
 void calcScalarFF(double muDmd, double msDmd, double sigmaPiN, double sigma0)
 { 
@@ -246,10 +251,82 @@ void calcScalarQuarkFF(double muDmd, double msDmd, double sigmaPiN, double sigma
   ScalarFFNs=sigmaPiN*y*msDmd/(1+ muDmd)/Mn/1000.;   
 }
 
+//  SECTION  LOOP CORRECTIONS 
 
+extern double (*loopFF__)(double,double,double,double);
 
+static double zeroloopFactor(double sgn, double mq,double msq,double mne)
+{ 
+   if(msq>0.5)return 0;
+  return   1/(msq*msq-mne*mne-mq*mq -2*sgn*mne*mq);
+}
 
-double FeScLoop(double sgn, double mq,double msq,double mne)
+static double Delta(double M, double m1, double m2)
+{ 
+  double ms=m1*m1+m2*m2, md=m1*m1-m2*m2;
+  return M*M*(M*M - 2*ms)+md*md;
+}
+
+static double Lambda(double M, double m1, double m2)
+{
+  double D=Delta(M,m1,m2);
+  double Mm=m1*m1+m2*m2-M*M;
+  double sD=sqrt(fabs(D));
+//  if(sD<1E-5*Mm) return  2/Mm;
+//  else 
+  if(D>=0) return  log((Mm+sD)/(Mm-sD))/sD;
+  else          return 2*atan( sD/Mm)/sD;  
+}
+
+// Fermionic Dark Matter  1502.02244   DreesNojiri
+/*  Loop integrals I1 ... I5  */
+
+#define SQ(x)  ((x)*(x))
+
+double   LintIk(int II,double MSQ,double MQ,double MNE)
+{  
+  double LAM,SPPM,SPMM,R1,R2,R3,del,CMD;
+  double msq2=MSQ*MSQ, mq2=MQ*MQ, mne2=MNE*MNE;
+
+  SPPM=  msq2+mq2-mne2, SPMM= msq2-mq2-mne2;
+  R1  =(msq2-mq2)/mne2;
+  R2  =(mq2-mne2)/msq2;
+  R3  =(msq2-mne2)/mq2;
+
+  del =2.*mne2*(mq2+msq2)-mne2*mne2-SQ(msq2-mq2);
+  
+  if(del>0) LAM=2.*atan(sqrt(del)/SPPM)/sqrt(del);
+  if(del<0) LAM=log((SPPM+sqrt(-del))/(SPPM-sqrt(-del)))/sqrt(-del);
+
+  switch(II)
+  { 
+    case 1:  
+      CMD=1./del*(R2/3-2/3.*R3-5/3.+ (2*msq2-2/3.*mne2)*LAM);	
+    break; 
+    case 2: 
+      CMD=(log(msq2/mq2)-SPMM*LAM)/2./mne2/mne2+
+         ( ((mq2*mq2-mq2*msq2)/mne2-7/3.*mq2+2/3.*(mne2-msq2))*LAM+R2/3+R1+2/3.
+         )/del;
+    break;
+    case 3:
+      CMD=-3/SQ(del)*SPPM+LAM/del*(-1+6*mq2*msq2/del);
+    break;	
+    case 4:
+      CMD=((log(msq2/mq2) - SPMM*LAM)/2/mne2-1/msq2 -mq2*SPMM/del*LAM)/mne2/mne2
+      
+         +( mq2/mne2/mne2-SQ(1-mq2/mne2)/msq2+0.5/mne2
+            +3*mq2/del*(1 +  R1 + (-R1*mq2-2*mq2-msq2+mne2)*LAM)
+          )/del;
+    break;
+    case 5:
+     CMD=(log(msq2/mq2)-SPMM*LAM)/(2*mne2*mne2)-(LAM*(2*(msq2-mne2)+3*mq2+R1*mq2)-3-R1)/del;
+     break;
+    default: CMD=0.; 
+  }
+  return CMD;
+}
+
+static double FeScLoop(double sgn, double mq,double msq,double mne)
 { 
 /*  return   1/(msq*msq-mne*mne); */
 return  1.5*mq*( 
@@ -260,9 +337,78 @@ return  1.5*mq*(
                 ); 
 }
 
+//  Vectors  Dark Matter  1502.02244
+
+static double FpVectA(double M, double m1, double m2)
+{
+  double D= Delta(M,m1,m2),L=Lambda(M,m1,m2), Mq=M*M, m1q=m1*m1, m2q=m2*m2;
+
+  return  (D*(Mq*(m2q-m1q) +m1q*(m1q+5*m2q)) -6*m1q*m2q*( (m2q-m1q)*(m2q-m1q) -Mq*(m1q+3*m2q)))/(6*D*D*Mq) 
+         -log(m1q/m2q)*m1q/(12*Mq*Mq)
+         +(D*D*(m2q+m1q-Mq)+2*m2q*D*(5*m2q*m2q+20*m1q*m2q-m1q*m1q+Mq*(9*m2q+m1q))
+         +12*m2q*m2q*(Mq*(m2q*m2q+10*m1q*m2q +5*m1q*m1q)-(m2q-m1q)*(m2q-m1q)*(m2q+3*m1q)))*m1q*L/(12*D*D*Mq*Mq);
+}
+
+static double FmVectA(double M, double m1, double m2)
+{
+   double D= Delta(M,m1,m2), L=Lambda(M,m1,m2), Mq=M*M, m1q=m1*m1, m2q=m2*m2;
+   return -m2*(D*(2*m2q+m1q-2*Mq) +6*m1q*m2q*(m2q-m1q-Mq))/(6*m1*D*D) + m1*m2q*m2*(D+m1q*(m2q-m1q+Mq))*L/(D*D);
+}
+         
+static double FpVectC(double M, double m1, double m2)
+{
+   double D= Delta(M,m1,m2), L=Lambda(M,m1,m2), Mq=M*M, m1q=m1*m1, m2q=m2*m2;
+   return    -(2*Mq*Mq - 3*(m1q+m2q)*Mq+(m1q-m2q)*(m1q-m2q))/(6*D*Mq) +log(m1q/m2q)*(m1q-m2q)/(12*Mq*Mq)
+             +L*(D*(Mq-m1q-m2q)*(m1q+m2q)+4*m1q*m2q*((m1q-m2q)*(m1q-m2q)-2*Mq*(m1q+m2q)))/(12*D*Mq*Mq); 
+}  
+
+static double FpVect(double M, double m1, double m2){ return  FpVectA(M, m1, m2)+ FpVectA(M, m2, m1)+FpVectC(M,m1,m2);}
+
+static double FmVect(double M, double m1, double m2){ return  FmVectA(M, m1, m2)+ FmVectA(M, m2, m1);}
+
+static double VectFermLoop(double sign, double m1,double m2, double M)
+{ 
+   return -3*m1/m2*(FmVect(M,m1,m2)-sign*(FpVect(m1,m2,M)*m2+FmVect(M,m1,m2)*m1)/M);
+} 
+
+// Scalar  Dark Matter
+static double FpScalA(double M, double m1, double m2)
+{
+  double D= Delta(M,m1,m2),L=Lambda(M,m1,m2), Mq=M*M, m1q=m1*m1, m2q=m2*m2;
+
+  return L*m1q*m2q*m2q*(Mq+m1q-m2q)/(D*D) -((-Mq+m1q+2*m2q)*D +6*m1q*m2q*(Mq-m1q+m2q) )/(6*D*D);
+}  
+  
+static double FmScalA(double M, double m1, double m2)
+{
+  double D= Delta(M,m1,m2),L=Lambda(M,m1,m2), Mq=M*M, m1q=m1*m1, m2q=m2*m2;
+ 
+    return L*m1*m2q*m2*(D +m1q*(Mq-m1q+m2q))/(D*D) - m2*((-2*Mq+m1q+2*m2q)*D-6*m1q*m2q*(Mq+m1q-m2q))/(6*m1*D*D);  
+}
+
+static double FpScalC(double M, double m1, double m2)
+{
+  double D=Delta(M,m1,m2),L=Lambda(M,m1,m2), Mq=M*M, m1q=m1*m1, m2q=m2*m2; 
+  return  (-Mq+m1q+m2q)/(2*D)-m1q*m2q*L/D;
+}
+
+static double FmScalC(double M, double m1, double m2)
+{
+  double D=Delta(M,m1,m2),L=Lambda(M,m1,m2), Mq=M*M, m1q=m1*m1, m2q=m2*m2; 
+  return  2*m1*m2/D -m1*m2*(-Mq+m1q+m2q)*L/D;
+}
+
+static double FpScal(double M, double m1, double m2) { return FpScalA(M,m1,m2) + FpScalA(M,m2,m1) + FpScalC(M,m1,m2); }        
+static double FmScal(double M, double m1, double m2) { return FmScalA(M,m1,m2) + FmScalA(M,m2,m1) + FmScalC(M,m1,m2); } 
+
+static double ScalFermLoop(double sign, double m1,double m2,double M)
+{ 
+   return -3*m1/m2*(FmScal(M,m1,m2)+sign*(FpScal(M,m1,m2)*m2-FmScal(M,m1,m2)*m1)/M);
+} 
+
 static double pdfQnum,p1_p2;
 
-double twist2FF__(double sgn, double mq,double msq,double mne)
+static double twist2FF__(double sgn, double mq,double msq,double mne)
 { 
   double D=(msq*msq-mne*mne -mq*mq);
   double D2=D*D-4*mq*mq*mne*mne;
@@ -271,25 +417,17 @@ double twist2FF__(double sgn, double mq,double msq,double mne)
   return  parton_x(pdfQnum,msq-mne              )/D2*(D +sgn*2*p1_p2);
 }
 
+// Twist-2 subtraction
 
-double twist2_subtractionFF__(double sgn, double mq,double msq,double mne)
+static double twist2_subtractionFF__(double sgn, double mq,double msq,double mne)
 { double D=(msq*msq-mne*mne -mq*mq);
   double D2=D*D-4*mq*mq*mne*mne;
   return   1/D2*(D +sgn*2*p1_p2);
 }
 
+// SECTION   nucleonAmplitudes
 
-double zeroloopFactor(double sgn, double mq,double msq,double mne)
-{ 
-   if(msq>0.5)return 0;
-  return   1/(msq*msq-mne*mne-mq*mq -2*sgn*mne*mq);
-}
-
-
-
-extern double (*loopFF__)(double,double,double,double);
-
-int nucleonAmplitudes(char * WIMP,  double(*LF)(double,double,double,double), double*pA0,double*pA5,double*nA0,double*nA5) 
+int nucleonAmplitudes(char * WIMP, double*pA0,double*pA5,double*nA0,double*nA5) 
 {
   double wimpMass; 
   int wimpN,Qnum,aQnum,i,II,sgn,ntot,n;
@@ -297,8 +435,7 @@ int nucleonAmplitudes(char * WIMP,  double(*LF)(double,double,double,double), do
   numout *ccSI,*ccSD,*cc; 
   double wGluP, wGluN,GG;
   REAL pvect[16]; 
-
-
+  
   double wS0P__[6],wS0N__[6]; /*scalar */
   double wV5P__[3],wV5N__[3]; /*pseudo-vector*/
   double wSM0P[3],wSM0N[3]; /* sigma */
@@ -356,22 +493,17 @@ int nucleonAmplitudes(char * WIMP,  double(*LF)(double,double,double,double), do
       REAL masses[4];
       int pdg[4];
       int l,err_code=0;
-      int spin2,color,neutral,neutralWIMP;
+      int spin2, spin2Wimp, color,neutral,neutralWIMP;
       double alphaMq, qcdNLO;
+      int lf;
+      
       for(l=0;l<4;l++)   names[l]= cc->interface->pinf(n,l+1,masses+l,pdg+l);
       if(strcmp(names[0],names[2]) ) continue; 
 
-      cc->interface->pinfAux(n,2,NULL,NULL,&neutralWIMP); 
+      cc->interface->pinfAux(n,2,&spin2Wimp,NULL,&neutralWIMP); 
       cc->interface->pinfAux(n,1,&spin2,&color,&neutral);
     
-      switch(pdg[0])
-      { case  81: Qnum=1;break;
-        case  83: Qnum=3;break;
-        case -81: Qnum=-1;break;
-        case -83: Qnum=-3;break;
-         default: Qnum=pdg[0];
-      }
-
+      Qnum=pdg[0];
       qMass=masses[0];
       if(!qMass) continue;
       sgn=Qnum>0?1:-1;
@@ -386,18 +518,52 @@ int nucleonAmplitudes(char * WIMP,  double(*LF)(double,double,double,double), do
       } else alphaMq=0;
 
       loopFF__=NULL;
-      if(II==0)
-      {
-        if(LF) { if(aQnum>3 && aQnum<7 )      loopFF__=LF; 
-                   else if(aQnum>6&&abs(color)==3) loopFF__= zeroloopFactor;
-               }
-      }
+      
+      if(II==0 && DDLflag && aQnum>3)
+      {  
+         if(names[0][0]!='~')
+         { 
+           if(spin2==1) // even  color  fermion  particle
+           switch(spin2Wimp)
+           {  case 0:    loopFF__= ScalFermLoop; break;
+              case 1:    loopFF__= FeScLoop;     break;
+              case 2:    loopFF__= VectFermLoop; break;
+              default:   loopFF__= NULL;         break;
+           } else loopFF__=NULL;
+         }  
+         else
+         { if((spin2==0 && spin2Wimp==1 ) || (spin2==1 && (spin2Wimp==0||spin2Wimp==2 )) ) loopFF__= zeroloopFactor;
+           else loopFF__=NULL; 
+         }             
+      } else  loopFF__=NULL;
+      
       
       for(i=0;i<16;i++) pvect[i]=0;     
       for(i=0;i<4;i++) pvect[4*i]=masses[i];
-      cs0= (*cc->interface->sqme)(n,GG,pvect,&err_code);
-      loopFF__=NULL; 
-      if(spin2==1)  ampl= cs0/(128*masses[0]*masses[0]*masses[1]*masses[1]);
+      cs0= (*cc->interface->sqme)(n,GG,pvect,NULL,&err_code);
+
+      if(II==0 && loopFF__==NULL && spin2==1) //twist-2 trace  subtraction from SD amplitude
+      {
+          int k;
+          double diff;
+          double h=masses[0]/100;
+          double d4[3]={0.5,-1,0.5};
+          h=0.001; 
+          loopFF__=twist2_subtractionFF__; 
+          for(diff=0,k=0;k<3;k++)
+          {   double E=masses[0]+h*k;
+              double P= (k==0)?0: sqrt(E*E-masses[0]*masses[0]);
+              pvect[0]=pvect[8]=E;
+              pvect[3]=pvect[11]=P;
+              p1_p2=E*masses[1];
+              diff+=(*cc->interface->sqme)(n,GG,pvect,NULL,&err_code)*d4[k];  
+          }
+          diff/=pow(h*masses[1],2);            
+          cs0-=3./4.*diff*masses[1]*masses[1]*masses[0]*masses[0];                    
+      }
+      loopFF__=NULL;
+       
+      if(spin2==1)      ampl= cs0/(128*masses[0]*masses[0]*masses[1]*masses[1]);
       else if(spin2==0) ampl= cs0/(32*masses[1]*masses[1]);
       else ampl=0;
 /* Comment: 128=2*64.  2-because of we have calculated interference term. */       
@@ -429,7 +595,7 @@ int nucleonAmplitudes(char * WIMP,  double(*LF)(double,double,double,double), do
                 break;
                 case 1:
                   qcdNLO=1+(11./4. -16./9.)*alphaMq/M_PI;
-                  pA0[0]+=ampl*qcdNLO*wGluP*(2./27.)*MN/qMass/2 ;
+                  pA0[0]+=ampl*qcdNLO*wGluP*(2./27.)*MN/qMass/2;
                   nA0[0]+=ampl*qcdNLO*wGluN*(2./27.)*MN/qMass/2;
                 break;           
                 default:
@@ -458,61 +624,42 @@ int nucleonAmplitudes(char * WIMP,  double(*LF)(double,double,double,double), do
             nA0[0]+=ampl*wS0N__[aQnum-1]*MN/qMass/2;
             pA0[1]+=sgn*ampl*wV0P[aQnum-1]/2;
             nA0[1]+=sgn*ampl*wV0N[aQnum-1]/2;
-        }        
-        if(aQnum<=6 && Twist2On) /* twist-2  SI amplitude  */   
+        }
+                        
+        if(aQnum<6 && Twist2On) /* twist-2  SI amplitude  */   
         { int k;
           double g=0,gp,gn;
           double h=masses[0]/100;
           double d4[3]={0.5,-1,0.5};
           h=0.001;
-          if(aQnum<=3 || !LF)  /* subtraction of trace */
-          { loopFF__=twist2_subtractionFF__; 
-            for(k=0;k<3;k++)
-            { double E=masses[0]+h*k;
-              double P= (k==0)?0: sqrt(E*E-masses[0]*masses[0]);
-              pvect[0]=pvect[8]=E;
-              pvect[3]=pvect[11]=P;
-              p1_p2=E*masses[1];
-              g+= (*cc->interface->sqme)(n,GG,pvect,&err_code)*d4[k];
-/* printf("E=%E P=%E for %s %s -> %s %s\n",E,P, names[0],names[1],names[2],names[3]) ; */     
-
+                     
+          gp=0;
+          gn=0;          
+          loopFF__=twist2FF__;  /* twist-2 contribution  */
+          for(k=0;k<3;k++)
+          { double E=masses[0]+h*k;
+            double P= (k==0)?0: sqrt(E*E-masses[0]*masses[0]);
+            pvect[0]=pvect[8]=E;
+            pvect[3]=pvect[11]=P;
+            p1_p2=E*masses[1];
+            pdfQnum=aQnum;
+            gp+= (*cc->interface->sqme)(n,GG,pvect,NULL,&err_code)*d4[k];
+            if(aQnum==1) 
+            { pdfQnum=2;
+              gn+= (*cc->interface->sqme)(n,GG,pvect,NULL,&err_code)*d4[k];
+            }else if(pdfQnum==2)
+            {
+              pdfQnum=1;
+              gn+= (*cc->interface->sqme)(n,GG,pvect,NULL,&err_code)*d4[k];
             }
-            g/=-pow(h*masses[1],2)*128*masses[0]*masses[1]  * 2 ;
-/* printf("aQnum=%d g=%E\n",aQnum,g); */  
-            qcdNLO=1+(11./4. -16./9.)*alphaMq/M_PI;          
-            pA0[0]+=1.5*g*masses[1]*MN*wS0P__[aQnum-1]/2*qcdNLO ;
-            nA0[0]+=1.5*g*masses[1]*MN*wS0N__[aQnum-1]/2*qcdNLO ;
-            loopFF__=NULL; 
-          }
-          if(aQnum<6)
-          {          
-            gp=0;
-            gn=0;          
-            loopFF__=twist2FF__;  /* twist=spin=2 contribution  */
-            for(k=0;k<3;k++)
-            { double E=masses[0]+h*k;
-              double P= (k==0)?0: sqrt(E*E-masses[0]*masses[0]);
-              pvect[0]=pvect[8]=E;
-              pvect[3]=pvect[11]=P;
-              p1_p2=E*masses[1];
-              pdfQnum=aQnum;
-              gp+= (*cc->interface->sqme)(n,GG,pvect,&err_code)*d4[k];
-              if(aQnum==1) 
-              { pdfQnum=2;
-                gn+= (*cc->interface->sqme)(n,GG,pvect,&err_code)*d4[k];
-              }else if(pdfQnum==2)
-              {
-                pdfQnum=1;
-                gn+= (*cc->interface->sqme)(n,GG,pvect,&err_code)*d4[k];
-              }else gn=gp;
-          }          
+          } 
+          if(aQnum>2) gn=gp;         
           gp/=pow(h*masses[1],2)*128*masses[0]*masses[1]  * 2 ;
           gn/=pow(h*masses[1],2)*128*masses[0]*masses[1]  * 2 ;
  
           pA0[0]+=1.5*gp*masses[1]*MN/2;
-          nA0[0]+=1.5*gn*masses[1]*MN/2; 
+          nA0[0]+=1.5*gn*masses[1]*MN/2;   
           loopFF__=NULL;
-          }
         }
       }              
     }    
@@ -527,6 +674,8 @@ int nucleonAmplitudes(char * WIMP,  double(*LF)(double,double,double,double), do
   }   
   return 0; 
 }
+
+// SECTION  NUCLEI  
 
 /*===== Intergrands for  Fermi nucleus density =====*/
 
@@ -705,14 +854,13 @@ double * dNdE)
 static double nucleusRecoil1(char *WINP, double(*vfv)(double),
       int A, int Z, double J,
       void (*Sxx)(double,double*,double*,double*),
-      double(*LF)(double,double,double,double),
       double * dNdE)
 {
   double css,csv00,csv01,csv11,M; 
   double pA0[2],pA5[2],nA0[2],nA5[2];
   int i;
   
-  nucleonAmplitudes(WINP,LF,pA0,pA5,nA0,nA5);
+  nucleonAmplitudes(WINP,pA0,pA5,nA0,nA5);
   M=pMass(WINP);
   for(i=0,css=0,csv00=0,csv01=0,csv11=0;i<2;i++)
   { double AS=Z*pA0[i]+(A-Z)*nA0[i];
@@ -728,27 +876,25 @@ static double nucleusRecoil1(char *WINP, double(*vfv)(double),
                                 css,csv00,csv01,csv11,dNdE);
 } 
 
-
 double nucleusRecoil(double(*vfv)(double),
 int A, int Z, double J,
 void (*Sxx)(double,double*,double*,double*),
-double(*LF)(double,double,double,double),
 double * dNdE)  
 {  int i;
    double NfracCDM2; 
-   if(CDM1  && !CDM2)   return nucleusRecoil1(CDM1,vfv,A,Z,J,Sxx, LF,dNdE); 
-   if(!CDM1 &&  CDM2)   return nucleusRecoil1(CDM2,vfv,A,Z,J,Sxx, LF,dNdE); 
+   if(CDM1  && !CDM2)   return nucleusRecoil1(CDM1,vfv,A,Z,J,Sxx,dNdE); 
+   if(!CDM1 &&  CDM2)   return nucleusRecoil1(CDM2,vfv,A,Z,J,Sxx,dNdE); 
    if(CDM1  &&  CDM2) 
    { double* dNdE1=malloc(eGrid*sizeof(double));
      double r1=0,r2=0;
-     if(fracCDM2!=1) r1= nucleusRecoil1(CDM1,vfv,A,Z,J,Sxx, LF,dNdE1); 
-     if(fracCDM2!=0) r2= nucleusRecoil1(CDM2,vfv,A,Z,J,Sxx, LF,dNdE);
+     if(fracCDM2!=1) r1= nucleusRecoil1(CDM1,vfv,A,Z,J,Sxx,dNdE1); 
+     if(fracCDM2!=0) r2= nucleusRecoil1(CDM2,vfv,A,Z,J,Sxx,dNdE);
      if(fracCDM2==1) { free(dNdE1);   return r2;}
      if(fracCDM2==0) { for(i=0;i<NZ;i++) dNdE[i]=dNdE1[i]; free(dNdE1);   return r1;}
       
      NfracCDM2=  fracCDM2*Mcdm1/(fracCDM2*Mcdm1 +(1-fracCDM2)*Mcdm2);      
      
-     for(i=0;i<NZ;i++) dNdE[i]=(NfracCDM2-1)*dNdE1[i]+ NfracCDM2*dNdE[i];
+     for(i=0;i<NZ;i++) dNdE[i]=(1-NfracCDM2)*dNdE1[i]+ NfracCDM2*dNdE[i];
      free(dNdE1); 
      return r1*(NfracCDM2-1)+r2*NfracCDM2;
    }
@@ -818,7 +964,7 @@ double nucleusRecoil0Aux(
 
 
 double nucleusRecoil0(double(*vfv)(double),
-int A, int Z, double J,double Sp,double Sn,double (*LF)(double,double,double,double),
+int A, int Z, double J,double Sp,double Sn,
 double * dNdE)
 {
   if(J)
@@ -829,7 +975,7 @@ double * dNdE)
     S11_0=  (Sp-Sn)*(Sp-Sn)*(2*J+1)*(J+1)/(4*M_PI*J);
     S01_0=2*(Sp+Sn)*(Sp-Sn)*(2*J+1)*(J+1)/(4*M_PI*J);
   }  
-  return nucleusRecoil(vfv,A,Z,J,Sxx_,LF,dNdE);
+  return nucleusRecoil(vfv,A,Z,J,Sxx_,dNdE);
 }
  
 
@@ -840,7 +986,7 @@ int displayRecoilPlot(double * tab, char * text, double  E1, double E2)
   int i1=(E1/eStep), i2=(E2/eStep), dim=i2-i1+1;
   
   if(E1<0 || E1>=E2-eStep|| i2>eGrid-1|| i2-i1>299  ) return 1;
-  displayPlot(text, "E[keV]", "dM/dE", i1*eStep, i2*eStep, dim, tab+i1,NULL);
+  displayPlot(text, i1*eStep, i2*eStep,"E[keV]",  dim,1, tab+i1,NULL, "dM/dE");
   return 0;
 }
 
@@ -886,7 +1032,7 @@ double cutRecoilResult(double *tab, double E1, double E2)
 }
 
 
-/* =====  Nuclear Form Factors for vector currents =====*/
+/* SECTIONS   Nuclear Form Factors for vector current =====*/
 
 #define beta0(u,upi) ( ((upi)*(upi)/((u)+(upi))/((u)+(upi))-1.)/3.)
 #define pimass (0.135/0.197327)

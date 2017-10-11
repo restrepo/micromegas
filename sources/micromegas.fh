@@ -26,6 +26,10 @@
 
        character CDM1*20, CDM2*20
        COMMON/MOCOMMONCH/CDM1,CDM2 
+
+       integer  WIMPSIM,forRocks,ww3,ww4
+       common/moflags/WIMPSIM,forRocks,ww3,ww4
+
        
        real*8  r8Null
        integer iNull
@@ -37,10 +41,12 @@ c!      integer iargc
 
       external sortOddParticles,assignVal,findVal,readVar,
      >displaySpectrum,nucleonAmplitudes,displayRecoilPlot,
-     >basicSpectra,basicNuSpectra,qNumbers, slhaDecayPrint  
+     >basicSpectra,basicNuSpectra,qNumbers, slhaDecayPrint,
+     >   ic22event 
       integer  sortOddParticles,assignVal,findVal,readVar,
      >displaySpectrum,nucleonAmplitudes,displayRecoilPlot,
-     >basicSpectra,basicNuSpectra,qNumbers, slhaDecayPrint
+     >basicSpectra,basicNuSpectra,qNumbers, slhaDecayPrint,
+     >  IC22event
 
       external cs22,pWidth2,decay2Info,findValW,calcSpectrum,
      >         HaloFactor,RhoQisotermic,RhoMO,RhoMOSq, 
@@ -48,19 +54,23 @@ c!      integer iargc
      >         gammaFlux,pbarFlux,posiFlux, pwidth,findbr,
      >         hProfileABG, hProfileEinasto,noClamps,pMass,
      >         darkOmegaFO,oneChannel, vSigma,captureAux,
-     >         darkOmega2, width1CC,vSigmaCC,
+     >         darkOmega2, width1CC,vSigmaCC,spectrInfo,
      >         vs1120F,vs2200F,vs1100F,vs1210F,vs1122F,vs2211F,vs1110F,
-     >         vs2220F,vs1112F,vs1222F,vs1220F,vs2210F,vs2221F,vs1211F
+     >         vs2220F,vs1112F,vs1222F,vs1220F,vs2210F,vs2221F,vs1211F,
+     >         hCollider
       real*8   cs22,pWidth2,decay2Info,findValW,calcSpectrum,
      >         HaloFactor,RhoQisotermic,RhoMO,RhoMOSq,
      >         zInterp,spectdnde, darkOmega,printChannels,
      >         gammaFlux,pbarFlux,posiFlux,pwidth,findbr,
      >         hProfileABG, hProfileEinasto,noClamps,pMass,
      >         darkOmegaFO, oneChannel, vSigma,captureAux,
-     >         darkOmega2, width1CC,vSigmaCC,
+     >         darkOmega2, width1CC,vSigmaCC,spectrInfo,
      >         vs1120F,vs2200F,vs1100F,vs1210F,vs1122F,vs2211F,vs1110F,
-     >         vs2220F,vs1112F,vs1222F,vs1220F,vs2210F,vs2221F,vs1211F
-C subroutines: newProcess,assignValW,printVar,printMasses,spectrInfo,
+     >         vs2220F,vs1112F,vs1222F,vs1220F,vs2210F,vs2221F,vs1211F,
+     >          hCollider
+      external  newProcess
+      integer*8 newProcess 
+C subroutines: assignValW,printVar,printMasses,spectrInfo,
 C              procInfo1,procInfo2
 *--------------------- 
 
@@ -76,7 +86,6 @@ C              procInfo1,procInfo2
       external omegaCh, vSigmaTCh,vSigmaCh
       integer  omegaCh, vSigmaTCh,vSigmaCh 
 
-
       external SxxF19,SxxNa23,SxxAl27,SxxSi29,SxxK39,SxxGe73,SxxNb93,
      >SxxTe125,SxxI127,SxxXe129,SxxXe131,SxxPb207,SxxNa23A,SxxSi29A,
      >SxxTe125A,SxxI127A,SxxXe129A,SxxXe131A,SxxGe73A
@@ -86,9 +95,15 @@ C              procInfo1,procInfo2
 
       integer neutrinoFlux
       external neutrinoFlux
-     
 
+      real*8 IC22nuAr,IC22nuBarAr,IC22BGdCos,IC22sigma,exLevIC22,
+     >fluxFactorIC22,spectrInt
+      external  IC22nuAr,IC22nuBarAr,IC22BGdCos,IC22sigma,exLevIC22,
+     >fluxFactorIC22,spectrInt
 
+      integer  setpdt
+      external setpdt 
+ 
 #define NZ  250      
 
 #define Sp_H1     ( 0.5d0)

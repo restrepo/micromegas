@@ -1,0 +1,85 @@
+4c4
+< void smodels(double Pcm, int nf,double csMinFb, char*fileName,int wrt) 
+---
+> void smodels(double Pcm, int nf,double csMinFb, char*fileName,int wrt, int smHiggsPid) 
+11,56d10
+<    int smH=-1; 
+<    char* gluname=NULL;
+<    char* phname=NULL;
+<    char* bname=NULL;
+<    char* Bname=NULL;
+<    char* lname=NULL;
+<    char* Lname=NULL;
+<    
+<   // find SM Higgs 
+<     
+<    for(i=0;i<nModelParticles;i++)
+<    {
+<       if(ModelPrtcls[i].NPDG== 21)   gluname=ModelPrtcls[i].name;
+<       if(ModelPrtcls[i].NPDG== 22)   phname=ModelPrtcls[i].name;
+<       if(ModelPrtcls[i].NPDG==  5) { bname=ModelPrtcls[i].name;  Bname=ModelPrtcls[i].aname;}
+<       if(ModelPrtcls[i].NPDG== -5) { bname=ModelPrtcls[i].aname; Bname=ModelPrtcls[i].name; }  
+<       if(ModelPrtcls[i].NPDG== 15) { lname=ModelPrtcls[i].name;  Lname=ModelPrtcls[i].aname;}
+<       if(ModelPrtcls[i].NPDG==-15) { Lname=ModelPrtcls[i].aname; lname=ModelPrtcls[i].name; } 
+<    }
+< 
+< printf("gluname  %s bname %s lname %s\n", gluname,bname,lname);  
+< 
+<    if(gluname && bname && lname)
+<    for(smH=0;smH<nModelParticles;smH++) if( ModelPrtcls[smH].spin2==0 && ModelPrtcls[smH].cdim==1 && 
+<    && ModelPrtcls[smH].name[0]!='~'  && strcmp(ModelPrtcls[smH].name,ModelPrtcls[smH].aname)==0  )
+<    {  double w,ggBr,bbBr,llBr, hMass=pMass(ModelPrtcls[smH].name);
+<       txtList L;
+<       
+<       double ggBrSM=0.073, bbBrSM=0.60,llBrSM=0.063,wSM=4.24E-3;
+<       double prec=0.9;
+<       
+<       char hggRec[50];
+<       if(hMass<123 || hMass>128)  continue;
+<       w=pWidth(ModelPrtcls[smH].name,&L);
+<       sprintf(hggRec,"%s,%s",gluname,gluname);
+<       ggBr=findBr(L, hggRec);
+<       sprintf(hggRec,"%s,%s",lname,Lname);
+<       llBr=findBr(L, hggRec);
+<       sprintf(hggRec,"%s,%s",bname,Bname);     
+<       bbBr=findBr(L, hggRec);
+< 
+<       if(ggBr==0) { bbBr*=w/(w+0.073*0.00424); llBr*=w/(w+ggBrSM*wSM);}             
+<       if( bbBrSM*prec< bbBr && bbBr<bbBrSM*(2-prec) && llBrSM*prec< llBr && llBr<llBrSM*(2-prec)) break;       
+<    }
+<    
+<    if(smH<nModelParticles) printf("SM HIGGS=%s\n",ModelPrtcls[smH].name);
+78,79c32,35
+<    {  for(j=0;j<16;j++) if(ModelPrtcls[i].NPDG==SMP[j]) break;
+<       
+---
+>   {  for(j=0;j<16;j++)
+>     { 
+>        if(ModelPrtcls[i].NPDG==SMP[j]) break;
+>     }
+129a86,89
+>        else
+>        { fprintf(f,",\n");
+>         fprintf(f, " %d : \"%s\"", -ModelPrtcls[i].NPDG,ModelPrtcls[i].name);
+>        }
+138a99,105
+>      if(abs(ModelPrtcls[i].NPDG)==smHiggsPid)
+>      { j=0;
+>        fprintf(f, " %d : \"higgs\"", ModelPrtcls[i].NPDG);
+>        fprintf(f,",\n");
+>        fprintf(f, " %d : \"higgs\"", -ModelPrtcls[i].NPDG);
+>        fprintf(f,",\n");
+>      }
+145a113,116
+>        else
+>     { fprintf(f,",\n");
+>         fprintf(f, " %d : \"%s\"", -ModelPrtcls[i].NPDG,ModelPrtcls[i].name);
+>         }  
+219c190
+< void smodels_(double *Pcm, int *nf,double *csMinFb, char*fileName,int *wrt,int len)
+---
+> void smodels_(double *Pcm, int *nf,double *csMinFb, char*fileName,int *wrt,int *smHiggsPid, int len)
+223c194
+<   smodels(*Pcm, *nf, *csMinFb,cName,*wrt);
+---
+>   smodels(*Pcm, *nf, *csMinFb,cName,*wrt,*smHiggsPid);

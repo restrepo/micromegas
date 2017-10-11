@@ -60,8 +60,8 @@ extern double Mbp(void);
 #define  slhaValExists3(block,i1,i2,i3)    slhaValExists(block,3,i1,i2,i3)
 #define  slhaValExists4(block,i1,i2,i3,i4) slhaValExists(block,4,i1,i2,i3,i4)
 
-extern double complex hGGeven(double MH, double alphaMH, int Nitems, ...);
-extern double complex hAAeven(double MH, double alphaMH, int Nitems, ...);
+extern double complex  hGGeven(double MH, double alphaMH, int Nitems, ...);
+extern double complex  hAAeven(double MH, double alphaMH, int Nitems, ...);
 extern double complex  hGGodd(double MH, double alphaMH, int Nitems, ...);
 extern double complex  hAAodd(double MH, double alphaMH, int Nitems, ...);
 

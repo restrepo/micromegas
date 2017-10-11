@@ -6,6 +6,7 @@
 #include<math.h>
 
 #include"nType.h"
+#include"num_out.h"
 
 extern  int nin_int;
 extern  int nout_int;
@@ -18,19 +19,15 @@ extern int (*pinfAux_int)(int nsub, int nprtcl, int* spin2, int*color,int*neutra
 extern char ** polarized_int;
 extern char ** varName_int;
 
-extern double (*sqme_int)(int nsub,double GG, REAL * momenta, int * err);
+extern double (*sqme_int)(int nsub,double GG,REAL*momenta,REAL*cb_coeff,int*err);
 extern int (*calcFunc_int)(void);
 extern int *twidth_int, *gswidth_int, *gtwidth_int;
 extern double *BWrange_int;
 extern REAL *va_int;
 extern char*hiddenf;
 
-extern void (*build_cb_int)(int nsub); 
-extern void (*destroy_cb_int)(void);    
-extern int *cb_pow_int;   
-extern int *cb_nc_int; 
-extern int ** cb_chains_int;
-extern REAL ** cb_coeff_int;
+extern colorBasis * cb_int;
+extern REAL * cb_coeff_int;
 
 
 #define  DENOMINATOR_ERROR   2

@@ -1,0 +1,748 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>theory.crossSection &mdash; SModelS 1.0.3 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="SModelS 1.0.3 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SModelS 1.0.3 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for theory.crossSection</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: theory.crossSection</span>
+<span class="sd">   :synopsis: Encapsulates the result of the computation of the reference</span>
+<span class="sd">              cross section.</span>
+
+<span class="sd">.. moduleauthor:: Wolfgang Waltenberger &lt;wolfgang.waltenberger@gmail.com&gt;</span>
+<span class="sd">.. moduleauthor:: Andre Lessa &lt;lessa.a.p@gmail.com&gt;</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">smodels.tools.physicsUnits</span> <span class="kn">import</span> <span class="n">TeV</span><span class="p">,</span> <span class="n">pb</span>
+<span class="kn">from</span> <span class="nn">smodels.theory</span> <span class="kn">import</span> <span class="n">lheReader</span>
+<span class="kn">import</span> <span class="nn">smodels.particles</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="XSectionInfo"><a class="viewcode-back" href="../../theory.html#theory.crossSection.XSectionInfo">[docs]</a><span class="k">class</span> <span class="nc">XSectionInfo</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An instance of this class represents information regarding a cross-section.</span>
+<span class="sd">    </span>
+<span class="sd">    This class is used to store information of a cross-section (center of</span>
+<span class="sd">    mass, order and label).</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sqrts</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">order</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="bp">None</span>
+
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">sqrts</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sqrts</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">order</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="bp">True</span>
+
+
+    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">XSectionInfo</span><span class="p">()):</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">sqrts</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sqrts</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">order</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="bp">False</span>
+
+
+<div class="viewcode-block" id="XSectionInfo.copy"><a class="viewcode-back" href="../../theory.html#theory.crossSection.XSectionInfo.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate an independent copy of self.</span>
+<span class="sd">        </span>
+<span class="sd">        Faster than deepcopy.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">newinfo</span> <span class="o">=</span> <span class="n">XSectionInfo</span><span class="p">()</span>
+        <span class="n">newinfo</span><span class="o">.</span><span class="n">sqrts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sqrts</span>
+        <span class="n">newinfo</span><span class="o">.</span><span class="n">order</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">order</span>
+        <span class="n">newinfo</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">[:]</span>
+        <span class="k">return</span> <span class="n">newinfo</span>
+
+</div></div>
+<div class="viewcode-block" id="XSection"><a class="viewcode-back" href="../../theory.html#theory.crossSection.XSection">[docs]</a><span class="k">class</span> <span class="nc">XSection</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An instance of this class represents a cross-section.</span>
+<span class="sd">    </span>
+<span class="sd">    This class is used to store the information of a single cross-section</span>
+<span class="sd">    (value, paritcle ids, center of mass, order and label).</span>
+<span class="sd">    </span>
+<span class="sd">    order = 0 (LO), 1 (NLO) or 2 (NLL).</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the object to store a cross-section value. All initial info is set to None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="bp">self</span><span class="o">.</span><span class="n">info</span> <span class="o">=</span> <span class="n">XSectionInfo</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pid</span> <span class="o">=</span> <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Multiplies the value of the cross-section by the factor other (should be a float).        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        
+        <span class="n">newXsec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="mf">1.</span><span class="p">):</span>
+            <span class="n">newXsec</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">newXsec</span><span class="o">.</span><span class="n">value</span> <span class="o">*</span> <span class="n">other</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Xsections can only be multiplied by floats&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">newXsec</span>
+
+
+    <span class="k">def</span> <span class="nf">__rmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Right multiplication (see left multiplication).        </span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="k">return</span> <span class="bp">self</span> <span class="o">*</span> <span class="n">other</span>
+
+
+    <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a copy of self with the value of other added to its value.        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">XSection</span><span class="p">()):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">info</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">info</span><span class="p">:</span>
+                <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="n">res</span><span class="o">.</span><span class="n">value</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">value</span>
+                <span class="k">return</span> <span class="n">res</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Trying to add &quot;</span> <span class="o">+</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot; to a XSection object&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compare two XSection objects. Returns True if .info and type and value and pid are equal.        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">XSection</span><span class="p">()):</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">info</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">value</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">pid</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pid</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="bp">True</span>
+
+
+    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compare two XSection objects. Returns True if .info or type or value or pid is not equal.        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">XSection</span><span class="p">()):</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">info</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">value</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">pid</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pid</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="bp">False</span>
+
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate cross-section information in string format.        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">st</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">label</span> <span class="o">+</span> <span class="s">&#39;:&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">st</span>
+    
+<div class="viewcode-block" id="XSection.niceStr"><a class="viewcode-back" href="../../theory.html#theory.crossSection.XSection.niceStr">[docs]</a>    <span class="k">def</span> <span class="nf">niceStr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates a more human readable string. The string format is:</span>
+<span class="sd">        Sqrts: self.info.sqrts,  Weight: self.value</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">st</span> <span class="o">=</span> <span class="s">&#39;Sqrts: &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">sqrts</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;, Weight:&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">st</span>
+</div>
+<div class="viewcode-block" id="XSection.copy"><a class="viewcode-back" href="../../theory.html#theory.crossSection.XSection.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates an independent copy of self.</span>
+<span class="sd">        </span>
+<span class="sd">        Faster than deepcopy.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">newXsec</span> <span class="o">=</span> <span class="n">XSection</span><span class="p">()</span>
+        <span class="n">newXsec</span><span class="o">.</span><span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">newXsec</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">newXsec</span><span class="o">.</span><span class="n">pid</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pid</span><span class="p">)[:])</span>
+        <span class="k">return</span> <span class="n">newXsec</span>
+
+</div>
+    <span class="k">def</span> <span class="nf">_zeroXSec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Replace the cross-section value by zero.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">0.</span> <span class="o">*</span> <span class="n">pb</span>
+
+</div>
+<div class="viewcode-block" id="XSectionList"><a class="viewcode-back" href="../../theory.html#theory.crossSection.XSectionList">[docs]</a><span class="k">class</span> <span class="nc">XSectionList</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An instance of this class represents a list of cross-sections.</span>
+<span class="sd">    </span>
+<span class="sd">    This class is used to store a list of cross-sections.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">infoList</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        If infoList is defined, create entries with zero cross-sections</span>
+<span class="sd">        according to infoList. infoList must be a list of XSectionInfo objects.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xSections</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="n">infoList</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">info</span> <span class="ow">in</span> <span class="n">infoList</span><span class="p">:</span>
+                <span class="n">newentry</span> <span class="o">=</span> <span class="n">XSection</span><span class="p">()</span>
+                <span class="n">newentry</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">0.</span> <span class="o">*</span> <span class="n">pb</span>
+                <span class="n">newentry</span><span class="o">.</span><span class="n">pid</span> <span class="o">=</span> <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+                <span class="n">newentry</span><span class="o">.</span><span class="n">info</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">newentry</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="n">newList</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">ixsec</span><span class="p">,</span> <span class="n">xsec</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">newList</span><span class="p">):</span>
+            <span class="n">newList</span><span class="p">[</span><span class="n">ixsec</span><span class="p">]</span> <span class="o">=</span> <span class="n">xsec</span> <span class="o">*</span> <span class="n">other</span>
+        <span class="k">return</span> <span class="n">newList</span>
+
+
+    <span class="k">def</span> <span class="nf">__rmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span> <span class="o">*</span> <span class="n">other</span>
+      
+      
+    <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="n">newList</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;Trying to add a XSectionList and a &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)))</span>
+            <span class="k">return</span> <span class="bp">self</span>
+      
+        <span class="n">newList</span><span class="o">.</span><span class="n">combineWith</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span>  <span class="n">newList</span>
+
+
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xSections</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">xSections</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+
+    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">xsec</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">xsec</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">XSection</span><span class="p">()):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Input object must be a XSection() object&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">xSections</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">xsec</span>
+
+
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xSections</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">xsec</span><span class="p">)</span> <span class="k">for</span> <span class="n">xsec</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">])</span>
+    
+<div class="viewcode-block" id="XSectionList.niceStr"><a class="viewcode-back" href="../../theory.html#theory.crossSection.XSectionList.niceStr">[docs]</a>    <span class="k">def</span> <span class="nf">niceStr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">st</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">xsec</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">st</span> <span class="o">+=</span> <span class="n">xsec</span><span class="o">.</span><span class="n">niceStr</span><span class="p">()</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="k">return</span> <span class="n">st</span>    
+
+</div>
+<div class="viewcode-block" id="XSectionList.copy"><a class="viewcode-back" href="../../theory.html#theory.crossSection.XSectionList.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates an independent copy of itself. Faster than deepcopy.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">newList</span> <span class="o">=</span> <span class="n">XSectionList</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">xsec</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">xSections</span><span class="p">:</span>
+            <span class="n">newList</span><span class="o">.</span><span class="n">xSections</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xsec</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">newList</span>
+
+</div>
+<div class="viewcode-block" id="XSectionList.add"><a class="viewcode-back" href="../../theory.html#theory.crossSection.XSectionList.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newxsec</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Append a XSection object to the list.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">newxsec</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">XSection</span><span class="p">()):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Input object must be a XSection() object&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">xSections</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newxsec</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+
+</div>
+    <span class="k">def</span> <span class="nf">_addValue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newxsec</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a XSection object to the list.</span>
+<span class="sd">        </span>
+<span class="sd">        If the XSection object already exists, add to its values, otherwise</span>
+<span class="sd">        append the object.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">newxsec</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">XSection</span><span class="p">()):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Input object must be a XSection() object&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">exists</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="k">for</span> <span class="n">iXSec</span><span class="p">,</span> <span class="n">xSec</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xSections</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">xSec</span><span class="o">.</span><span class="n">info</span> <span class="o">==</span> <span class="n">newxsec</span><span class="o">.</span><span class="n">info</span> \
+                        <span class="ow">and</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">xSec</span><span class="o">.</span><span class="n">pid</span><span class="p">)</span> <span class="o">==</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">newxsec</span><span class="o">.</span><span class="n">pid</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">xSections</span><span class="p">[</span><span class="n">iXSec</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">xSec</span><span class="o">.</span><span class="n">value</span> <span class="o">+</span> <span class="n">newxsec</span><span class="o">.</span><span class="n">value</span>
+                    <span class="k">break</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">newxsec</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="XSectionList.getXsecsFor"><a class="viewcode-back" href="../../theory.html#theory.crossSection.XSectionList.getXsecsFor">[docs]</a>    <span class="k">def</span> <span class="nf">getXsecsFor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a list of XSection objects for item (label, pid, sqrts).</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">xsecList</span> <span class="o">=</span> <span class="n">XSectionList</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">xsec</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">xsec</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">label</span><span class="p">)</span> <span class="ow">and</span> <span class="n">item</span> <span class="o">==</span> <span class="n">xsec</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">label</span><span class="p">:</span>
+                <span class="n">xsecList</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">xsec</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">xsec</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">sqrts</span><span class="p">)</span> \
+                    <span class="ow">and</span> <span class="n">item</span> <span class="o">==</span> <span class="n">xsec</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">sqrts</span><span class="p">:</span>
+                <span class="n">xsecList</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">xsec</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">xsec</span><span class="o">.</span><span class="n">pid</span><span class="p">)</span> <span class="ow">and</span> <span class="n">item</span> <span class="o">==</span> <span class="n">xsec</span><span class="o">.</span><span class="n">pid</span><span class="p">:</span>
+                <span class="n">xsecList</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">xsec</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">item</span> <span class="ow">in</span> <span class="n">xsec</span><span class="o">.</span><span class="n">pid</span><span class="p">):</span>
+                <span class="n">xsecList</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">xsec</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">xsecList</span>
+
+</div>
+    <span class="k">def</span> <span class="nf">_zeroXSecs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Replace the cross-section values in the list by zero.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">xsec</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">xsec</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">0.</span> <span class="o">*</span> <span class="n">pb</span>
+
+
+<div class="viewcode-block" id="XSectionList.delete"><a class="viewcode-back" href="../../theory.html#theory.crossSection.XSectionList.delete">[docs]</a>    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xSec</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Delete the cross-section entry from the list.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">ixsec</span><span class="p">,</span> <span class="n">xsec</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">xsec</span> <span class="o">==</span> <span class="n">xSec</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">xSections</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">ixsec</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="XSectionList.getInfo"><a class="viewcode-back" href="../../theory.html#theory.crossSection.XSectionList.getInfo">[docs]</a>    <span class="k">def</span> <span class="nf">getInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get basic info about the cross-sections appearing in the list (order,</span>
+<span class="sd">        value and label).</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: list of XSectionInfo objects</span>
+<span class="sd">                </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">allInfo</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">xsec</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">info</span> <span class="o">=</span> <span class="n">xsec</span><span class="o">.</span><span class="n">info</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">info</span> <span class="ow">in</span> <span class="n">allInfo</span><span class="p">:</span>
+                <span class="n">allInfo</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">allInfo</span>
+
+</div>
+    <span class="k">def</span> <span class="nf">_getLabels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get all labels appearing in the list.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">allLabels</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">allInfo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getInfo</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">info</span> <span class="ow">in</span> <span class="n">allInfo</span><span class="p">:</span>
+            <span class="n">allLabels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">allLabels</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="XSectionList.getPIDpairs"><a class="viewcode-back" href="../../theory.html#theory.crossSection.XSectionList.getPIDpairs">[docs]</a>    <span class="k">def</span> <span class="nf">getPIDpairs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get all particle ID pairs appearing in the list.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">allPidPairs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">xsec</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">allPidPairs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xsec</span><span class="o">.</span><span class="n">pid</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">allPidPairs</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="XSectionList.getPIDs"><a class="viewcode-back" href="../../theory.html#theory.crossSection.XSectionList.getPIDs">[docs]</a>    <span class="k">def</span> <span class="nf">getPIDs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get all particle IDs appearing in the list.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">allPids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">xsec</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">allPids</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">xsec</span><span class="o">.</span><span class="n">pid</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">allPids</span><span class="p">)))</span>
+
+</div>
+<div class="viewcode-block" id="XSectionList.getMaxXsec"><a class="viewcode-back" href="../../theory.html#theory.crossSection.XSectionList.getMaxXsec">[docs]</a>    <span class="k">def</span> <span class="nf">getMaxXsec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the maximum cross-section value appearing in the list.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">maxxsec</span> <span class="o">=</span> <span class="mf">0.</span> <span class="o">*</span> <span class="n">pb</span>
+        <span class="k">for</span> <span class="n">xsec</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">xsec</span><span class="o">.</span><span class="n">value</span> <span class="o">&gt;</span> <span class="n">maxxsec</span><span class="p">:</span>
+                <span class="n">maxxsec</span> <span class="o">=</span> <span class="n">xsec</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">return</span> <span class="n">maxxsec</span>
+</div>
+<div class="viewcode-block" id="XSectionList.getMinXsec"><a class="viewcode-back" href="../../theory.html#theory.crossSection.XSectionList.getMinXsec">[docs]</a>    <span class="k">def</span> <span class="nf">getMinXsec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get minimum cross-section value appearing in the list.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">minxsec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xSections</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">for</span> <span class="n">xsec</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">xsec</span><span class="o">.</span><span class="n">value</span> <span class="o">&lt;</span> <span class="n">minxsec</span><span class="p">:</span>
+                <span class="n">minxsec</span> <span class="o">=</span> <span class="n">xsec</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">return</span> <span class="n">minxsec</span>
+
+</div>
+<div class="viewcode-block" id="XSectionList.getDictionary"><a class="viewcode-back" href="../../theory.html#theory.crossSection.XSectionList.getDictionary">[docs]</a>    <span class="k">def</span> <span class="nf">getDictionary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">groupBy</span><span class="o">=</span><span class="s">&quot;pids&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert the list of XSection objects to a nested dictionary.</span>
+<span class="sd">        </span>
+<span class="sd">        First level keys are the particles IDs (if groupBy == pids) or labels</span>
+<span class="sd">        (if groupBy == labels) and values are the cross-section labels or</span>
+<span class="sd">        particle IDs and the cross-section value. </span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">xSecDictionary</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="n">groupBy</span> <span class="o">==</span> <span class="s">&quot;pids&quot;</span><span class="p">:</span>
+            <span class="n">allPids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getPIDpairs</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">pid</span> <span class="ow">in</span> <span class="n">allPids</span><span class="p">:</span>
+                <span class="n">xSecDictionary</span><span class="p">[</span><span class="n">pid</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">xSecs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getXsecsFor</span><span class="p">(</span><span class="n">pid</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">xsec</span> <span class="ow">in</span> <span class="n">xSecs</span><span class="p">:</span>
+                    <span class="n">xSecDictionary</span><span class="p">[</span><span class="n">pid</span><span class="p">][</span><span class="n">xsec</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">xsec</span><span class="o">.</span><span class="n">value</span>
+
+        <span class="k">elif</span> <span class="n">groupBy</span> <span class="o">==</span> <span class="s">&quot;labels&quot;</span><span class="p">:</span>
+            <span class="n">allLabels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getLabels</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">allLabels</span><span class="p">:</span>
+                <span class="n">xSecDictionary</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">xSecs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getXsecsFor</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">xsec</span> <span class="ow">in</span> <span class="n">xSecs</span><span class="p">:</span>
+                    <span class="n">xSecDictionary</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="n">xsec</span><span class="o">.</span><span class="n">pid</span><span class="p">]</span> <span class="o">=</span> <span class="n">xsec</span><span class="o">.</span><span class="n">value</span>
+
+        <span class="k">return</span> <span class="n">xSecDictionary</span>
+
+</div>
+<div class="viewcode-block" id="XSectionList.combineWith"><a class="viewcode-back" href="../../theory.html#theory.crossSection.XSectionList.combineWith">[docs]</a>    <span class="k">def</span> <span class="nf">combineWith</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newXsecs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a new list of cross-sections.</span>
+<span class="sd">        </span>
+<span class="sd">        If the new cross-sections already appear (have same order and sqrts),</span>
+<span class="sd">        add its value to the original value, otherwise append it to the list.</span>
+<span class="sd">        The particle IDs are ignored when adding cross-sections. Hence, they</span>
+<span class="sd">        are set to (None, None) if any cross-sections are combined.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">newList</span> <span class="o">=</span> <span class="n">newXsecs</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">newXsecs</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">XSection</span><span class="p">()):</span>
+            <span class="n">newList</span> <span class="o">=</span> <span class="p">[</span><span class="n">newXsecs</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">newXsec</span> <span class="ow">in</span> <span class="n">newList</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">newXsec</span><span class="o">.</span><span class="n">info</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">getInfo</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">newXsec</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">oldXsec</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">newXsec</span><span class="o">.</span><span class="n">info</span> <span class="o">==</span> <span class="n">oldXsec</span><span class="o">.</span><span class="n">info</span><span class="p">:</span>
+                        <span class="n">oldXsec</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">oldXsec</span><span class="o">.</span><span class="n">value</span> <span class="o">+</span> <span class="n">newXsec</span><span class="o">.</span><span class="n">value</span>
+                        <span class="n">oldXsec</span><span class="o">.</span><span class="n">pid</span> <span class="o">=</span> <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="XSectionList.removeLowerOrder"><a class="viewcode-back" href="../../theory.html#theory.crossSection.XSectionList.removeLowerOrder">[docs]</a>    <span class="k">def</span> <span class="nf">removeLowerOrder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Keep only the highest order cross-section for each process in the list.</span>
+<span class="sd">        </span>
+<span class="sd">        Remove order information and set default labels.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">newList</span> <span class="o">=</span> <span class="n">XSectionList</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">pids</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">getPIDpairs</span><span class="p">():</span>
+            <span class="n">xsecs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getXsecsFor</span><span class="p">(</span><span class="n">pids</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ixsec</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">xsecs</span><span class="p">):</span>
+                <span class="n">newxsec</span> <span class="o">=</span> <span class="n">ixsec</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="n">removeXsec</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="n">isqrts</span> <span class="o">=</span> <span class="n">ixsec</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">sqrts</span>
+                <span class="n">iorder</span> <span class="o">=</span> <span class="n">ixsec</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">order</span>
+                <span class="c"># Check if the xsec appear with the same sqrts but at a higher</span>
+                <span class="c"># order</span>
+                <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">jxsec</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">xsecs</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">j</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="n">jsqrts</span> <span class="o">=</span> <span class="n">jxsec</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">sqrts</span>
+                    <span class="n">jorder</span> <span class="o">=</span> <span class="n">jxsec</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">order</span>
+                    <span class="k">if</span> <span class="n">jsqrts</span> <span class="o">==</span> <span class="n">isqrts</span> <span class="ow">and</span> <span class="n">jorder</span> <span class="o">&gt;</span> <span class="n">iorder</span><span class="p">:</span>
+                        <span class="n">removeXsec</span> <span class="o">=</span> <span class="bp">True</span>
+                        <span class="k">break</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">removeXsec</span><span class="p">:</span>
+                    <span class="c"># Erase cross-section labels and information</span>
+                    <span class="n">newxsec</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">newxsec</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">sqrts</span><span class="p">)</span>
+                    <span class="n">newxsec</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">order</span> <span class="o">=</span> <span class="bp">None</span>
+                    <span class="n">newList</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">newxsec</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">newList</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Ignoring </span><span class="si">%i</span><span class="s"> lower order cross-sections&quot;</span><span class="p">,</span>
+                           <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">newList</span><span class="p">)))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">xSections</span> <span class="o">=</span> <span class="n">newList</span><span class="o">.</span><span class="n">xSections</span>
+            </div>
+<div class="viewcode-block" id="XSectionList.order"><a class="viewcode-back" href="../../theory.html#theory.crossSection.XSectionList.order">[docs]</a>    <span class="k">def</span> <span class="nf">order</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Order the cross-section in the list by their PDG pairs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">xSections</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xSections</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">xsec</span><span class="p">:</span> <span class="n">xsec</span><span class="o">.</span><span class="n">pid</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="getXsecFromSLHAFile"><a class="viewcode-back" href="../../theory.html#theory.crossSection.getXsecFromSLHAFile">[docs]</a><span class="k">def</span> <span class="nf">getXsecFromSLHAFile</span><span class="p">(</span><span class="n">slhafile</span><span class="p">,</span> <span class="n">useXSecs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">xsecUnit</span> <span class="o">=</span> <span class="n">pb</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Obtain cross-sections for pair production of R-odd particles from input SLHA file.</span>
+<span class="sd">    The default unit for cross-section is pb.</span>
+<span class="sd">    </span>
+<span class="sd">    :parameter slhafile: SLHA input file with cross-sections</span>
+<span class="sd">    :parameter useXSecs: if defined enables the user to select cross-sections to</span>
+<span class="sd">                     use. Must be a XSecInfoList object</span>
+<span class="sd">    :parameter xsecUnit: cross-section unit in the input file (must be a Unum unit)</span>
+<span class="sd">    :returns: a XSectionList object    </span>
+<span class="sd">     </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Store information about all cross-sections in the SLHA file</span>
+    <span class="n">xSecsInFile</span> <span class="o">=</span> <span class="n">XSectionList</span><span class="p">()</span>
+    <span class="n">slha</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">slhafile</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">slha</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+    <span class="n">xsecblock</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+        <span class="n">skipXsec</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="n">l</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&quot;#&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="s">&#39;XSECTION&#39;</span> <span class="ow">in</span> <span class="n">l</span><span class="p">:</span>
+            <span class="n">xsecblock</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="c"># Values in the SLHA file are in GeV</span>
+            <span class="n">sqrtS</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mf">1000.</span>
+            <span class="n">pids</span> <span class="o">=</span> <span class="p">(</span><span class="nb">eval</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">5</span><span class="p">]),</span> <span class="nb">eval</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">6</span><span class="p">]))</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">xsecblock</span><span class="p">:</span>
+            <span class="c"># Ignore other entries</span>
+            <span class="k">continue</span>
+        <span class="k">for</span> <span class="n">pid</span> <span class="ow">in</span> <span class="n">pids</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">pid</span> <span class="ow">in</span> <span class="n">smodels</span><span class="o">.</span><span class="n">particles</span><span class="o">.</span><span class="n">rOdd</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">skipXsec</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;Ignoring cross-section for &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">pids</span><span class="p">)</span><span class="o">+</span><span class="s">&quot; production&quot;</span><span class="p">)</span> <span class="c">#Ignore production of R-Even particles                </span>
+                <span class="k">break</span>        
+        <span class="n">csOrder</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">cs</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">6</span><span class="p">])</span> <span class="o">*</span> <span class="n">xsecUnit</span>
+        <span class="n">wlabel</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">sqrtS</span><span class="p">))</span> <span class="o">+</span> <span class="s">&#39; TeV&#39;</span>
+        <span class="k">if</span> <span class="n">csOrder</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">wlabel</span> <span class="o">+=</span> <span class="s">&#39; (LO)&#39;</span>
+        <span class="k">elif</span> <span class="n">csOrder</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">wlabel</span> <span class="o">+=</span> <span class="s">&#39; (NLO)&#39;</span>
+        <span class="k">elif</span> <span class="n">csOrder</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">wlabel</span> <span class="o">+=</span> <span class="s">&#39; (NLL)&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Unknown QCD order in XSECTION line &quot;</span> <span class="o">+</span> <span class="n">l</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+        <span class="n">xsec</span> <span class="o">=</span> <span class="n">XSection</span><span class="p">()</span>
+        <span class="n">xsec</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">sqrts</span> <span class="o">=</span> <span class="n">sqrtS</span> <span class="o">*</span> <span class="n">TeV</span>
+        <span class="n">xsec</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">order</span> <span class="o">=</span> <span class="n">csOrder</span>
+        <span class="n">xsec</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">wlabel</span>
+        <span class="n">xsec</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">cs</span>
+        <span class="n">xsec</span><span class="o">.</span><span class="n">pid</span> <span class="o">=</span> <span class="n">pids</span>
+        <span class="c"># Do not add xsecs which do not match the user required ones:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">useXSecs</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">xsec</span><span class="o">.</span><span class="n">info</span> <span class="ow">in</span> <span class="n">useXSecs</span><span class="p">)</span> <span class="ow">or</span> <span class="n">skipXsec</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">else</span><span class="p">:</span> <span class="n">xSecsInFile</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">xsec</span><span class="p">)</span>
+
+    <span class="n">slha</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">xSecsInFile</span>
+
+</div>
+<div class="viewcode-block" id="getXsecFromLHEFile"><a class="viewcode-back" href="../../theory.html#theory.crossSection.getXsecFromLHEFile">[docs]</a><span class="k">def</span> <span class="nf">getXsecFromLHEFile</span><span class="p">(</span><span class="n">lhefile</span><span class="p">,</span> <span class="n">addEvents</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Obtain cross-sections from input LHE file.</span>
+<span class="sd">    </span>
+<span class="sd">    :parameter lhefile: LHE input file with unweighted MC events</span>
+<span class="sd">    :parameter addEvents: if True, add cross-sections with the same mothers,</span>
+<span class="sd">                      otherwise return the event weight for each pair of mothers</span>
+<span class="sd">    :returns: a XSectionList object</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Store information about all cross-sections in the LHE file</span>
+    <span class="n">xSecsInFile</span> <span class="o">=</span> <span class="n">XSectionList</span><span class="p">()</span>
+    <span class="n">reader</span> <span class="o">=</span> <span class="n">lheReader</span><span class="o">.</span><span class="n">LheReader</span><span class="p">(</span><span class="n">lhefile</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span> <span class="p">(</span> <span class="n">reader</span><span class="o">.</span><span class="n">metainfo</span><span class="p">[</span><span class="s">&quot;totalxsec&quot;</span><span class="p">]</span> <span class="p">)</span> <span class="o">==</span> <span class="nb">type</span> <span class="p">(</span> <span class="n">pb</span><span class="p">)</span> <span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Cross-section information not found in LHE file.&quot;</span><span class="p">)</span>        
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="n">reader</span><span class="o">.</span><span class="n">metainfo</span><span class="p">[</span><span class="s">&quot;nevents&quot;</span><span class="p">]:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Total number of events information not found in LHE &quot;</span> <span class="o">+</span>
+                     <span class="s">&quot;file.&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="nb">type</span> <span class="p">(</span> <span class="n">reader</span><span class="o">.</span><span class="n">metainfo</span><span class="p">[</span><span class="s">&quot;sqrts&quot;</span><span class="p">]</span> <span class="p">)</span> <span class="o">==</span> <span class="nb">type</span> <span class="p">(</span> <span class="n">TeV</span> <span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Center-of-mass energy information not found in LHE &quot;</span> <span class="o">+</span>
+                     <span class="s">&quot;file.&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+
+    <span class="c"># Common cross-section info</span>
+    <span class="n">totxsec</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">metainfo</span><span class="p">[</span><span class="s">&quot;totalxsec&quot;</span><span class="p">]</span>
+    <span class="n">nevts</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">metainfo</span><span class="p">[</span><span class="s">&quot;nevents&quot;</span><span class="p">]</span>
+    <span class="n">sqrtS</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">metainfo</span><span class="p">[</span><span class="s">&quot;sqrts&quot;</span><span class="p">]</span>
+    <span class="n">eventCs</span> <span class="o">=</span> <span class="n">totxsec</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">nevts</span><span class="p">)</span>
+
+
+    <span class="c"># Get all mom pids</span>
+    <span class="n">allpids</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">:</span>
+        <span class="n">allpids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">getMom</span><span class="p">())))</span>
+    <span class="n">pids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">allpids</span><span class="p">)</span>
+    <span class="c"># Generate zero cross-sections for all independent pids</span>
+    <span class="k">for</span> <span class="n">pid</span> <span class="ow">in</span> <span class="n">pids</span><span class="p">:</span>
+        <span class="n">xsec</span> <span class="o">=</span> <span class="n">XSection</span><span class="p">()</span>
+        <span class="n">xsec</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">sqrts</span> <span class="o">=</span> <span class="n">sqrtS</span>
+        <span class="k">if</span> <span class="s">&#39;cs_order&#39;</span> <span class="ow">in</span> <span class="n">reader</span><span class="o">.</span><span class="n">metainfo</span><span class="p">:</span>
+            <span class="n">xsec</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">order</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">metainfo</span><span class="p">[</span><span class="s">&quot;cs_order&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># Assume LO xsecs, if not defined in the reader</span>
+            <span class="n">xsec</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">order</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">wlabel</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span> <span class="n">sqrtS</span> <span class="o">/</span> <span class="n">TeV</span> <span class="p">)</span> <span class="o">+</span> <span class="s">&#39; TeV&#39;</span>
+        <span class="k">if</span> <span class="n">xsec</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">wlabel</span> <span class="o">+=</span> <span class="s">&#39; (LO)&#39;</span>
+        <span class="k">elif</span> <span class="n">xsec</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">order</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">wlabel</span> <span class="o">+=</span> <span class="s">&#39; (NLO)&#39;</span>
+        <span class="k">elif</span> <span class="n">xsec</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">order</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">wlabel</span> <span class="o">+=</span> <span class="s">&#39; (NLL)&#39;</span>
+        <span class="n">xsec</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">wlabel</span>
+        <span class="n">xsec</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">0.</span> <span class="o">*</span> <span class="n">pb</span>
+        <span class="n">xsec</span><span class="o">.</span><span class="n">pid</span> <span class="o">=</span> <span class="n">pid</span>
+        <span class="c"># If addEvents = False, set cross-section value to event weight</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">addEvents</span><span class="p">:</span>
+            <span class="n">xsec</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">eventCs</span>
+        <span class="n">xSecsInFile</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">xsec</span><span class="p">)</span>
+    <span class="c"># If addEvents = True, sum up event weights with same mothers</span>
+    <span class="k">if</span> <span class="n">addEvents</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">pid</span> <span class="ow">in</span> <span class="n">allpids</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">ixsec</span><span class="p">,</span> <span class="n">xsec</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">xSecsInFile</span><span class="o">.</span><span class="n">xSections</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">xsec</span><span class="o">.</span><span class="n">pid</span> <span class="o">==</span> <span class="n">pid</span><span class="p">:</span>
+                    <span class="n">xSecsInFile</span><span class="o">.</span><span class="n">xSections</span><span class="p">[</span><span class="n">ixsec</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">+=</span> <span class="n">eventCs</span>
+
+    <span class="n">reader</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">xSecsInFile</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SModelS 1.0.3 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Sabine Kraml, Suchita Kulkarni, Ursula Laa, Andre Lessa, Veronika Magerl, Wolfgang Magerl, Doris Proschofsky, Michael Traub, Wolfgang Waltenberger.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

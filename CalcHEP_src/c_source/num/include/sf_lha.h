@@ -8,5 +8,6 @@ extern int     m_lha(int i,int *);
 extern int     mc_lha(int i);
 extern int     init_lha(int i,double * be, double * mass);
 extern double  c_lha(int i, double x,double q);
+extern double  alphaspdfm(int*P,double*q);
 
 #endif

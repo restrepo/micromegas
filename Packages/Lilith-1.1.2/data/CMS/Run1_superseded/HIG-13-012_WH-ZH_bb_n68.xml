@@ -1,0 +1,28 @@
+<!--
+parametrization of a 2D Gaussian fitted from the 68% CL contour
+in the plane mu(WH, bb) vs. mu(ZH, bb)
+at mH = 125 GeV, shown in CMS-HIG-13-012-003, Fig. 7
+https://twiki.cern.ch/twiki/bin/view/CMSPublic/Hig13012PubTWiki
+ -->
+
+<expmu decay="bb" dim="2" type="n">
+  <experiment>CMS</experiment>
+  <source type="published">HIG-13-012-003</source>
+  <sqrts>7+8</sqrts>
+  <mass>125</mass>
+  <CL>68%</CL> <!-- optional -->
+
+  <eff axis="x" prod="WH">1.0</eff>
+  <eff axis="y" prod="ZH">1.0</eff>
+
+  <bestfit>
+    <x>1.123</x>
+    <y>0.997</y>
+  </bestfit>
+  
+  <param>
+    <a>1.393</a>
+    <b>0.190</b>
+    <c>2.217</c>
+  </param>
+</expmu>

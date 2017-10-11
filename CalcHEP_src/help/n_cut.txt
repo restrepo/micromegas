@@ -14,9 +14,11 @@
    
   A  - Angle in degree units
   C  - Cosine of angle
-  D  - Jet separation min(pT1^2,pT2^2)*(cosh(d_Rapidity)-cos(d_AzimuthAngle))
-
-  J  - Jet cone angle
+  D  -  min(T1^2,T2^2)*(cosh(eta_12)-cos(phi_12))
+        where T1,T2 - transverce momena, eta_12 - pseudo-rapidity 
+        difference, phi_12 - azimuth angle difference.   
+  J  - Delta R jet separation = sqrt(|eta_12|^2 +|phi_12|^2)
+  K  - |eta_12|
   E  - Energy of the particle set
   M  - Mass of the particle set
   P  - Cosine of the angle between the first particle in the list and 
@@ -26,7 +28,8 @@
   Y  - Rapidity of the particle set 
   N  - Pseudo-rapidity of the particle set
   Z  - Transverse energy
-  
+
+ Particle separators 'D','J','K' need 2 arguments.  
  Generally 'A' and 'C' have 2 arguments. But in the case of a collision
  process, the functions 'A' and 'C' with one argument designate the 
  angle between the given  particle and the first (in the list) incoming

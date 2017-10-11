@@ -1,9 +1,15 @@
 #!/usr/bin/perl
 # (c) 2008 Neil Christensen
-$version="1.22";
+$version="1.26";
 #############################################################################################################
 #Version Notes:
 #############################################################################################################
+#1.26 : If cs=0, set nevents=0.
+#1.25 : Updated for change in event generation.
+#1.24 : Fixed fix in 1.22.
+#       Fixed bug introduced by the change to the numerical menu for
+#         generating the SLHA width file.
+#1.23 : Case Insensitive choice for internal PDFs is implemented
 #1.22 : Bug for the case of "Remove :0:" intermediate particles fixed
 #1.21 : Further Fixed bug with aux being written to concurrently by 
 #         parallel jobs.
@@ -589,6 +595,7 @@ $nCalls1 = 10000;
 $nSess2 = 5;
 $nCalls2 = 100000;
 $subCubes = 10000;
+$unWeighted = 1;
 $randSearch = 100;
 $simpSearch = 50;
 $maxN = "2.000000";
@@ -792,16 +799,16 @@ print("Progress information can be found in the html directory.\nSimply open the
 ####################################################
 #           Determine pdf name                     #
 ####################################################
-if    ($pdf1 =~ /cteq6l[\s\(]*anti-proton/)     {$pdf1_name="\"PDT:cteq6l(anti-proton)\" -2212";}
-elsif ($pdf1 =~ /cteq6l[\s\(]*proton/)          {$pdf1_name="\"PDT:cteq6l(proton)\" 2212";}
-elsif ($pdf1 =~ /mrst2002lo[\s\(]*anti-proton/) {$pdf1_name="\"PDT:mrst2002lo(anti-proton)\" -2212";}
-elsif ($pdf1 =~ /mrst2002lo[\s\(]*proton/)      {$pdf1_name="\"PDT:mrst2002lo(proton)\" 2212";}
-elsif ($pdf1 =~ /cteq6m[\s\(]*anti-proton/)     {$pdf1_name="\"PDT:cteq6m(anti-proton)\" -2212";}
-elsif ($pdf1 =~ /cteq6m[\s\(]*proton/)          {$pdf1_name="\"PDT:cteq6m(proton)\" 2212";}
-elsif ($pdf1 =~ /cteq5m[\s\(]*anti-proton/)     {$pdf1_name="\"PDT:CTEQ5M(anti-proton)\" -2212";}
-elsif ($pdf1 =~ /cteq5m[\s\(]*proton/)          {$pdf1_name="\"PDT:CTEQ5M(proton)\" 2212";}
-elsif ($pdf1 =~ /mrst2002nlo[\s\(]*anti-proton/){$pdf1_name="\"PDT:mrst2002nlo(anti-proton)\" -2212";}
-elsif ($pdf1 =~ /mrst2002nlo[\s\(]*proton/)     {$pdf1_name="\"PDT:mrst2002nlo(proton)\" 2212";}
+if    ($pdf1 =~ m/cteq6l[\s\(]*anti-proton/i)     {$pdf1_name="\"PDT:cteq6l(anti-proton)\" -2212";}
+elsif ($pdf1 =~ m/cteq6l[\s\(]*proton/i)          {$pdf1_name="\"PDT:cteq6l(proton)\" 2212";}
+elsif ($pdf1 =~ m/mrst2002lo[\s\(]*anti-proton/i) {$pdf1_name="\"PDT:mrst2002lo(anti-proton)\" -2212";}
+elsif ($pdf1 =~ m/mrst2002lo[\s\(]*proton/i)      {$pdf1_name="\"PDT:mrst2002lo(proton)\" 2212";}
+elsif ($pdf1 =~ m/cteq6m[\s\(]*anti-proton/i)     {$pdf1_name="\"PDT:cteq6m(anti-proton)\" -2212";}
+elsif ($pdf1 =~ m/cteq6m[\s\(]*proton/i)          {$pdf1_name="\"PDT:cteq6m(proton)\" 2212";}
+elsif ($pdf1 =~ m/cteq5m[\s\(]*anti-proton/i)     {$pdf1_name="\"PDT:CTEQ5M(anti-proton)\" -2212";}
+elsif ($pdf1 =~ m/cteq5m[\s\(]*proton/i)          {$pdf1_name="\"PDT:CTEQ5M(proton)\" 2212";}
+elsif ($pdf1 =~ m/mrst2002nlo[\s\(]*anti-proton/i){$pdf1_name="\"PDT:mrst2002nlo(anti-proton)\" -2212";}
+elsif ($pdf1 =~ m/mrst2002nlo[\s\(]*proton/i)     {$pdf1_name="\"PDT:mrst2002nlo(proton)\" 2212";}
 elsif ($pdf1 =~ /[Ii][Ss][Rr].*[Bb]eam/)        {$pdf1_name=sprintf("\"Qisr=1.00E0*sqrtS,Beamstr:%.1f,%.3f,%.1E\"",$bunch_size,$bunch_length,$bunch_number);}
 elsif ($pdf1 =~ /[Ii][Ss][Rr]/)                 {$pdf1_name="\"Qisr=1.00E0*sqrtS,Beamstr: OFF\"";}
 elsif ($pdf1 =~ /[Ee]quiv[^:]*[Pp]hoton/)       {$pdf1_name=sprintf("\"Equiv.Photon(particle= %s |Q|max=%s)\"",$photon_particle,$photon_Qmax);}
@@ -810,16 +817,16 @@ elsif ($pdf1 =~ /[Pp]roton[^:]*[Pp]hoton/)      {$pdf1_name=sprintf("\"Proton.Ph
 elsif (!($pdf1 eq ""))                          {$pdf1_name="\"$pdf1\"";}
 else                                            {$pdf1_name="\"OFF\"";}
 
-if    ($pdf2 =~ /cteq6l[\s\(]*anti-proton/)     {$pdf2_name="\"PDT:cteq6l(anti-proton)\" -2212";}
-elsif ($pdf2 =~ /cteq6l[\s\(]*proton/)          {$pdf2_name="\"PDT:cteq6l(proton)\" 2212";}
-elsif ($pdf2 =~ /mrst2002lo[\s\(]*anti-proton/) {$pdf2_name="\"PDT:mrst2002lo(anti-proton)\" -2212";}
-elsif ($pdf2 =~ /mrst2002lo[\s\(]*proton/)      {$pdf2_name="\"PDT:mrst2002lo(proton)\" 2212";}
-elsif ($pdf2 =~ /cteq6m[\s\(]*anti-proton/)     {$pdf2_name="\"PDT:cteq6m(anti-proton)\" -2212";}
-elsif ($pdf2 =~ /cteq6m[\s\(]*proton/)          {$pdf2_name="\"PDT:cteq6m(proton)\" 2212";}
-elsif ($pdf2 =~ /cteq5m[\s\(]*anti-proton/)     {$pdf2_name="\"PDT:CTEQ5M(anti-proton)\" -2212";}
-elsif ($pdf2 =~ /cteq5m[\s\(]*proton/)          {$pdf2_name="\"PDT:CTEQ5M(proton)\" 2212";}
-elsif ($pdf2 =~ /mrst2002nlo[\s\(]*anti-proton/){$pdf2_name="\"PDT:mrst2002nlo(anti-proton)\" -2212";}
-elsif ($pdf2 =~ /mrst2002nlo[\s\(]*proton/)     {$pdf2_name="\"PDT:mrst2002nlo(proton)\" 2212";}
+if    ($pdf2 =~ m/cteq6l[\s\(]*anti-proton/i)     {$pdf2_name="\"PDT:cteq6l(anti-proton)\" -2212";}
+elsif ($pdf2 =~ m/cteq6l[\s\(]*proton/i)          {$pdf2_name="\"PDT:cteq6l(proton)\" 2212";}
+elsif ($pdf2 =~ m/mrst2002lo[\s\(]*anti-proton/i) {$pdf2_name="\"PDT:mrst2002lo(anti-proton)\" -2212";}
+elsif ($pdf2 =~ m/mrst2002lo[\s\(]*proton/i)      {$pdf2_name="\"PDT:mrst2002lo(proton)\" 2212";}
+elsif ($pdf2 =~ m/cteq6m[\s\(]*anti-proton/i)     {$pdf2_name="\"PDT:cteq6m(anti-proton)\" -2212";}
+elsif ($pdf2 =~ m/cteq6m[\s\(]*proton/i)          {$pdf2_name="\"PDT:cteq6m(proton)\" 2212";}
+elsif ($pdf2 =~ m/cteq5m[\s\(]*anti-proton/i)     {$pdf2_name="\"PDT:CTEQ5M(anti-proton)\" -2212";}
+elsif ($pdf2 =~ m/cteq5m[\s\(]*proton/i)          {$pdf2_name="\"PDT:CTEQ5M(proton)\" 2212";}
+elsif ($pdf2 =~ m/mrst2002nlo[\s\(]*anti-proton/i){$pdf2_name="\"PDT:mrst2002nlo(anti-proton)\" -2212";}
+elsif ($pdf2 =~ m/mrst2002nlo[\s\(]*proton/i)     {$pdf2_name="\"PDT:mrst2002nlo(proton)\" 2212";}
 elsif ($pdf2 =~ /[Ii][Ss][Rr].*[Bb]eam/)        {$pdf2_name=sprintf("\"Qisr=1.00E0*sqrtS,Beamstr:%.1f,%.3f,%.1E\"",$bunch_size,$bunch_length,$bunch_number);}
 elsif ($pdf2 =~ /[Ii][Ss][Rr]/)                 {$pdf2_name="\"Qisr=1.00E0*sqrtS,Beamstr: OFF\"";}
 elsif ($pdf2 =~ /[Ee]quiv[^:]*[Pp]hoton/)       {$pdf2_name=sprintf("\"Equiv.Photon(particle= %s |Q|max=%s)\"",$photon_particle,$photon_Qmax);}
@@ -1352,7 +1359,7 @@ for (my $l=0;$l<=$#processes;$l++){
 #			if($whichRemove>=0){push(@subremoves,$removes[$whichRemove]);}
 
 #			else {push(@subremoves,"");}
-                              push(@subremoves,$removeList);   
+			push(@subremoves,$removeList);   
 		#	$line =~ s/\|[^\|]+->[^\|]+\|//; #Old system used tmp/menup.ch
 	  	#} #Old system used tmp/menup.ch
 	}
@@ -1423,11 +1430,11 @@ for (my $l=0;$l<=$#decays;$l++){
 	#Add removals
 	my $whichRemove=-1;
 	my $removeList="";
-	for (my $m=0;$m<=$#removes;$m++){
-	  if($removesNumber[$m]==$l||$removesNumber[$m]==-1)
+	for (my $m=0;$m<=$#removesD;$m++){
+	  if($removesDNumber[$m]==$l||$removesDNumber[$m]==-1)
 	   { 
 	      if($whichRemove>=0) {$removeList=$removeList.",";}
-	      $removeList= $removeList.$removes[$m];
+	      $removeList= $removeList.$removesD[$m];
 	      $whichRemove=$m;
 	   }
 	}
@@ -1467,8 +1474,9 @@ for (my $l=0;$l<=$#decays;$l++){
 			push(@decay_subproc_which_decay,$l);
 			push(@decay_subproc_dir,"");
 			push(@decay_subproc_in_lib,0);
-			if($whichRemove>=0){push(@decay_subremoves,$removesD[$whichRemove]);}
-			else {push(@decay_subremoves,"");}
+		#	if($whichRemove>=0){push(@decay_subremoves,$removesD[$whichRemove]);}
+		#	else {push(@decay_subremoves,"");}
+			push(@decay_subremoves,$removeList);
 		#	$line =~ s/\|[^\|]+->[^\|]+\|//;
 	  	#}
 	}
@@ -2776,7 +2784,7 @@ for (my $k=0;$k<=$#subprocesses;$k++){
 		if($nevents[$k]<10){$nevents[$k]=10;}
 		$nevents[$k] = $nevents[$k]+5*int(sqrt($nevents[$k]));
 		if($sub_gen_n =~ /[Tt]rue/){$nevents[$k] = $n_events;}
-		if($cs[$k]*$max_lumi<1) {$nevents[$k]=0;}
+		if($cs[$k]==0||$cs[$k]*$max_lumi<1) {$nevents[$k]=0;}
 		#my $systemString = sprintf ("$CH_PATH/bin/subproc_cycle 1E+50 %d",$nevents[$k]);
 		my $systemString = "./n_calchep -blind \"[[[[[[[[[{[[[[[[[[[{{${nevents[$k]}{[{0\"";
 		if($nevents[$k]==0){$systemString="echo \"cs=0\"";}
@@ -2835,7 +2843,7 @@ for (my $k=0;$k<=$#subprocesses;$k++){
 			if($nevents[$k][$j]<10){$nevents[$k][$j]=10;}
 			$nevents[$k][$j] = $nevents[$k][$j]+5*int(sqrt($nevents[$k][$j]));
 			if($sub_gen_n =~ /[Tt]rue/){$nevents[$k][$j] = $n_events;}
-			if($cs[$k][$j]*$max_lumi<1) {$nevents[$k][$j]=0;}
+			if($cs[$k][$j]==0||$cs[$k][$j]*$max_lumi<1) {$nevents[$k][$j]=0;}
 			#my $systemString = sprintf ("$CH_PATH/bin/subproc_cycle 1E+50 %d",$nevents[$k][$j]);
 			my $systemString = "./n_calchep -blind \"[[[[[[[[[{[[[[[[[[[{{${nevents[$k][$j]}{[{0\"";
 			if($nevents[$k][$j]==0){$systemString="echo \"cs=0\"";}
@@ -3018,7 +3026,7 @@ if ($#step<0){
 	elsif($par_meth=~/[Ss][Ll][Uu][Rr][Mm]/){write_SLURM_info($job_name,"job.out");}
 	print JOB_FILE "cd $dir_name/single/\n";
 	#my $systemString = sprintf ("./n_calchep -blind \"[[[[[[[[[[[\{[[[[[[\{\\8a\"");
-	my $systemString = sprintf ("./n_calchep -blind \"[[[{[{{}0\"");#Includes 1->3 decays
+	my $systemString = sprintf ("./n_calchep -blind \"[[[{[[{{}0\"");#Includes 1->3 decays
 	$systemString = $systemString."  2>&1 1>  job.o";
 	if ($par_meth =~ /[Pp][Bb][Ss]/ || $par_meth =~ /[Ll][Ss][Ff]/ || $par_meth =~ /[Ss][Ll][Uu][Rr][Mm]/){print JOB_FILE "        $systemString\n";}
 	elsif ($par_meth =~ /this/ || $par_meth =~ /local/){
@@ -3114,7 +3122,7 @@ else {
 		#		$run_begin[$l]+$run_step[$l]*$step_tmp[$l];
 		#}
 		#my $systemString = sprintf ("./n_calchep -blind \"[[[[[[[[[[[\{[[[[[[\{\\8a\"");
-		my $systemString = sprintf ("./n_calchep -blind \"[[[{[{{}0\"");#Includes 1->3 decays
+		my $systemString = sprintf ("./n_calchep -blind \"[[[{[[{{}0\"");#Includes 1->3 decays
 		$systemString = $systemString."  2>&1 1>  job.o";
 		if ($par_meth =~ /[Pp][Bb][Ss]/ || $par_meth =~ /[Ll][Ss][Ff]/ || $par_meth =~ /[Ss][Ll][Uu][Rr][Mm]/){print JOB_FILE "        $systemString\n";}
 		elsif ($par_meth =~ /this/ || $par_meth =~ /local/){
@@ -4189,7 +4197,7 @@ sub update_session {
 		if ($init_section==0&&$param_section==0&&$BW_section==0&&$cuts_section==0&& $reg_section==0 && $kinematics_section==0 && $dists_section==0&&$qcdscales_section==0&&$composite_section==0){
 			if($line =~ /#Vegas_calls/){$line ="#Vegas_calls ${nCalls1}x${nSess1} ${nCalls2}x${nSess2}\n";}
 			if($line =~ /#Parallelization:/){$line ="#Parallelization: $max_ppn\n";}
-			if($line =~ /#Events/){$line = "#Events $subCubes $randSearch $simpSearch 10000 \n";}
+			if($line =~ /#Events/){$line = "#Events $subCubes $unWeighted 10000 \n";}
 			if($line =~ /#VVdecays/ && ($VVdecay =~ /[Oo][Ff][Ff]/ || $VVdecay =~ /[Ff][Aa][Ll][Ss][Ee]/))
 			  {$line = "#VVdecays  0\n";}
 			
@@ -4596,7 +4604,7 @@ sub update_decay_session {
 		if ($param_section==0 && $kinematics_section==0 && $reg_section==0 && $cuts_section==0){
 			if($line =~ /#Vegas_calls/){$line = "#Vegas_calls ${nCalls1}x${nSess1} ${nCalls2}x${nSess2}\n";}
 			if($line =~ /#Parallelization:/){$line ="#Parallelization: 0\n";}
-			if($line =~ /#Events/){$line = "#Events $subCubes $randSearch $simpSearch 10000\n";}
+			if($line =~ /#Events/){$line = "#Events $subCubes $unWeighted 10000\n";}
 			if($line =~ /#VVdecays/ && ($VVdecay =~ /[Oo][Ff][Ff]/ || $VVdecay =~ /[Ff][Aa][Ll][Ss][Ee]/))
 			  {$line = "#VVdecays  0\n";}
 
@@ -4703,7 +4711,7 @@ sub combine_events {
 	
 	#Run event_mixer
 	chdir("$working_dir/Events/tmp/");
-        print($n_events); 
+        #print($n_events); 
 	my $command=sprintf "nice -n $nice_level $CH_PATH/bin/event_mixer %G $n_events .  2>&1 1>  event_mixer.o", $max_lumi;
 	#$command="nice -n $nice_level $CH_PATH/bin/event_mixer $n_events .  2>&1 1>  event_mixer.o";
 	#print "$command\n";
@@ -5277,8 +5285,8 @@ sub print_request {
 	print HTML_FILE "\t\t<table>\n";
 	print HTML_FILE "\t\t\t<tr><th colspan='2'>Event Generator</th></tr>\n";
 	print HTML_FILE "\t\t\t<tr><td>sub-cubes</td><td>$subCubes</td></tr>\n";
-	print HTML_FILE "\t\t\t<tr><td>random search</td><td>$randSearch</td></tr>\n";
-	print HTML_FILE "\t\t\t<tr><td>simplex search</td><td>$simpSearch</td></tr>\n";
+	#print HTML_FILE "\t\t\t<tr><td>random search</td><td>$randSearch</td></tr>\n";
+	#print HTML_FILE "\t\t\t<tr><td>simplex search</td><td>$simpSearch</td></tr>\n";
 	print HTML_FILE "\t\t\t<tr><td>max*N</td><td>$maxN</td></tr>\n";
 	print HTML_FILE "\t\t\t<tr><td>find new MAX</td><td>$findNewMax</td></tr>\n";
 	print HTML_FILE "\t\t</table>\n";
@@ -5468,8 +5476,8 @@ sub print_run_details {
 	print TXT_FILE "#           Event Generator             #\n";
 	print TXT_FILE "#########################################\n";
 	print TXT_FILE "sub-cubes      : $subCubes\n";
-	print TXT_FILE	"random search  : $randSearch\n";
-	print TXT_FILE "simplex search : $simpSearch\n";
+	#print TXT_FILE	"random search  : $randSearch\n";
+	#print TXT_FILE "simplex search : $simpSearch\n";
 	print TXT_FILE "MAX*N          : $maxN\n";
 	print TXT_FILE "find new MAX   : $findNewMax\n"; 
 	print TXT_FILE "\n";

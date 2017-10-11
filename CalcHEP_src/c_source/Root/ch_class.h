@@ -40,7 +40,7 @@ private:
     int    PassParameters(void);
     char * Pinf(int nsub,int nprtcl,double*pmass,int*num);
     int    ProcInfo2(int nsub, char**pnames,double * pmass);    
-    double Sqme(int nsub, double GG, double *pvect,int*err);
+    double Sqme(int nsub, double GG,  double *pvect,int*err);
     ClassDef(ch_class, 1)
  };
 

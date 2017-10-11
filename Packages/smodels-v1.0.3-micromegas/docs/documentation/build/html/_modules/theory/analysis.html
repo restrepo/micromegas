@@ -1,0 +1,227 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>theory.analysis &mdash; SModelS 1.0.3 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="SModelS 1.0.3 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SModelS 1.0.3 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for theory.analysis</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: theory.analysis</span>
+<span class="sd">   :synopsis: Encapsulates all data types around one result of one analysis,</span>
+<span class="sd">              i.e. the association with one plot and one </span>
+<span class="sd">              reference cross section result.</span>
+<span class="sd">        </span>
+<span class="sd">.. moduleauthor:: Andre Lessa &lt;lessa.a.p@gmail.com&gt;</span>
+<span class="sd">        </span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">smodels.experiment</span> <span class="kn">import</span> <span class="n">limitGetter</span><span class="p">,</span> <span class="n">smsResults</span>
+<span class="kn">from</span> <span class="nn">smodels.theory.printer</span> <span class="kn">import</span> <span class="n">Printer</span>
+
+<div class="viewcode-block" id="ULanalysis"><a class="viewcode-back" href="../../theory.html#theory.analysis.ULanalysis">[docs]</a><span class="k">class</span> <span class="nc">ULanalysis</span><span class="p">(</span><span class="n">Printer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class to store one upper limit-type analysis.    </span>
+<span class="sd">    Stores the conditions and the elements constrained by the analysis as well</span>
+<span class="sd">    as basic analysis info.</span>
+
+<span class="sd">    :ivar conditions: List of conditions strings    </span>
+<span class="sd">    :ivar constraint: Constraint string</span>
+<span class="sd">    :ivar elementsEff: Dictionary with constrained elements as keys and</span>
+<span class="sd">       efficiencies as values    </span>
+<span class="sd">    :ivar label: Analysis label/name</span>
+<span class="sd">    :ivar sqrts: Analysis center-of-mass energy</span>
+<span class="sd">    :ivar lum: Analysis luminosity</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sqrts</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lum</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conditions</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constraint</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elementsEff</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span>
+
+<div class="viewcode-block" id="ULanalysis.getEfficiencyFor"><a class="viewcode-back" href="../../theory.html#theory.analysis.ULanalysis.getEfficiencyFor">[docs]</a>    <span class="k">def</span> <span class="nf">getEfficiencyFor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get (trivial) efficiency for element.        </span>
+<span class="sd">        Returns zero if element is not constrained by the analysis or the</span>
+<span class="sd">        element multiplicative factor if it is.</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: 1 if element is in constraint, zero otherwise  </span>
+<span class="sd">              </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elementsEff</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">particlesMatch</span><span class="p">(</span><span class="n">el</span><span class="p">):</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">elementsEff</span><span class="p">[</span><span class="n">el</span><span class="p">]</span>
+        <span class="k">return</span> <span class="mf">0.</span>
+</div>
+<div class="viewcode-block" id="ULanalysis.getUpperLimitFor"><a class="viewcode-back" href="../../theory.html#theory.analysis.ULanalysis.getUpperLimitFor">[docs]</a>    <span class="k">def</span> <span class="nf">getUpperLimitFor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the experimental upper limit for a specific mass array.</span>
+<span class="sd">        </span>
+<span class="sd">        :parameter mass: mass vector for computing the upper limit</span>
+<span class="sd">        :returns: experimental upper limit for cross-section times BR (float with unit or Unum object)  </span>
+<span class="sd">            </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">return</span> <span class="n">limitGetter</span><span class="o">.</span><span class="n">getPlotLimit</span><span class="p">(</span><span class="n">mass</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="ULanalysis.getBranchCondition"><a class="viewcode-back" href="../../theory.html#theory.analysis.ULanalysis.getBranchCondition">[docs]</a>    <span class="k">def</span> <span class="nf">getBranchCondition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Most analyses include assumptions about the masses of the elements</span>
+<span class="sd">        appearing in their constraints.</span>
+<span class="sd">        This method returns a string describing this condition</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: string describing branch condition (from the branchcondition field)</span>
+<span class="sd">                  or None if no condition is found</span>
+<span class="sd">                  </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">ananame</span><span class="p">,</span> <span class="n">txname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">smsResults</span><span class="o">.</span><span class="n">getBranchCondition</span><span class="p">(</span><span class="n">ananame</span><span class="p">,</span><span class="n">txname</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="ULanalysis.formatData"><a class="viewcode-back" href="../../theory.html#theory.analysis.ULanalysis.formatData">[docs]</a>    <span class="k">def</span> <span class="nf">formatData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">outputLevel</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Select data preparation method through dynamic binding.</span>
+<span class="sd">        </span>
+<span class="sd">        :parameter outputLevel: general control for the output depth to be printed </span>
+<span class="sd">                            (0 = no output, 1 = basic output, 2 = detailed output,...</span>
+<span class="sd">                            </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">Printer</span><span class="o">.</span><span class="n">formatULanalysisData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">outputLevel</span><span class="p">)</span>    
+
+</div></div>
+<div class="viewcode-block" id="EManalysis"><a class="viewcode-back" href="../../theory.html#theory.analysis.EManalysis">[docs]</a><span class="k">class</span> <span class="nc">EManalysis</span><span class="p">(</span><span class="n">Printer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class to store a efficiency map-type of analysis.    </span>
+<span class="sd">    Stores the basic analysis info and contains a method for obtaining the</span>
+<span class="sd">    efficiency maps from the database.</span>
+<span class="sd">    </span>
+<span class="sd">    :ivar label: Analysis label/name</span>
+<span class="sd">    :ivar sqrts: Analysis center-of-mass energy</span>
+<span class="sd">    :ivar lum: Analysis luminosity</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sqrts</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lum</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span>
+
+<div class="viewcode-block" id="EManalysis.getEfficiencyFor"><a class="viewcode-back" href="../../theory.html#theory.analysis.EManalysis.getEfficiencyFor">[docs]</a>    <span class="k">def</span> <span class="nf">getEfficiencyFor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get efficiency for element from the database.        </span>
+<span class="sd">        Returns zero if a efficiency is not found.</span>
+<span class="sd">        </span>
+<span class="sd">        .. warning:: not implemented yet</span>
+<span class="sd">                </span>
+<span class="sd">        :returns: efficiency value (float). zero, if element is not found  </span>
+<span class="sd">              </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">element</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="bp">False</span>
+</div>
+<div class="viewcode-block" id="EManalysis.getLimitFor"><a class="viewcode-back" href="../../theory.html#theory.analysis.EManalysis.getLimitFor">[docs]</a>    <span class="k">def</span> <span class="nf">getLimitFor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get experimental limit for a cross-section.</span>
+<span class="sd">        </span>
+<span class="sd">        .. warning:: not implemented yet</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: experimental upper limit for cross-section</span>
+<span class="sd">           (float with unit or Unum object)     </span>
+<span class="sd">                     </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">False</span>
+</pre></div></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SModelS 1.0.3 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Sabine Kraml, Suchita Kulkarni, Ursula Laa, Andre Lessa, Veronika Magerl, Wolfgang Magerl, Doris Proschofsky, Michael Traub, Wolfgang Waltenberger.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

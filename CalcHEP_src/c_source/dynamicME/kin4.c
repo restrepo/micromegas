@@ -12,9 +12,10 @@
 
 #define VVmassGap  70
 
+extern  char * trim(char *);
+
 int ForceUG=0;
 decayTableStr* decayTable=NULL;
-
 
 /*=============   decayPcm   and decayPcmW ================*/      
 
@@ -27,12 +28,13 @@ double  decayPcm(double am0,  double  am1,  double  am2)
   return sqrt((am0-summ)*(am0+ summ)*(am0-diffm)*(am0+diffm))/(am0*2);
 }
 
+
+
 static double w1_,w2_,m0_,m1_,m2_,m1_p,m2_p;
 static int nGauss=0;
 
 static double ME(double m0,double m1,double m2)
-{ //return 1;
-  //return  pow( m1*m2/(m1+m2)/(m1+m2),2);
+{ 
   return  m2*m2*m1*m1 +(m0*m0 -m2*m2 -m1*m1)*(m0*m0 -m2*m2 -m1*m1)/8;
 }
 
@@ -107,6 +109,7 @@ double decayPcmW(double m0,double m1,double m2,double w1,double w2, int N)
 
   }
 }
+
 
 
 
@@ -225,7 +228,7 @@ for(i=0;i<4;i++)
 
 /* ===========  Intergration ================ */
 
-double (*sqme)(int nsub,double GG, REAL *pvect, int * err_code)=NULL;
+double (*sqme)(int nsub,double GG, REAL *pvect, REAL*cb_coeff, int * err_code)=NULL;
 static int  nsub_stat;
 static REAL*Q=NULL;
 static REAL Pmass[5];
@@ -245,7 +248,7 @@ static double dWidthdCos(double xcos)
   if(factor==0) return 0;
   
 //printf("xcos=%e factor=%E sqme=%e\n", xcos,factor,(*sqme)(nsub_stat,GG,P,&err_code));  
-  return  factor*(*sqme)(nsub_stat,GG,P,&err_code);
+  return  factor*(*sqme)(nsub_stat,GG,P,NULL,&err_code);
 
 }
 
@@ -261,7 +264,9 @@ static double dWidthdM(double M)
 static double width13(numout * cc, int nsub, int * err) 
 {
   int i;
+
   if(passParameters(cc)){ *err=4; return 0;}
+
   for(i=0;i<4;i++) cc->interface->pinf(nsub,1+i,Pmass+i,NULL);
   if(cc->SC ) GG=*(cc->SC); else  GG=sqrt(4*M_PI*alpha_2(Pmass[0]));
   *err=0;  
@@ -279,7 +284,7 @@ static double wInt14(double *x, double w)
    double res;
    res=kinematic_1_4(Pmass,x[0], x[1], 2*(x[2]-0.5),2*(x[3]-0.5),2*M_PI*x[4],pvect); 
    if(res==0) return 0;  
-   res*= (*sqme)(1,GG, pvect, &err_code);
+   res*= (*sqme)(1,GG, pvect,NULL, &err_code);
    if(err_code) return 0;
    return res*8*M_PI;
 }
@@ -303,10 +308,10 @@ static double width14(numout * cc, int * err)
 
   sqme=cc->interface->sqme;
   
-  vegPtr=vegas_init(5,50);
+  vegPtr=vegas_init(5,wInt14,50);
   
-  vegas_int(vegPtr,ncall0,alph,wInt14,&ti,&tsi); 
-  vegas_int(vegPtr,ncall0,alph,wInt14,&ti,&tsi);
+  vegas_int(vegPtr,ncall0,alph,nPROCSS,&ti,&tsi); 
+  vegas_int(vegPtr,ncall0,alph,nPROCSS,&ti,&tsi);
   vegas_finish(vegPtr);
    
   return ti;
@@ -396,7 +401,7 @@ void massFilter(double M, txtList * List)
             case 4: dM=1.5; break;
             case 5: dM=5. ; break;
           }
-       }  
+       }else if(abs(ModelPrtcls[abs(n)-1].NPDG)==6) dM=MtEff(0);
        else  dM = fabs(*(varAddress(nm))); 
        Msum+=dM;
      } 
@@ -517,7 +522,7 @@ double pWidth2(numout * cc, int nsub)
       pvect[4]=sqrt(pRestOut*pRestOut+m2*m2);
       pvect[11]=-pRestOut;
       pvect[8]=sqrt(pRestOut*pRestOut+m3*m3);
-      width = totcoef * (cc->interface->sqme)(nsub,GG,pvect,&err_code);
+      width = totcoef * (cc->interface->sqme)(nsub,GG,pvect,NULL,&err_code);
   }
   return width;
 }
@@ -560,9 +565,8 @@ static int chOpen(numout*cc, int k)
    for(j=0;j<3;j++) name[j]=cc->interface->pinf(k,j+1,NULL,pdg+j);
    s=pMass(name[0]);
    for(j=1;j<3;j++) s-=pMass(name[j]);
-
    if( pdg[0]!=23 &&  abs(pdg[0])!=24)
-   for(j=1;j<3;j++) if(pdg[j]==23 && VZdecay ) s-=6; else if(abs(pdg[j])==24 && VWdecay) s-=5;
+   for(j=1;j<3;j++) if(pdg[j]==23 && VZdecay) s-=6; else if(abs(pdg[j])==24 && VWdecay) s-=5;
    if(s>0) return 1; else return 0;
 }   
 
@@ -602,18 +606,13 @@ numout* xVtoxll(int Nin,int Nout,char**name,int *pdg, int lV, double *wV,  doubl
   if(!(e_&&ne_&&m_&&nm_&&e_&&Ne_&&M_&&Nm_&&W_&&Z_)) return NULL;
    
   {  txtList wDlist,zDlist;
-     double ww_exp=2.085;
-     double wz_exp=2.4952; 
-     char txt[20];
-     ww=pWidth(W_,&wDlist);  
-     wz=pWidth(Z_,&zDlist);
-     sprintf(txt,"%s,%s",E_,ne_);    wBrE=findBr(wDlist,txt);
-     sprintf(txt,"%s,%s",M_,nm_);    wBrM=findBr(wDlist,txt);
-     sprintf(txt,"%s,%s",ne_,Ne_);  zBrEn=findBr(zDlist,txt);         
-     sprintf(txt,"%s,%s",nm_,Nm_);  zBrMn=findBr(zDlist,txt);
-
-//     wBrE *=ww/ww_exp;  wBrM *=ww/ww_exp;  ww=ww_exp;
-//     zBrEn*=wz/wz_exp;  zBrMn*=wz/wz_exp;  wz=wz_exp;
+       char txt[20];
+       ww=pWidth(W_,&wDlist);  
+       wz=pWidth(Z_,&zDlist);
+       sprintf(txt,"%s,%s",E_,ne_); wBrE=findBr(wDlist,txt);
+       sprintf(txt,"%s,%s",M_,nm_); wBrM=findBr(wDlist,txt);
+       sprintf(txt,"%s,%s",ne_,Ne_);  zBrEn=findBr(zDlist,txt);         
+       sprintf(txt,"%s,%s",nm_,Nm_);  zBrMn=findBr(zDlist,txt);
   } 
        
   sprintf(processX3,"%s",name[0]); 
@@ -662,8 +661,8 @@ static double decay22List(char * pname, txtList *LL)
   sprintf(process,"%s->2*x",pname2);
   cc=getMEcode(0,ForceUG,process,NULL,"",plib);
   if(!cc) { if(LL) *LL=NULL; return -1;} 
-  procInfo1(cc,&ntot,NULL,NULL);
   passParameters(cc);
+  procInfo1(cc,&ntot,NULL,NULL);
   for(wtot=0,i=1;i<=ntot;i++)  if(chOpen(cc,i))
   {     
     w=pWidth2(cc,i);
@@ -678,18 +677,17 @@ static double decay22List(char * pname, txtList *LL)
          L_->txt=malloc(20+strlen(buff));
          strcpy(L_->txt,buff);
        } 
-       wtot+=w; 
+       wtot+=w;
     }
   }
 
   no22= L?0:1;
   
-  if(pN!=23  && abs(pN)!=24 )
+  if(pN!=23 && abs(pN)!=24)
   { int k,l;
     REAL m[5];  
     int pdg[5]; 
     char*name[5];
-       
     for(k=1;k<=ntot;k++) if(!chOpen(cc,k))
     { double w1=0,w2=0;
       int vd[3]={0,0,0};
@@ -697,10 +695,11 @@ static double decay22List(char * pname, txtList *LL)
       if(no22 && m[0]<= m[1]+m[2]) continue;
       
       if(pdg[0]==23 ||  abs(pdg[0])==24) continue;
-            
-      for(i=1;i<3;i++) vd[i]= (abs(pdg[i])==24 && VWdecay) || (pdg[i]==23 && VZdecay); 
-      
+
+      for(i=1;i<3;i++) vd[i]= (abs(pdg[i])==24 && VWdecay) || (pdg[i]==23 && VZdecay);
+
       l=0;
+      
       if((vd[1]||vd[2]) && m[0]+VVmassGap > m[1]+m[2])
       for(l=1;l<3;l++) if(vd[l]) break;
       if(l>0 && l<3)      
@@ -710,12 +709,12 @@ static double decay22List(char * pname, txtList *LL)
          double wV,brV; 
          int l_=3-l; 
          if( vd[l_] && m[l]<m[l_]) {l=l_; l_=3-l;}
+         if( (pdg[l_]==23 || abs(pdg[l_])==24) && m[l]<m[l_]) {l=l_; l_=3-l;}
          cc13=xVtoxll(1,2,name,pdg, l, &wV, &brV);
-         *(cc13->interface->BWrange)=20;
          if(cc13)         
-         { double Mmax,C;
-           *(cc13->interface->BWrange)=20;              
+         { double Mmax,C;              
            passParameters(cc13);
+           *(cc13->interface->BWrange)=20;
            for(i3_=1;i3_<4;i3_++) if(strcmp(cc13->interface->pinf(1,i3_+1,NULL,NULL),name[l_])==0)break;
            for(i=0;i<4;i++) cc13->interface->pinf(1,1+i,Pmass+i,NULL);
            sqme=cc13->interface->sqme;
@@ -729,11 +728,12 @@ static double decay22List(char * pname, txtList *LL)
               w/=brV;
            }
            
-           if( vd[l_] )
-           {  double w2= pWidth(name[l_], NULL);  
-               w*=decayPcmW(m[0],m[l],m[l_],wV,w2,0)/decayPcmW(m[0],m[l],m[l_],wV,0,0);
-               if(pdg[l_]==pdg[l])  w/=2;      
+           if( vd[l_] )   
+           {  double w2= pWidth(name[l_], NULL);
+              w*=decayPcmW(m[0],m[l],m[l_],wV,w2,0)/decayPcmW(m[0],m[l],m[l_],wV,0,0);
+              if(pdg[l_]==pdg[l])  w/=2;
            }
+                                                                
            
            if(w!=0)
            {  if(LL)
@@ -748,9 +748,8 @@ static double decay22List(char * pname, txtList *LL)
            }
          }    
       }
-    }
+    }       
   }
-
   if(LL)
   {  for(L_=L;L_;L_=L_->next)
      { 
@@ -802,17 +801,13 @@ void setQforParticle(REAL *Q,char*pname)
   cdim=abs(ModelPrtcls[abs(n)-1].cdim);
   pdg=abs(ModelPrtcls[abs(n)-1].NPDG);
   
-  if(cdim==1)
-  { int err=calcMainFunc();  *Q=fabs(*ma); err=calcMainFunc(); 
-    if(err) printf("Cannot calculate %s\n",varNames[err]);   
-    return;
-  }
+  if(cdim==1){ calcMainFunc(); *Q=fabs(*ma);  calcMainFunc(); return;}
   switch(pdg)
   { case 1:case 2:case 3: *Q=1; return;
     case 4: *Q=1.5; break;
     case 5: *Q=5;   break;
     case 6: *Q=175; break;
-  }  
+  }
   calcMainFunc();
   for(i=0;i<10;i++) 
   { 
@@ -831,19 +826,20 @@ double pWidth(char *name, txtList * LL)
   int i,i0,j,j0,nout;
   REAL Qstat;
   REAL*Q=NULL;
+
   for(i=0;i<nModelParticles;i++)
-  { char *pnames[2]={ModelPrtcls[i].name,ModelPrtcls[i].aname}; 
+  { char *pnames[2]={ModelPrtcls[i].name,ModelPrtcls[i].aname};
     for(j=0;j<2;j++) if(strcmp(name,pnames[j])==0) 
-    { if(decayTable[i].status==1)
-      { 
+    { 
+      if(decayTable[i].status==1)
+      {        
         if(LL) *LL=decayTable[i].pdList[j];
         return decayTable[i].width;
       } else if(decayTable[i].status==-1)
       { if(LL) *LL=NULL;
         return 0;
-      }  else break;
-    } 
-    if(j!=2) break;    
+      }break;
+    } if(j!=2) break;    
   }    
 
   i0=i,j0=j;
@@ -888,10 +884,12 @@ double pWidth(char *name, txtList * LL)
         }
      }          
   }
-  decayTable[i0].status=-1;  
+  decayTable[i0].status=-1;
   if(Q==NULL) for(i=0;i<nModelVars;i++) if(strcmp(varNames[i],"Q")==0){ Q= varValues+i; break;}
   if(Q) { Qstat=*Q; setQforParticle(Q,name);}
+    
   width=decay22List(name,&L);
+
   if(L) 
   {
     if(LL) *LL=L;
@@ -900,9 +898,10 @@ double pWidth(char *name, txtList * LL)
                  decayTable[i0].pdList[1-j0]=conBrList(L); 
     decayTable[i0].width=width;
     decayTable[i0].status=1;
-    if(Q) {*Q=Qstat; calcMainFunc();}    
+    if(Q) {*Q=Qstat; calcMainFunc();}
     return width;
   }
+
   Lout=NULL;
   L= makeDecayList(name,3);
   massFilter(pMass(name),&L);
@@ -920,8 +919,7 @@ double pWidth(char *name, txtList * LL)
     txtList newr;
     process2Lib(l->txt ,libName);
     cc=getMEcode(0,ForceUG,l->txt,NULL,"",libName);
-    if(!cc) continue; 
-    width=0;
+    if(!cc) continue;
     if(nout==3) width=width13(cc, 1, &err); else width=width14(cc, &err);
     if(width >0)
     {
@@ -1002,7 +1000,7 @@ int  procInfo1(numout*cc, int *nsub, int * nin, int *nout)
   return 0;
 }
 
-int procInfo2(numout*cc,int nsub,char**name,double*mass)
+int procInfo2(numout*cc,int nsub,char**name,REAL*mass)
 {
   int i;
   int ntot=cc->interface->nin+cc->interface->nout;
@@ -1013,9 +1011,9 @@ int procInfo2(numout*cc,int nsub,char**name,double*mass)
   name[i]=(cc->interface->pinf)(nsub,i+1,NULL,NULL);
 
   if(mass)
-  { REAL m;
-    if(passParameters(cc)) return 4;
-    for(i=0;i<ntot ;i++) { cc->interface->pinf(nsub,i+1,&m,NULL); mass[i]=m;}     
+  {  
+    if(passParameters(cc)){ printf("cannot calculate constr\n"); return 4;}
+    for(i=0;i<ntot ;i++) cc->interface->pinf(nsub,i+1,mass+i,NULL);     
   }
   return 0;
 }
@@ -1024,7 +1022,6 @@ int procInfo2(numout*cc,int nsub,char**name,double*mass)
  static int nPrtcls_old=0; 
  void cleanDecayTable(void)
  { int i,j;
-//printf("cleanDecayTable\n"); 
    if(decayTable) for(i=0;i<nPrtcls_old;i++) for(j=0;j<2;j++) if(decayTable[i].pdList[j]) 
       cleanTxtList(decayTable[i].pdList[j]);    
    decayTable=realloc(decayTable, nModelParticles*sizeof(decayTableStr));
@@ -1039,10 +1036,9 @@ int procInfo2(numout*cc,int nsub,char**name,double*mass)
 /*============= Export of parameters ============*/
 int passParameters(numout*cc)
 {
-   int i,k;
+   int i;
    for(i=1;i<=cc->interface->nvar;i++) if(cc->link[i]) cc->interface->va[i]=*(cc->link[i]);
-   k=cc->interface->calcFunc();
-   if(k>0) { printf("cannot  calculate constr %s\n", cc->interface->varName[k] ); return 1;}
+   if(cc->interface->calcFunc()>0) { printf("cannot calculate constr\n"); return 1;}
    return 0;
 }
 
@@ -1109,16 +1105,3 @@ int slhaDecayPrint(char * name, int dVirt, FILE*f)
    return PDG;
 } 
 
-double  width1CC(numout * cc, int * err)
-{  
-   double res;
-   *err=-1;
-   if(!cc || !cc->interface->nprc) { printf("empty code in width1ch\n"); return 0;}
-   if(cc->interface->nin!=1) {  printf("scattering reaction in width1ch\n"); return 0;}     
-   switch(cc->interface->nout)
-   { case 2: *err=0; return  pWidth2(cc,1);
-     case 3: return width13(cc,1,err); 
-     case 4: return width14(cc,err);
-     default: *err=-1; return 0;
-   }
-}

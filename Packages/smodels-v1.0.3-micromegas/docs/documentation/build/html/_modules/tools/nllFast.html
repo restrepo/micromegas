@@ -1,0 +1,390 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>tools.nllFast &mdash; SModelS 1.0.3 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="SModelS 1.0.3 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SModelS 1.0.3 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for tools.nllFast</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: tools.nllFast</span>
+<span class="sd">   :synopsis: This module provides methods to access the nllfast grid and</span>
+<span class="sd">              compute k-factors (when available) to SUSY pair </span>
+<span class="sd">              production cross-sections.</span>
+
+<span class="sd">.. moduleauthor:: Suchita Kulkarni &lt;suchita.kulkarni@gmail.com&gt;</span>
+<span class="sd">.. moduleauthor:: Andre Lessa &lt;lessa.a.p@gmail.com&gt;</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">commands</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">smodels.tools</span> <span class="kn">import</span> <span class="n">toolBox</span>
+<span class="kn">from</span> <span class="nn">smodels.tools</span> <span class="kn">import</span> <span class="n">modpyslha</span> <span class="k">as</span> <span class="n">pyslha</span>
+<span class="kn">from</span> <span class="nn">smodels.tools.physicsUnits</span> <span class="kn">import</span> <span class="n">TeV</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">operator</span>
+
+<span class="kn">from</span> <span class="nn">smodels</span> <span class="kn">import</span> <span class="n">installation</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+<span class="n">squarks</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1000001</span><span class="p">,</span>
+           <span class="mi">2000001</span><span class="p">,</span>
+           <span class="mi">1000002</span><span class="p">,</span>
+           <span class="mi">2000002</span><span class="p">,</span>
+           <span class="mi">1000003</span><span class="p">,</span>
+           <span class="mi">2000003</span><span class="p">,</span>
+           <span class="mi">1000004</span><span class="p">,</span>
+           <span class="mi">2000004</span><span class="p">]</span>
+<span class="n">antisquarks</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">neg</span><span class="p">,</span> <span class="n">squarks</span><span class="p">)</span>
+<span class="n">third</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1000005</span><span class="p">,</span>
+         <span class="mi">2000005</span><span class="p">,</span>
+         <span class="mi">1000006</span><span class="p">,</span>
+         <span class="mi">2000006</span><span class="p">]</span>
+<span class="n">gluinos</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1000021</span><span class="p">]</span>
+
+<div class="viewcode-block" id="getKfactorsFor"><a class="viewcode-back" href="../../tools.html#tools.nllFast.getKfactorsFor">[docs]</a><span class="k">def</span> <span class="nf">getKfactorsFor</span><span class="p">(</span><span class="n">pIDs</span><span class="p">,</span> <span class="n">sqrts</span><span class="p">,</span> <span class="n">slhafile</span><span class="p">,</span> <span class="n">pdf</span><span class="o">=</span><span class="s">&#39;cteq&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read the NLLfast grid and returns a pair of k-factors (NLO and NLL) for the</span>
+<span class="sd">    pair.</span>
+
+<span class="sd">    :returns: k-factors = None, if NLLfast does not contain the process; uses</span>
+<span class="sd">              the slhafile to obtain the SUSY spectrum.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">slhafile</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;SLHA file </span><span class="si">%s</span><span class="s"> not found&quot;</span><span class="p">,</span> <span class="n">slhafile</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">False</span>
+
+    <span class="c"># Get process name (in NLLfast notation)</span>
+    <span class="n">process</span> <span class="o">=</span> <span class="n">getProcessName</span><span class="p">(</span><span class="n">pIDs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">process</span><span class="p">:</span>
+        <span class="c"># Return k-factors = None, if NLLfast does not have the process</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+    <span class="c"># Obtain relevant masses</span>
+    <span class="n">readfile</span> <span class="o">=</span> <span class="n">pyslha</span><span class="o">.</span><span class="n">readSLHAFile</span><span class="p">(</span><span class="n">slhafile</span><span class="p">)</span>
+    <span class="n">masses</span><span class="o">=</span><span class="n">readfile</span><span class="o">.</span><span class="n">blocks</span><span class="p">[</span><span class="s">&#39;MASS&#39;</span><span class="p">]</span>
+    <span class="n">check_pids</span><span class="o">=</span><span class="n">squarks</span><span class="o">+</span><span class="n">gluinos</span><span class="o">+</span><span class="n">third</span>
+    <span class="k">for</span> <span class="n">check</span> <span class="ow">in</span> <span class="n">check_pids</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">check</span> <span class="ow">in</span> <span class="n">masses</span><span class="o">.</span><span class="n">entries</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span> <span class="p">(</span> <span class="s">&quot;cannot compute k factor for pdgid </span><span class="si">%d</span><span class="s">: &quot;</span> \
+              <span class="s">&quot; no particle mass given. will set mass to inf.&quot;</span> <span class="o">%</span> <span class="n">check</span> <span class="p">)</span>
+            <span class="n">masses</span><span class="o">.</span><span class="n">entries</span><span class="p">[</span><span class="n">check</span><span class="p">]</span><span class="o">=</span><span class="mf">1.e10</span>
+
+    <span class="n">gluinomass</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">masses</span><span class="o">.</span><span class="n">entries</span><span class="p">[</span><span class="mi">1000021</span><span class="p">])</span>
+    <span class="n">squarkmass</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="nb">abs</span><span class="p">(</span><span class="n">masses</span><span class="o">.</span><span class="n">entries</span><span class="p">[</span><span class="n">pid</span><span class="p">])</span>
+                      <span class="k">for</span> <span class="n">pid</span> <span class="ow">in</span> <span class="n">squarks</span><span class="p">])</span> <span class="o">/</span> <span class="mf">8.</span>
+    <span class="n">pid1</span><span class="p">,</span> <span class="n">pid2</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">pIDs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pid1</span> <span class="ow">in</span> <span class="n">antisquarks</span> <span class="ow">and</span> <span class="n">pid2</span> <span class="ow">in</span> <span class="n">squarks</span><span class="p">:</span>
+        <span class="n">squarkmass</span> <span class="o">=</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">masses</span><span class="o">.</span><span class="n">entries</span><span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="n">pid1</span><span class="p">)])</span> <span class="o">+</span>
+                      <span class="nb">abs</span><span class="p">(</span><span class="n">masses</span><span class="o">.</span><span class="n">entries</span><span class="p">[</span><span class="n">pid2</span><span class="p">]))</span> <span class="o">/</span> <span class="mf">2.</span>
+    <span class="k">elif</span> <span class="n">pid1</span> <span class="ow">in</span> <span class="n">squarks</span> <span class="ow">and</span> <span class="n">pid2</span> <span class="ow">in</span> <span class="n">squarks</span><span class="p">:</span>
+        <span class="n">squarkmass</span> <span class="o">=</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">masses</span><span class="o">.</span><span class="n">entries</span><span class="p">[</span><span class="n">pid1</span><span class="p">])</span> <span class="o">+</span> <span class="nb">abs</span><span class="p">(</span><span class="n">masses</span><span class="o">.</span><span class="n">entries</span><span class="p">[</span><span class="n">pid2</span><span class="p">]))</span> <span class="o">/</span> <span class="mf">2.</span>
+    <span class="k">elif</span> <span class="nb">abs</span><span class="p">(</span><span class="n">pid1</span><span class="p">)</span> <span class="o">==</span> <span class="n">pid2</span> <span class="ow">and</span> <span class="n">pid2</span> <span class="ow">in</span> <span class="n">third</span><span class="p">:</span>
+        <span class="n">squarkmass</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">masses</span><span class="o">.</span><span class="n">entries</span><span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="n">pid1</span><span class="p">)])</span>
+
+    <span class="c"># Set up NLLfast run, the old way</span>
+    <span class="n">sqrtS</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">sqrts</span><span class="o">/</span><span class="n">TeV</span><span class="p">)</span>
+    <span class="n">energy</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">sqrtS</span><span class="p">))</span> <span class="o">+</span> <span class="s">&#39;TeV&#39;</span>
+    <span class="n">toolname</span> <span class="o">=</span> <span class="s">&quot;nllfast</span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">int</span><span class="p">(</span><span class="n">sqrtS</span><span class="p">)</span>
+    <span class="n">box</span> <span class="o">=</span> <span class="n">toolBox</span><span class="o">.</span><span class="n">ToolBox</span><span class="p">()</span>
+    <span class="n">tool</span> <span class="o">=</span> <span class="n">box</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">toolname</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">tool</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;No NLLfast data for sqrts = &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">sqrts</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">nllpath</span> <span class="o">=</span> <span class="n">tool</span><span class="o">.</span><span class="n">installDirectory</span><span class="p">()</span>
+    <span class="n">tool</span><span class="o">.</span><span class="n">pathOfExecutable</span><span class="p">()</span>
+    <span class="n">tool</span><span class="o">.</span><span class="n">checkInstallation</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">process</span> <span class="o">==</span> <span class="s">&quot;st&quot;</span><span class="p">:</span>
+        <span class="n">nll_run</span> <span class="o">=</span> <span class="s">&quot;./nllfast_&quot;</span> <span class="o">+</span> <span class="n">energy</span> <span class="o">+</span> <span class="s">&quot; </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> \
+                  <span class="p">(</span><span class="n">process</span><span class="p">,</span> <span class="n">pdf</span><span class="p">,</span> <span class="n">squarkmass</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">nll_run</span> <span class="o">=</span> <span class="s">&quot;./nllfast_&quot;</span> <span class="o">+</span> <span class="n">energy</span> <span class="o">+</span> <span class="s">&quot; </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> \
+                  <span class="p">(</span><span class="n">process</span><span class="p">,</span> <span class="n">pdf</span><span class="p">,</span> <span class="n">squarkmass</span><span class="p">,</span> <span class="n">gluinomass</span><span class="p">)</span>
+
+    <span class="c"># Run NLLfast</span>
+    <span class="n">nll_output</span> <span class="o">=</span> <span class="n">runNLLfast</span><span class="p">(</span><span class="n">nll_run</span><span class="p">,</span> <span class="n">nllpath</span><span class="p">)</span>
+
+    <span class="c"># If run was successful, return k-factors:</span>
+    <span class="k">if</span> <span class="s">&quot;K_NLO&quot;</span> <span class="ow">in</span> <span class="n">nll_output</span><span class="p">:</span>
+        <span class="c"># NLLfast ran ok, try to get the k-factors</span>
+        <span class="n">kFacs</span> <span class="o">=</span> <span class="n">getKfactorsFrom</span><span class="p">(</span><span class="n">nll_output</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">kFacs</span> <span class="ow">or</span> <span class="nb">min</span><span class="p">(</span><span class="n">kFacs</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">0.</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;Error obtaining k-factors&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">kFacs</span>
+    <span class="c"># If run was not successful, check for decoupling error messages:</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="s">&quot;too low/high&quot;</span> <span class="ow">in</span> <span class="n">nll_output</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;Error running NLLfast&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+    <span class="c"># Check for decoupling cases with a decoupling grid (only for sb and gg)</span>
+    <span class="n">doDecoupling</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">if</span> <span class="s">&quot;too low/high gluino&quot;</span> <span class="ow">in</span> <span class="n">nll_output</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>        
+        <span class="k">if</span> <span class="n">gluinomass</span> <span class="o">&gt;</span> <span class="mf">500.</span> <span class="ow">and</span> <span class="n">process</span> <span class="o">==</span> <span class="s">&#39;sb&#39;</span><span class="p">:</span> 
+            <span class="n">doDecoupling</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="n">dcpl_mass</span> <span class="o">=</span> <span class="n">gluinomass</span>
+    <span class="k">elif</span> <span class="s">&quot;too low/high squark&quot;</span> <span class="ow">in</span> <span class="n">nll_output</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">squarkmass</span> <span class="o">&gt;</span> <span class="mf">500.</span> <span class="ow">and</span> <span class="n">process</span> <span class="o">==</span> <span class="s">&#39;gg&#39;</span><span class="p">:</span>
+            <span class="n">doDecoupling</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="n">dcpl_mass</span> <span class="o">=</span> <span class="n">squarkmass</span>
+
+    <span class="c"># If process do not have decoupled grids, return None:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">doDecoupling</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;Masses out of NLLfast grid for &quot;</span> <span class="o">+</span> <span class="n">process</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+    <span class="c"># Obtain k-factors from the NLLfast decoupled grid</span>
+    <span class="n">kfacs</span> <span class="o">=</span> <span class="n">getDecoupledKfactors</span><span class="p">(</span><span class="n">nllpath</span><span class="p">,</span><span class="n">process</span><span class="p">,</span><span class="n">energy</span><span class="p">,</span><span class="n">pdf</span><span class="p">,</span><span class="nb">min</span><span class="p">(</span><span class="n">gluinomass</span><span class="p">,</span><span class="n">squarkmass</span><span class="p">))</span>
+    <span class="c"># Decoupling limit is satisfied, do not interpolate</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">kfacs</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;Error obtaining k-factors from the NLLfast decoupled grid for &quot;</span> <span class="o">+</span> <span class="n">process</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">dcpl_mass</span><span class="o">/</span><span class="nb">min</span><span class="p">(</span><span class="n">gluinomass</span><span class="p">,</span><span class="n">squarkmass</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">10.</span><span class="p">:</span>    
+        <span class="k">return</span> <span class="n">kfacs</span>
+    <span class="c"># Interpolate between the non-decoupled and decoupled grids</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">kFacsVector</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">10.</span><span class="o">*</span><span class="nb">min</span><span class="p">(</span><span class="n">gluinomass</span><span class="p">,</span><span class="n">squarkmass</span><span class="p">),</span><span class="n">kfacs</span><span class="p">]]</span>  <span class="c">#First point for interpolation (decoupled grid)</span>
+        <span class="n">kfacs</span> <span class="o">=</span> <span class="bp">None</span>        
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">kfacs</span> <span class="ow">and</span> <span class="n">dcpl_mass</span> <span class="o">&gt;</span> <span class="mf">500.</span><span class="p">:</span>
+            <span class="n">dcpl_mass</span> <span class="o">-=</span> <span class="mf">100.</span>  <span class="c"># Reduce decoupled mass, until NLLfast produces results</span>
+            <span class="k">if</span> <span class="n">process</span> <span class="o">==</span> <span class="s">&#39;sb&#39;</span><span class="p">:</span> <span class="n">nllinput</span> <span class="o">=</span> <span class="p">(</span><span class="n">process</span><span class="p">,</span> <span class="n">pdf</span><span class="p">,</span> <span class="n">squarkmass</span><span class="p">,</span> <span class="n">dcpl_mass</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="n">nllinput</span> <span class="o">=</span> <span class="p">(</span><span class="n">process</span><span class="p">,</span> <span class="n">pdf</span><span class="p">,</span> <span class="n">dcpl_mass</span><span class="p">,</span> <span class="n">gluinomass</span><span class="p">)</span>
+            <span class="n">nll_run</span> <span class="o">=</span> <span class="s">&quot;./nllfast_&quot;</span> <span class="o">+</span> <span class="n">energy</span> <span class="o">+</span> <span class="s">&quot; </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">nllinput</span>
+            <span class="n">nll_output</span> <span class="o">=</span> <span class="n">runNLLfast</span><span class="p">(</span><span class="n">nll_run</span><span class="p">,</span> <span class="n">nllpath</span><span class="p">)</span>
+            <span class="n">kfacs</span> <span class="o">=</span> <span class="n">getKfactorsFrom</span><span class="p">(</span><span class="n">nll_output</span><span class="p">)</span>        
+        <span class="n">kFacsVector</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">dcpl_mass</span><span class="p">,</span> <span class="n">kfacs</span><span class="p">])</span> <span class="c">#Second point for interpolation (non-decoupled grid)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kFacsVector</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;Not enough points for interpolation in the decoupling &quot;</span>
+                       <span class="s">&quot;limit&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># Interpolate k-factors</span>
+        <span class="n">kFacs</span> <span class="o">=</span> <span class="n">interpolateKfactors</span><span class="p">(</span><span class="n">kFacsVector</span><span class="p">,</span>
+                        <span class="nb">max</span><span class="p">(</span><span class="n">squarkmass</span><span class="p">,</span> <span class="n">gluinomass</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">kFacs</span>
+
+
+</div>
+<div class="viewcode-block" id="getProcessName"><a class="viewcode-back" href="../../tools.html#tools.nllFast.getProcessName">[docs]</a><span class="k">def</span> <span class="nf">getProcessName</span><span class="p">(</span><span class="n">pIDs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the process name (in NLLfast notation) for the pair production of</span>
+<span class="sd">    pIDs.</span>
+<span class="sd">    </span>
+<span class="sd">    :returns: None, if the particle ID pair is not contained in NLLfast</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pid1</span><span class="p">,</span> <span class="n">pid2</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">pIDs</span><span class="p">)</span>
+    <span class="n">process</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="c"># Obtain the type of process:</span>
+    <span class="c">#  - gluino-gluino production = gg</span>
+    <span class="c">#  - squark-antisquark = sb</span>
+    <span class="c">#  - squark-squark = ss</span>
+    <span class="c">#  - squark-gluino = sg</span>
+    <span class="c">#  - antistop-stop</span>
+    <span class="c">#  - antisbottom-sbottom = st</span>
+    <span class="k">if</span> <span class="n">pid1</span> <span class="ow">in</span> <span class="n">antisquarks</span> <span class="ow">and</span> <span class="n">pid2</span> <span class="ow">in</span> <span class="n">squarks</span><span class="p">:</span>
+        <span class="n">process</span> <span class="o">=</span> <span class="s">&#39;sb&#39;</span>
+    <span class="k">elif</span> <span class="n">pid1</span> <span class="ow">in</span> <span class="n">squarks</span> <span class="ow">and</span> <span class="n">pid2</span> <span class="ow">in</span> <span class="n">squarks</span><span class="p">:</span>
+        <span class="n">process</span> <span class="o">=</span> <span class="s">&#39;ss&#39;</span>
+    <span class="k">elif</span> <span class="n">pid1</span> <span class="o">==</span> <span class="n">pid2</span> <span class="ow">and</span> <span class="n">pid1</span> <span class="ow">in</span> <span class="n">gluinos</span><span class="p">:</span>
+        <span class="n">process</span> <span class="o">=</span> <span class="s">&#39;gg&#39;</span>
+    <span class="k">elif</span> <span class="n">pid1</span> <span class="ow">in</span> <span class="n">squarks</span> <span class="ow">and</span> <span class="n">pid2</span> <span class="o">==</span> <span class="mi">1000021</span> <span class="ow">or</span> \
+            <span class="n">pid2</span> <span class="ow">in</span> <span class="n">squarks</span> <span class="ow">and</span> <span class="n">pid1</span> <span class="o">==</span> <span class="mi">1000021</span><span class="p">:</span>
+        <span class="n">process</span> <span class="o">=</span> <span class="s">&#39;sg&#39;</span>
+    <span class="k">elif</span> <span class="nb">abs</span><span class="p">(</span><span class="n">pid1</span><span class="p">)</span> <span class="o">==</span> <span class="n">pid2</span> <span class="ow">and</span> <span class="n">pid2</span> <span class="ow">in</span> <span class="n">third</span><span class="p">:</span>
+        <span class="n">process</span> <span class="o">=</span> <span class="s">&#39;st&#39;</span>
+
+    <span class="k">return</span> <span class="n">process</span>
+
+</div>
+<div class="viewcode-block" id="runNLLfast"><a class="viewcode-back" href="../../tools.html#tools.nllFast.runNLLfast">[docs]</a><span class="k">def</span> <span class="nf">runNLLfast</span><span class="p">(</span><span class="n">nll_run</span><span class="p">,</span> <span class="n">nllpath</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Execute NLLfast with command nll_run at nllpath.</span>
+<span class="sd">    </span>
+<span class="sd">    :returns: NLLfast output as a string</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">current_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">nllpath</span><span class="p">)</span>
+    <span class="n">nll_output</span> <span class="o">=</span> <span class="n">commands</span><span class="o">.</span><span class="n">getoutput</span><span class="p">(</span><span class="n">nll_run</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">current_dir</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">nll_output</span>
+
+</div>
+<div class="viewcode-block" id="getKfactorsFrom"><a class="viewcode-back" href="../../tools.html#tools.nllFast.getKfactorsFrom">[docs]</a><span class="k">def</span> <span class="nf">getKfactorsFrom</span><span class="p">(</span><span class="n">output</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read NLLfast output and return the k-factors.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">output</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">il</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="n">il</span><span class="p">]</span>
+        <span class="n">process</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="s">&quot;K_NLO&quot;</span> <span class="ow">in</span> <span class="n">line</span> <span class="ow">and</span> <span class="n">il</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s">&quot;process&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="n">process</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;process:&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">8</span><span class="p">:]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">il</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="n">il</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">process</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="c"># Line with header</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="n">il</span><span class="p">]</span>
+        <span class="c"># Count number of mass entries</span>
+        <span class="n">nmass</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&#39;GeV&#39;</span><span class="p">)</span>
+        <span class="c"># Line with values</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="n">il</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="nb">eval</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">!=</span> <span class="n">nmass</span> <span class="o">+</span> <span class="mi">11</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">kFacs</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">9</span> <span class="o">+</span> <span class="n">nmass</span><span class="p">:]</span>
+
+    <span class="k">return</span> <span class="n">kFacs</span>
+
+</div>
+<div class="viewcode-block" id="interpolateKfactors"><a class="viewcode-back" href="../../tools.html#tools.nllFast.interpolateKfactors">[docs]</a><span class="k">def</span> <span class="nf">interpolateKfactors</span><span class="p">(</span><span class="n">kFacsVector</span><span class="p">,</span> <span class="n">xval</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Interpolate a list of k-factor  values from</span>
+<span class="sd">    kFacsVector = [[x0,[k1,k2,..]], [x1,[k1,k2,..],...].</span>
+<span class="sd">    </span>
+<span class="sd">    :returns: list of interpolated k-factor values at x-value xval</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">kFacs</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">xpts</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">kFacsVector</span><span class="p">]</span>
+    <span class="n">ypts</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">kFacsVector</span><span class="p">]</span>
+    <span class="n">coeffs</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">matrix</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="n">xpts</span><span class="p">,</span> <span class="n">ypts</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">xpts</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">ik</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ypts</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+        <span class="n">kfac</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="k">for</span> <span class="n">ip</span><span class="p">,</span> <span class="n">coeff</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">coeffs</span><span class="p">[</span><span class="n">ik</span><span class="p">]):</span>
+            <span class="n">kfac</span> <span class="o">+=</span> <span class="n">coeff</span> <span class="o">*</span> <span class="n">xval</span> <span class="o">**</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xpts</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">ip</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">kfac</span> <span class="o">&lt;=</span> <span class="mf">0.</span><span class="p">:</span>
+            <span class="n">kfac</span> <span class="o">=</span> <span class="mf">1.</span>
+        <span class="n">kFacs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">kfac</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">kFacs</span>
+</div>
+<div class="viewcode-block" id="getDecoupledKfactors"><a class="viewcode-back" href="../../tools.html#tools.nllFast.getDecoupledKfactors">[docs]</a><span class="k">def</span> <span class="nf">getDecoupledKfactors</span><span class="p">(</span><span class="n">nllpath</span><span class="p">,</span><span class="n">process</span><span class="p">,</span><span class="n">energy</span><span class="p">,</span><span class="n">pdf</span><span class="p">,</span><span class="n">mass</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute k-factors in the decoupled (squark or gluino) regime for the process.</span>
+<span class="sd">    If a decoupled grid does not exist for the process, return None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+        
+    <span class="k">if</span> <span class="n">process</span> <span class="o">!=</span> <span class="s">&#39;sb&#39;</span> <span class="ow">and</span> <span class="n">process</span> <span class="o">!=</span> <span class="s">&#39;gg&#39;</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">elif</span> <span class="n">process</span> <span class="o">==</span> <span class="s">&#39;sb&#39;</span><span class="p">:</span> <span class="n">process_dcpl</span> <span class="o">=</span> <span class="s">&#39;sdcpl&#39;</span>
+    <span class="k">elif</span> <span class="n">process</span> <span class="o">==</span> <span class="s">&#39;gg&#39;</span><span class="p">:</span> <span class="n">process_dcpl</span> <span class="o">=</span> <span class="s">&#39;gdcpl&#39;</span>    
+    <span class="n">nll_run</span> <span class="o">=</span> <span class="s">&quot;./nllfast_&quot;</span> <span class="o">+</span> <span class="n">energy</span> <span class="o">+</span> <span class="s">&quot; </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> \
+                      <span class="p">(</span><span class="n">process_dcpl</span><span class="p">,</span> <span class="n">pdf</span><span class="p">,</span> <span class="n">mass</span><span class="p">)</span>
+    <span class="n">nll_output</span> <span class="o">=</span> <span class="n">runNLLfast</span><span class="p">(</span><span class="n">nll_run</span><span class="p">,</span> <span class="n">nllpath</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s">&quot;K_NLO&quot;</span> <span class="ow">in</span> <span class="n">nll_output</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">getKfactorsFrom</span><span class="p">(</span><span class="n">nll_output</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate k factors for a pid pair.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">slhaF</span> <span class="o">=</span> <span class="n">installation</span><span class="o">.</span><span class="n">installDirectory</span><span class="p">()</span> <span class="o">+</span> <span class="s">&quot;inputFiles/slha/T1.slha&quot;</span>
+    <span class="n">kNLO</span><span class="p">,</span> <span class="n">kNLL</span> <span class="o">=</span> <span class="n">getKfactorsFor</span><span class="p">((</span><span class="mi">1000021</span><span class="p">,</span> <span class="mi">1000021</span><span class="p">),</span> <span class="mf">13.</span><span class="o">*</span><span class="n">TeV</span><span class="p">,</span> <span class="n">slhaF</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;nlo, nll = &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">kNLO</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;, &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">kNLL</span><span class="p">))</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SModelS 1.0.3 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Sabine Kraml, Suchita Kulkarni, Ursula Laa, Andre Lessa, Veronika Magerl, Wolfgang Magerl, Doris Proschofsky, Michael Traub, Wolfgang Waltenberger.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

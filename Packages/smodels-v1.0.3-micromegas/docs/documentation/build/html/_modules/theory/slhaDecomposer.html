@@ -1,0 +1,263 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>theory.slhaDecomposer &mdash; SModelS 1.0.3 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="SModelS 1.0.3 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SModelS 1.0.3 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for theory.slhaDecomposer</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: theory.slhaDecomposer</span>
+<span class="sd">   :synopsis: Decomposition of SLHA events and creation of TopologyLists.</span>
+
+<span class="sd">.. moduleauthor:: Andre Lessa &lt;lessa.a.p@gmail.com&gt;</span>
+<span class="sd">.. moduleauthor:: Wolfgang Waltenberger &lt;wolfgang.waltenberger@gmail.com&gt;</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">smodels.theory</span> <span class="kn">import</span> <span class="n">element</span><span class="p">,</span> <span class="n">topology</span><span class="p">,</span> <span class="n">crossSection</span>
+<span class="kn">from</span> <span class="nn">smodels.theory.branch</span> <span class="kn">import</span> <span class="n">Branch</span><span class="p">,</span> <span class="n">decayBranches</span>
+<span class="kn">from</span> <span class="nn">smodels.tools</span> <span class="kn">import</span> <span class="n">modpyslha</span> <span class="k">as</span> <span class="n">pyslha</span>
+<span class="kn">from</span> <span class="nn">smodels.tools.physicsUnits</span> <span class="kn">import</span> <span class="n">fb</span><span class="p">,</span> <span class="n">GeV</span>
+<span class="kn">import</span> <span class="nn">smodels.particles</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+<div class="viewcode-block" id="decompose"><a class="viewcode-back" href="../../theory.html#theory.slhaDecomposer.decompose">[docs]</a><span class="k">def</span> <span class="nf">decompose</span><span class="p">(</span><span class="n">slhafile</span><span class="p">,</span> <span class="n">sigcut</span><span class="o">=.</span><span class="mi">1</span> <span class="o">*</span> <span class="n">fb</span><span class="p">,</span> <span class="n">doCompress</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">doInvisible</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+              <span class="n">minmassgap</span><span class="o">=-</span><span class="mf">1.</span><span class="o">*</span><span class="n">GeV</span><span class="p">,</span> <span class="n">useXSecs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Perform SLHA-based decomposition.</span>
+<span class="sd">    </span>
+<span class="sd">    :param sigcut: minimum sigma*BR to be generated, by default sigcut = 0.1 fb</span>
+<span class="sd">    :param doCompress: turn mass compression on/off</span>
+<span class="sd">    :param doInvisible: turn invisible compression on/off</span>
+<span class="sd">    :param minmassgap: maximum value (in GeV) for considering two R-odd particles</span>
+<span class="sd">                       degenerate (only revelant for doCompress=True )</span>
+<span class="sd">    :param useXSecs: optionally a dictionary with cross-sections for pair</span>
+<span class="sd">                 production, by default reading the cross sections</span>
+<span class="sd">                 from the SLHA file.</span>
+<span class="sd">    :returns: list of topologies (TopologyList object)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">t1</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">doCompress</span> <span class="ow">and</span> <span class="n">minmassgap</span> <span class="o">/</span> <span class="n">GeV</span> <span class="o">&lt;</span> <span class="mf">0.</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Asked for compression without specifying minmassgap. Please set minmassgap.&quot;</span><span class="p">)</span>        
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">sigcut</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="mf">1.</span><span class="p">):</span>
+        <span class="n">sigcut</span> <span class="o">=</span> <span class="n">sigcut</span> <span class="o">*</span> <span class="n">fb</span>
+
+    <span class="kn">from</span> <span class="nn">smodels.tools</span> <span class="kn">import</span> <span class="n">modpyslha</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">=</span><span class="n">modpyslha</span><span class="o">.</span><span class="n">readSLHAFile</span> <span class="p">(</span> <span class="n">slhafile</span> <span class="p">)</span>
+    <span class="k">except</span> <span class="n">modpyslha</span><span class="o">.</span><span class="n">ParseError</span><span class="p">,</span><span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span> <span class="p">(</span> <span class="s">&quot;This file cannot be parsed as an SLHA file: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span> <span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+
+    <span class="c"># Get cross-section from file</span>
+    <span class="n">xSectionList</span> <span class="o">=</span> <span class="n">crossSection</span><span class="o">.</span><span class="n">getXsecFromSLHAFile</span><span class="p">(</span><span class="n">slhafile</span><span class="p">,</span> <span class="n">useXSecs</span><span class="p">)</span>
+    <span class="c"># Get BRs and masses from file</span>
+    <span class="n">brDic</span><span class="p">,</span> <span class="n">massDic</span> <span class="o">=</span> <span class="n">_getDictionariesFromSLHA</span><span class="p">(</span><span class="n">slhafile</span><span class="p">)</span>
+    <span class="c"># Only use the highest order cross-sections for each process</span>
+    <span class="n">xSectionList</span><span class="o">.</span><span class="n">removeLowerOrder</span><span class="p">()</span>
+    <span class="c"># Order xsections by PDGs to improve performance</span>
+    <span class="n">xSectionList</span><span class="o">.</span><span class="n">order</span><span class="p">()</span>
+
+    <span class="c"># Get maximum cross-sections (weights) for single particles (irrespective</span>
+    <span class="c"># of sqrtS)</span>
+    <span class="n">maxWeight</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">pid</span> <span class="ow">in</span> <span class="n">xSectionList</span><span class="o">.</span><span class="n">getPIDs</span><span class="p">():</span>
+        <span class="n">maxWeight</span><span class="p">[</span><span class="n">pid</span><span class="p">]</span> <span class="o">=</span> <span class="n">xSectionList</span><span class="o">.</span><span class="n">getXsecsFor</span><span class="p">(</span><span class="n">pid</span><span class="p">)</span><span class="o">.</span><span class="n">getMaxXsec</span><span class="p">()</span>    
+
+    <span class="c"># Generate dictionary, where keys are the PIDs and values </span>
+    <span class="c"># are the list of cross-sections for the PID pair (for performance)</span>
+    <span class="n">xSectionListDict</span> <span class="o">=</span> <span class="p">{}</span>    
+    <span class="k">for</span> <span class="n">pids</span> <span class="ow">in</span> <span class="n">xSectionList</span><span class="o">.</span><span class="n">getPIDpairs</span><span class="p">():</span>
+        <span class="n">xSectionListDict</span><span class="p">[</span><span class="n">pids</span><span class="p">]</span> <span class="o">=</span> <span class="n">xSectionList</span><span class="o">.</span><span class="n">getXsecsFor</span><span class="p">(</span><span class="n">pids</span><span class="p">)</span>
+
+    <span class="c"># Create 1-particle branches with all possible mothers</span>
+    <span class="n">branchList</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">pid</span> <span class="ow">in</span> <span class="n">maxWeight</span><span class="p">:</span>
+        <span class="n">branchList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Branch</span><span class="p">())</span>
+        <span class="n">branchList</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">momID</span> <span class="o">=</span> <span class="n">pid</span>
+        <span class="n">branchList</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">daughterID</span> <span class="o">=</span> <span class="n">pid</span>
+        <span class="n">branchList</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">masses</span> <span class="o">=</span> <span class="p">[</span><span class="n">massDic</span><span class="p">[</span><span class="n">pid</span><span class="p">]]</span>
+        <span class="n">branchList</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">maxWeight</span> <span class="o">=</span> <span class="n">maxWeight</span><span class="p">[</span><span class="n">pid</span><span class="p">]</span>
+
+    <span class="c"># Generate final branches (after all R-odd particles have decayed)</span>
+    <span class="n">finalBranchList</span> <span class="o">=</span> <span class="n">decayBranches</span><span class="p">(</span><span class="n">branchList</span><span class="p">,</span> <span class="n">brDic</span><span class="p">,</span> <span class="n">massDic</span><span class="p">,</span> <span class="n">sigcut</span><span class="p">)</span>
+    <span class="c"># Generate dictionary, where keys are the PIDs and values are the list of branches for the PID (for performance)</span>
+    <span class="n">branchListDict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">branch</span> <span class="ow">in</span> <span class="n">finalBranchList</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">branch</span><span class="o">.</span><span class="n">momID</span> <span class="ow">in</span> <span class="n">branchListDict</span><span class="p">:</span>
+            <span class="n">branchListDict</span><span class="p">[</span><span class="n">branch</span><span class="o">.</span><span class="n">momID</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">branch</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">branchListDict</span><span class="p">[</span><span class="n">branch</span><span class="o">.</span><span class="n">momID</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">branch</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">pid</span> <span class="ow">in</span> <span class="n">xSectionList</span><span class="o">.</span><span class="n">getPIDs</span><span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">pid</span> <span class="ow">in</span> <span class="n">branchListDict</span><span class="p">:</span> <span class="n">branchListDict</span><span class="p">[</span><span class="n">pid</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">smsTopList</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">TopologyList</span><span class="p">()</span>
+    <span class="c"># Combine pairs of branches into elements according to production</span>
+    <span class="c"># cross-section list</span>
+    <span class="k">for</span> <span class="n">pids</span> <span class="ow">in</span> <span class="n">xSectionList</span><span class="o">.</span><span class="n">getPIDpairs</span><span class="p">():</span>
+        <span class="n">weightList</span> <span class="o">=</span> <span class="n">xSectionListDict</span><span class="p">[</span><span class="n">pids</span><span class="p">]</span>
+        <span class="n">minBR</span> <span class="o">=</span> <span class="p">(</span><span class="n">sigcut</span><span class="o">/</span><span class="n">weightList</span><span class="o">.</span><span class="n">getMaxXsec</span><span class="p">())</span><span class="o">.</span><span class="n">asNumber</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">minBR</span> <span class="o">&gt;</span> <span class="mf">1.</span><span class="p">:</span> <span class="k">continue</span>
+        <span class="k">for</span> <span class="n">branch1</span> <span class="ow">in</span> <span class="n">branchListDict</span><span class="p">[</span><span class="n">pids</span><span class="p">[</span><span class="mi">0</span><span class="p">]]:</span>
+            <span class="k">for</span> <span class="n">branch2</span> <span class="ow">in</span> <span class="n">branchListDict</span><span class="p">[</span><span class="n">pids</span><span class="p">[</span><span class="mi">1</span><span class="p">]]:</span>
+                <span class="n">finalBR</span> <span class="o">=</span> <span class="n">branch1</span><span class="o">.</span><span class="n">maxWeight</span> <span class="o">*</span> <span class="n">branch2</span><span class="o">.</span><span class="n">maxWeight</span> <span class="o">/</span> \
+                            <span class="p">(</span><span class="n">maxWeight</span><span class="p">[</span><span class="n">pids</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">*</span> <span class="n">maxWeight</span><span class="p">[</span><span class="n">pids</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+                <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">finalBR</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span> <span class="mf">1.</span> <span class="o">*</span> <span class="n">fb</span><span class="p">):</span>
+                    <span class="n">finalBR</span> <span class="o">=</span> <span class="n">finalBR</span><span class="o">.</span><span class="n">asNumber</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">finalBR</span> <span class="o">&lt;</span> <span class="n">minBR</span><span class="p">:</span> <span class="k">continue</span> <span class="c"># Skip elements with xsec below sigcut</span>
+
+                <span class="n">newElement</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">Element</span><span class="p">([</span><span class="n">branch1</span><span class="p">,</span> <span class="n">branch2</span><span class="p">])</span>
+                <span class="n">newElement</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="n">weightList</span><span class="o">*</span><span class="n">finalBR</span>
+                <span class="n">allElements</span> <span class="o">=</span> <span class="p">[</span><span class="n">newElement</span><span class="p">]</span>
+                <span class="c"># Perform compression</span>
+                <span class="k">if</span> <span class="n">doCompress</span> <span class="ow">or</span> <span class="n">doInvisible</span><span class="p">:</span>
+                    <span class="n">allElements</span> <span class="o">+=</span> <span class="n">newElement</span><span class="o">.</span><span class="n">compressElement</span><span class="p">(</span><span class="n">doCompress</span><span class="p">,</span>
+                                                                  <span class="n">doInvisible</span><span class="p">,</span>
+                                                                  <span class="n">minmassgap</span><span class="p">)</span>
+
+                <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">allElements</span><span class="p">:</span>
+                    <span class="n">top</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">Topology</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+                    <span class="n">smsTopList</span><span class="o">.</span><span class="n">addList</span><span class="p">([</span><span class="n">top</span><span class="p">])</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;slhaDecomposer done in &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t1</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot; s.&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">smsTopList</span>
+
+</div>
+<span class="k">def</span> <span class="nf">_getDictionariesFromSLHA</span><span class="p">(</span><span class="n">slhafile</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create mass and BR dictionaries from an SLHA file.</span>
+<span class="sd">    Ignore decay blocks with R-parity violating or unknown decays</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">res</span> <span class="o">=</span> <span class="n">pyslha</span><span class="o">.</span><span class="n">readSLHAFile</span><span class="p">(</span><span class="n">slhafile</span><span class="p">)</span>
+
+    <span class="n">rOdd</span> <span class="o">=</span> <span class="n">smodels</span><span class="o">.</span><span class="n">particles</span><span class="o">.</span><span class="n">rOdd</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+    <span class="n">rEven</span> <span class="o">=</span> <span class="n">smodels</span><span class="o">.</span><span class="n">particles</span><span class="o">.</span><span class="n">rEven</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+    
+    <span class="c"># Get mass and branching ratios for all particles</span>
+    <span class="n">brDic</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">pid</span> <span class="ow">in</span> <span class="n">res</span><span class="o">.</span><span class="n">decays</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">pid</span> <span class="ow">in</span> <span class="n">rEven</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Ignoring </span><span class="si">%s</span><span class="s"> decays&quot;</span><span class="p">,</span><span class="n">smodels</span><span class="o">.</span><span class="n">particles</span><span class="o">.</span><span class="n">rEven</span><span class="p">[</span><span class="n">pid</span><span class="p">])</span>
+            <span class="k">continue</span>
+        <span class="n">brs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">decay</span> <span class="ow">in</span> <span class="n">res</span><span class="o">.</span><span class="n">decays</span><span class="p">[</span><span class="n">pid</span><span class="p">]</span><span class="o">.</span><span class="n">decays</span><span class="p">:</span>
+            <span class="n">nEven</span> <span class="o">=</span> <span class="n">nOdd</span> <span class="o">=</span> <span class="mf">0.</span>
+            <span class="k">for</span> <span class="n">pidd</span> <span class="ow">in</span> <span class="n">decay</span><span class="o">.</span><span class="n">ids</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">pidd</span> <span class="ow">in</span> <span class="n">rOdd</span><span class="p">:</span> <span class="n">nOdd</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">elif</span> <span class="n">pidd</span> <span class="ow">in</span> <span class="n">rEven</span><span class="p">:</span> <span class="n">nEven</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">nOdd</span> <span class="o">+</span> <span class="n">nEven</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">decay</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span> <span class="ow">and</span> <span class="n">nOdd</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">brs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">decay</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Ignoring decay: </span><span class="si">%i</span><span class="s"> -&gt; [</span><span class="si">%s</span><span class="s">]&quot;</span><span class="p">,</span><span class="n">pid</span><span class="p">,</span><span class="n">decay</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span>
+
+        <span class="n">brsConj</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">brs</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">br</span> <span class="ow">in</span> <span class="n">brsConj</span><span class="p">:</span>
+            <span class="n">br</span><span class="o">.</span><span class="n">ids</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">br</span><span class="o">.</span><span class="n">ids</span><span class="p">]</span>
+        <span class="n">brDic</span><span class="p">[</span><span class="n">pid</span><span class="p">]</span> <span class="o">=</span> <span class="n">brs</span>
+        <span class="n">brDic</span><span class="p">[</span><span class="o">-</span><span class="n">pid</span><span class="p">]</span> <span class="o">=</span> <span class="n">brsConj</span>
+    <span class="c"># Get mass list for all particles</span>
+    <span class="n">massDic</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">pid</span> <span class="ow">in</span> <span class="n">res</span><span class="o">.</span><span class="n">decays</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">pid</span> <span class="ow">and</span> <span class="n">res</span><span class="o">.</span><span class="n">decays</span><span class="p">[</span><span class="n">pid</span><span class="p">]</span><span class="o">.</span><span class="n">mass</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">massDic</span><span class="p">[</span><span class="n">pid</span><span class="p">]</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">decays</span><span class="p">[</span><span class="n">pid</span><span class="p">]</span><span class="o">.</span><span class="n">mass</span><span class="p">)</span><span class="o">*</span> <span class="n">GeV</span>
+            <span class="n">massDic</span><span class="p">[</span><span class="o">-</span><span class="n">pid</span><span class="p">]</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">decays</span><span class="p">[</span><span class="n">pid</span><span class="p">]</span><span class="o">.</span><span class="n">mass</span><span class="p">)</span> <span class="o">*</span> <span class="n">GeV</span>
+
+    <span class="k">return</span> <span class="n">brDic</span><span class="p">,</span> <span class="n">massDic</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SModelS 1.0.3 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Sabine Kraml, Suchita Kulkarni, Ursula Laa, Andre Lessa, Veronika Magerl, Wolfgang Magerl, Doris Proschofsky, Michael Traub, Wolfgang Waltenberger.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

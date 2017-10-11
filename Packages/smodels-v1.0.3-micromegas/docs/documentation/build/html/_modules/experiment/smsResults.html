@@ -1,0 +1,547 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>experiment.smsResults &mdash; SModelS 1.0.3 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="SModelS 1.0.3 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SModelS 1.0.3 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for experiment.smsResults</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: experiment.smsResults</span>
+<span class="sd">   :synopsis: Centralized facility to access the SMS results.</span>
+
+<span class="sd">.. moduleauthor:: Wolfgang Waltenberger &lt;wolfgang.waltenberger@gmail.com&gt;</span>
+<span class="sd">.. moduleauthor:: Ursula Laa &lt;Ursula.Laa@assoc.oeaw.ac.at&gt;</span>
+<span class="sd">.. moduleauthor:: Doris Proschofsky &lt;Doris.Proschofsky@assoc.oeaw.ac.at&gt;</span>
+<span class="sd">.. moduleauthor:: Wolfgang Magerl &lt;wolfgang.magerl@gmail.com&gt;</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">smodels.tools.physicsUnits</span> <span class="kn">import</span> <span class="n">TeV</span><span class="p">,</span> <span class="n">pb</span><span class="p">,</span> <span class="n">fb</span><span class="p">,</span> <span class="n">GeV</span>
+<span class="c">## from smodels.tools import rcFile</span>
+<span class="kn">from</span> <span class="nn">smodels.experiment</span> <span class="kn">import</span> <span class="n">smsHelpers</span>
+<span class="kn">from</span> <span class="nn">smodels.experiment.experimentExceptions</span> <span class="kn">import</span> <span class="n">MetaInfoError</span>
+<span class="kn">from</span> <span class="nn">smodels.experiment.smsHelpers</span> <span class="kn">import</span> <span class="n">getPath</span>
+<span class="kn">from</span> <span class="nn">smodels.tools.uniqueLogFilter</span> <span class="kn">import</span> <span class="n">UniqueFilter</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">addFilter</span><span class="p">(</span><span class="n">UniqueFilter</span><span class="p">())</span>
+
+<span class="n">allresults</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">conditions</span> <span class="o">=</span> <span class="p">{}</span>
+
+
+<div class="viewcode-block" id="getAllResults"><a class="viewcode-back" href="../../experiment.html#experiment.smsResults.getAllResults">[docs]</a><span class="k">def</span> <span class="nf">getAllResults</span><span class="p">(</span><span class="n">sqrts</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">experiment</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get all analyses and topologies that have results.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">os</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">sqrts</span><span class="p">)</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">experiment</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">allresults</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">allresults</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+    <span class="n">sqrtsList</span> <span class="o">=</span> <span class="n">smsHelpers</span><span class="o">.</span><span class="n">sqrts</span>
+    <span class="n">experimentList</span> <span class="o">=</span> <span class="n">smsHelpers</span><span class="o">.</span><span class="n">experiments</span>
+    <span class="k">if</span> <span class="n">sqrts</span><span class="p">:</span>
+        <span class="n">sqrtsList</span> <span class="o">=</span> <span class="p">[</span><span class="n">sqrts</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">experiment</span><span class="p">:</span>
+        <span class="n">experimentList</span> <span class="o">=</span> <span class="p">[</span><span class="n">experiment</span><span class="p">]</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sqrtsList</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">experimentList</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s">/&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">smsHelpers</span><span class="o">.</span><span class="n">base</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">e</span><span class="p">)):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;Expected directory </span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s"> was not found in the database at </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">smsHelpers</span><span class="o">.</span><span class="n">base</span><span class="p">))</span>
+                <span class="k">continue</span>
+            <span class="n">dirs</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">smsHelpers</span><span class="o">.</span><span class="n">base</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">ana</span> <span class="ow">in</span> <span class="n">dirs</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s">/info.txt&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">smsHelpers</span><span class="o">.</span><span class="n">base</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">ana</span><span class="p">)):</span>
+                    <span class="n">topos</span> <span class="o">=</span> <span class="n">getTopologies</span><span class="p">(</span><span class="n">ana</span><span class="p">)</span>
+                    <span class="n">ret</span><span class="p">[</span><span class="n">ana</span><span class="p">]</span> <span class="o">=</span> <span class="n">topos</span>
+    <span class="n">allresults</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ret</span>
+    <span class="k">return</span> <span class="n">ret</span>
+
+</div>
+<div class="viewcode-block" id="getTopologies"><a class="viewcode-back" href="../../experiment.html#experiment.smsResults.getTopologies">[docs]</a><span class="k">def</span> <span class="nf">getTopologies</span><span class="p">(</span><span class="n">analysis</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get all topologies of an analysis with constraints.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">smsHelpers</span><span class="o">.</span><span class="n">getPath</span><span class="p">(</span><span class="n">analysis</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">getConstraints</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="getConstraints"><a class="viewcode-back" href="../../experiment.html#experiment.smsResults.getConstraints">[docs]</a><span class="k">def</span> <span class="nf">getConstraints</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">topology</span><span class="o">=</span><span class="s">&quot;all&quot;</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get constraints of an analysis.</span>
+
+<span class="sd">    :returns: dictionary of constraints, if topology == &quot;all&quot;; single</span>
+<span class="sd">              constraint for the passed topology, if only one topology is passed; </span>
+<span class="sd">              None if non-existent;</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="n">analysis</span> <span class="o">+</span> <span class="n">topology</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">constraints</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">smsHelpers</span><span class="o">.</span><span class="n">getPath</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="n">smsHelpers</span><span class="o">.</span><span class="n">getLines</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="s">&quot;constraint&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">topology</span> <span class="o">==</span> <span class="s">&quot;all&quot;</span><span class="p">:</span>
+        <span class="n">constraints</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ret</span>
+        <span class="k">return</span> <span class="n">ret</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">topology</span> <span class="ow">in</span> <span class="n">ret</span><span class="p">:</span>
+        <span class="n">constraints</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    <span class="n">constraints</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ret</span><span class="p">[</span><span class="n">topology</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">ret</span><span class="p">[</span><span class="n">topology</span><span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="getBranchCondition"><a class="viewcode-back" href="../../experiment.html#experiment.smsResults.getBranchCondition">[docs]</a><span class="k">def</span> <span class="nf">getBranchCondition</span><span class="p">(</span><span class="n">anaName</span><span class="p">,</span> <span class="n">txName</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the branch condition for an analysis.</span>
+
+<span class="sd">    :returns: string containing the branch condition (e.g. equal branch masses)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+        
+    <span class="n">path</span> <span class="o">=</span> <span class="n">smsHelpers</span><span class="o">.</span><span class="n">getPath</span><span class="p">(</span><span class="n">anaName</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="n">smsHelpers</span><span class="o">.</span><span class="n">getLines</span><span class="p">(</span><span class="n">anaName</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="s">&quot;branchcondition&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">txName</span> <span class="ow">in</span> <span class="n">ret</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="n">ret</span><span class="p">[</span><span class="n">txName</span><span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="getSqrts"><a class="viewcode-back" href="../../experiment.html#experiment.smsResults.getSqrts">[docs]</a><span class="k">def</span> <span class="nf">getSqrts</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; get the center-of-mass energy of the analysis.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sqrts</span> <span class="o">=</span> <span class="n">smsHelpers</span><span class="o">.</span><span class="n">getMetaInfoField</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="s">&quot;sqrts&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">sqrts</span><span class="p">)</span> <span class="o">*</span> <span class="n">TeV</span>
+
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">eval</span><span class="p">(</span><span class="n">sqrts</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+    <span class="k">return</span> <span class="n">sqrts</span>
+
+</div>
+<div class="viewcode-block" id="getConditions"><a class="viewcode-back" href="../../experiment.html#experiment.smsResults.getConditions">[docs]</a><span class="k">def</span> <span class="nf">getConditions</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">topology</span><span class="o">=</span><span class="s">&quot;all&quot;</span><span class="p">,</span> <span class="n">fuzzy</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get conditions of an analysis.</span>
+
+<span class="sd">    :returns: dictionary of conditions, if topology == &quot;all&quot;; single condition</span>
+<span class="sd">              for the passed topology, if only one topology is passed; None if</span>
+<span class="sd">              non-existent.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="n">analysis</span> <span class="o">+</span> <span class="n">topology</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">fuzzy</span><span class="p">)</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">conditions</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">conditions</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">smsHelpers</span><span class="o">.</span><span class="n">getPath</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">fuzzy</span><span class="p">:</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">smsHelpers</span><span class="o">.</span><span class="n">getLines</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="s">&quot;fuzzycondition&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">smsHelpers</span><span class="o">.</span><span class="n">getLines</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="s">&quot;condition&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">topology</span> <span class="o">==</span> <span class="s">&quot;all&quot;</span><span class="p">:</span>
+        <span class="n">conditions</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ret</span>
+        <span class="k">return</span> <span class="n">ret</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">topology</span> <span class="ow">in</span> <span class="n">ret</span><span class="p">:</span>
+        <span class="n">conditions</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    <span class="n">conditions</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ret</span><span class="p">[</span><span class="n">topology</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">ret</span><span class="p">[</span><span class="n">topology</span><span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="getaxes"><a class="viewcode-back" href="../../experiment.html#experiment.smsResults.getaxes">[docs]</a><span class="k">def</span> <span class="nf">getaxes</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">topology</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get information about the histogram axes for an analysis.</span>
+
+<span class="sd">    For each topology list of dictionary, each dictionary corresponds to one</span>
+<span class="sd">    histogram. The key axes gives string (mx-my), the key mz gives information</span>
+<span class="sd">    on other masses, if you supply a topology, returns list for this topology</span>
+<span class="sd">    only.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">_exists</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">topology</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">st</span> <span class="o">=</span> <span class="n">smsHelpers</span><span class="o">.</span><span class="n">getMetaInfoField</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="s">&quot;axes&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">MetaInfoError</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Meta info field &#39;axes&#39; does not exist in </span><span class="si">%s</span><span class="s">.&quot;</span><span class="p">,</span> <span class="n">analysis</span><span class="p">)</span>
+        <span class="n">st</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">st</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">topology</span><span class="p">:</span>
+            <span class="c"># Cannot return default without info on topology</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="c"># If there is no information about the axes, return the default</span>
+        <span class="k">return</span> <span class="p">[{</span><span class="s">&#39;axes&#39;</span><span class="p">:</span> <span class="s">&#39;M1-M0&#39;</span><span class="p">,</span> <span class="s">&#39;mz&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">}]</span>
+    <span class="n">st</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">st</span><span class="p">)):</span>
+        <span class="n">l</span> <span class="o">=</span> <span class="n">st</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">)</span>
+        <span class="n">nm</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">d</span><span class="p">[</span><span class="n">nm</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;-&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="p">)):</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">m</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">d</span><span class="p">[</span><span class="n">nm</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s">&#39;axes&#39;</span><span class="p">:</span> <span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;-&#39;</span> <span class="o">+</span> <span class="n">n</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s">&#39;mz&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">})</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">d</span><span class="p">[</span><span class="n">nm</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s">&#39;axes&#39;</span><span class="p">:</span> <span class="n">n</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;-&#39;</span> <span class="o">+</span> <span class="n">n</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="s">&#39;mz&#39;</span><span class="p">:</span> <span class="n">n</span><span class="p">})</span>
+
+    <span class="k">if</span> <span class="n">topology</span><span class="p">:</span>
+        <span class="n">topology</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">d</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">topology</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+            <span class="c"># Return None, if topology does not exist</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">d</span><span class="p">[</span><span class="n">topology</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">d</span>
+</div>
+<div class="viewcode-block" id="setBase"><a class="viewcode-back" href="../../experiment.html#experiment.smsResults.setBase">[docs]</a><span class="k">def</span> <span class="nf">setBase</span><span class="p">(</span><span class="n">base</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Set the base directory of the database.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">smsHelpers</span><span class="o">.</span><span class="n">base</span> <span class="o">=</span> <span class="n">base</span>
+</div>
+<div class="viewcode-block" id="getBase"><a class="viewcode-back" href="../../experiment.html#experiment.smsResults.getBase">[docs]</a><span class="k">def</span> <span class="nf">getBase</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the base directory of the database.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">smsHelpers</span><span class="o">.</span><span class="n">base</span>
+</div>
+<div class="viewcode-block" id="getURL"><a class="viewcode-back" href="../../experiment.html#experiment.smsResults.getURL">[docs]</a><span class="k">def</span> <span class="nf">getURL</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the URL of an analysis.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span> <span class="p">(</span><span class="s">&quot;getURL is deprecated&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">smsHelpers</span><span class="o">.</span><span class="n">getMetaInfoField</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="s">&quot;url&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="hasURL"><a class="viewcode-back" href="../../experiment.html#experiment.smsResults.hasURL">[docs]</a><span class="k">def</span> <span class="nf">hasURL</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check if URL of an analysis exists.&quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;hasURL is deprecated&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">smsHelpers</span><span class="o">.</span><span class="n">getMetaInfoField</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="s">&quot;url&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="getPAS"><a class="viewcode-back" href="../../experiment.html#experiment.smsResults.getPAS">[docs]</a><span class="k">def</span> <span class="nf">getPAS</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the PAS of an analysis.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;getPAS is deprecated&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">smsHelpers</span><span class="o">.</span><span class="n">getMetaInfoField</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="s">&quot;pas&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="getJournal"><a class="viewcode-back" href="../../experiment.html#experiment.smsResults.getJournal">[docs]</a><span class="k">def</span> <span class="nf">getJournal</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the journal of an analysis.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span> <span class="p">(</span><span class="s">&quot;getJournal is deprecated&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">smsHelpers</span><span class="o">.</span><span class="n">getMetaInfoField</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="s">&quot;journal&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="getLumi"><a class="viewcode-back" href="../../experiment.html#experiment.smsResults.getLumi">[docs]</a><span class="k">def</span> <span class="nf">getLumi</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the integrated luminosity for an analysis.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">lumifb</span> <span class="o">=</span> <span class="n">smsHelpers</span><span class="o">.</span><span class="n">getMetaInfoField</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="s">&quot;lumi&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">lumifb</span><span class="p">)</span> <span class="o">/</span> <span class="n">fb</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">eval</span><span class="p">(</span><span class="n">lumifb</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+    <span class="k">return</span> <span class="n">lumifb</span>
+
+</div>
+<div class="viewcode-block" id="isPrivate"><a class="viewcode-back" href="../../experiment.html#experiment.smsResults.isPrivate">[docs]</a><span class="k">def</span> <span class="nf">isPrivate</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check if analysis is flagged as private.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">field</span><span class="o">=</span><span class="n">smsHelpers</span><span class="o">.</span><span class="n">getMetaInfoField</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="s">&quot;private&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">field</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span> <span class="k">return</span> <span class="bp">False</span>
+    <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">field</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="isSuperseded"><a class="viewcode-back" href="../../experiment.html#experiment.smsResults.isSuperseded">[docs]</a><span class="k">def</span> <span class="nf">isSuperseded</span> <span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    check if analysis is superseded, if yes,</span>
+<span class="sd">    return analysis name of newer analysis</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">smsHelpers</span><span class="o">.</span><span class="n">getMetaInfoField</span> <span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="s">&quot;superseded_by&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="getExperiment"><a class="viewcode-back" href="../../experiment.html#experiment.smsResults.getExperiment">[docs]</a><span class="k">def</span> <span class="nf">getExperiment</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check if path is to ATLAS directory, else return CMS.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;getExperiment is deprecated&quot;</span><span class="p">)</span>
+    <span class="n">path1</span> <span class="o">=</span> <span class="n">getPath</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">path1</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;ATLAS&quot;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;ATLAS&quot;</span>
+    <span class="k">return</span> <span class="s">&quot;CMS&quot;</span>
+
+</div>
+<div class="viewcode-block" id="getComment"><a class="viewcode-back" href="../../experiment.html#experiment.smsResults.getComment">[docs]</a><span class="k">def</span> <span class="nf">getComment</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the comment of an analysis.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span> <span class="p">(</span><span class="s">&quot;getComment is deprecated&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">smsHelpers</span><span class="o">.</span><span class="n">getMetaInfoField</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="s">&quot;comment&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="considerExperiment"><a class="viewcode-back" href="../../experiment.html#experiment.smsResults.considerExperiment">[docs]</a><span class="k">def</span> <span class="nf">considerExperiment</span><span class="p">(</span><span class="n">experiment</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Define the experiment to be considered.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">smsHelpers</span><span class="o">.</span><span class="n">experiments</span> <span class="o">=</span> <span class="p">[</span><span class="n">experiment</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="considerSqrts"><a class="viewcode-back" href="../../experiment.html#experiment.smsResults.considerSqrts">[docs]</a><span class="k">def</span> <span class="nf">considerSqrts</span><span class="p">(</span><span class="n">sqrts</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Define the center of mass energies to be considered (as strings in list format)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">smsHelpers</span><span class="o">.</span><span class="n">sqrts</span> <span class="o">=</span> <span class="p">[</span><span class="n">sqrts</span><span class="p">]</span>
+
+</div>
+<span class="k">def</span> <span class="nf">_exists</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">topology</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check if the dictionary &#39;limit_topo&#39; in &lt;path&gt;/sms.py exists.</span>
+
+<span class="sd">    For topologies with intermediate masses, check if all dictionaries listed</span>
+<span class="sd">    in the axes-information exist. If topology == None, check if</span>
+<span class="sd">    &lt;path&gt;/sms.py exists.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">path2</span> <span class="o">=</span> <span class="n">smsHelpers</span><span class="o">.</span><span class="n">getPath</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">topology</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">os</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="n">smsHelpers</span><span class="o">.</span><span class="n">base</span>
+        <span class="n">pydict</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s">/sms.py&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">path2</span><span class="p">,</span> <span class="n">analysis</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">pydict</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+    <span class="n">axes</span> <span class="o">=</span> <span class="n">getaxes</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">topology</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">axes</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">False</span>
+    <span class="n">hasDict</span> <span class="o">=</span> <span class="n">smsHelpers</span><span class="o">.</span><span class="n">hasDictionary</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">path2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">hasDict</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">False</span>
+    <span class="k">return</span> <span class="n">smsHelpers</span><span class="o">.</span><span class="n">hasDictionary</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">path2</span><span class="p">,</span> <span class="n">topology</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="getUpperLimit"><a class="viewcode-back" href="../../experiment.html#experiment.smsResults.getUpperLimit">[docs]</a><span class="k">def</span> <span class="nf">getUpperLimit</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">topology</span><span class="p">,</span> <span class="n">mx</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">my</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                  <span class="n">interpolate</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">expected</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the upper limit for path/analysis/topology.</span>
+
+<span class="sd">    :returns: None, if it does not exist; entire dictionary, if mx and my are</span>
+<span class="sd">              None; upper limit at mx/my, if mx and my are floats;</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">smsHelpers</span><span class="o">.</span><span class="n">getPath</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">smsHelpers</span><span class="o">.</span><span class="n">hasDictionary</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">getUpperLimitFromDictionary</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">topology</span><span class="p">,</span> <span class="n">mx</span><span class="p">,</span> <span class="n">my</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span>
+                                           <span class="n">interpolate</span><span class="o">=</span><span class="n">interpolate</span><span class="p">,</span>
+                                           <span class="n">expected</span><span class="o">=</span><span class="n">expected</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;No upper limits found for </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">analysis</span><span class="p">)</span>
+    <span class="k">return</span> <span class="bp">None</span>
+
+</div>
+<div class="viewcode-block" id="getUpperLimitFromDictionary"><a class="viewcode-back" href="../../experiment.html#experiment.smsResults.getUpperLimitFromDictionary">[docs]</a><span class="k">def</span> <span class="nf">getUpperLimitFromDictionary</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">topology</span><span class="p">,</span> <span class="n">mx</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">my</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                <span class="n">path</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">png</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">interpolate</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                <span class="n">expected</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get an upper limit from the python dictionary.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dictionary</span> <span class="o">=</span> <span class="n">smsHelpers</span><span class="o">.</span><span class="n">getUpperLimitDictionary</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">topology</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span>
+                                                    <span class="n">expected</span><span class="o">=</span><span class="n">expected</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">dictionary</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">dictionary</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">mx</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">my</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">dictionary</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">mx</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">my</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Requesting upper limits for mx = </span><span class="si">%s</span><span class="s"> and my = </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">mx</span><span class="p">,</span> <span class="n">my</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">mx</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="mf">1.</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">mx</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">GeV</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">dictionary</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">getInterpolatedUpperLimitDelaunay</span><span class="p">(</span><span class="n">dictionary</span><span class="p">,</span> <span class="n">mx</span><span class="p">,</span> <span class="n">my</span><span class="p">):</span> <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">return</span> <span class="n">getInterpolatedUpperLimitDelaunay</span><span class="p">(</span><span class="n">dictionary</span><span class="p">,</span> <span class="n">mx</span><span class="p">,</span> <span class="n">my</span><span class="p">)</span> <span class="o">*</span> <span class="n">pb</span>
+
+</div>
+<div class="viewcode-block" id="getInterpolatedUpperLimitDelaunay"><a class="viewcode-back" href="../../experiment.html#experiment.smsResults.getInterpolatedUpperLimitDelaunay">[docs]</a><span class="k">def</span> <span class="nf">getInterpolatedUpperLimitDelaunay</span><span class="p">(</span><span class="n">dictionary</span><span class="p">,</span> <span class="n">inmx</span><span class="p">,</span> <span class="n">inmy</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get interpolated upper limit from dictionary at point (inmx, inmy).</span>
+
+<span class="sd">    :param dictionary: dictionary (sms.py), contains upper limits of one</span>
+<span class="sd">                       analysis and one topology</span>
+<span class="sd">    :param inmx: mass point on x-axis</span>
+<span class="sd">    :param inmy: mass point on y-axis</span>
+<span class="sd">    :returns: interpolated upper limit at point (inmx, inmy)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+    <span class="kn">import</span> <span class="nn">scipy.interpolate</span> <span class="kn">as</span> <span class="nn">ip</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">mx</span> <span class="o">=</span> <span class="n">inmx</span> <span class="o">/</span> <span class="n">GeV</span>
+        <span class="n">my</span> <span class="o">=</span> <span class="n">inmy</span> <span class="o">/</span> <span class="n">GeV</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">inConvexHull</span><span class="p">(</span><span class="n">dictionary</span><span class="p">,</span> <span class="n">mx</span><span class="p">,</span> <span class="n">my</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Cannot interpolate for (</span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">), point is not in &quot;</span>
+                         <span class="s">&quot;convex hull.&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">inmx</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">inmy</span><span class="p">))</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">dictionary</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dictionary</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">))</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">dictionary</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">dictionary</span><span class="p">[</span><span class="n">x</span><span class="p">]:</span>
+                <span class="n">points</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span>
+                <span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dictionary</span><span class="p">[</span><span class="n">x</span><span class="p">][</span><span class="n">y</span><span class="p">]</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">gridX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">gridY</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">gridX</span> <span class="o">=</span> <span class="n">mx</span>
+        <span class="n">gridY</span> <span class="o">=</span> <span class="n">my</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">ip</span><span class="o">.</span><span class="n">griddata</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="p">(</span><span class="n">gridX</span><span class="p">,</span> <span class="n">gridY</span><span class="p">),</span>
+                                 <span class="n">method</span><span class="o">=</span><span class="s">&#39;linear&#39;</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Cannot interpolate </span><span class="si">%s</span><span class="s">. Using closest value instead.&quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">inConvexHull</span><span class="p">(</span><span class="n">dictionary</span><span class="p">,</span> <span class="n">inmx</span><span class="p">,</span> <span class="n">inmy</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="n">getClosestValue</span><span class="p">(</span><span class="n">dictionary</span><span class="p">,</span> <span class="n">inmx</span><span class="p">,</span> <span class="n">inmy</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="inConvexHull"><a class="viewcode-back" href="../../experiment.html#experiment.smsResults.inConvexHull">[docs]</a><span class="k">def</span> <span class="nf">inConvexHull</span><span class="p">(</span><span class="n">dictionary</span><span class="p">,</span> <span class="n">mx</span><span class="p">,</span> <span class="n">my</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check if (mx,my) point is in the data dictionary.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">numpy</span>
+    <span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">Delaunay</span>
+
+    <span class="n">pointlist</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">dictionary</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">ki</span> <span class="ow">in</span> <span class="n">dictionary</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">pointlist</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">k</span><span class="p">,</span> <span class="n">ki</span><span class="p">])</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pointlist</span><span class="p">)</span>
+    <span class="n">dela</span> <span class="o">=</span> <span class="n">Delaunay</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">dela</span><span class="o">.</span><span class="n">find_simplex</span><span class="p">((</span><span class="n">mx</span><span class="p">,</span> <span class="n">my</span><span class="p">))</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+
+</div>
+<div class="viewcode-block" id="getClosestValue"><a class="viewcode-back" href="../../experiment.html#experiment.smsResults.getClosestValue">[docs]</a><span class="k">def</span> <span class="nf">getClosestValue</span><span class="p">(</span><span class="n">dictionary</span><span class="p">,</span> <span class="n">mx</span><span class="p">,</span> <span class="n">my</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the upper limit of the point in dictionary that is closest to mx and</span>
+<span class="sd">    my, assuming that dictionary is a dictionary of mx, my, ul.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">closest</span> <span class="o">=</span> <span class="mi">9999999</span>
+    <span class="n">retul</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">dmx</span><span class="p">,</span> <span class="n">dmv</span><span class="p">)</span> <span class="ow">in</span> <span class="n">dictionary</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">dmy</span><span class="p">,</span> <span class="n">ul</span><span class="p">)</span> <span class="ow">in</span> <span class="n">dmv</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="p">(</span><span class="n">mx</span> <span class="o">-</span> <span class="n">dmx</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">my</span> <span class="o">-</span> <span class="n">dmy</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+            <span class="k">if</span> <span class="n">dist</span> <span class="o">&lt;</span> <span class="n">closest</span><span class="p">:</span>
+                <span class="n">closest</span> <span class="o">=</span> <span class="n">dist</span>
+                <span class="n">retul</span> <span class="o">=</span> <span class="n">ul</span>
+    <span class="k">if</span> <span class="n">closest</span> <span class="o">&gt;</span> <span class="mf">20.</span><span class="o">**</span><span class="mi">2</span><span class="p">:</span>
+        <span class="c"># Return False, if distance &gt; 20 GeV from closest point</span>
+        <span class="k">return</span> <span class="bp">False</span>
+    <span class="k">return</span> <span class="n">retul</span>
+</pre></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SModelS 1.0.3 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Sabine Kraml, Suchita Kulkarni, Ursula Laa, Andre Lessa, Veronika Magerl, Wolfgang Magerl, Doris Proschofsky, Michael Traub, Wolfgang Waltenberger.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

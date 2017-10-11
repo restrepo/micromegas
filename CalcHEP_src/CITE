@@ -2,7 +2,8 @@ CalcHEP on WWW http://theory.sinp.msu.ru/~pukhov/calchep.html
 
                 References and Contributions. 
 A.Belyaev, N.Christensen, A.Pukhov. "CalcHEP 3.4 for collider physics
-within and beyond the Standard Model". arXiv:1207.6082v1 [hep-ph]
+within and beyond the Standard Model", Computer Physics Communications 184 (2013),
+pp. 1729-1769 DOI information: 10.1016/j.cpc.2013.01.014 (arXiv:1207.6082[hep-ph])
 
 * The package contains  some codes written by CompHEP group people, whose
   names are included in hep-ph/9908288:
@@ -29,7 +30,8 @@ grant JP090598. The work of NC was supported in part by the US National
 Science Foundation under grant PHY-0354226, the LHC-TI initiative of the US 
 National Science Foundation under grant PHY-0705682, the PITTsburgh Particle
 physics, Astrophysics, and Cosmology Center, and the US Department of Energy
-under grant DE- FG02-12ER41832.
+under grant DE- FG02-12ER41832.  he work of AP was supported in part by
+grants  LIA-TCAP of CNRS and  RFBR 12-02-93108-CNRSLa. 
 
 A large part of the recent developments in CalcHEP were motivated by requests
 for the micrOMEGAs package which uses CalcHEP as a generator of matrix 

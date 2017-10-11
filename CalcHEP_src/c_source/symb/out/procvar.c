@@ -54,9 +54,9 @@ int initvararray(int nsub, char key, int width)
    
    if(width &1) catalog_=fopen(CATALOG_NAME,"rb"); else catalog_=NULL;
    
-   if(catalog_)while (FREAD1(cr,catalog_))
+   if(catalog_)while (FREAD1(cr,catalog_)) if(cr.status==1)
    {  
-      if(!nsub || cr.nsub_ == nsub)
+      if(!nsub || cr.nsub_ == nsub )
       {
          whichArchive(cr.nFile,'r'); 
          seekArchiv(cr.factpos);

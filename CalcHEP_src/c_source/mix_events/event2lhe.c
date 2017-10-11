@@ -37,16 +37,12 @@ static  char* pdg2name(int pdg)
              return buff;
   }
 }
+
              
 int main(int argc,char ** argv)
 {
-  int N,NEV,MAXEVENTS,II,J,K,err;
-  double cs;
+  int N,II,J;
   FILE *F=stdout;
-  long posNevents, posSize;
-  int SLHA=0;
-  int ok;
-  double Lumi;
   eventfile_info *Finfo;
    
   if(argc<2){ printf("%s needs one argument: name of event file in CalcHEP format.\n",argv[0]); exit(1); }
@@ -71,30 +67,23 @@ int main(int argc,char ** argv)
   fprintf(F,"        <process>\n");
   fprintf(F,"            <beam1>\n");
   fprintf(F,"                <particle KFcode=%d>\"%s\"</particle>\n",Finfo->inPID[0],pdg2name(Finfo->inPID[0]));
-  fprintf(F,"                <energy unit=\"GeV\">%f</energy>\n",fabs(Finfo->inMom[0]));
-  fprintf(F,"                <pdf name= \"%s\"></pdf>\n",Finfo->pdf[0]);  
+  fprintf(F,"                <energy unit=\"GeV\">%.3E</energy>\n",fabs(Finfo->inMom[0]));
+  fprintf(F,"                <pdf name= \"%s\">\n",Finfo->pdf[0]);
+  fprintf(F,"                </pdf>\n");  
   fprintf(F,"            </beam1>\n");
   if(Finfo->Nin==2)
   { 
     fprintf(F,"            <beam2>\n");
     fprintf(F,"                <particle KFcode=%d>\"%s\"</particle>\n",Finfo->inPID[1],pdg2name(Finfo->inPID[1]));
-    fprintf(F,"                <energy unit=\"GeV\">%f</energy>\n", fabs(Finfo->inMom[1]));
-    fprintf(F,"                <pdf name= \"%s\"></pdf>\n",Finfo->pdf[1]);  
+    fprintf(F,"                <energy unit=\"GeV\">%.3E</energy>\n", fabs(Finfo->inMom[1]));
+    fprintf(F,"                <pdf name= \"%s\"></pdf>\n",Finfo->pdf[1]);
+    fprintf(F,"                </pdf>\n");  
     fprintf(F,"            </beam2>\n");
   } 
 
-  if(Finfo->Nin==2) fprintf(F,"            <crossSection unit=\"pb\">%f</crossSection>\n",Finfo->cs);
-  else              fprintf(F,"            <width unit=\"GeV\">%f</width>\n",Finfo->cs);
+  if(Finfo->Nin==2) fprintf(F,"            <crossSection unit=\"pb\">%.3E</crossSection>\n",Finfo->cs);
+  else              fprintf(F,"            <width unit=\"GeV\">%.3E</width>\n",Finfo->cs);
   
-//  fprintf(F,"            <subprocesses>\n");
-//?  printProcInfo(F);
-
-//  fprintf(F,"                  <FactorisationScale>\n");
-//  fprintf(F,"                      <plain></plain>\n");
-//  fprintf(F,"                      <Latex></Latex>\n");
-//  fprintf(F,"                  </FactorisationScale>\n");  
-
-//  fprintf(F,"            </subprocesses>\n");
   fprintf(F,"        </process>\n");
   fprintf(F,"    </description>\n");
   fprintf(F,"</samples>\n");
@@ -113,12 +102,13 @@ int main(int argc,char ** argv)
 
  
   for(N=0;N<Finfo->nEvents ;N++)
-  { int Nmom,CC,i;
+  { int Nmom,CC=500;
     double mom[40],Qf,alphaQCD;
-    int clr1[10],clr2[10],icol[10][2];
+    int clr[100],icol[100];
     int w;
 
-    if(readEvent(Finfo, &Nmom, mom, clr1, clr2, &Qf,&alphaQCD, &w)) break;
+
+    if(readEvent(Finfo, &Nmom, mom, clr, &Qf,&alphaQCD, &w)) break;
     fprintf(F,"<event>\n");
     
     fprintf(F,"%2d %4d %15.7E %15.7E %15.7E %15.7E\n",
@@ -129,18 +119,12 @@ int main(int argc,char ** argv)
           -1.,                     //  AQEDUP,
            alphaQCD                //  AQCDUP
           );
-          
-    for(II=0;II<Finfo->Nin+Finfo->Nout;II++) for(J=0;J<2;J++) icol[II][J]=0;
-    for(i=0,CC=500;clr1[i];i++,CC++)
-    { int k1=clr1[i]-1,k2=clr2[i]-1; 
-      if(k1<2) icol[k1][0]=CC; else icol[k1][1]=CC;
-      if(k2<2) icol[k2][1]=CC; else icol[k2][0]=CC;
-    }
-
-          
+    
+    ch2pythColors(&CC,Finfo->Nin, Finfo->Nout, clr , icol);
+    
           
     for(II=0;II< Finfo->Nin+Finfo->Nout;II++)
-    { double s, P[4]={0,0,0,0};
+    { double  P[4]={0,0,0,0};
       int m1,m2;
       fprintf(F," %8d %4d",  Finfo->PIDs[II] , II<Finfo->Nin? -1:1);
        
@@ -149,7 +133,7 @@ int main(int argc,char ** argv)
       fprintf(F," %4d  %4d", m1,m2);
       
       
-      for(J=0;J<2;J++) fprintf(F," %4d", icol[II][J]);
+      for(J=0;J<2;J++) fprintf(F," %4d", icol[2*II+J]);
       if(II<Finfo->Nin) { if(Finfo->Nin==2) P[2]=mom[II];}
       else for(J=0;J<3;J++) P[J]=mom[3*II-2*Finfo->Nin+J];
       for(J=0;J<3;J++) P[3]+=P[J]*P[J];

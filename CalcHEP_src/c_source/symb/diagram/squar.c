@@ -505,8 +505,8 @@ int  squaring(void)
                   sqres.del = 1;
                   sqres.status = 0;
                   sqres.nsub=nsubcs;
+                  sqres.ndiagr=++nsdiagram;
                   FWRITE1(sqres,diagrq);
-                  nsdiagram++;
                }
                else
                {
@@ -546,8 +546,9 @@ int  squaring(void)
                         
                         sqres.status = 0;
                         sqres.nsub=nsubcs;
+                        
+                        sqres.ndiagr=++nsdiagram;
                         FWRITE1(sqres,diagrq);
-                        nsdiagram++;
                      }
 label_2:             n++;
                      sim = sim->next;

@@ -30,6 +30,7 @@
 #include "numcheck.h"
 #include "../../include/version.h"
 #include "dynamic_cs.h"
+#include "n_proc.h"
 
 static int errorcode=0;
 
@@ -153,9 +154,11 @@ int main(int argc,char** argv)
               loadModel(0,forceUG);
               processinfo();
               diagramsinfo();
+              k1=n_model;
+              break;
       case 2: k1=n_model;
-
-      case 1: break;
+              readModelFiles("./models",n_model);
+              break; 
    }
 
    switch (menulevel)
@@ -180,21 +183,22 @@ label_10:   /*   Menu2(ModelMenu): */
       showheap();
       k1=n_model;
       menu1(56,4,"",modelmenu,"s_1",&pscr1,&k1);
-      n_model=k1;
-      if(n_model == 0)
-      {
-	if( mess_y_n(56,4,"Quit session")) {  saveent(menulevel); goto exi; }         
+      if(k1 == 0)
+      {  
+	if( mess_y_n(56,4,"Quit session")) {n_model=0;   saveent(menulevel); goto exi; }         
       }
-      else  if(n_model == maxmodel+1)
+      else  if(k1 == maxmodel+1)
       {
          clrbox(1,4,55,18);
          makenewmodel();
          menuhelp();
       }
-      else if (n_model > 0)
-      { 
-	put_text(&pscr1);
-	goto label_20;
+      else if (k1 > 0)
+      { int err=0;
+        put_text(&pscr1);
+        if(k1!=n_model || ldModelStatus==0) { err=readModelFiles("./models",k1);}
+        n_model=k1;
+        if(err){ if(blind) sortie(133); else  goto label_10;} else goto label_20;
       }
    }
 
@@ -205,11 +209,6 @@ label_20:   /*  Menu3:Enter Process  */
    menulevel = 2;
    saveent(menulevel);
    
-   if(readModelFiles("./models",n_model)) 
-   { 
-     if(blind) sortie(133);
-     goto label_10;
-   }   
    modelinfo();
    k2 = 1;
    
@@ -232,19 +231,19 @@ label_20:   /*  Menu3:Enter Process  */
 	 case 4:  numcheck();   
 	 case 5:  break;
          case 6: 
-	    if ( deletemodel(n_model) )
+	    if(deletemodel(n_model))
             {
                goto_xy(1,1);
                clr_eol();
                n_model=1;
+               ldModelStatus=0;
                fillModelMenu();
                goto label_10;
             }
-            else   readModelFiles("./models",n_model);
       }
    }  while (k2 != 1);
 
-   loadModel(0,forceUG);
+   if(!loadModel(0,forceUG)) goto  label_20;
    
 label_21:
 
@@ -378,7 +377,65 @@ restart2:
             f3_key[1]=f4_key_prog; 
 
             menulevel=4;
-            calcallproc();
+                        
+            if(!nPROCSS ) calcallproc(); else 
+            { int *pids=malloc(sizeof(int)*nPROCSS);
+              int *pipes=malloc(2*sizeof(int)*nPROCSS);
+              int **qd=malloc(sizeof(int*)*nPROCSS);
+              int totD=sqDiagList(qd, nPROCSS);
+              int totC,nProc;
+              int k;
+              
+              fflush(NULL);
+              for(k=0;k<nPROCSS;k++) 
+              { int* kpipe=pipes+2*k;
+                pipe(kpipe);
+                pids[k]=fork();
+                if(pids[k]==0)
+                { 
+                  close(kpipe[0]);
+                  calcWithFork(k,qd[k],kpipe[1]);
+                  exit(0);
+                }
+              }
+              for(k=0;k<nPROCSS;k++) close(pipes[2*k+1]);
+              infoLine(0.);
+              for(nProc=nPROCSS,totC=0;nProc;)
+              { int one;
+                int err;
+                nProc=0;
+                for(k=0;k<nPROCSS;k++) if(pids[k])
+                { if(waitpid(pids[k],NULL,WNOHANG)==0)
+                  {  nProc++; 
+                     if(read(pipes[2*k],&one,sizeof(int)))totC+=one;
+                  } else 
+                  { for(;read(pipes[2*k],&one,sizeof(int))>0;) totC+=one;
+                     pids[k]=0;
+                  }
+                }  
+                if(infoLine((double)totC/(double)totD)) for(k=0;k<nPROCSS;k++) if(pids[k]) kill(pids[k],SIGUSR1);   
+              }  
+              infoLine(2);
+              for(k=0;k<nPROCSS;k++)
+              { char ctlgName[100];
+                char command[200];
+                sprintf(ctlgName,"%s_%d",CATALOG_NAME,k);
+                if(access(ctlgName,R_OK)==0)
+                { sprintf(command," cat %s >> %s", ctlgName,CATALOG_NAME);
+                  system(command);
+                  unlink(ctlgName);   
+                }
+              }
+              if(totC)  newCodes=1;  
+              updateMenuQ();
+              
+              for(k=0;k<nPROCSS;k++) close(pipes[2*k]);
+              free(pids);   
+              free(pipes);
+              for(k=0;k<nPROCSS;k++) free(qd[k]);
+              free(qd);   
+            }
+            
             sq_diagramsinfo();
 
             if(!continuetest()) break; 
@@ -409,7 +466,8 @@ label_50:
    pscr5=NULL;
    menulevel=5;
    saveent(menulevel);
-   
+   sq_diagramsinfo();
+      
    for(;;)  
    {  int n_calchep_id;   
       menu1(56,4,"","\026"
@@ -420,7 +478,7 @@ label_50:
          " MATHEMATICA code     "
          " FORM code            "
          " Enter new process    " ,"s_out_*",&pscr5,&k5);
-         
+          
       if((k5==1||k5==2)&&pid) 
       { int epid=waitpid(pid,NULL,WNOHANG);
         if(epid) pid=0; else
@@ -437,26 +495,41 @@ label_50:
            break;
          case 2:
            if(newCodes) { c_prog(); newCodes=0; saveent(menulevel);}
-           fflush(NULL); 
-           pid=fork();
-           if(pid==0)
-           { if(chdir("results")==0)
-             { 
-                n_calchep_id=setLockFile(".lock"); 
-                if(n_calchep_id)
-                {  char*command=malloc(100+strlen(pathtocalchep));
-                   makeVandP(0,"../models",n_model,2,pathtocalchep); 
-                   sprintf(command,"xterm -e %s/sbin/make__n_calchep %d", pathtocalchep,n_model);                                 
-                   system(command);
-                   sprintf(command," ./n_calchep"); 
-                   system(command); 
-                   chdir("../");
-                   unLockFile(n_calchep_id);
-                   free(command);
-                }   
+          n_calchep_id=setLockFile("results/.lock"); 
+           if(n_calchep_id)
+           {
+             if(nPROCSS)
+             { chdir("results"); 
+                makeVandP(0,"../models",n_model,2,pathtocalchep);
+               pCompile();
+               if(access("./n_calchep",X_OK)==0)
+               { 
+                  fflush(NULL); 
+                  pid=fork();   
+                  if(pid==0) 
+                  {
+                    system("./n_calchep");
+                    exit(0);
+                  }    
+               } else messanykey(15,15,"n_calchep is not generated");
+               chdir("../");
+             } else                       
+             { fflush(NULL); 
+               pid=fork();
+               if(pid==0)
+               {  if(chdir("results")==0)
+                  {   char*command=malloc(150+strlen(pathtocalchep));
+                      makeVandP(0,"../models",n_model,2,pathtocalchep); 
+                      sprintf(command,"command=\"%s/sbin/make__n_calchep %d\"; xterm=`which xterm`; if(test -n \"$xterm\") then   $xterm -e $command; else $command; fi", pathtocalchep,n_model);                                 
+                      system(command);
+                      free(command);
+                      system("./n_calchep");                     
+                   }
+                   exit(0);    
+               }
              }
-             exit(0);
-           }
+             unLockFile(n_calchep_id); 
+           } 
            break;
          case 3: if(edittable(1,1,&modelTab[4],1," ",0))
                  {  char fName[STRSIZ];
@@ -481,3 +554,5 @@ exi:
    sortie(0);
    return 0;
 }
+
+

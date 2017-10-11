@@ -1,0 +1,782 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>tools.ioObjects &mdash; SModelS 1.0.3 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="SModelS 1.0.3 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SModelS 1.0.3 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for tools.ioObjects</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: tools.ioObjects</span>
+<span class="sd">   :synopsis: Definitions of input/output parameters which are read from parameter.in.</span>
+<span class="sd">    </span>
+<span class="sd">.. moduleauthor:: Ursula Laa &lt;Ursula.Laa@assoc.oeaw.ac.at&gt;    </span>
+<span class="sd">.. moduleauthor:: Suchita Kulkarni &lt;suchita.kulkarni@gmail.com&gt;</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">smodels.theory</span> <span class="kn">import</span> <span class="n">lheReader</span>
+<span class="kn">from</span> <span class="nn">smodels.theory.printer</span> <span class="kn">import</span> <span class="n">Printer</span>
+<span class="kn">from</span> <span class="nn">smodels.tools.physicsUnits</span> <span class="kn">import</span> <span class="n">GeV</span><span class="p">,</span> <span class="n">fb</span>
+<span class="kn">from</span> <span class="nn">smodels.tools</span> <span class="kn">import</span> <span class="n">modpyslha</span> <span class="k">as</span> <span class="n">pyslha</span>
+<span class="kn">from</span> <span class="nn">smodels.particles</span> <span class="kn">import</span> <span class="n">qNumbers</span><span class="p">,</span> <span class="n">rEven</span>
+<span class="kn">from</span> <span class="nn">smodels.theory</span> <span class="kn">import</span> <span class="n">crossSection</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ResultList"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.ResultList">[docs]</a><span class="k">class</span> <span class="nc">ResultList</span><span class="p">(</span><span class="n">Printer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class that collects experimental constraints and has a predefined printout.</span>
+<span class="sd">    </span>
+<span class="sd">    :ivar outputarray: list of theorypredictions</span>
+<span class="sd">    :ivar bestresultonly: if True, printout will print only the best result</span>
+<span class="sd">    :ivar describeTopo: if True, printout will print the constraints</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputarray</span><span class="o">=</span><span class="p">[],</span> <span class="n">bestresultonly</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">describeTopo</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outputarray</span> <span class="o">=</span> <span class="n">outputarray</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bestresultonly</span> <span class="o">=</span> <span class="n">bestresultonly</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">describeTopo</span> <span class="o">=</span> <span class="n">describeTopo</span>
+
+<div class="viewcode-block" id="ResultList.addResult"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.ResultList.addResult">[docs]</a>    <span class="k">def</span> <span class="nf">addResult</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="n">maxcond</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a result to the outputarry, unless it violates maxcond.</span>
+<span class="sd">        </span>
+<span class="sd">        :parameter res: theoryprediction to be added to ResultList</span>
+<span class="sd">        :parameter maxcond: maximum condition violation</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mCond</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">getmaxCondition</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">mCond</span> <span class="o">==</span> <span class="s">&#39;N/A&#39;</span><span class="p">:</span> <span class="k">return</span>
+        <span class="k">if</span> <span class="n">mCond</span> <span class="o">&gt;</span> <span class="n">maxcond</span><span class="p">:</span> <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outputarray</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="ResultList.getR"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.ResultList.getR">[docs]</a>    <span class="k">def</span> <span class="nf">getR</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">res</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate R value.</span>
+<span class="sd">        </span>
+<span class="sd">        :parameter res: theoryprediction</span>
+<span class="sd">        :returns: R value = weight / upper limit</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">res</span><span class="o">.</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">/</span> <span class="n">res</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">getUpperLimitFor</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">mass</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ResultList.sort"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.ResultList.sort">[docs]</a>    <span class="k">def</span> <span class="nf">sort</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reverse sort outputarray by R value.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outputarray</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputarray</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getR</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="ResultList.getBestResult"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.ResultList.getBestResult">[docs]</a>    <span class="k">def</span> <span class="nf">getBestResult</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Return best result.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputarray</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="ResultList.isEmpty"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.ResultList.isEmpty">[docs]</a>    <span class="k">def</span> <span class="nf">isEmpty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if outputarray is empty.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputarray</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+</div>
+<div class="viewcode-block" id="ResultList.formatData"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.ResultList.formatData">[docs]</a>    <span class="k">def</span> <span class="nf">formatData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputLevel</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Access printout format.</span>
+<span class="sd">        </span>
+<span class="sd">        :param outputLevel: general control for the output depth to be printed </span>
+<span class="sd">           (0 = no output, 1 = basic output, 2 = detailed output,...</span>
+<span class="sd">           </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">formatResultsData</span><span class="p">(</span><span class="n">outputLevel</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="OutputStatus"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.OutputStatus">[docs]</a><span class="k">class</span> <span class="nc">OutputStatus</span><span class="p">(</span><span class="n">Printer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Object that holds all status information and has a predefined printout.</span>
+<span class="sd">    </span>
+<span class="sd">    :ivar status: status of input file</span>
+<span class="sd">    :ivar inputFile: input file name</span>
+<span class="sd">    :ivar parameters: input parameters</span>
+<span class="sd">    :ivar databaseVersion: database version (string)</span>
+<span class="sd">    :ivar outputfile: path to outputfile</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">inputFile</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">databaseVersion</span><span class="p">,</span> <span class="n">outputfile</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize output. If one of the checks failed, exit.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">outputfile</span> <span class="o">=</span> <span class="n">outputfile</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inputfile</span> <span class="o">=</span> <span class="n">inputFile</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="n">parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filestatus</span> <span class="o">=</span> <span class="n">status</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">warnings</span> <span class="o">=</span> <span class="n">status</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">databaseVersion</span> <span class="o">=</span> <span class="n">databaseVersion</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">statusStrings</span> <span class="o">=</span> <span class="p">{</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="s">&quot;#could not run the decomposition&quot;</span><span class="p">,</span>
+                              <span class="o">-</span> <span class="mi">3</span><span class="p">:</span> <span class="s">&quot;#no cross sections above sigmacut found&quot;</span><span class="p">,</span>
+                              <span class="o">-</span> <span class="mi">4</span><span class="p">:</span> <span class="s">&quot;#database not found&quot;</span><span class="p">,</span>
+                              <span class="o">-</span> <span class="mi">2</span><span class="p">:</span> <span class="s">&quot;#bad input file, did not run decomposition&quot;</span><span class="p">,</span>
+                               <span class="mi">0</span><span class="p">:</span> <span class="s">&quot;#no matching experimental results&quot;</span><span class="p">,</span>
+                               <span class="mi">1</span><span class="p">:</span> <span class="s">&quot;#decomposition was successful&quot;</span><span class="p">}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">databaseVersion</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">databaseVersion</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="o">-</span><span class="mi">4</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">filestatus</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">checkStatus</span><span class="p">()</span>
+
+<div class="viewcode-block" id="OutputStatus.checkStatus"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.OutputStatus.checkStatus">[docs]</a>    <span class="k">def</span> <span class="nf">checkStatus</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Printout negative status.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s">&quot;stdout&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s">&quot;file&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputfile</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span>
+
+</div>
+<div class="viewcode-block" id="OutputStatus.updateStatus"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.OutputStatus.updateStatus">[docs]</a>    <span class="k">def</span> <span class="nf">updateStatus</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update status.</span>
+<span class="sd">        </span>
+<span class="sd">        :parameter status: new status flag</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">status</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkStatus</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="OutputStatus.updateSLHAStatus"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.OutputStatus.updateSLHAStatus">[docs]</a>    <span class="k">def</span> <span class="nf">updateSLHAStatus</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update SLHA status.</span>
+<span class="sd">        </span>
+<span class="sd">        :parameter status: new SLHA status flag</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">slhastatus</span> <span class="o">=</span> <span class="n">status</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="OutputStatus.addWarning"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.OutputStatus.addWarning">[docs]</a>    <span class="k">def</span> <span class="nf">addWarning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">warning</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Append warning to warnings.</span>
+<span class="sd">        </span>
+<span class="sd">        :parameter warning: warning to be appended</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">warnings</span> <span class="o">+=</span> <span class="n">warning</span>
+        <span class="k">return</span>
+</div>
+<div class="viewcode-block" id="OutputStatus.formatData"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.OutputStatus.formatData">[docs]</a>    <span class="k">def</span> <span class="nf">formatData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputLevel</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Access printout format.</span>
+<span class="sd">        </span>
+<span class="sd">        :param outputLevel: general control for the output depth to be printed </span>
+<span class="sd">           (0 = no output, 1 = basic output, 2 = detailed output,...</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">formatStatusData</span><span class="p">(</span><span class="n">outputLevel</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="FileStatus"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.FileStatus">[docs]</a><span class="k">class</span> <span class="nc">FileStatus</span><span class="p">(</span><span class="n">Printer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Object to run several checks on the input file.</span>
+<span class="sd">    It holds an LheStatus (SlhaStatus) object if inputType = lhe (slha)</span>
+<span class="sd">    </span>
+<span class="sd">    :ivar inputType: specify input type as SLHA or LHE</span>
+<span class="sd">    :ivar inputFile: path to input file</span>
+<span class="sd">    :ivar sigmacut: sigmacut in fb</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">filestatus</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;File not checked</span><span class="se">\n</span><span class="s">&quot;</span>
+
+
+<div class="viewcode-block" id="FileStatus.checkFile"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.FileStatus.checkFile">[docs]</a>    <span class="k">def</span> <span class="nf">checkFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputType</span><span class="p">,</span> <span class="n">inputFile</span><span class="p">,</span> <span class="n">sigmacut</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">inputType</span> <span class="o">==</span> <span class="s">&#39;lhe&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">filestatus</span> <span class="o">=</span> <span class="n">LheStatus</span><span class="p">(</span><span class="n">inputFile</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filestatus</span><span class="o">.</span><span class="n">status</span>
+        <span class="k">elif</span> <span class="n">inputType</span> <span class="o">==</span> <span class="s">&#39;slha&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">filestatus</span> <span class="o">=</span> <span class="n">SlhaStatus</span><span class="p">(</span><span class="n">inputFile</span><span class="p">,</span> <span class="n">sigmacut</span><span class="o">=</span><span class="n">sigmacut</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filestatus</span><span class="o">.</span><span class="n">status</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">filestatus</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="s">&#39;Unknown input type: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputType</span>
+
+</div></div>
+<div class="viewcode-block" id="LheStatus"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.LheStatus">[docs]</a><span class="k">class</span> <span class="nc">LheStatus</span><span class="p">(</span><span class="n">Printer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Object to check if input lhe file contains errors.</span>
+<span class="sd">    </span>
+<span class="sd">    :ivar filename: path to input LHE file</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluateStatus</span><span class="p">()</span>
+
+<div class="viewcode-block" id="LheStatus.evaluateStatus"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.LheStatus.evaluateStatus">[docs]</a>    <span class="k">def</span> <span class="nf">evaluateStatus</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        run status check</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">):</span>
+            <span class="c"># set status flag to -3, as in slha checks for missing input file</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="s">&quot;Inputfile </span><span class="si">%s</span><span class="s"> not found&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename</span>
+        <span class="n">lhe</span> <span class="o">=</span> <span class="n">lheReader</span><span class="o">.</span><span class="n">LheReader</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">nevents</span> <span class="o">=</span> <span class="n">lhe</span><span class="o">.</span><span class="n">metainfo</span><span class="p">[</span><span class="s">&quot;nevents&quot;</span><span class="p">]</span>
+        <span class="n">totxsec</span> <span class="o">=</span> <span class="n">lhe</span><span class="o">.</span><span class="n">metainfo</span><span class="p">[</span><span class="s">&quot;totalxsec&quot;</span><span class="p">]</span>
+        <span class="n">sqrts</span> <span class="o">=</span> <span class="n">lhe</span><span class="o">.</span><span class="n">metainfo</span><span class="p">[</span><span class="s">&quot;sqrts&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="n">sqrts</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="mi">1</span> <span class="o">*</span> <span class="n">GeV</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="n">sqrts</span><span class="o">.</span><span class="n">asNumber</span><span class="p">()):</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s">&quot;Center-of-mass energy not found in the input LHE file </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">nevents</span><span class="p">:</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s">&quot;No events found in the input LHE file </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="n">totxsec</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="mi">1</span> <span class="o">*</span> <span class="n">fb</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="n">totxsec</span><span class="o">.</span><span class="n">asNumber</span><span class="p">()):</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s">&quot;Total cross-section not found in the input LHE file </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename</span>
+        <span class="k">return</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&quot;Input file ok&quot;</span>
+
+
+</div></div>
+<div class="viewcode-block" id="SlhaStatus"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.SlhaStatus">[docs]</a><span class="k">class</span> <span class="nc">SlhaStatus</span><span class="p">(</span><span class="n">Printer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An instance of this class represents the status of an SLHA file.</span>
+<span class="sd">    The output status is:</span>
+<span class="sd">    = 0 : the file is not checked,</span>
+<span class="sd">    = 1: the check is ok</span>
+<span class="sd">    = -1: case of a physical problem, e.g. charged LSP,</span>
+<span class="sd">    = -2: case of formal problems, e.g. no cross sections</span>
+<span class="sd">    </span>
+<span class="sd">    :ivar filename: path to input SLHA file</span>
+<span class="sd">    :ivar maxDisplacement: maximum c*tau for promt decays in meters</span>
+<span class="sd">    :ivar sigmacut: sigmacut in fb</span>
+<span class="sd">    :ivar checkLSP: if True check if LSP is neutral</span>
+<span class="sd">    :ivar findMissingDecayBlocks: if True add a warning for missing decay blocks</span>
+<span class="sd">    :ivar findIllegalDecays: if True check if all decays are kinematically allowed</span>
+<span class="sd">    :ivar checkXsec: if True check if SLHA file contains cross sections</span>
+<span class="sd">    :ivar findLonglived: if True find stable charged particles and displaced vertices</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">maxDisplacement</span><span class="o">=.</span><span class="mo">01</span><span class="p">,</span> <span class="n">sigmacut</span><span class="o">=.</span><span class="mo">01</span> <span class="o">*</span> <span class="n">fb</span><span class="p">,</span>
+                 <span class="n">checkLSP</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">findMissingDecayBlocks</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                 <span class="n">findIllegalDecays</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">checkXsec</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">findLonglived</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maxDisplacement</span> <span class="o">=</span> <span class="n">maxDisplacement</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigmacut</span> <span class="o">=</span> <span class="n">sigmacut</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">slha</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">slha</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="s">&quot;Could not read input SLHA file&quot;</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lsp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">findLSP</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lspStatus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">testLSP</span><span class="p">(</span><span class="n">checkLSP</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">illegalDecays</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">findIllegalDecay</span><span class="p">(</span><span class="n">findIllegalDecays</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xsec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasXsec</span><span class="p">(</span><span class="n">checkXsec</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">decayBlocksStatus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">findMissingDecayBlocks</span><span class="p">(</span><span class="n">findMissingDecayBlocks</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">longlived</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">findLonglivedParticles</span><span class="p">(</span><span class="n">findLonglived</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluateStatus</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="SlhaStatus.read"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.SlhaStatus.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get pyslha output object.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span> <span class="n">ret</span> <span class="o">=</span> <span class="n">pyslha</span><span class="o">.</span><span class="n">readSLHAFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ret</span><span class="o">.</span><span class="n">blocks</span><span class="p">[</span><span class="s">&quot;MASS&quot;</span><span class="p">]:</span> <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">return</span> <span class="n">ret</span>
+
+</div>
+<div class="viewcode-block" id="SlhaStatus.evaluateStatus"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.SlhaStatus.evaluateStatus">[docs]</a>    <span class="k">def</span> <span class="nf">evaluateStatus</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get status summary from all performed checks.</span>
+
+<span class="sd">        :returns: a status flag and a message for explanation</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">slha</span><span class="p">:</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="s">&quot;Could not read input slha file&quot;</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">warning</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">retMes</span> <span class="o">=</span> <span class="s">&quot;#Warnings:</span><span class="se">\n</span><span class="s">&quot;</span>
+        <span class="n">st</span> <span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decayBlocksStatus</span>  <span class="c"># add only warning, no negative staus flag in case of missing decay blocks</span>
+        <span class="k">if</span> <span class="n">st</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">warning</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="n">retMes</span> <span class="o">+=</span> <span class="n">message</span> <span class="o">+</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+        <span class="k">for</span> <span class="n">st</span><span class="p">,</span> <span class="n">message</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">xsec</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">st</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">ret</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span>
+                <span class="n">retMes</span> <span class="o">=</span> <span class="n">retMes</span> <span class="o">+</span> <span class="s">&quot;#&quot;</span> <span class="o">+</span> <span class="n">message</span> <span class="o">+</span> <span class="s">&quot;.</span><span class="se">\n</span><span class="s">&quot;</span>
+            <span class="k">elif</span> <span class="n">st</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">ret</span> <span class="o">==</span> <span class="o">-</span><span class="mi">2</span><span class="p">:</span>
+                <span class="n">ret</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">st</span><span class="p">,</span> <span class="n">message</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">lspStatus</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">longlived</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">illegalDecays</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">st</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">ret</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                <span class="n">retMes</span> <span class="o">=</span> <span class="n">retMes</span> <span class="o">+</span> <span class="s">&quot;#&quot;</span> <span class="o">+</span> <span class="n">message</span> <span class="o">+</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+            <span class="k">elif</span> <span class="n">st</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">ret</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span> <span class="n">ret</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">ret</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;No checks performed&quot;</span>
+        <span class="k">if</span> <span class="n">ret</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s">&quot;#ERROR: special signatures in this point.</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">+</span> <span class="n">retMes</span>
+        <span class="k">if</span> <span class="n">ret</span> <span class="o">==</span> <span class="o">-</span><span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="n">retMes</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">warning</span><span class="p">:</span> <span class="n">retMes</span> <span class="o">=</span> <span class="s">&quot;Input file ok&quot;</span>
+        <span class="k">return</span> <span class="n">ret</span><span class="p">,</span> <span class="n">retMes</span>
+</div>
+<div class="viewcode-block" id="SlhaStatus.emptyDecay"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.SlhaStatus.emptyDecay">[docs]</a>    <span class="k">def</span> <span class="nf">emptyDecay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pid</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if any decay is listed for the particle with pid</span>
+<span class="sd">        </span>
+<span class="sd">        :parameter pid: PID number of particle to be checked</span>
+<span class="sd">        :returns: True if the decay block is missing or if it is empty, None otherwise</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">abs</span><span class="p">(</span><span class="n">pid</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">slha</span><span class="o">.</span><span class="n">decays</span><span class="p">:</span> <span class="k">return</span> <span class="bp">True</span>  <span class="c"># consider missing decay block as empty</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">slha</span><span class="o">.</span><span class="n">decays</span><span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="n">pid</span><span class="p">)]</span><span class="o">.</span><span class="n">decays</span><span class="p">:</span> <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="bp">None</span>
+
+</div>
+<div class="viewcode-block" id="SlhaStatus.findMissingDecayBlocks"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.SlhaStatus.findMissingDecayBlocks">[docs]</a>    <span class="k">def</span> <span class="nf">findMissingDecayBlocks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">findMissingBlocks</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        For all non-rEven particles listed in mass block, check if decay block is written</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: status flag and message</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">findMissingBlocks</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;Did not check for missing decay blocks&quot;</span>
+        <span class="n">st</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">missing</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">pids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">slha</span><span class="o">.</span><span class="n">blocks</span><span class="p">[</span><span class="s">&quot;MASS&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">pid</span> <span class="ow">in</span> <span class="n">pids</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">pid</span> <span class="ow">in</span> <span class="n">rEven</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">pid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">slha</span><span class="o">.</span><span class="n">decays</span><span class="p">:</span>
+                <span class="n">missing</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pid</span><span class="p">)</span>
+                <span class="n">st</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">if</span> <span class="n">st</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s">&quot;No missing decay blocks&quot;</span>
+        <span class="k">else</span><span class="p">:</span> <span class="n">msg</span> <span class="o">=</span> <span class="s">&quot;# Missing decay blocks for </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">st</span><span class="p">,</span> <span class="n">msg</span>
+
+</div>
+<div class="viewcode-block" id="SlhaStatus.findIllegalDecay"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.SlhaStatus.findIllegalDecay">[docs]</a>    <span class="k">def</span> <span class="nf">findIllegalDecay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">findIllegal</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Find decays for which the sum of daughter masses excels the mother mass</span>
+<span class="sd">        </span>
+<span class="sd">        :parameter findIllegal: True if check should be run</span>
+<span class="sd">        :returns: status flag and message</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">findIllegal</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;Did not check for illegal decays&quot;</span>
+        <span class="n">st</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">badDecay</span> <span class="o">=</span> <span class="s">&quot;Illegal decay for PIDs &quot;</span>
+        <span class="k">for</span> <span class="n">particle</span><span class="p">,</span> <span class="n">block</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">slha</span><span class="o">.</span><span class="n">decays</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">particle</span> <span class="ow">in</span> <span class="n">rEven</span> <span class="p">:</span> <span class="k">continue</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">particle</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">slha</span><span class="o">.</span><span class="n">blocks</span><span class="p">[</span><span class="s">&quot;MASS&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span> <span class="k">continue</span>
+            <span class="n">mMom</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slha</span><span class="o">.</span><span class="n">blocks</span><span class="p">[</span><span class="s">&quot;MASS&quot;</span><span class="p">][</span><span class="n">particle</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">dcy</span> <span class="ow">in</span> <span class="n">block</span><span class="o">.</span><span class="n">decays</span><span class="p">:</span>
+                <span class="n">mDau</span> <span class="o">=</span> <span class="mf">0.</span>
+                <span class="k">for</span> <span class="n">ptc</span> <span class="ow">in</span> <span class="n">dcy</span><span class="o">.</span><span class="n">ids</span><span class="p">:</span>
+                    <span class="n">ptc</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">ptc</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">ptc</span> <span class="ow">in</span> <span class="n">SMmasses</span><span class="p">:</span> <span class="n">mDau</span> <span class="o">+=</span> <span class="n">SMmasses</span><span class="p">[</span><span class="n">ptc</span><span class="p">]</span>
+                    <span class="k">elif</span> <span class="n">ptc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">slha</span><span class="o">.</span><span class="n">blocks</span><span class="p">[</span><span class="s">&quot;MASS&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span> <span class="n">mDau</span> <span class="o">+=</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slha</span><span class="o">.</span><span class="n">blocks</span><span class="p">[</span><span class="s">&quot;MASS&quot;</span><span class="p">][</span><span class="n">ptc</span><span class="p">])</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="s">&quot;Unknown PID </span><span class="si">%s</span><span class="s"> in decay of </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ptc</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">particle</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;. Add &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ptc</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot; to smodels/particle.py&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">mDau</span> <span class="o">&gt;</span> <span class="n">mMom</span><span class="p">:</span>
+                    <span class="n">st</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">str</span><span class="p">(</span><span class="n">particle</span><span class="p">)</span> <span class="ow">in</span> <span class="n">badDecay</span><span class="p">:</span> <span class="n">badDecay</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">particle</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot; &quot;</span>
+        <span class="k">if</span> <span class="n">st</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">badDecay</span> <span class="o">=</span> <span class="s">&quot;No illegal decay blocks&quot;</span>
+        <span class="k">return</span> <span class="n">st</span><span class="p">,</span> <span class="n">badDecay</span>
+
+</div>
+<div class="viewcode-block" id="SlhaStatus.hasXsec"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.SlhaStatus.hasXsec">[docs]</a>    <span class="k">def</span> <span class="nf">hasXsec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkXsec</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if XSECTION table is present in the slha file.</span>
+<span class="sd">        </span>
+<span class="sd">        :parameter checkXsec: set True to run the check</span>
+<span class="sd">        :returns: status flag, message</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">checkXsec</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;Did not check for missing XSECTION table&quot;</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s">&quot;XSECTION&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="k">return</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&quot;XSECTION table present&quot;</span>
+
+        <span class="n">msg</span> <span class="o">=</span> <span class="s">&quot;XSECTION table is missing. Please include the cross-section information and try again.</span><span class="se">\n</span><span class="s">&quot;</span>
+        <span class="n">msg</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="se">\n\t</span><span class="s"> For MSSM models, it is possible to compute the MSSM cross-sections&quot;</span>
+        <span class="n">msg</span> <span class="o">+=</span> <span class="s">&quot; using Pythia through the command:</span><span class="se">\n\n</span><span class="s">&quot;</span>
+        <span class="n">msg</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="se">\t</span><span class="s">  ./runTools.py xseccomputer -p -f &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">+</span> <span class="s">&quot; </span><span class="se">\n\n</span><span class="s">&quot;</span>
+        <span class="n">msg</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="se">\t</span><span class="s"> For more options and information run: ./runTools.py xseccomputer -h</span><span class="se">\n</span><span class="s">&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">msg</span>
+
+</div>
+<div class="viewcode-block" id="SlhaStatus.testLSP"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.SlhaStatus.testLSP">[docs]</a>    <span class="k">def</span> <span class="nf">testLSP</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkLSP</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if LSP is charged.</span>
+<span class="sd">        </span>
+<span class="sd">        :parameter checkLSP: set True to run the check</span>
+<span class="sd">        :returns: status flag, message</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">checkLSP</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;Did not check for charged lsp&quot;</span>
+        <span class="n">qn</span> <span class="o">=</span> <span class="n">Qnumbers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lsp</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">qn</span><span class="o">.</span><span class="n">pid</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s">&quot;lsp pid &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lsp</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot; is not known</span><span class="se">\n</span><span class="s">&quot;</span>
+        <span class="k">if</span> <span class="n">qn</span><span class="o">.</span><span class="n">charge3</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">qn</span><span class="o">.</span><span class="n">cdim</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s">&quot;lsp has 3*electrical charge = &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">qn</span><span class="o">.</span><span class="n">charge3</span><span class="p">)</span> <span class="o">+</span> \
+                       <span class="s">&quot; and color dimension = &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">qn</span><span class="o">.</span><span class="n">cdim</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+        <span class="k">return</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&quot;lsp is neutral&quot;</span>
+
+</div>
+<div class="viewcode-block" id="SlhaStatus.findLSP"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.SlhaStatus.findLSP">[docs]</a>    <span class="k">def</span> <span class="nf">findLSP</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">returnmass</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Find lightest particle (not in rEven).</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: pid, mass of the lsp, if returnmass == True</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pid</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">minmass</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">for</span> <span class="n">particle</span><span class="p">,</span> <span class="n">mass</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">slha</span><span class="o">.</span><span class="n">blocks</span><span class="p">[</span><span class="s">&quot;MASS&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">particle</span> <span class="ow">in</span> <span class="n">rEven</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">mass</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">mass</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">minmass</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">pid</span><span class="p">,</span> <span class="n">minmass</span> <span class="o">=</span> <span class="n">particle</span><span class="p">,</span> <span class="n">mass</span>
+            <span class="k">if</span> <span class="n">mass</span> <span class="o">&lt;</span> <span class="n">minmass</span><span class="p">:</span>
+                <span class="n">pid</span><span class="p">,</span> <span class="n">minmass</span> <span class="o">=</span> <span class="n">particle</span><span class="p">,</span> <span class="n">mass</span>
+        <span class="k">if</span> <span class="n">returnmass</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pid</span><span class="p">,</span> <span class="n">minmass</span> <span class="o">*</span> <span class="n">GeV</span>
+        <span class="k">return</span> <span class="n">pid</span>
+
+</div>
+<div class="viewcode-block" id="SlhaStatus.getLifetime"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.SlhaStatus.getLifetime">[docs]</a>    <span class="k">def</span> <span class="nf">getLifetime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pid</span><span class="p">,</span> <span class="n">ctau</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute lifetime from decay-width for a particle with pid.</span>
+<span class="sd">        </span>
+<span class="sd">        :parameter pid: PID of particle</span>
+<span class="sd">        :parameter ctau: set True to multiply lifetime by c</span>
+<span class="sd">        :returns: lifetime</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">widths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getDecayWidths</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">widths</span><span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="n">pid</span><span class="p">)]:</span> <span class="n">lt</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">widths</span><span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="n">pid</span><span class="p">)])</span> <span class="o">/</span> <span class="mf">1.51926778e24</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c"># Particle is stable</span>
+                <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">emptyDecay</span><span class="p">(</span><span class="n">pid</span><span class="p">):</span> <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>  <span class="c"># if decay block is empty particle is also considered stable</span>
+            <span class="k">if</span> <span class="n">ctau</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">lt</span> <span class="o">*</span> <span class="mf">3E8</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">lt</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;No decay block for </span><span class="si">%s</span><span class="s">, consider it as a stable particle&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+
+</div>
+<div class="viewcode-block" id="SlhaStatus.sumBR"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.SlhaStatus.sumBR">[docs]</a>    <span class="k">def</span> <span class="nf">sumBR</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pid</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the sum of all branching ratios for particle with pid.</span>
+<span class="sd">        </span>
+<span class="sd">        :parameter pid: PID of particle</span>
+<span class="sd">        :returns: sum of branching ratios as given in the decay table for pid</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">decaylist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">slha</span><span class="o">.</span><span class="n">decays</span><span class="p">[</span><span class="n">pid</span><span class="p">]</span><span class="o">.</span><span class="n">decays</span>
+        <span class="n">totalBR</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">decaylist</span><span class="p">:</span>
+            <span class="n">totalBR</span> <span class="o">+=</span> <span class="n">entry</span><span class="o">.</span><span class="n">br</span>
+        <span class="k">return</span> <span class="n">totalBR</span>
+
+</div>
+<div class="viewcode-block" id="SlhaStatus.deltaMass"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.SlhaStatus.deltaMass">[docs]</a>    <span class="k">def</span> <span class="nf">deltaMass</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pid1</span><span class="p">,</span> <span class="n">pid2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate mass splitting between particles with pid1 and pid2.</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: mass difference</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">m1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">slha</span><span class="o">.</span><span class="n">blocks</span><span class="p">[</span><span class="s">&quot;MASS&quot;</span><span class="p">][</span><span class="n">pid1</span><span class="p">]</span>
+        <span class="n">m2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">slha</span><span class="o">.</span><span class="n">blocks</span><span class="p">[</span><span class="s">&quot;MASS&quot;</span><span class="p">][</span><span class="n">pid2</span><span class="p">]</span>
+        <span class="n">dm</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">m1</span><span class="p">)</span> <span class="o">-</span> <span class="nb">abs</span><span class="p">(</span><span class="n">m2</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">dm</span>
+
+</div>
+<div class="viewcode-block" id="SlhaStatus.findNLSP"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.SlhaStatus.findNLSP">[docs]</a>    <span class="k">def</span> <span class="nf">findNLSP</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">returnmass</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Find second lightest particle (not in rEven).</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: pid ,mass of the NLSP, if returnmass == True</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">lsp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">findLSP</span><span class="p">()</span>
+        <span class="n">pid</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">minmass</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">for</span> <span class="n">particle</span><span class="p">,</span> <span class="n">mass</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">slha</span><span class="o">.</span><span class="n">blocks</span><span class="p">[</span><span class="s">&quot;MASS&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">mass</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">mass</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">particle</span> <span class="o">==</span> <span class="n">lsp</span> <span class="ow">or</span> <span class="n">particle</span> <span class="ow">in</span> <span class="n">rEven</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">minmass</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">pid</span><span class="p">,</span> <span class="n">minmass</span> <span class="o">=</span> <span class="n">particle</span><span class="p">,</span> <span class="n">mass</span>
+            <span class="k">if</span> <span class="n">mass</span> <span class="o">&lt;</span> <span class="n">minmass</span><span class="p">:</span>
+                <span class="n">pid</span><span class="p">,</span> <span class="n">minmass</span> <span class="o">=</span> <span class="n">particle</span><span class="p">,</span> <span class="n">mass</span>
+        <span class="k">if</span> <span class="n">returnmass</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pid</span><span class="p">,</span> <span class="n">minmass</span> <span class="o">*</span> <span class="n">GeV</span>
+        <span class="k">return</span> <span class="n">pid</span>
+
+</div>
+<div class="viewcode-block" id="SlhaStatus.getDecayWidths"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.SlhaStatus.getDecayWidths">[docs]</a>    <span class="k">def</span> <span class="nf">getDecayWidths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get all decay-widths as a dictionary {pid: width}.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">widths</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">particle</span><span class="p">,</span> <span class="n">block</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">slha</span><span class="o">.</span><span class="n">decays</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">widths</span><span class="p">[</span><span class="n">particle</span><span class="p">]</span> <span class="o">=</span> <span class="n">block</span><span class="o">.</span><span class="n">totalwidth</span>
+        <span class="k">return</span> <span class="n">widths</span>
+
+</div>
+<div class="viewcode-block" id="SlhaStatus.getDecayWidth"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.SlhaStatus.getDecayWidth">[docs]</a>    <span class="k">def</span> <span class="nf">getDecayWidth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pid</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the decay-width for particle with pid, if it exists.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">widths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getDecayWidths</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">widths</span><span class="p">[</span><span class="n">pid</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s"> is no valid PID&quot;</span> <span class="o">%</span> <span class="n">pid</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="SlhaStatus.massDiffLSPandNLSP"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.SlhaStatus.massDiffLSPandNLSP">[docs]</a>    <span class="k">def</span> <span class="nf">massDiffLSPandNLSP</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the mass difference between the lsp and the nlsp.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">lsp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">findLSP</span><span class="p">()</span>
+        <span class="n">nlsp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">findNLSP</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">deltaMass</span><span class="p">(</span><span class="n">lsp</span><span class="p">,</span> <span class="n">nlsp</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="SlhaStatus.findLonglivedParticles"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.SlhaStatus.findLonglivedParticles">[docs]</a>    <span class="k">def</span> <span class="nf">findLonglivedParticles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">findLonglived</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Find meta-stable particles that decay to visible particles</span>
+<span class="sd">        and stable charged particles.</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: status flag, message</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">findLonglived</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;Did not check for long lived particles&quot;</span>
+
+        <span class="c"># Get list of cross-sections:</span>
+        <span class="n">xsecList</span> <span class="o">=</span> <span class="n">crossSection</span><span class="o">.</span><span class="n">getXsecFromSLHAFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+        <span class="c"># Check if any of particles being produced have visible displaced vertices</span>
+        <span class="c"># with a weight &gt; sigmacut</span>
+        <span class="n">chargedList</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">missingList</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">ltstr</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">pid</span> <span class="ow">in</span> <span class="n">xsecList</span><span class="o">.</span><span class="n">getPIDs</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">pid</span> <span class="ow">in</span> <span class="n">rEven</span><span class="p">:</span> <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">pid</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">findLSP</span><span class="p">():</span> <span class="k">continue</span>
+            <span class="n">xsecmax</span> <span class="o">=</span> <span class="n">xsecList</span><span class="o">.</span><span class="n">getXsecsFor</span><span class="p">(</span><span class="n">pid</span><span class="p">)</span><span class="o">.</span><span class="n">getMaxXsec</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">xsecmax</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigmacut</span><span class="p">:</span> <span class="k">continue</span>
+            <span class="n">lt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getLifetime</span><span class="p">(</span><span class="n">pid</span><span class="p">,</span> <span class="n">ctau</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">lt</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c"># error for stable charged particles</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">visible</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">pid</span><span class="p">)):</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">abs</span><span class="p">(</span><span class="n">pid</span><span class="p">)</span> <span class="ow">in</span> <span class="n">chargedList</span><span class="p">:</span>
+                        <span class="n">chargedList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">pid</span><span class="p">))</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="nb">str</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">pid</span><span class="p">))</span> <span class="ow">in</span> <span class="n">ltstr</span><span class="p">:</span> <span class="n">ltstr</span> <span class="o">+=</span> <span class="s">&quot;#</span><span class="si">%s</span><span class="s"> : c*tau = inf</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">pid</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">lt</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxDisplacement</span><span class="p">:</span> <span class="k">continue</span>
+            <span class="n">brvalue</span> <span class="o">=</span> <span class="mf">0.</span>
+            <span class="n">daughters</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="c"># Sum all BRs which contain at least one visible particle</span>
+            <span class="k">for</span> <span class="n">decay</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">slha</span><span class="o">.</span><span class="n">decays</span><span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="n">pid</span><span class="p">)]</span><span class="o">.</span><span class="n">decays</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">pidb</span> <span class="ow">in</span> <span class="n">decay</span><span class="o">.</span><span class="n">ids</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">visible</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">pidb</span><span class="p">),</span> <span class="n">decay</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+                        <span class="n">brvalue</span> <span class="o">+=</span> <span class="n">decay</span><span class="o">.</span><span class="n">br</span>
+                        <span class="n">daughters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">decay</span><span class="o">.</span><span class="n">ids</span><span class="p">)</span>
+                        <span class="k">break</span>
+                    <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">visible</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">pidb</span><span class="p">),</span> <span class="n">decay</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="nb">abs</span><span class="p">(</span><span class="n">pidb</span><span class="p">)</span> <span class="ow">in</span> <span class="n">missingList</span><span class="p">:</span>
+                            <span class="n">missingList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">pidb</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">xsecmax</span> <span class="o">*</span> <span class="n">brvalue</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigmacut</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">abs</span><span class="p">(</span><span class="n">pid</span><span class="p">)</span> <span class="ow">in</span> <span class="n">chargedList</span><span class="p">:</span>
+                    <span class="n">chargedList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">pid</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">str</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">pid</span><span class="p">))</span> <span class="ow">in</span> <span class="n">ltstr</span><span class="p">:</span> <span class="n">ltstr</span> <span class="o">+=</span> <span class="s">&quot;#</span><span class="si">%s</span><span class="s"> : c*tau = </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">pid</span><span class="p">)),</span> <span class="nb">str</span><span class="p">(</span><span class="n">lt</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">chargedList</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">missingList</span><span class="p">:</span> <span class="k">return</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&quot;no long lived particles found&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+            <span class="k">if</span> <span class="n">chargedList</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">+=</span> <span class="s">&quot;#Visible decays of longlived particles / stable charged particles: </span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">chargedList</span><span class="p">),</span> <span class="n">ltstr</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">missingList</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">+=</span> <span class="s">&quot;#Missing decay blocks of new r-Even particles appearing in displaced vertices: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">missingList</span><span class="p">))</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">msg</span>
+</div>
+<div class="viewcode-block" id="SlhaStatus.degenerateChi"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.SlhaStatus.degenerateChi">[docs]</a>    <span class="k">def</span> <span class="nf">degenerateChi</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if chi01 is lsp and chipm1 is NLSP. If so, check mass splitting.</span>
+<span class="sd">        This function is not used, the limit is arbitrary.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">lsp</span><span class="p">,</span> <span class="n">m1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">findLSP</span><span class="p">(</span><span class="n">returnmass</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">nlsp</span><span class="p">,</span> <span class="n">m2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">findNLSP</span><span class="p">(</span><span class="n">returnmass</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">lsp</span> <span class="o">==</span> <span class="mi">1000022</span> <span class="ow">and</span> <span class="n">nlsp</span> <span class="o">==</span> <span class="mi">1000024</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">m2</span><span class="p">)</span> <span class="o">-</span> <span class="nb">abs</span><span class="p">(</span><span class="n">m1</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.18</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="bp">None</span>
+</div>
+<div class="viewcode-block" id="SlhaStatus.visible"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.SlhaStatus.visible">[docs]</a>    <span class="k">def</span> <span class="nf">visible</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pid</span><span class="p">,</span> <span class="n">decay</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if pid is detectable.</span>
+<span class="sd">        If pid is not known, consider it as visible.</span>
+<span class="sd">        If pid not SM particle and decay = True, check if particle or decay products are visible.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">pid</span> <span class="ow">in</span> <span class="n">SMvisible</span><span class="p">:</span> <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="n">pid</span> <span class="ow">in</span> <span class="n">SMinvisible</span><span class="p">:</span> <span class="k">return</span> <span class="bp">False</span>
+        <span class="n">qn</span> <span class="o">=</span> <span class="n">Qnumbers</span><span class="p">(</span><span class="n">pid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">qn</span><span class="o">.</span><span class="n">pid</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="n">qn</span><span class="o">.</span><span class="n">charge3</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">qn</span><span class="o">.</span><span class="n">cdim</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="n">decay</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">pid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">slha</span><span class="o">.</span><span class="n">decays</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;Missing decay block for pid </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pid</span><span class="p">)))</span>
+                <span class="k">return</span> <span class="bp">None</span>  <span class="c"># Note: purposely distinguished from False so I can propagate the information to the output file</span>
+            <span class="k">for</span> <span class="n">decay</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">slha</span><span class="o">.</span><span class="n">decays</span><span class="p">[</span><span class="n">pid</span><span class="p">]</span><span class="o">.</span><span class="n">decays</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">pids</span> <span class="ow">in</span> <span class="n">decay</span><span class="o">.</span><span class="n">ids</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">visible</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">pids</span><span class="p">),</span> <span class="n">decay</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span> <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="bp">False</span>
+
+</div></div>
+<div class="viewcode-block" id="Qnumbers"><a class="viewcode-back" href="../../tools.html#tools.ioObjects.Qnumbers">[docs]</a><span class="k">class</span> <span class="nc">Qnumbers</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An instance of this class represents quantum numbers.</span>
+<span class="sd">    </span>
+<span class="sd">    Get quantum numbers (spin*2, electrical charge*3, color dimension) from qNumbers.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pid</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pid</span> <span class="o">=</span> <span class="n">pid</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">pid</span> <span class="ow">in</span> <span class="n">qNumbers</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pid</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">l</span> <span class="o">=</span> <span class="n">qNumbers</span><span class="p">[</span><span class="n">pid</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spin2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">charge3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cdim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">l</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+</div>
+<span class="n">SMmasses</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="mf">4.8e-3</span> <span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="mf">2.3e-3</span> <span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="mf">95e-2</span> <span class="p">,</span> <span class="mi">4</span><span class="p">:</span> <span class="mf">1.275</span> <span class="p">,</span> <span class="mi">5</span><span class="p">:</span> <span class="mf">4.18</span> <span class="p">,</span> <span class="mi">6</span><span class="p">:</span> <span class="mf">173.21</span> <span class="p">,</span> <span class="mi">11</span><span class="p">:</span> <span class="mf">0.51099e-3</span> <span class="p">,</span> <span class="mi">12</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">13</span><span class="p">:</span> <span class="mf">105.658e-3</span> <span class="p">,</span> <span class="mi">14</span><span class="p">:</span> <span class="mi">0</span> <span class="p">,</span> <span class="mi">15</span><span class="p">:</span> <span class="mf">1.177682</span> <span class="p">,</span> <span class="mi">16</span><span class="p">:</span> <span class="mi">0</span> <span class="p">,</span> <span class="mi">21</span><span class="p">:</span> <span class="mi">0</span> <span class="p">,</span> <span class="mi">22</span><span class="p">:</span> <span class="mi">0</span> <span class="p">,</span> <span class="mi">23</span><span class="p">:</span> <span class="mf">91.1876</span> <span class="p">,</span> <span class="mi">24</span><span class="p">:</span> <span class="mf">80.385</span> <span class="p">,</span> <span class="mi">25</span><span class="p">:</span> <span class="mf">125.5</span><span class="p">}</span>
+
+<span class="n">SMvisible</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">21</span><span class="p">,</span> <span class="mi">22</span><span class="p">,</span> <span class="mi">23</span><span class="p">,</span> <span class="mi">24</span><span class="p">,</span> <span class="mi">25</span><span class="p">]</span>
+<span class="n">SMinvisible</span> <span class="o">=</span> <span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="mi">16</span><span class="p">]</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SModelS 1.0.3 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Sabine Kraml, Suchita Kulkarni, Ursula Laa, Andre Lessa, Veronika Magerl, Wolfgang Magerl, Doris Proschofsky, Michael Traub, Wolfgang Waltenberger.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

@@ -326,18 +326,20 @@ static void calcColor(long diag)
    FREAD1(csdiagr,diagrq);
 
    if(cBasisPower&&generateColorWeights(&csdiagr,cBasisPower,nC,cChains,cCoefN,cCoefD))
-   { int k;
-      writeF(" if(cb_coeff_ext)\n {\n");
-     
-      for(k=0; k<cBasisPower; k++) 
-      if(cCoefN[k]) writeF("  cb_coeff_ext[%d] += (R*%d)/(%d);\n",k,
-      cCoefN[k],cCoefD[k]);
-
+   {  
+      int k;
+      writeF(" if(cb_coeff)\n {\n");
+           
+      for(k=0; k<cBasisPower; k++)  if(cCoefN[k]) 
+      { int i;
+         writeF("  cb_coeff[%d] += (R*%d)/(%d); %s ",k, cCoefN[k],cCoefD[k],"/*");
+         for(i=0;i<nC;i++) if(cChains[4*(nC*k+i)]==2)  writeF("(%d %d) ", cChains[4*(nC*k+i)+1], cChains[4*(nC*k+i)+2] );
+         else writeF("(%d %d %d) ", cChains[4*(nC*k+i)+1], cChains[4*(nC*k+i)+2],cChains[4*(nC*k+i)+3] );
+         writeF("*/\n");
+      } 
       writeF(" }\n");
    }
 }
-
-
 
 static void  onediagram(deninforec* dendescript)
 {  catrec      cr;
@@ -390,7 +392,7 @@ static void  onediagram(deninforec* dendescript)
    tmpNameMax=0;
    initdegnames();
 
-   writeF("REAL F%d_ext(double GG,REAL*DP,REAL*Q0,COMPLEX*Q1,REAL*Q2)\n{\n",diagrcount);
+   writeF("REAL F%d_ext(double GG,REAL*DP,REAL*Q0,COMPLEX*Q1,REAL*Q2,REAL*cb_coeff)\n{\n",diagrcount);
 
    if(!noPict) writpict(cr.ndiagr_ + inftmp->firstdiagpos - 1);
 
@@ -398,7 +400,7 @@ static void  onediagram(deninforec* dendescript)
    writeF("REAL * V=va_ext;\n");
    pos_c= ftell(outFile); writeF("%80s\n","");
   
-   writeF("if(CalcConst) C%d(C);\n",diagrcount);
+   writeF("if(!DP){C%d(C); return 0;} \n",diagrcount);
    
    fortwriter("N",totnum);
    fortwriter("D",totdenum);
@@ -438,7 +440,7 @@ static int  alldiagrams(FILE * fd,  int nsub)
    writeF("{\n");
    writeF("REAL N,D,R; COMPLEX Prop;\n");
    pos_c1= ftell(outFile); writeF("%70s\n","");   
-   writeF("if(CalcConst) C%d(C);\n",nsub);
+   writeF("if(!momenta){ C%d(C); return 0;}\n",nsub);
 
    while(FREAD1(dendescript,fd) == 1)
    {
@@ -528,7 +530,7 @@ static void  writesubprocess(int nsub,long firstDiag,long totDiag,int* breaker)
 
    if(totDiag==0) 
    { writeF("extern DNN S%d_ext;\n",nsub); 
-     writeF("REAL S%d_ext(double GG,  REAL * momenta,int * err)\n{",nsub); 
+     writeF("REAL S%d_ext(double GG,  REAL * momenta,REAL*cb_coeff, int * err)\n{",nsub); 
      writeF("  return 0;\n}\n");
      outFileClose(); 
      return;
@@ -543,7 +545,7 @@ static void  writesubprocess(int nsub,long firstDiag,long totDiag,int* breaker)
       writeF("};\n");
    } 
    writeF("extern DNN S%d_ext;\n",nsub);
-   writeF("REAL S%d_ext(double GG, REAL * momenta,int * err)\n{",nsub);
+   writeF("REAL S%d_ext(double GG, REAL * momenta,REAL*cb_coeff,int * err)\n{",nsub);
    writeF("REAL  ans=0;\n");
 
    sprintf(fd_name,"%stmp%cden.inf",pathtouser,f_slash);
@@ -562,7 +564,10 @@ static void  writesubprocess(int nsub,long firstDiag,long totDiag,int* breaker)
       writeF("REAL Q0[%d]; COMPLEX Q1[%d]; REAL Q2[%d];\n",nden_w+nden_0+1, nden_w+nden_0+1,nden_w+nden_0+1);
 //      writeF("sprod_(%d, momenta, DP);\n",nin+nout);
 /*      writeF(" for(i=0;i<nin_ext;i++) s0max+=momenta[4*i];\n"); */
-   
+
+      if(sumDiag) writeF(" if(momenta)\n {"); else
+      writeF("  if(!momenta) {int i; for(i=0;i<%d;i++) Farr[i](GG,NULL,NULL,NULL,NULL,NULL); return 0;}\n",totDiag); 
+                          
       for(;den_;den_ = den_->next)
       {  int m=0;
          i=den_->order_num;
@@ -585,11 +590,15 @@ static void  writesubprocess(int nsub,long firstDiag,long totDiag,int* breaker)
          fprintf(outFile,"\";\n");
 /*         fprintf(outFile,"\",momenta);\n");   */ 
       }  
-
       writeF("*err=*err|prepDen(%d,nin_ext,BWrange_ext*BWrange_ext,mass,width,Qtxt,momenta,Q0,Q1,Q2);\n",
       nden_w+nden_0);
+   } else
+   {
+      if(sumDiag) writeF(" if(momenta)\n {"); else
+      writeF("  if(!momenta) {int i; for(i=0;i<%d;i++) Farr[i](GG,NULL,NULL,NULL,NULL,NULL); return 0;}\n",totDiag); 
    }   
    writeF("sprod_(%d, momenta, DP);\n",nin+nout);
+   if(sumDiag) writeF("}\n");
    release_(&mem_start);
    fd=fopen(fd_name,"rb"); 
    if(sumDiag)       
@@ -601,7 +610,7 @@ static void  writesubprocess(int nsub,long firstDiag,long totDiag,int* breaker)
    { 
       writeF("{int i; for(i=0;i<%d;i++) \n",totDiag);
       writeF(
-      "{ REAL r=Farr[i](GG,DP,Q0,Q1,Q2);\n"
+      "{ REAL r=Farr[i](GG,DP,Q0,Q1,Q2,cb_coeff);\n"
       "  if(r>Fmax) Fmax=r;\n"
       "  ans+=r;\n"
       "}}\n"
@@ -801,50 +810,223 @@ static void  make_infbasis(void)
 {
    int    i,j;
    int pcolor[MAXINOUT];
-
-   writeF("static void cStrings(int nsub,int *nC, int * power, int **  chains)\n{\n");
-   writeF("   switch(nsub)\n   {\n");
+   int *cb_pow=malloc(subproc_sq*sizeof(int));
+   int *cb_nc=malloc(subproc_sq*sizeof(int)); 
    
-   
-   if(!noCChain)
    for (nsub = 1, inftmp = inf; nsub <= subproc_sq; nsub++)
    {  
-      writeF("   case %d : ",nsub);
 
       for (i = 0; i < nin + nout; i++)
       {  int l;
          locateinbase(inftmp->p_name[i], &l);
          pcolor[i]=prtclbase[l-1].cdim;
-         if(i<nin)
-         { if(pcolor[i]==3) pcolor[i]=-3; else if(pcolor[i]==-3) pcolor[i]=3;} 
+         if(i<nin && pcolor[i]!=1 && pcolor[i]!=8) pcolor[i]*=-1; 
       }
 
-      infCbases(nin+nout,pcolor,&nC,&cBasisPower,&cChains);
-      if(cBasisPower)
-      {   writeF("\n     { static int cc[%d]=\n       {\n",2*nC*cBasisPower);
-          for(i=0;i<cBasisPower;i++)
-          {  writeF("       ");
-             for(j=0; j<nC; j++)  
-             { writeF(" %d,%d",cChains[2*i*nC+2*j]+1,cChains[2*i*nC+2*j+1]+1);
-               if(i==cBasisPower-1 && j==nC-1) writeF("\n       };");
-               else  writeF(",");
-             }
-             writeF("\n");
-          }  
-              
-          writeF("       *nC=%d; *power=%d; *chains=cc;\n     }\n     break;\n",
-                      nC,cBasisPower);
-          free(cChains); cChains=NULL;                  
-      } else  writeF("   *nC=0; *power=0; *chains=NULL; break;\n"); 
+      cBasisPower=infCbases(nin+nout,pcolor,&nC,&cChains);    
+      cb_pow[nsub-1]=cBasisPower;
+      cb_nc[nsub-1]=nC;
+      if(nC*cBasisPower)
+      {  writeF("\n static int cwb_%d[%d]=\n       {\n",nsub, 4*nC*cBasisPower);
+         for(i=0;i<cBasisPower;i++)
+         {  writeF("       ");
+            for(j=0; j<nC; j++)   
+            {
+              writeF(" %d,%d,%d,%d ", cChains[4*(i*nC+j)],
+              cChains[4*(i*nC+j)+1],cChains[4*(i*nC+j)+2],cChains[4*(i*nC+j)+3]);
+              if(i==cBasisPower-1 && j==nC-1) writeF("\n       };"); else  writeF(",");
+            }
+            writeF("\n");
+         }      
+      }else  writeF("\n#define  cwb_%d NULL\n",nsub); 
           
       inftmp = inftmp->next;
       
    }
-   writeF("   default: *nC=0; *power=0; *chains=NULL;\n");
-   writeF("   }\n");
-
-   writeF("}\n\n");    
+   
+   writeF("colorBasis  cb_ext[%d]={\n",subproc_sq);
+   for(i=0;i<subproc_sq;i++)
+   { writeF(" { %d, %d,  cwb_%d}",cb_pow[i],cb_nc[i],i+1);
+     if(i!=subproc_sq-1) writeF(",");
+     writeF("\n");
+   } 
+   writeF("};\n");
+   free(cb_pow), free(cb_nc);   
 }
+
+static int gt4(int*c1,int*c2)
+{ int i;
+  for(i=0;i<4;i++) if( abs(c1[i])> abs(c2[i])) return 1; else if( c1[i] < c2[i]) return 0;
+  return 0;
+}
+    
+
+static int* makeCperm(int ntot,int*np,int*perm)
+{ int i,bPow,nc; 
+  int pc[MAXINOUT];
+  int *chains; 
+  int * res;
+  
+  for(i=0;i<ntot;i++) 
+  { pc[i]=prtclbase[np[i]-1].cdim;
+    if(i<nin && pc[i]!=1 && pc[i]!=8) pc[i]*=-1;
+  }     
+  
+  bPow=infCbases(ntot,pc,&nC,&chains);
+//printf(" Ibasis: "); for(i=0;i<bPow*nC*4;i++) printf("%d ",chains[i]);  printf("\n");
+  res=malloc(sizeof(int)*(bPow+1));
+  res[0]=bPow;
+  if(bPow>0)
+  {  int*chains2=malloc(sizeof(int)*nC*bPow*4);
+     memcpy(chains2,chains,nC*bPow*4*sizeof(int));
+  {  int j,k,l; 
+
+     for(k=0;k<4*nC*bPow;k++) if(k%4 && chains2[k]) chains2[k]=perm[chains2[k]-1]+1;
+//printf(" Pbasis: "); for(i=0;i<bPow*nC*4;i++) printf("%d ",chains2[i]); printf("\n");
+
+                        
+     for(l=0;l<bPow*nC;l++)
+     {                      
+        int * c=chains2+4*l;
+        if(abs(c[0])==3)
+        { int b;
+             
+          if(c[1]>c[2]) { b=c[1];c[1]=c[2];c[2]=b;}
+          if(c[2]>c[3]) { b=c[2];c[2]=c[3];c[3]=b;}
+          if(c[1]>c[2]) { b=c[1];c[1]=c[2];c[2]=b;}
+          if(c[2]>c[3]) { b=c[2];c[2]=c[3];c[3]=b;}
+        }
+     }
+
+
+     for(l=0;l<bPow;l++)
+     {  int l2;
+        int * c=chains2+4*l*nC;                     
+        k=0; 
+        while(k<nC-1) if(gt4(c+4*k,c+4*k+4) )
+           {  int buff[4];
+              memcpy(buff,   c+4*k,  4*sizeof(int));                           
+              memcpy(c+4*k,  c+4*k+4,4*sizeof(int));                           
+              memcpy(c+4*k+4,buff,   4*sizeof(int));                           
+              if(k>0) k--;else k++;                                            
+           } else k++;                                                         
+
+        for(l2=0;l2<bPow;l2++) if(memcmp(chains+4*nC*l2,c,4*nC*sizeof(int))==0)
+        { 
+           res[l+1]=l2+1;
+           break;          
+        }                  
+                           
+        if(l2==bPow) fprintf(stderr,"Can not construct permutation\n");
+     }
+//printf(" Sbasis: "); for(i=0;i<bPow*nC*4;i++) printf("%d ",chains2[i]); printf("\n");     
+                                                                            
+  }         
+     free(chains2);
+  }
+ return res;
+} 
+
+static int** cPerm=NULL;
+static int  ncPerm=0; 
+
+static void permRec(int ntot,int* np, int i0, int *pused, int *perm)
+{  
+   int i,j;
+
+   if(i0==ntot)
+   { 
+     for(j=0;j<ntot;j++) if(perm[j]!=j)
+     { int i; 
+       writeF(",\n{");
+       for(i=0;i<ntot-1;i++)writeF("%d,",perm[i]+1);
+       writeF("%d}",perm[i]+1);
+       
+       cPerm[ncPerm++]=makeCperm(ntot,np,perm);
+       
+       break; 
+     } 
+     return;
+   }
+
+   for(j=0;j<ntot;j++) if(np[j]==np[i0] && !pused[j] )
+   { perm[i0]=j;
+     pused[j]=1;
+     permRec(ntot,np,i0+1,pused,perm);
+     pused[j]=0;
+   }
+}
+
+
+static void  make_perm(void)
+{
+   int  i,j,pos=0,cbPowMax;
+   int * simMap=malloc(sizeof(int)*subproc_sq); 
+   writeF("static int permMap[%d][2]={\n",subproc_sq);
+   
+
+   for (nsub = 1, inftmp = inf; nsub <= subproc_sq; nsub++,inftmp = inftmp->next)
+   {  
+      int nP=1;
+      int k=1;
+      for (i = nin+1; i < nin + nout; i++)
+      {   
+         if(strcmp(inftmp->p_name[i],inftmp->p_name[i-1])==0){k++;nP*=k;} else k=1;  
+      }
+      simMap[nsub-1]=nP-1;
+      writeF(" {%d,%d}", pos,nP-1);
+      if(nP>1) pos+=nP-1; 
+      if(nsub == subproc_sq) writeF("\n};\n"); else writeF(",");      
+   }
+   
+   writeF("static int permP[%d][%d]={\n",pos,nin+nout);
+//   writeF("{ "); for(i=0;i<nout-1;i++) writeF("0,"); writeF("0}");   
+
+   cPerm=malloc(sizeof(int*)*pos);
+   ncPerm=0;
+   
+   for (nsub = 1, inftmp = inf; nsub <= subproc_sq; nsub++,inftmp = inftmp->next)
+   {  
+      if(simMap[nsub-1]);
+      {  int used[MAXINOUT],buff[MAXINOUT],np[MAXINOUT];
+         writeF("\n // "); for(i=0;i<nin;i++)        writeF("%s ", inftmp->p_name[i]);
+         writeF("-> "); for(i=nin;i<nin+nout;i++) writeF("%s ", inftmp->p_name[i]);
+              
+         for(i=0;i<nin+nout;i++) locateinbase(inftmp->p_name[i],np+i);
+         for(i=0;i<nin;i++) { used[i]=1;buff[i]=i;}  for(i=nin;i<nin+nout;i++)used[i]=0;
+         permRec(nin+nout,np,nin,used,buff);  
+      }
+      if(nsub<subproc_sq) writeF(",");  
+   }
+   writeF("\n};\n");
+
+   for(i=0,cbPowMax=0 ;i<ncPerm;i++) if(cbPowMax<cPerm[i][0])cbPowMax=cPerm[i][0];
+   writeF("static int permC[%d][%d]={\n",pos,cbPowMax);
+
+   for(i=0;i<ncPerm;i++)
+   {
+      writeF("{"); 
+        for(j=1;j<cPerm[i][0];j++) writeF("%d,",cPerm[i][j]);
+        if(j==cPerm[i][0])  writeF("%d",cPerm[i][j]);
+        writeF("}");
+      if(i<ncPerm-1) writeF(",");
+      writeF("\n");
+   }
+   writeF("};\n");
+   
+//      printf("bp=%d :",cPerm[i][0]);
+//    for(j=1;j<=cPerm[i][0];j++) printf(" %d",cPerm[i][j]);  
+//      printf("\n");
+   
+   
+   for(i=0;i<ncPerm;i++) free(cPerm[i]);
+   free(cPerm);
+    
+   free(simMap);
+}
+
+
+
 
 static void  make_vinf(void)
 {  
@@ -898,15 +1080,13 @@ static int c_prog_int(void)
    make_pinf();
    geninf("nvar_ext",nvars);
    geninf("nfunc_ext",nfunc);
-    
    make_vinf();
    
    { 
       make_den_info();
       fprintf(outFile,"\nCalcHEP_interface interface_ext={ %d,\n\"%s\"\n,%d, %d, varName_ext,va_ext,"
           "%d, %d, %d, &pinf_ext, &pinfAux_ext, polarized_ext, &calcFunc_ext, &BWrange_ext,&twidth_ext,"
-          "&gtwidth_ext,&gswidth_ext, &aWidth_ext, &sqme_ext,&den_info_ext,&build_cb_ext, &cb_pow_ext,"
-          "&cb_nc_ext, &cb_chains_ext, &cb_coeff_ext, &destroy_cb_ext};\n", 
+          "&gtwidth_ext,&gswidth_ext, &aWidth_ext, &sqme_ext,&den_info_ext,cb_ext};\n", 
       forceUG, pathtocalchep,nvars, nfunc, nin,nout,subproc_sq);
 
       writeF("\nCalcHEP_interface * PtrInterface_ext=&interface_ext;\n");
@@ -921,7 +1101,6 @@ static int c_prog_int(void)
       writeF("#include\"num_in.h\"\n");
    }
    writeF("static int calcall[%d];\n",subproc_sq+1);
-
    {
    writeF("static int particles[%d]={0",1+nin+nout); 
    for(i=0;i<nin+nout;i++) writeF(",0");
@@ -934,12 +1113,17 @@ static int c_prog_int(void)
    writeF("static  DNN * darr[%d]={",subproc_sq);
    for(i=1;i<subproc_sq;i++)  writeF("&S%d_ext,",i);
    writeF("&S%d_ext};\n",subproc_sq);
-   fseek(catalog,0,SEEK_END);
-   ndiagrtot = ftell(catalog)/sizeof(catrec);
    
+   
+   fseek(catalog,0,SEEK_SET);
+   { catrec  cr;
+     ndiagrtot =0;
+     while(FREAD1(cr,catalog)) if(cr.status==1) ndiagrtot++; 
+   }
    writesubroutineinit();
    
    {  make_infbasis();
+      make_perm();
       writeF("#include\"sqme.inc\"\n");
       outFileClose();
    }
@@ -957,16 +1141,16 @@ static int c_prog_int(void)
             locateinbase(inftmp->p_name[i], &l);
             colors[i]=prtclbase[l-1].cdim;
          }
-         for(i=0;i<nin; i++) 
-         if(colors[i]==3) colors[i]=-3; else if(colors[i]==-3) colors[i]=3;
+         for(i=0;i<nin; i++) if(abs(colors[i])==3 || abs(colors[i])==6) colors[i]*=-1; 
+         
          if(noCChain) for(i=0;i<nin+nout; i++) colors[i]=1; 
-         infCbases(nin+nout,colors,&nC,&cBasisPower,&cChains);
-         if(cBasisPower)
+         
+         cBasisPower=infCbases(nin+nout,colors,&nC,&cChains);
+         if(cBasisPower>0)
          { 
             cCoefN=malloc(cBasisPower*sizeof(long));
             cCoefD=malloc(cBasisPower*sizeof(long));
          }
-
          writesubprocess(nsub,dfirst,inftmp->tot, &breaker);
          dfirst+=inftmp->tot;
          if (breaker) goto exi;

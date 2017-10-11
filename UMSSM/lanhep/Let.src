@@ -1,0 +1,248 @@
+
+let Vud=1, Vus=0, Vub=0, Vcd=0,Vcs=1,Vcb=0, Vtd=0,Vts=0,Vtb=1.
+
+parameter tbZZ=( EE/(2*SW*CW)*caZZ*v*(cb*ZA21 -sb*ZA22) + g1p*saZZ*( Q1*v*cb*ZA21 + Q2*v*sb*ZA22 + Qs*vs*ZA23 ))/( EE/(2*SW*CW)*caZZ*v*(cb*ZA11 -sb*ZA12) + g1p*saZZ*( Q1*v*cb*ZA11 + Q2*v*sb*ZA12 + Qs*vs*ZA13 )).
+
+parameter bZZ=atan(tbZZ):'Z-Zprime godstone boson mixing angle',
+	  sbZZ=sin(bZZ),
+	  cbZZ=cos(bZZ).
+angle sin=sbZZ, cos=cbZZ, tan=tbZZ, texname='\\beta_Z'.
+parameter s2bZ=2*sbZZ*cbZZ,
+	  c2bZ=cbZZ**2-sbZZ**2.
+
+
+
+let Z = Z1*caZZ - Z2*saZZ,
+    Zp = Z1*saZZ + Z2*caZZ,
+    Bp = Zp,
+    B0 = -Z*SW + A*CW,
+    W3 = Z*CW + A*SW,
+    Zc = 'Z1.c',
+    ZC = 'Z1.C',
+    Zpc ='Z2.c',
+    ZpC ='Z2.C'.
+
+do_if odd_full_mix==off.
+let Zf = -'Z1.f'*cbZZ + 'Z2.f'*sbZZ,
+    Zpf =-'Z1.f'*sbZZ - 'Z2.f'*cbZZ.
+do_else.
+
+parameter Cden=EE/(SW*CW)*g1p*v*( Qs*vs*( (ZA12*ZA23-ZA13*ZA22)*sb + (ZA13*ZA21-ZA11*ZA23)*cb) + (Q1+Q2)*v*sb*cb*(ZA12*ZA21-ZA11*ZA22) ),
+	  CZZ1=  MZ1*( EE/(SW*CW)*saZZ*v*(ZA21*cb - ZA22*sb) - 2*g1p*caZZ*(Q1*v*cb*ZA21+Q2*v*sb*ZA22+Qs*vs*ZA23) )/Cden,
+	  CZZ2=  MZ2*( EE/(SW*CW)*caZZ*v*(ZA21*cb - ZA22*sb) + 2*g1p*saZZ*(Q1*v*cb*ZA21+Q2*v*sb*ZA22+Qs*vs*ZA23) )/Cden,
+	  CZha=  (Qs*vs*( (ZA22*ZA33-ZA23*ZA32)*sb + (ZA23*ZA31-ZA21*ZA33)*cb) + (Q1+Q2)*v*sb*cb*(ZA22*ZA31-ZA21*ZA32) )/(SW*CW/(EE*g1p*v)*Cden),
+	  CZpZ1=-MZ1*( EE/(SW*CW)*saZZ*v*(ZA11*cb - ZA12*sb) - 2*g1p*caZZ*(Q1*v*cb*ZA11+Q2*v*sb*ZA12+Qs*vs*ZA13) )/Cden,
+	  CZpZ2=-MZ2*( EE/(SW*CW)*caZZ*v*(ZA11*cb - ZA12*sb) + 2*g1p*saZZ*(Q1*v*cb*ZA11+Q2*v*sb*ZA12+Qs*vs*ZA13) )/Cden,
+	  CZpha=-(Qs*vs*( (ZA12*ZA33-ZA13*ZA32)*sb + (ZA13*ZA31-ZA11*ZA33)*cb) + (Q1+Q2)*v*sb*cb*(ZA12*ZA31-ZA11*ZA32) )/(SW*CW/(EE*g1p*v)*Cden),
+	  Z2ha=-1/2/CW*EE/SW*ZA31*cb*saZZ*v+1/CW*EE*NCp*Q1*ZA31*caZZ*cb*v+1/2/CW*EE/SW*ZA32*saZZ*sb*v+1/CW*EE*NCp*Q2*ZA32*caZZ*sb*v+1/CW*EE*NCp*Qs*ZA33*caZZ*vs,
+	  Z1ha=1/2/CW*EE/SW*ZA31*caZZ*cb*v+1/CW*EE*NCp*Q1*ZA31*cb*saZZ*v-1/2/CW*EE/SW*ZA32*caZZ*sb*v+1/CW*EE*NCp*Q2*ZA32*saZZ*sb*v+1/CW*EE*NCp*Qs*ZA33*saZZ*vs.
+let Zf = 'Z1.f'*CZZ1 + 'Z2.f'*CZZ2 + ha*CZha,
+    Zpf ='Z1.f'*CZpZ1 + 'Z2.f'*CZpZ2 + ha*CZpha.
+end_if.
+
+
+
+let f_B0 = i*(Zn11*up(~o1) + Zn21*up(~o2) + Zn31*up(~o3) + Zn41*up(~o4) + Zn51*up(~o5) + Zn61*up(~o6)).
+let f_B0b=-i*(Zn11*down(~o1)+Zn21*down(~o2)+Zn31*down(~o3)+Zn41*down(~o4)+Zn51*down(~o5)+Zn61*down(~o6)).
+
+let f_Bp= i*(Zn16*up(~o1) + Zn26*up(~o2) + Zn36*up(~o3) + Zn46*up(~o4) + Zn56*up(~o5) + Zn66*up(~o6)).
+let f_Bpb=-i*(Zn16*down(~o1)+Zn26*down(~o2)+Zn36*down(~o3)+Zn46*down(~o4)+Zn56*down(~o5)+Zn66*down(~o6)).
+
+let W  =  {'W+',W3,'W-'},
+    Wc =  {'W-',W3,'W+'}.
+
+let f_Wp = i*(Zv11*up('~1+')+Zv21*up('~2+')).
+let f_W3 = i*(Zn12*up(~o1)  +Zn22*up(~o2) +Zn32*up(~o3) +Zn42*up(~o4) +Zn52*up(~o5) +Zn62*up(~o6)).
+let f_Wm = i*(Zu11*up('~1-')+Zu21*up('~2-')).
+
+let f_Wpb =-i*(Zv11*down('~1-')+Zv21*down('~2-')).
+let f_W3b =-i*(Zn12*down(~o1)+Zn22*down(~o2)+Zn32*down(~o3)+Zn42*down(~o4)+Zn52*down(~o5)+Zn62*down(~o6)).
+let f_Wmb =-i*(Zu11*down('~1+')+Zu21*down('~2+')).
+
+let f_W = { f_Wp , f_W3 , f_Wm },
+    f_Wb= { f_Wpb, f_W3b, f_Wmb},
+    f_Wc= { f_Wmb, f_W3b, f_Wpb}.
+
+let f_G = -i*up(~g), f_Gb = i*down(~g).
+
+
+let vev1=cb*v/Sqrt2, vev2=v*sb/Sqrt2, vevs=vs/Sqrt2.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%											 	      %%
+%% (s_hd, s_hu, s_s) = ( Zh**(-1)*(h1, h2, h3) + (v*cb, v*sb, vs) + i*ZA**(-1)*(Zf, Zpf, ha) )/Sqrt2  %%
+%% with Zh**(-1) = Zh**(T)									      %%
+%%											     	      %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+/*
+This approximation works in some cases, but generally it fails completely... :
+
+EvalParameter(acos(ZA11)).
+EvalParameter(acos(cb)).
+let s_hd = { vev(vev1) + ( (h1*Zh11 + h2*Zh21 + h3*Zh31) + i*( Zf*cb + ha*sb) )/Sqrt2,
+		         (-cb*'W-.f' + sb*'H-') },
+    s_Hd = anti(s_hd).
+
+
+let s_hu = {             (sb*'W+.f'+cb*'H+'),
+	     vev(vev2) + ( (h1*Zh12 + h2*Zh22 + h3*Zh32) + i*( -Zf*sb + ha*cb) )/Sqrt2 },
+    s_Hu = anti(s_hu).
+
+
+let s_s = vev(vevs) + ( (h1*Zh13 + h2*Zh23 + h3*Zh33) + i*( Zpf) )/Sqrt2,
+    s_S = anti(s_s).
+*/
+
+
+let s_hd = { vev(vev1) + ( (h1*Zh11 + h2*Zh21 + h3*Zh31) + i*( Zf*ZA11 + Zpf*ZA21 + ha*ZA31) )/Sqrt2,
+		         (-cb*'W-.f' + sb*'H-') },
+    s_Hd = anti(s_hd).
+
+
+let s_hu = {             (sb*'W+.f'+cb*'H+'),
+             vev(vev2) + ( (h1*Zh12 + h2*Zh22 + h3*Zh32) + i*( Zf*ZA12 + Zpf*ZA22 + ha*ZA32))/Sqrt2 },
+    s_Hu = anti(s_hu).
+      
+
+let s_s = vev(vevs) + ( (h1*Zh13 + h2*Zh23 + h3*Zh33) + i*( Zf*ZA13 + Zpf*ZA23 + ha*ZA33))/Sqrt2,
+    s_S = anti(s_s).
+
+
+let f_hd = { Zn13*up(~o1)+Zn23*up(~o2)+Zn33*up(~o3)+Zn43*up(~o4)+Zn53*up(~o5)+Zn63*up(~o6),
+	     Zu12*up('~1-')+Zu22*up('~2-') },
+    f_hdb= anti(f_hd).
+
+let f_hu = { Zv12*up('~1+')+Zv22*up('~2+'),
+             Zn14*up(~o1)+Zn24*up(~o2)+Zn34*up(~o3)+Zn44*up(~o4)+Zn54*up(~o5)+Zn64*up(~o6) },
+    f_hub= anti(f_hu).
+
+let f_S=  Zn15*up(~o1) + Zn25*up(~o2) + Zn35*up(~o3) + Zn45*up(~o4) + Zn55*up(~o5) + Zn65*up(~o6),
+    f_Sb= anti(f_S).
+
+% Leptons & sleptons
+
+let f_l1={up(ne), up(e)}, f_l1b=anti(f_l1),
+    f_l2={up(nm), up(m)}, f_l2b=anti(f_l2),
+    f_l3={up(nl), up(l)}, f_l3b=anti(f_l3).
+
+let f_r1=up(E), f_r1b=anti(f_r1),
+    f_r2=up(M), f_r2b=anti(f_r2),
+    f_r3=up(L), f_r3b=anti(f_r3).
+
+let f_n1=up(Ner), f_n1b=anti(f_n1),
+    f_n2=up(Nmr), f_n2b=anti(f_n2),
+    f_n3=up(Nlr), f_n3b=anti(f_n3).
+
+let s_l1 = { ~ne, ~eL},
+    s_L1 = anti(s_l1).
+let s_l2 = { ~nm, ~mL},
+    s_L2 = anti(s_l2).
+let s_l3 = { ~nl, ~l1*Zl11+ ~l2*Zl21},
+    s_L3 = anti(s_l3).
+
+let s_R1 = ~eR,
+    s_r1 = anti(s_R1).
+let s_R2 =  ~mR,
+    s_r2 = anti(s_R2).
+let s_R3 =  ~l1*Zl12+ ~l2*Zl22,
+    s_r3 = anti(s_R3).
+
+let s_N1 = ~nE,
+    s_n1 = anti(s_N1).
+let s_N2 = ~nM,
+    s_n2 = anti(s_N2).
+let s_N3 = ~nL,
+    s_n3 = anti(s_N3).
+
+% Quarks & squarks
+
+let f_q1={up(u), Vud*up(d)+Vus*up(s)+Vub*up(b) },
+    f_q2={up(c), Vcd*up(d)+Vcs*up(s)+Vcb*up(b) },
+    f_q3={up(t), Vtd*up(d)+Vts*up(s)+Vtb*up(b) },
+    f_q1b=anti(f_q1),
+    f_q2b=anti(f_q2),
+    f_q3b=anti(f_q3).
+
+let f_u1 =up(U),   f_u1b=anti(f_u1),
+    f_u2 =up(C),   f_u2b=anti(f_u2),
+    f_u3 =up(T),   f_u3b=anti(f_u3).
+
+let f_d1 =up(D),   f_d1b=anti(f_d1),
+    f_d2 =up(S),   f_d2b=anti(f_d2),
+    f_d3 =up(B),   f_d3b=anti(f_d3).
+
+
+let _u = ~uL,
+    _d = ~dL.
+
+let _c =  ~cL,
+    _s =  ~sL.
+
+let _t =  ~t1*Zt11+ ~t2*Zt21,
+    _b =  ~b1*Zb11+ ~b2*Zb21.
+
+let s_q1 = {_u, _d*Vud+ _s*Vus+ _b*Vub}, s_Q1 = anti(s_q1),
+    s_q2 = {_c, _d*Vcd+ _s*Vcs+ _b*Vcb}, s_Q2 = anti(s_q2),
+    s_q3 = {_t, _d*Vtd+ _s*Vts+ _b*Vtb}, s_Q3 = anti(s_q3).
+
+clear _u, _d, _c, _s, _t, _b.
+
+
+let _u =  ~uR,
+    _d =  ~dR.
+
+let _c = ~cR,
+    _s = ~sR.
+
+let _t =   ~t1*Zt12+ ~t2*Zt22,
+    _b =   ~b1*Zb12+ ~b2*Zb22.
+
+let s_U1 = _u, s_u1 = anti(s_U1),
+    s_U2 = _c, s_u2 = anti(s_U2),
+    s_U3 = _t, s_u3 = anti(s_U3),
+    s_D1 = _d, s_d1 = anti(s_D1),
+    s_D2 = _s, s_d2 = anti(s_D2),
+    s_D3 = _b, s_d3 = anti(s_D3).
+
+clear _u, _d, _c, _s, _t, _b.
+
+
+let Wgh={'W+.c', CW*'Zc'+SW*'A.c', 'W-.c'},
+    WGh={'W+.C', CW*'ZC'+SW*'A.C', 'W-.C'}.
+
+let vvev1= 1/(Sqrt2*MW*SW/EE).
+
+let mn1=0, mn2=0, mn3=0.
+let ns1=0, ns2=0, ns3=0.
+
+let ls1=0.
+let ml1=0.
+
+let ls2=0.
+let ml2=0.
+
+let us1=0.
+let ds1=0.
+let mu1=0.
+let md1=0.
+
+let ds2=0.
+let md2=0.
+
+let us2=0.
+let mu2=0.
+
+
+let ls3=  Ml*vvev1*(Al)/cb,
+    ds3=  MbMM*vvev1*(Abq)/cb,
+    us3= -MtMM*vvev1*(Atq)/sb.
+
+let ml3 = -Ml*vvev1/cb,
+    md3 = -MbMM*vvev1/cb,
+    mu3 =  MtMM*vvev1/sb.
+
+%let wC1='aWidth("~1+")',
+%    wC2='aWidth("~2+")'.
+%let g=EE/SW, g1=EE/CW.

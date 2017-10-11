@@ -17,13 +17,13 @@ LIBS =
 all: $(bin)/events2tab $(bin)/show_distr $(bin)/sum_distr $(bin)/lhe2tab
 #$(lib)/num_c.a  $(lib)/serv.a $(lib)/dummy.a
 $(bin)/events2tab:events2tab.c  dummy_output.c  $(lib)/num_c.a    $(lib)/serv.a ../../include/VandPgate.c   $(lib)/dummy.a $(lib)/ntools.a 
-	$(CC) $(CFLAGS)  -o $@ $^ $(LX11) $(lDL)  -lm 
+	$(CC) $(CFLAGS)  -o $@ $^ $(LX11) $(lDL)  -lm -lpthread
 
 $(bin)/show_distr:show_distr.c  dummy_output.c   $(lib)/num_c.a  ../../include/VandPgate.c    $(lib)/serv.a $(lib)/dummy.a $(lib)/ntools.a
-	$(CC) $(CFLAGS)  -o $@ $^ $(LX11) $(lDL)  -lm
+	$(CC) $(CFLAGS)  -o $@ $^ $(LX11) $(lDL)  -lm -lpthread
 
 $(bin)/sum_distr:sum_distr.c  dummy_output.c  $(lib)/num_c.a  $(lib)/serv.a ../../include/VandPgate.c   $(lib)/dummy.a $(lib)/ntools.a
-	$(CC) $(CFLAGS)  -o $@ $^ $(LX11) $(lDL) -lm
+	$(CC) $(CFLAGS)  -o $@ $^ $(LX11) $(lDL) -lm -lpthread
 	
 $(bin)/lhe2tab:lhe2tab.c  ../mix_events/readLHE.c  dummy_output.c   $(lib)/num_c.a  $(lib)/serv.a ../../include/VandPgate.c   $(lib)/dummy.a $(lib)/ntools.a
-	$(CC) $(CFLAGS)  -o $@ $^  $(LX11) $(lDL) -lm
+	$(CC) $(CFLAGS)  -o $@ $^  $(LX11) $(lDL) -lm -lpthread

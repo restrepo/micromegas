@@ -5,9 +5,9 @@
 #include <math.h>
 #include <stdio.h>
 
-
 extern int  HBblocks(char * fname);
-extern int loopGamma(double * csAZ, double *csAA);
+extern int  LiLithF(char*fname);
+extern int  loopGamma(double * csAZ, double *csAA);
 
 #endif 
  

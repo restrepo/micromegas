@@ -26,7 +26,7 @@ void n_comphep(void)
 
   while(checkParam()) 
    if(mess_y_n(15,15, "Quit the session?"))
-     {w_sess__(NULL); return;} else change_parameter(54,7,0);
+     {w_sess__(NULL); return;} else change_parameter(54,7,0);        
   do
   { int err=monte_carlo_menu();
     switch(err)

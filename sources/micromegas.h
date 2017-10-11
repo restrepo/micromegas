@@ -12,7 +12,8 @@ extern "C" {
 #include<unistd.h>
 
 #include"../CalcHEP_src/include/num_out.h"
-
+#include"../CalcHEP_src/c_source/plot/include/plot.h"
+#include"../CalcHEP_src/c_source/ntools/include/n_proc.h"
 extern char * CDM1, *CDM2, *aCDM1, *aCDM2;
 
 typedef struct numout
@@ -29,7 +30,6 @@ extern int VVdecay;
 extern int sortOddParticles(char * name);
 
 typedef  struct { double par[41]; }  MOcommonSTR;
-
 extern   MOcommonSTR  mocommon_;
 
 #define Mcdm        mocommon_.par[1]
@@ -78,6 +78,12 @@ extern   MOcommonSTR  mocommon_;
 #define Tstart      mocommon_.par[39]
 #define Tend        mocommon_.par[40]
 
+typedef  struct { int flag[4];}     MOflagsSTR;
+extern   MOflagsSTR moflags_;
+
+#define WIMPSIM   moflags_.flag[0] 
+#define forRocks  moflags_.flag[1]
+
 typedef  struct { char txt1[20]; char txt2[20];} MoCommonCH; 
 
 extern  MoCommonCH mocommonch_;
@@ -122,7 +128,13 @@ extern double cs22(numout * cc, int nsub,double P,  double cos1, double cos2 , i
 extern int  procInfo1(numout*cc, int *nsub, int * nin, int *nout);
 extern int procInfo2(numout*cc,int nsub,char**name,double*mass);
 extern REAL Helicity[2];
-extern double hCollider(double Pcm, int pp, int nf, double Qren,double Qfact, char * name1,char *name2,double pTmin);
+
+extern void PDTList(void);
+extern int  setPDT(char*name);
+extern char pdfName[50];
+void LHAPDFList(void);
+extern void  setLHAPDF(int nset, char *name);
+extern double hCollider(double Pcm, int pp, int nf, double Qren,double Qfact, char * name1,char *name2,double pTmin,int wrt);
 double pWidth(char *name, txtList *L);
 
 
@@ -157,7 +169,7 @@ extern double vSigmaCC(double T,numout* cc);
 extern int loadHeffGeff(char*fname);
 extern double  hEff(double T);
 extern double  gEff(double T);
-extern double vSigma(double T,double Beps ,int Fast,double *alpha);
+extern double vSigma(double T,double Beps ,int Fast);
 extern double darkOmega(double *Xf,int Fast, double Beps);
 extern double darkOmega2(double fast, double Beps0);
 
@@ -229,7 +241,7 @@ extern double Zi(int i);
 
 extern double SpectdNdE(double E, double * tab);
 extern void   addSpectrum(double*Spect,double*toAdd);
-extern void   spectrInfo(double Emin,double*tab, double * Ntot,double*Etot);
+extern double   spectrInfo(double Emin,double*tab , double*Etot);
 /* input parameters:
   a)    Emin - minimal energy under considerstion
   b)    double tab[250]  - table for spectrum distribution.
@@ -237,9 +249,13 @@ extern void   spectrInfo(double Emin,double*tab, double * Ntot,double*Etot);
   a)    Ntot - total number of particles with energy E> Xmin*mLsp
   b)    Everage energy of particle  divided on mLsp
 */
+extern double spectrInt(double Emin,double Emax, double * tab);
+extern void  spectrMult( double *spect, double(*func)(double));
 
-extern void boost(double Y, double Emax, double mDecay, double mx, double*tab);
-extern int displaySpectrum(double*tab, char*mess,double Emin,double Emax);
+
+extern void boost(double Y, double M0, double mx, double*tab);
+extern int displaySpectrum(char*mess,double Emin,double Emax,double*tab);
+extern int displaySpectra(char * title, double Emin,double Emax, int N,...);
 
 extern void setHaloProfile( double (*haloProfile)(double));
 extern void setClumpConst(double f,double rho);
@@ -299,20 +315,26 @@ extern void displayFunc10(double (*F)(double), double x1,double x2, char * mess)
 
 extern void ATMnuBackgroundTab(double Fi, double dFi, double *nuTab,double *nuBarTab);
 extern int neutrinoFlux(double (*vfv)(double), int forSun,double *nu, double *nu_bar);
-extern int basicNuSpectra(int forSun, double Mass,int pdgN, int outN, double * tab); 
+extern int basicNuSpectra(int forSun, double Mass,int pdgN,int pol, double*nu, double*nuB); 
 extern void muonContained(double*nu,double*Nu,double rho, double*mu);
 extern void muonUpward(double*nu,double*Nu,double*mu);
-extern double  captureAux(double(*vfv)(double),int forSun, double csIp, double csIn,double csDp,double csDn);
+extern double  captureAux(double(*vfv)(double),int forSun, double M_cdm, double csIp, double csIn,double csDp,double csDn);
 extern double  ATMmuonUpward(double cosFi, double E);
 extern double  ATMmuonContained(double cosFi, double E, double rho);
 
+extern double  ATMdNudE(double E);
+extern double nuAttenuation(int nu, double cs,double E);
+extern double atmNuFlux(int nu,double cs, double E);
+extern double atmNuFlux_(int nu,double cs, double E);
+
+#include"ic22.h"
+
+
 /*  Direct Detection */
-extern int QCDcorrections, Twist2On;
+extern int  QCDcorrections, Twist2On;
 extern void calcScalarFF(double muDmd,double msDmd,double sigmaPiN,double sigma0);
 extern void calcScalarQuarkFF(double muDmd, double msDmd, double sigmaPiN, double sigmaS);
-extern double FeScLoop(double sgn, double mq,double msq,double mne);
-extern int nucleonAmplitudes(char * WINP, double(*LF)(double,double,double,double), 
-                  double*pA0,double*pA5,double*nA0,double*nA5); 
+extern int  nucleonAmplitudes(char * WINP, double*pA0, double*pA5, double*nA0,double*nA5); 
 
 extern void  SetFermi(double C,double B, double a);
 extern double FermiFF(int A, double Qfermi);
@@ -330,9 +352,7 @@ double(*fDv)(double),   /*  f(v)/v where f(v) is velocity distribution,
                             v in km/s  */
 int A, int Z, double J, /* nuclear atomic number, charge and spin   */
 
-void (*Sxx)(double,double*,double*,double*), /* SD formfactors */
-
-double(*LF)(double,double,double,double),     
+void (*Sxx)(double,double*,double*,double*), /* SD formfactors */ 
 double * dNdE   /* distribution of number of events respect to recoil 
                  energy  in 1/(Kg*Day*Kev) inits. Presinted as array 
                  with 200 elements with 1KeV step (from 0 to 199KeV) */
@@ -340,8 +360,7 @@ double * dNdE   /* distribution of number of events respect to recoil
 /* nucleusRecoil returns the total number of events for 1day*1Kg */
                   
 extern double nucleusRecoil0(double (*vfv)(double),
- int A,int Z,double J,double Sp,double Sn,
- double(*LF)(double,double,double,double), double*dNdE);
+ int A,int Z,double J,double Sp,double Sn, double*dNdE);
  
 extern double nucleusRecoilAux(
       double(*vfv)(double),
@@ -376,6 +395,9 @@ extern double cutRecoilResult(double *tab, double E1, double E2);
 extern double dNdERecoil(double *tab, double E);
 
 extern void killPlots(void);
+
+extern void smodels(double Pcm, int nf,double csMinFb, char*fileName,int wrt);
+
 
 typedef void (SxxType)(double,double*,double*,double*);
 

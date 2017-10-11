@@ -16,7 +16,7 @@ extern int sortoddparticles_(char * name,int len);
 
 extern  void forceug_(int * G);
 
-extern void newprocess_(char*Process, int* address,int len1);
+extern long newprocess_(char*Process,int len1);
 /* 
    Subroutine newProcess(Process, address)
    character *(*) Process
@@ -154,13 +154,13 @@ extern double calcspectrum_(int *key,double *Sg, double *Se, double *Sp, double 
    real*8 Sg(250),Se(250),Sp(250),Sne(250),Snm(250),Snl(250),
 */
      
-extern void spectrinfo_(double*Xmin,double*tab,double*Ntot,double*Etot);
+extern double  spectrinfo_(double*Emin,double*tab,double*Etot);
 /* 
-    subroutine spectrInfo(Xmin,tab,Ntot,Etot)
-    real*8 Xmin,tab(250),Ntot,Etot
+     real*8 spectrInfo(Emin,tab,Etot)
+     real*8 Emin,tab(250),Etot
 */
 
-extern int displayspectrum_(double*tab, char*fmess,double *Emin,double *Emax,int len);
+extern int displayspectrum_(char*fmess,double *Emin,double *Emax,double*tab,int len);
 /*  integer function displaySpectrum( tab, mess, Emin)
     real*8 tab(250)
     character*(*) mess
@@ -216,10 +216,9 @@ extern double noloop_(double*,double*,double*,double*);
     real*8 sgn, mq,msq,mne
 */     
 
-extern int nucleonamplitudes_(char*cdm,double (*LF)(double*,double*,double*,double*),
-                         double*pA0,double*pA5,double*nA0,double*nA5,int len);
+extern int nucleonamplitudes_(char*cdm, double*pA0,double*pA5,double*nA0,double*nA5,int len);
 /*
-    integer function  nucleonAmplitudes(LF,pA0,pA5,nA0,nA5)
+    integer function  nucleonAmplitudes(pA0,pA5,nA0,nA5)
     real*8 LF,pA0(2),pA5(2),nA0(2),nA5(2) 
 */
 
@@ -254,11 +253,10 @@ extern double fdvdelta_(double *v);
 
 extern double nucleusrecoil_(
      double(*fDv)(double*),int*A, int*Z, double*J, 
-     void(*S00)(double*,double*,double*,double*),
-     double (*LF)(double*,double*,double*,double*), double * dNdE );
+     void(*S00)(double*,double*,double*,double*),  double * dNdE );
 /*
-     real*8 function nucleusRecoil(fDv,A,Z,J,S00,S01,S11,LF,dNdE )
-     real*8 fDv,J,S00,S01,S11,LF,dNdE(200)
+     real*8 function nucleusRecoil(fDv,A,Z,J,S00,S01,S11,dNdE )
+     real*8 fDv,J,S00,S01,S11,dNdE(200)
      integer A,Z
 */     
 

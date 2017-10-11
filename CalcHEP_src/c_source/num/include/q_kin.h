@@ -3,7 +3,7 @@
 
 #include"nType.h"
 
-extern int mkmom(double *x, double *tfact,REAL*pv);
+extern int mkmom(double*x,double*tfact,double*x1,double*x2,REAL*pv);
 extern int imkmom(double P1,double P2);
 
 #endif

@@ -118,7 +118,7 @@ static double calcwidth12(void)
         pvect3[11]=-pRestOut;
         pvect3[8]=sqrt(pRestOut*pRestOut+m3*m3);
 
-        widths[nsub-1] = totcoef * sqme_int(nsub,GG,pvect3,&err_code);
+        widths[nsub-1] = totcoef * sqme_int(nsub,GG,pvect3,NULL,&err_code);
         if(err_code != 0) {  errormessage(); widths[nsub-1]=0; err_code=0;}
         width12 += widths[nsub-1];
         if(nsubSel==nsub) selChan= widths[nsub-1];

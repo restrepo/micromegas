@@ -109,7 +109,7 @@ double  initQCD5(double MZalphaS, double McMc, double MbMb, double MtP)
    double lmbd= initQCD(MZalphaS,McMc, MbMb,MtP);
    lambda[6]=lambda[5]; 
    nfMax=5;
-   return lmbd;
+   return lmbd;   
 }
 
 
@@ -191,7 +191,7 @@ double MbRun(double Q)
 }
 
 double MtRun(double Q) 
-{
+{ 
    return runningMass(qMass[6], qMass[6], Q); 
 } 
 

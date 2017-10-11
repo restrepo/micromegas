@@ -10,6 +10,7 @@ extern int   mess_y_n(int    x1,int    y1,	char  * txtstr);
 extern void  messanykey(int    x1,	int    y1, char  * txtstr);
 extern int   yesnokey(void);
 extern int   informline(long curent,long total);
+extern int infoLine(double rate);
 extern int   str_redact(char * txt, int  npos, int maxLen);
 
 extern int   correctDouble(int x,int y,char* txt,double * var,int clear);

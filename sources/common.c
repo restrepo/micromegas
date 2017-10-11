@@ -50,4 +50,6 @@ MOcommonSTR mocommon_=
 
 MoCommonCH mocommonch_;
 
+MOflagsSTR moflags_={{0,0,0,0}};
+
 void forceug_(int * key) { ForceUG=*key;}

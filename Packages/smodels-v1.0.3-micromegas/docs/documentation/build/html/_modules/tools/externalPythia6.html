@@ -1,0 +1,416 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>tools.externalPythia6 &mdash; SModelS 1.0.3 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="SModelS 1.0.3 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SModelS 1.0.3 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for tools.externalPythia6</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: tools.externalPythia6</span>
+<span class="sd">   :synopsis: Wrapper for pythia6.</span>
+
+<span class="sd">.. moduleauthor:: Wolfgang Waltenberger &lt;wolfgang.waltenberger@gmail.com&gt;</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">smodels.tools.externalTool</span> <span class="kn">import</span> <span class="n">ExternalTool</span>
+<span class="kn">from</span> <span class="nn">smodels.tools</span> <span class="kn">import</span> <span class="n">externalTool</span>
+<span class="kn">from</span> <span class="nn">smodels</span> <span class="kn">import</span> <span class="n">installation</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">commands</span>
+<span class="kn">import</span> <span class="nn">urllib</span>
+<span class="kn">import</span> <span class="nn">tarfile</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ExternalPythia6"><a class="viewcode-back" href="../../tools.html#tools.externalPythia6.ExternalPythia6">[docs]</a><span class="k">class</span> <span class="nc">ExternalPythia6</span><span class="p">(</span><span class="n">ExternalTool</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An instance of this class represents the installation of pythia6.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">configFile</span><span class="o">=</span><span class="s">&quot;&lt;install&gt;/etc/pythia.card&quot;</span><span class="p">,</span>
+                 <span class="n">executablePath</span><span class="o">=</span><span class="s">&quot;&lt;install&gt;/lib/pythia6/pythia_lhe&quot;</span><span class="p">,</span>
+                 <span class="n">srcPath</span><span class="o">=</span><span class="s">&quot;&lt;install&gt;/lib/pythia6/&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        :param configFile: Location of the config file, full path; copy this</span>
+<span class="sd">        file and provide tools to change its content and to provide a template</span>
+<span class="sd">        :param executablePath: Location of executable, full path (pythia_lhe)</span>
+<span class="sd">        </span>
+<span class="sd">        nevents - Keep track of how many events we run over for each event we</span>
+<span class="sd">        only allow a certain computation time if</span>
+<span class="sd">        self.secondsPerEvent * self.nevents &gt; CPU time, we terminate Pythia.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ExternalTool</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&quot;pythia6&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">executablePath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">absPath</span><span class="p">(</span><span class="n">executablePath</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">executable</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">srcPath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">absPath</span><span class="p">(</span><span class="n">srcPath</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tempdir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cfgfile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkFileExists</span><span class="p">(</span><span class="n">configFile</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">keepTempDir</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nevents</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">secondsPerEvent</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="ExternalPythia6.reset"><a class="viewcode-back" href="../../tools.html#tools.externalPythia6.ExternalPythia6.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Copy the original config file again.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cfgfile</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tempdir</span> <span class="o">+</span> <span class="s">&quot;/temp.cfg&quot;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="ExternalPythia6.checkFileExists"><a class="viewcode-back" href="../../tools.html#tools.externalPythia6.ExternalPythia6.checkFileExists">[docs]</a>    <span class="k">def</span> <span class="nf">checkFileExists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputFile</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if file exists, raise an IOError if it does not.</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: absolute file name if file exists.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">absPath</span><span class="p">(</span><span class="n">inputFile</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">nFile</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s">&quot;config file </span><span class="si">%s</span><span class="s"> does not exist&quot;</span> <span class="o">%</span> <span class="n">nFile</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">nFile</span>
+
+</div>
+<div class="viewcode-block" id="ExternalPythia6.tempDirectory"><a class="viewcode-back" href="../../tools.html#tools.externalPythia6.ExternalPythia6.tempDirectory">[docs]</a>    <span class="k">def</span> <span class="nf">tempDirectory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the temporary directory name.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tempdir</span>
+
+</div>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Describe the current status </span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="s">&quot;tool: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">ret</span> <span class="o">+=</span> <span class="s">&quot;executable: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">executablePath</span><span class="p">)</span>
+        <span class="n">ret</span> <span class="o">+=</span> <span class="s">&quot;temp dir: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">tempdir</span>
+        <span class="n">ret</span> <span class="o">+=</span> <span class="s">&quot;nevents: </span><span class="si">%d</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">nevents</span>
+        <span class="k">return</span> <span class="n">ret</span>
+
+
+<div class="viewcode-block" id="ExternalPythia6.unlink"><a class="viewcode-back" href="../../tools.html#tools.externalPythia6.ExternalPythia6.unlink">[docs]</a>    <span class="k">def</span> <span class="nf">unlink</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unlinkdir</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Remove temporary files.</span>
+<span class="sd">        </span>
+<span class="sd">        :param unlinkdir: remove temp directory completely</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">keepTempDir</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Keeping everything in &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">tempdir</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Unlinking &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">tempdir</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">inputFile</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;fort.61&quot;</span><span class="p">,</span> <span class="s">&quot;fort.68&quot;</span><span class="p">,</span> <span class="s">&quot;log&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tempdir</span> <span class="o">+</span> <span class="s">&quot;/&quot;</span> <span class="o">+</span> <span class="n">inputFile</span><span class="p">):</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tempdir</span> <span class="o">+</span> <span class="s">&quot;/&quot;</span> <span class="o">+</span> <span class="n">inputFile</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">unlinkdir</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">inputFile</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;temp.cfg&quot;</span><span class="p">]:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tempdir</span> <span class="o">+</span> <span class="s">&quot;/&quot;</span> <span class="o">+</span> <span class="n">inputFile</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tempdir</span><span class="p">):</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">rmdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tempdir</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="ExternalPythia6.replaceInCfgFile"><a class="viewcode-back" href="../../tools.html#tools.externalPythia6.ExternalPythia6.replaceInCfgFile">[docs]</a>    <span class="k">def</span> <span class="nf">replaceInCfgFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">replacements</span><span class="o">=</span><span class="p">{</span><span class="s">&quot;NEVENTS&quot;</span><span class="p">:</span> <span class="mi">10000</span><span class="p">,</span> <span class="s">&quot;SQRTS&quot;</span><span class="p">:</span><span class="mi">8000</span><span class="p">}):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Replace strings in the config file by other strings, similar to</span>
+<span class="sd">        setParameter.</span>
+
+<span class="sd">        This is introduced as a simple mechanism to make changes to the</span>
+<span class="sd">        parameter file.</span>
+<span class="sd">        </span>
+<span class="sd">        :param replacements: dictionary of strings and values; the strings will</span>
+<span class="sd">                             be replaced with the values; the dictionary keys </span>
+<span class="sd">                             must be strings present in the config file</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tempdir</span> <span class="o">+</span> <span class="s">&quot;/temp.cfg&quot;</span><span class="p">)</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tempdir</span> <span class="o">+</span> <span class="s">&quot;/temp.cfg&quot;</span><span class="p">,</span> <span class="s">&quot;w&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">replacements</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&quot;NEVENTS&quot;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">nevents</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="ExternalPythia6.setParameter"><a class="viewcode-back" href="../../tools.html#tools.externalPythia6.ExternalPythia6.setParameter">[docs]</a>    <span class="k">def</span> <span class="nf">setParameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param</span><span class="o">=</span><span class="s">&quot;MSTP(163)&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">6</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Modifies the config file, similar to .replaceInCfgFile.</span>
+<span class="sd">        </span>
+<span class="sd">        It will set param to value, overwriting possible old values.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tempdir</span> <span class="o">+</span> <span class="s">&quot;/temp.cfg&quot;</span><span class="p">)</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tempdir</span> <span class="o">+</span> <span class="s">&quot;/temp.cfg&quot;</span><span class="p">,</span> <span class="s">&quot;w&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>  <span class="c"># # copy all but lines with &quot;param&quot;</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">=</span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)))</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="ExternalPythia6.complain"><a class="viewcode-back" href="../../tools.html#tools.externalPythia6.ExternalPythia6.complain">[docs]</a>    <span class="k">def</span> <span class="nf">complain</span> <span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">sys</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;please fix manually, e.g. try &#39;make&#39; in smodels/lib, &quot;</span> \
+               <span class="s">&quot; or file a complaint at smodels-users@lists.oeaw.ac.at&quot;</span> <span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="ExternalPythia6.run"><a class="viewcode-back" href="../../tools.html#tools.externalPythia6.ExternalPythia6.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">slhaFile</span><span class="p">,</span> <span class="n">cfgfile</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">do_unlink</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">do_compile</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+            <span class="n">do_check</span><span class="o">=</span><span class="bp">True</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run Pythia.</span>
+<span class="sd">        </span>
+<span class="sd">        :param slhaFile: SLHA file</span>
+<span class="sd">        :param cfgfile: optionally supply a new config file; if not supplied,</span>
+<span class="sd">                        use the one supplied at construction time; </span>
+<span class="sd">                        this config file will not be touched or copied;  </span>
+<span class="sd">                        it will be taken as is</span>
+<span class="sd">        :param do_unlink: clean up temporary files after run?</span>
+<span class="sd">        :param do_compile: if true, we try to compile binary if it isnt installed.</span>
+<span class="sd">        :returns: stdout and stderr, or error message</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">do_check</span><span class="p">:</span>
+            <span class="n">ci</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">checkInstallation</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">ci</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">do_compile</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;couldnt find pythia6 binary.&quot;</span> <span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">complain</span><span class="p">()</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;couldnt find pythia6 binary. I have been asked to try to compile it, though. Lets see.&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">complain</span><span class="p">()</span>
+            <span class="c">#    self.compile()</span>
+            <span class="c">#    ci=self.checkInstallation( fix=False )</span>
+            <span class="c">#    if not ci:</span>
+            <span class="c">#        logger.error(&quot;still cannot find pythia6 binary, even after compiling.&quot;)</span>
+        <span class="c">#        self.complain()</span>
+        <span class="n">slha</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkFileExists</span><span class="p">(</span><span class="n">slhaFile</span><span class="p">)</span>
+        <span class="c"># cfg = self.tempdir + &quot;/temp.cfg&quot;</span>
+        <span class="c"># if cfgfile != None:</span>
+        <span class="n">cfg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">absPath</span><span class="p">(</span><span class="n">cfgfile</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;running with &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">cfg</span><span class="p">))</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">slha</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tempdir</span> <span class="o">+</span> <span class="s">&quot;/fort.61&quot;</span><span class="p">)</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="s">&quot;cd </span><span class="si">%s</span><span class="s"> ; </span><span class="si">%s</span><span class="s"> &lt; </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> \
+             <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tempdir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">executablePath</span><span class="p">,</span> <span class="n">cfg</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Now running &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">cmd</span><span class="p">))</span>
+        <span class="n">Out</span> <span class="o">=</span> <span class="n">commands</span><span class="o">.</span><span class="n">getoutput</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">do_unlink</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">unlinkdir</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tempdir</span> <span class="o">+</span> <span class="s">&quot;/log&quot;</span><span class="p">,</span> <span class="s">&quot;w&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span> <span class="p">(</span><span class="n">cmd</span> <span class="o">+</span> <span class="s">&quot;</span><span class="se">\n\n\n</span><span class="s">&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span> <span class="p">(</span><span class="n">Out</span> <span class="o">+</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">Out</span>
+</div>
+<div class="viewcode-block" id="ExternalPythia6.chmod"><a class="viewcode-back" href="../../tools.html#tools.externalPythia6.ExternalPythia6.chmod">[docs]</a>    <span class="k">def</span> <span class="nf">chmod</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        chmod 755 on pythia executable, if it exists.</span>
+<span class="sd">        Do nothing, if it doesnt exist.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">executablePath</span> <span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s"> doesnt exist&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">executablePath</span> <span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="kn">import</span> <span class="nn">stat</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="n">stat</span><span class="o">.</span><span class="n">S_IRWXU</span> <span class="o">|</span> <span class="n">stat</span><span class="o">.</span><span class="n">S_IRWXG</span> <span class="o">|</span> <span class="n">stat</span><span class="o">.</span><span class="n">S_IXOTH</span> <span class="o">|</span> <span class="n">stat</span><span class="o">.</span><span class="n">S_IROTH</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chmod</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">executablePath</span><span class="p">,</span> <span class="n">mode</span> <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">True</span>
+
+</div>
+<div class="viewcode-block" id="ExternalPythia6.compile"><a class="viewcode-back" href="../../tools.html#tools.externalPythia6.ExternalPythia6.compile">[docs]</a>    <span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compile pythia_lhe.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Trying to compile pythia:&quot;</span><span class="p">)</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="s">&quot;cd </span><span class="si">%s</span><span class="s">; make&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">srcPath</span>
+        <span class="n">outputMessage</span> <span class="o">=</span> <span class="n">commands</span><span class="o">.</span><span class="n">getoutput</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">outputMessage</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="ExternalPythia6.fetch"><a class="viewcode-back" href="../../tools.html#tools.externalPythia6.ExternalPythia6.fetch">[docs]</a>    <span class="k">def</span> <span class="nf">fetch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fetch and unpack tarball.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tempFile</span> <span class="o">=</span> <span class="s">&quot;/tmp/pythia.tar.gz&quot;</span>
+        <span class="n">fileHandle</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">tempFile</span><span class="p">,</span> <span class="s">&quot;w&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Fetching tarball...&quot;</span><span class="p">)</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s">&quot;http://smodels.hephy.at/externaltools/pythia/pythia.tar.gz&quot;</span>
+        <span class="n">link</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">link</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+            <span class="n">fileHandle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">link</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">fileHandle</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;... done.&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Untarring...&quot;</span><span class="p">)</span>
+        <span class="n">tar</span> <span class="o">=</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">tempFile</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">tar</span><span class="p">:</span>
+            <span class="n">tar</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">srcPath</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;... done.&quot;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="ExternalPythia6.checkInstallation"><a class="viewcode-back" href="../../tools.html#tools.externalPythia6.ExternalPythia6.checkInstallation">[docs]</a>    <span class="k">def</span> <span class="nf">checkInstallation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fix</span><span class="o">=</span><span class="bp">False</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if installation of tool is correct by looking for executable and</span>
+<span class="sd">        running it.</span>
+
+<span class="sd">        :param compile: should it try to fix the situation, if something is wrong?</span>
+
+<span class="sd">        :returns: True, if everything is ok</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">executablePath</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;executable &#39;</span><span class="si">%s</span><span class="s">&#39; not found&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">executablePath</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">fix</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">compile</span><span class="p">()</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">access</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">executablePath</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">X_OK</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s"> is not executable&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">executable</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">chmod</span><span class="p">()</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="n">slhaFile</span> <span class="o">=</span> <span class="s">&quot;/inputFiles/slha/gluino_squarks.slha&quot;</span>
+        <span class="n">slhaPath</span> <span class="o">=</span> <span class="n">installation</span><span class="o">.</span><span class="n">installDirectory</span><span class="p">()</span> <span class="o">+</span> <span class="n">slhaFile</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">slhaPath</span><span class="p">,</span> <span class="s">&quot;&lt;install&gt;/etc/pythia_test.card&quot;</span><span class="p">,</span>
+                    <span class="n">do_compile</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">do_check</span><span class="o">=</span><span class="bp">False</span> <span class="p">)</span> 
+            <span class="n">output</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">output</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;The following floating-point&quot;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">output</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+
+            <span class="n">output</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot; ********* Fraction of events that fail fragmentation &quot;</span>
+                   <span class="s">&quot;cuts =  0.00000 *********&quot;</span><span class="p">)</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="p">{</span><span class="o">-</span><span class="mi">1</span> <span class="p">:</span> <span class="n">val</span><span class="p">}</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">nr</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span> <span class="ow">in</span> <span class="n">lines</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">output</span><span class="p">[</span><span class="n">nr</span><span class="p">]</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Expected &gt;&gt;&gt;</span><span class="si">%s</span><span class="s">&lt;&lt;&lt; found &gt;&gt;&gt;</span><span class="si">%s</span><span class="s">&lt;&lt;&lt;&quot;</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span>
+                                 <span class="n">output</span><span class="p">[</span><span class="n">nr</span><span class="p">])</span>
+                    <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Something is wrong with the setup: exception </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="bp">True</span>
+
+</div></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">tool</span> <span class="o">=</span> <span class="n">ExternalPythia6</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;installed: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">tool</span><span class="o">.</span><span class="n">installDirectory</span><span class="p">()))</span>
+    <span class="n">td_exists</span> <span class="o">=</span> <span class="n">externalTool</span><span class="o">.</span><span class="n">ok</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">tool</span><span class="o">.</span><span class="n">tempDirectory</span><span class="p">()))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;temporary directory: </span><span class="si">%s</span><span class="s">: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">tool</span><span class="o">.</span><span class="n">tempDirectory</span><span class="p">()),</span>
+                                           <span class="n">td_exists</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;check: &quot;</span> <span class="o">+</span> <span class="n">externalTool</span><span class="o">.</span><span class="n">ok</span><span class="p">(</span><span class="n">tool</span><span class="o">.</span><span class="n">checkInstallation</span><span class="p">()))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;seconds per event: </span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">tool</span><span class="o">.</span><span class="n">secondsPerEvent</span><span class="p">)</span>
+    <span class="n">tool</span><span class="o">.</span><span class="n">replaceInCfgFile</span><span class="p">({</span><span class="s">&quot;NEVENTS&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&quot;SQRTS&quot;</span><span class="p">:</span><span class="mi">8000</span><span class="p">})</span>
+    <span class="n">tool</span><span class="o">.</span><span class="n">setParameter</span><span class="p">(</span><span class="s">&quot;MSTP(163)&quot;</span><span class="p">,</span> <span class="s">&quot;6&quot;</span><span class="p">)</span>
+    <span class="n">slhafile</span> <span class="o">=</span> <span class="s">&quot;/inputFiles/slha/andrePT4.slha&quot;</span>
+    <span class="n">slhapath</span> <span class="o">=</span> <span class="n">installation</span><span class="o">.</span><span class="n">installDirectory</span><span class="p">()</span> <span class="o">+</span> <span class="n">slhafile</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">tool</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">slhafile</span><span class="p">)</span>
+    <span class="n">isok</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span> <span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">570</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;run: &quot;</span> <span class="o">+</span> <span class="n">externalTool</span><span class="o">.</span><span class="n">ok</span> <span class="p">(</span><span class="n">isok</span><span class="p">))</span>
+    <span class="n">tool</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SModelS 1.0.3 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Sabine Kraml, Suchita Kulkarni, Ursula Laa, Andre Lessa, Veronika Magerl, Wolfgang Magerl, Doris Proschofsky, Michael Traub, Wolfgang Waltenberger.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

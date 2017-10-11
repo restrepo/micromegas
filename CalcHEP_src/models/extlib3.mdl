@@ -1,4 +1,6 @@
 SM(CKM=1 with hGG/AA)
 Libraries
-External libraries  and citation                                   <|
-=====================================================================
+External libraries                                                     <|
+%-L$HOME/Packages/lhapdf-5.9.1/install/lib -lLHAPDF
+%-L$HOME/Packages/LHAPDF-6.1.5/install/lib -lLHAPDF
+=========================================================================

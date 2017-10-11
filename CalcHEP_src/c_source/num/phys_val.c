@@ -58,6 +58,24 @@ double calcPhysVal(char key,char * lv,double*V)
             dl = 0.5*log(dl);
             
             return sqrt(dl*dl + cs*cs);
+
+        case 'K':
+            p1 = V[np1+1];
+            p2 = V[np1+2];
+            p3 = V[np1+3];
+            mp = sqrt(p1*p1 + p2*p2 + p3*p3);
+
+            q1 = V[np2+1];
+            q2 = V[np2+2];
+            q3 = V[np2+3];
+            mq = sqrt(q1*q1 + q2*q2 + q3*q3);
+            
+                   
+            dl = (mp + p3) * (mq - q3)  / (mp - p3) / (mq +q3);
+            dl = 0.5*log(dl);
+            
+            return  fabs(dl);
+
         case 'D':
             p1 = V[np1+1];
             p2 = V[np1+2];
@@ -169,7 +187,7 @@ int  checkPhysVal(char * name, char * key, char *plist)
   if(*key==0) return 0;
   
    *key= toupper(*key);
-  if(strchr("ACEJMPSTUYNZW",*key)==NULL) return 0; 
+  if(strchr("ACEDJKMPSTUYNZW",*key)==NULL) return 0; 
     
   if(*key == 'U')
   {  for( ;name[i] && j<29; i++) if(name[i]!=' ') plist[j++]=name[i]; 
@@ -189,7 +207,7 @@ int  checkPhysVal(char * name, char * key, char *plist)
   plist[j]=0;                                            
   for( ;name[i];i++) if(name[i] != ' ') return 0; 
 
-  if(strchr("CAJD",*key)!=NULL && strlen(plist)!=2 )  return 0;
+  if(strchr("CAJDK",*key)!=NULL && strlen(plist)!=2 )  return 0;
   if(strchr("P",*key)!=NULL && strlen(plist)<2 )  return 0;
   
   if(strchr("MS",*key)!=NULL && strlen(plist)<1)  return 0;
@@ -216,7 +234,7 @@ void cleanPVlist(physValRec * p)
 
 int  checkPhysValN(char * name, char * key, physValRec **pLists)
 { int i=0,k,ln;
-  char *chB;
+  char *chB,*chE;
   char pnum[10][10];
   int kk[10];
   errorText[0]=0;
@@ -226,8 +244,9 @@ int  checkPhysValN(char * name, char * key, physValRec **pLists)
   *key=toupper(*chB); key[1]=key[2]=0;
   if(*key==0) return 0;
 
+  
 
-  if(!strchr("ACEJDMPTUYNWZ",*key)) {sprintf(errorText,"wrong key '%c'",*key);  return 0;}
+  if(!strchr("ACDEJKMPTUYNWZ",*key)) {sprintf(errorText,"wrong key '%c'",*key);  return 0;}
   chB++;  
 
   if(*key=='E' && nin_int==2 && (strcmp(chB,"1")==0 ||strcmp(chB,"2")==0)) 
@@ -257,7 +276,10 @@ int  checkPhysValN(char * name, char * key, physValRec **pLists)
   if(*chB=='^'||*chB=='_') { key[1]=*chB; chB++; } 
    
   if(*chB!='(') { sprintf(errorText," bracket '(' expected");  return 0;}
-  if(!strchr(chB,')')) {sprintf(errorText," bracket ')' expected");  return 0;}
+  chE=strchr(chB,')');
+  if(!chE) {sprintf(errorText," bracket ')' expected");  return 0;}
+  chE++;
+  for(;chE[0];chE++) if(chE[0]!=' ') { sprintf(errorText," only one term expected");  return 0;}
 
   for(ln=0; chB ;chB=strchr(chB,','),ln++){
     char pname[100];
@@ -286,14 +308,16 @@ int  checkPhysValN(char * name, char * key, physValRec **pLists)
   }
   if(ln<1) return 0;
   
-  if(*key=='J' && ln!=2) { sprintf(errorText,"J() value needs 2 arguments "); return 0;}
-  if(*key=='D' && ln!=2) { sprintf(errorText,"D() value needs 2 arguments "); return 0;}
+  if(strchr("DJK",*key) && ln!=2)
+  {  sprintf(errorText,"%c() function needs 2 arguments ",*key); 
+     return 0;
+  }   
   if(*key=='P' && ln<2 ) { sprintf(errorText,"P() value needs 2 arguments ");  return 0;}
   if(strchr("CA",*key) &&(( ln==1 && nin_int==1)||ln>2)) 
     { printf(errorText,"wrong number of arguments for C() or A() ");  return 0;}   
   
   if(nin_int==1)
-  { if( strchr("DTYNZW",*key)) { printf(errorText,"'D/T/Y/N/Z/W'  can not be used for decay processes");return 0;}  
+  { if( strchr("DTYNKZW",*key)) { printf(errorText,"'D/K/T/Y/N/Z/W'  can not be used for decay processes");return 0;}  
   }    
   
   for(i=0;i<ln;i++) if(pnum[i][0]==0) return 1;

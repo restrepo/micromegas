@@ -25,7 +25,8 @@ typedef struct csdiagram
       unsigned          del; 
       char          status;   /* -2-outOfMemory,-1-deleted,
                                  0-Rest, 1-calculated,2-Zero  */
-      int nsub;                           
+      int nsub;
+      int ndiagr;  
    }  csdiagram;
 
 #define maxvert (MAXINOUT - 2)

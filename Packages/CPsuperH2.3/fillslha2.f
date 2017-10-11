@@ -1045,7 +1045,46 @@ c HiggsBounds
      .ng^2 = H1-W-W coupling^2, normalized to SM'
       WRITE(NOUT,130),0.D0,3,36,36,23,'# H3-H3-Z coupling^2 = 0'
       WRITE(NOUT,10)
+* Lilith
+      WRITE(NOUT,FMT='("Block LiLithInputHiggsCouplingsBosons")')
+      WRITE(NOUT,130),DREAL(NHC_H(70,1)),3,25,24,24,'# H1-W-W couplin
+     ., normalized to SM'
+      WRITE(NOUT,130),DREAL(NHC_H(70,2)),3,35,24,24,'# H2-W-W couplin
+     ., normalized to SM'
+      WRITE(NOUT,130),DREAL(NHC_H(70,3)),3,36,24,24,'# H3-W-W couplin
+     ., normalized to SM'
+      WRITE(NOUT,130),DREAL(NHC_H(70,1)),3,25,23,23,'# H1-Z-Z couplin
+     ., normalized to SM'
+      WRITE(NOUT,130),DREAL(NHC_H(70,2)),3,35,23,23,'# H2-Z-Z couplin
+     ., normalized to SM'
+      WRITE(NOUT,130),DREAL(NHC_H(70,3)),3,36,23,23,'# H3-Z-Z couplin
+     ., normalized to SM'
+      RTMP=sqrt(CDABS(NHC_H(84,1))**2+CDABS(NHC_H(85,1))**2)
+     .    /CDABS(CAUX_H(221))
+      WRITE(NOUT,130),RTMP,3,25,21,21,'# H1-gluon-gluon coupling, norm
+     .alized to SM'
+      RTMP=sqrt(CDABS(NHC_H(84,2))**2+CDABS(NHC_H(85,2))**2)
+     .    /CDABS(CAUX_H(222))
+      WRITE(NOUT,130),RTMP,3,35,21,21,'# H2-gluon-gluon coupling, norm
+     .alized to SM'
+      RTMP=(CDABS(NHC_H(84,3))**2+CDABS(NHC_H(85,3))**2)
+     .    /CDABS(CAUX_H(223))
+      WRITE(NOUT,130),RTMP,3,36,21,21,'# H3-gluon-gluon coupling^2, norm
+     .alized to SM'
+      WRITE(NOUT,130),0.D0,3,25,25,23,'# H1-H1-Z coupling^2 = 0'
+      WRITE(NOUT,130),DREAL(NHC_H(70,3)),3,25,35,23,'# H1-H2-Z coupli
+     .ng = H3-W-W coupling, normalized to SM'
+      WRITE(NOUT,130),DREAL(NHC_H(70,2)),3,25,36,23,'# H1-H3-Z coupli
+     .ng^2 = H2-W-W coupling^2, normalized to SM'
+      WRITE(NOUT,130),0.D0,3,35,35,23,'# H2-H2-Z coupling = 0'
+      WRITE(NOUT,130),DREAL(NHC_H(70,1)),3,35,36,23,'# H2-H3-Z coupli
+     .ng^2 = H1-W-W coupling, normalized to SM'
+      WRITE(NOUT,130),0.D0,3,36,36,23,'# H3-H3-Z coupling = 0'
+      WRITE(NOUT,10)
 *
+
+*HiggsBounds
+
       WRITE(NOUT,FMT='("Block HiggsBoundsInputHiggsCouplingsFermions")')
 *      do ih=1,3
 *       print*,cdabs(nhc_h( 8,ih))**2,cdabs(nhc_h( 9,ih))**2   ! tau
@@ -1071,6 +1110,32 @@ c HiggsBounds
       WRITE(NOUT,140),CDABS(NHC_H(26,3))**2,CDABS(NHC_H(27,3))**2,3,36,6
      .,6,'# H3-top-top eff. coupling^2, normmalized to SM'
 *-----------------------------------------------------------------------
+*Lilith
+      WRITE(NOUT,FMT='("Block LiLithInputHiggsCouplingsFermions")')
+*      do ih=1,3
+*       print*,cdabs(nhc_h( 8,ih)),cdabs(nhc_h( 9,ih))   ! tau
+*       print*,cdabs(nhc_h(17,ih)),cdabs(nhc_h(18,ih))   ! b
+*       print*,cdabs(nhc_h(26,ih)),cdabs(nhc_h(27,ih))   ! top
+*      enddo
+      WRITE(NOUT,140),DREAL(NHC_H( 8,1)),DREAL(NHC_H( 9,1)),3,25,1
+     .5,15,'# H1-tau-tau eff. coupling, normmalized to SM'
+      WRITE(NOUT,140),DREAL(NHC_H( 8,2)),DREAL(NHC_H( 9,2)),3,35,1
+     .5,15,'# H2-tau-tau eff. coupling, normmalized to SM'
+      WRITE(NOUT,140),DREAL(NHC_H( 8,3)),DREAL(NHC_H( 9,3)),3,36,1
+     .5,15,'# H3-tau-tau eff. coupling, normmalized to SM'
+      WRITE(NOUT,140),DREAL(NHC_H(17,1)),DREAL(NHC_H(18,1)),3,25,5
+     .,5,'# H1-b-b eff. coupling^2, normmalized to SM'
+      WRITE(NOUT,140),DREAL(NHC_H(17,2)),DREAL(NHC_H(18,2)),3,35,5
+     .,5,'# H2-b-b eff. coupling^2, normmalized to SM'
+      WRITE(NOUT,140),DREAL(NHC_H(17,3)),DREAL(NHC_H(18,3)),3,36,5
+     .,5,'# H3-b-b eff. coupling^2, normmalized to SM'
+      WRITE(NOUT,140),DREAL(NHC_H(26,1)),DREAL(NHC_H(27,1)),3,25,6
+     .,6,'# H1-top-top eff. coupling, normmalized to SM'
+      WRITE(NOUT,140),DREAL(NHC_H(26,2)),DREAL(NHC_H(27,2)),3,35,6
+     .,6,'# H2-top-top eff. coupling, normmalized to SM'
+      WRITE(NOUT,140),DREAL(NHC_H(26,3)),DREAL(NHC_H(27,3)),3,36,6
+     .,6,'# H3-top-top eff. coupling, normmalized to SM'
+
 *Tail
       WRITE(NOUT,11) '--------------------------------------------------
      .----------------------------'

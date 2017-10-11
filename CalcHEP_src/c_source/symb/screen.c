@@ -27,11 +27,14 @@
 #include "procvar.h"
 #include "viewdir.h"
 #include "dynamic_cs.h"
+#include "n_proc.h"
 #define tcol Green
 #define mpos 7
 #define graphpos 8
 
+
 //int    menulevel;
+
 
 static void diag_stat(int type,int*n_sub,int*n_del,int*n_calc,int*n_rest)
 {
@@ -111,7 +114,9 @@ cont:
         {
           if(mess_y_n(15,19," Save corrections ?") )
           {
-            if (ok||loadModel(1,0) ) writeModelFiles(n_model); else  goto cont;
+            if (ok||loadModel(1,0)|| mess_y_n(15,19," Save incorrect models?"))
+            {  writeModelFiles(n_model);  
+            } else  goto cont;
             if(renamed) 
             { int i,size=modelmenu[0]; 
               for(i=0;modelTab[0].mdlName[i]&&i<size-1;i++)
@@ -119,7 +124,7 @@ cont:
               for(;i<size-1;i++) modelmenu[(n_model-1)*size +2+i]=' ';
               modelinfo();
             }       
-          }else  readModelFiles("./models",n_model);   
+          }else { int mStat=ldModelStatus;  readModelFiles("./models",n_model); ldModelStatus=mStat;}    
         }
         f3_key[7]=f10_key_prog;
         return;
@@ -166,10 +171,10 @@ void         menuhelp(void)
   print("  facilities and F1 - as online help.              \n");
   scrcolor(Yellow,BGmain);print("  Questions:"); scrcolor(Black,BGmain);
   print("https://answers.launchpad.net/calchep\n");
-  scrcolor(Yellow,BGmain);print("       Bugs:");   
+  scrcolor(Yellow,BGmain);print("       Bugs:");
   scrcolor(Black,BGmain);
   print("https://bugs.launchpad.net/calchep\n");
-           
+ 
   scrcolor(Black,BGmain);
   chepbox(1,5,53,17);
   scrcolor(FGmain,BGmain);
@@ -230,7 +235,6 @@ void         diagramsinfo(void)
 void  sq_diagramsinfo(void)
 {
    int n_sub, n_del, n_calc, n_rest;
-
 
    diag_stat(2,&n_sub,&n_del,&n_calc,&n_rest);
    if(!n_sub) return;
@@ -463,6 +467,7 @@ void f4_key_prog(int x)
   if(i<8) f3_key[i]=f4_key_prog;  /* UNLOCK */
 }
 
+
 void f5_key_prog(int x)
 {
   int kmenu=1;
@@ -471,24 +476,29 @@ void f5_key_prog(int x)
   int nfun;
   for(nfun=0; nfun<8 && f5_key_prog != f3_key[nfun] ; nfun++);
   if(nfun<8) f3_key[nfun]=NULL;
-       
- 
-  
+         
   while(kmenu) 
-  {  
+  {
     char strmen[]="\040"
 /*                  " Symbolic conservation low   OF1"   */
-                  " Number of QCD colors =      Nc "
                   " Diagrams in C-output        OF3"
                   " Widths in t-channels        OF4"
-                  " Virtual W  decays           OF5"
-                  " Virtual Z  decays           OF6";
-/*                   
+                  " Virtual W/Z decays          OF5"
+                  " Parallelization         nPROCSS"
+                  " Number of QCD colors =      Nc "
+                  " Nc=inf for color chains     OF2";
+/*
     if(consLow) improveStr(strmen,"OF1","ON ");
        else     improveStr(strmen,"OF1","OFF");
 */
-    if(NcInfLimit) improveStr(strmen,"Nc","Inf");
-       else        improveStr(strmen,"Nc","3");
+    if(NcInfLimit) { improveStr(strmen,"Nc","Inf");
+                     strmen[ strmen[0]*5+1]=0;
+                   }  
+       else        { improveStr(strmen,"Nc","3");
+                     if( NcInfCC==1) improveStr(strmen,"OF2","ON");
+                         else        improveStr(strmen,"OF2","OFF");
+                   }
+
 /*
     if(noCChain) improveStr(strmen,"OF2","OFF");
        else      improveStr(strmen,"OF2","ON ");
@@ -500,21 +510,26 @@ void f5_key_prog(int x)
         
     if(VWdecay)  improveStr(strmen,"OF5","ON ");
         else     improveStr(strmen,"OF5","OFF");    
-    if(VZdecay)  improveStr(strmen,"OF6","ON ");
-        else     improveStr(strmen,"OF6","OFF");
-            
                                           
-                  
-    menu1(20,18,"Switches",strmen,"s_switch_*",&pscr,&kmenu);
+  
+    improveStr(strmen,"nPROCSS","%d",nPROCSS);
+                
+    menu1(20,16,"Switches",strmen,"s_switch_*",&pscr,&kmenu);
     switch (kmenu)
     {
     
 //      case 1: consLow=!consLow;       break;
-      case 1: NcInfLimit=!NcInfLimit; break;
-      case 2: noPict=!noPict;         break;
-      case 3: tWidths=!tWidths;       break; 
-      case 4: VWdecay=!VWdecay;cleanDecayTable();       break; 
-      case 5: VZdecay=!VZdecay;cleanDecayTable();       break;   
+      case 1: noPict=!noPict;         break;
+      case 2: tWidths=!tWidths;       break; 
+      case 3: VWdecay=!VWdecay;  VZdecay=VWdecay; cleanDecayTable();       break; 
+      case 4: 
+      { char mess[40];    
+        sprintf(mess,"There are %d processors. To use ", (int) sysconf(_SC_NPROCESSORS_ONLN));
+        correctInt(20,22,mess,&nPROCSS,1);
+      } break;
+      case 5: NcInfLimit=!NcInfLimit; break;
+      case 6: NcInfCC=!NcInfCC; break;
+
 /*      case 5: noCChain=!noCChain;     break; */
     }
     

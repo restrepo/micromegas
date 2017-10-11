@@ -13,7 +13,7 @@ void lvtonv(char *lv, int nin, int nv, REAL * V)
   int i,n;
   REAL*q=V+4*(nv-1);
   for(i=0;i<4;i++) q[i]=0;
-  for(i=0;n=lv[i] ;i++) if(n>nin) vsum4(nv,n,nv,1,V); else vsum4(nv,n,nv,-1,V);
+  for(i=0;(n=lv[i]);i++) if(n>nin) vsum4(nv,n,nv,1,V); else vsum4(nv,n,nv,-1,V);
 } 
 
 /* ****************************************** */
@@ -102,7 +102,7 @@ void incomkin(REAL m1, REAL m2, REAL p1, REAL p2,
   REAL e1=sqrt(m1*m1+p1*p1);
   REAL e2=sqrt(m2*m2+p2*p2);
    
-  sqrt_S=(e1+e2)*(e1+e2)-(p1-p2)*(p1-p2);
+  sqrt_S=(e1+e2-p1+p2)*(e1+e2+p1-p2);
   
   rapidity= atanh((p1-p2)/(e1+e2));
 

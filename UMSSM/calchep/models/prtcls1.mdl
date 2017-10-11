@@ -1,0 +1,83 @@
+UMSSM
+ Particles 
+Full   Name     | P | aP|  number  |spin2|mass|width|color|aux| LaTeX(A)           |  LateX(A+)              |
+photon          |A  |A  |22        |2    |0   |0    |1    |G  |A                   |A                        |
+Z1 boson        |Z1 |Z1 |23        |2    |MZ1 |!wZ1 |1    |G  |Z_1                 |Z_1                      |
+Z2 boson        |Z2 |Z2 |32        |2    |MZ2 |!wZ2 |1    |G  |Z_2                 |Z_2                      |
+W boson         |W+ |W- |24        |2    |MW  |!wW  |1    |G  |W^+                 |W^-                      |
+gluon           |G  |G  |21        |2    |0   |0    |8    |G  |G                   |G                        |
+neutrino        |ne |Ne |12        |1    |0   |0    |1    |L  |^e\nu_L             |^e\bar{\nu}_L            |
+electron        |e  |E  |11        |1    |Me  |0    |1    |   |e                   |\bar{e}                  |
+mu-neutrino-L   |nm |Nm |14        |1    |0   |0    |1    |L  |^\mu\nu_L           |^\mu\bar{\nu}_L          |
+muon            |m  |M  |13        |1    |Mm  |0    |1    |   |\mu                 |\bar{\mu}                |
+tau-neutrino-L  |nl |Nl |16        |1    |0   |0    |1    |L  |^\tau\nu_L          |^\tau\bar{\nu}_L         |
+tau-lepton      |l  |L  |15        |1    |Ml  |0    |1    |   |\tau                |\bar{\tau}               |
+neutrino-R      |ner|Ner|9912      |1    |0   |0    |1    |R 0|^e\nu_R             |^e\bar{\nu}_R            |
+mu-neutrino-R   |nmr|Nmr|9914      |1    |0   |0    |1    |R 0|^\mu\nu_R           |^\mu\bar{\nu}_R          |
+tau-neutrino-R  |nlr|Nlr|9916      |1    |0   |0    |1    |R 0|^\tau\nu_R          |^\tau\bar{\nu}_R         |
+u-quark         |u  |U  |2         |1    |Muq |0    |3    |   |u                   |\bar{u}                  |
+d-quark         |d  |D  |1         |1    |MdSM|0    |3    |   |d                   |\bar{d}                  |
+c-quark         |c  |C  |4         |1    |Mc  |0    |3    |   |c                   |\bar{c}                  |
+s-quark         |s  |S  |3         |1    |MsSM|0    |3    |   |s                   |\bar{s}                  |
+t-quark         |t  |T  |6         |1    |Mt  |!wt  |3    |   |t                   |\bar{t}                  |
+b-quark         |b  |B  |5         |1    |MbSM|0    |3    |   |b                   |\bar{b}                  |
+CP-even Higgs 1 |h1 |h1 |25        |0    |Mh1 |!wh1 |1    |   |h_1                 |h_1                      |
+CP-even Higgs 2 |h2 |h2 |35        |0    |Mh2 |!wh2 |1    |   |h_2                 |h_2                      |
+CP-even Higgs 3 |h3 |h3 |45        |0    |Mh3 |!wh3 |1    |   |h_3                 |h_3                      |
+CP-odd Higgs    |ha |ha |36        |0    |Mha |!wha |1    |   |h_a                 |h_a                      |
+Charged Higgs   |H+ |H- |37        |0    |MHc |!wHc |1    |   |H^+                 |H^-                      |
+chargino 1      |~1+|~1-|1000024   |1    |MC1 |!wC1 |1    |   |\chi_1^+            |\chi_1^-                 |
+chargino 2      |~2+|~2-|1000037   |1    |MC2 |!wC2 |1    |   |\chi_2^+            |\chi_2^-                 |
+neutralino 1    |~o1|~o1|1000022   |1    |MNE1|!wNE1|1    |   |\chi_1^0            |\chi_1^0                 |
+neutralino 2    |~o2|~o2|1000023   |1    |MNE2|!wNE2|1    |   |\chi_2^0            |\chi_2^0                 |
+neutralino 3    |~o3|~o3|1000025   |1    |MNE3|!wNE3|1    |   |\chi_3^0            |\chi_3^0                 |
+neutralino 4    |~o4|~o4|1000035   |1    |MNE4|!wNE4|1    |   |\chi_4^0            |\chi_4^0                 |
+neutralino 5    |~o5|~o5|1000045   |1    |MNE5|!wNE5|1    |   |\chi_5^0            |\chi_5^0                 |
+neutralino 6    |~o6|~o6|1000032   |1    |MNE6|!wNE6|1    |   |\chi_6^0            |\chi_6^0                 |
+gluino          |~g |~g |1000021   |1    |MSG |!wSG |8    |   |\tilde{g}           |\tilde{g}                |
+L-selectron     |~eL|~EL|1000011   |0    |MSeL|!wSeL|1    |   |\tilde{e}_L         |\tilde{e}_L^{*}          |
+R-selectron     |~eR|~ER|2000011   |0    |MSeR|!wSeR|1    |   |\tilde{e}_R         |\tilde{e}_R^{*}          |
+left smuon      |~mL|~ML|1000013   |0    |MSmL|!wSmL|1    |   |\tilde{\mu}_L       |\tilde{\mu}_L^{*}        |
+right smuon     |~mR|~MR|2000013   |0    |MSmR|!wSmR|1    |   |\tilde{\mu}_R       |\tilde{\mu}_R^{*}        |
+1st stau        |~l1|~L1|1000015   |0    |MSl1|!wSl1|1    |   |\tilde{\tau}_1      |\tilde{\tau}_1^{*}       |
+2nd stau        |~l2|~L2|2000015   |0    |MSl2|!wSl2|1    |   |\tilde{\tau}_2      |\tilde{\tau}_2^{*}       |
+e-sneutrino-L   |~ne|~Ne|1000012   |0    |MSne|!wSne|1    |   |^e\tilde{\nu}_{L}   |^e\tilde{\nu}_{L}^{*}    |
+mu-sneutrino-L  |~nm|~Nm|1000014   |0    |MSnm|!wSnm|1    |   |^\mu\tilde{\nu}_{L} |^\mu\tilde{\nu}_{L}^{*}  |
+tau-sneutrino-L |~nl|~Nl|1000016   |0    |MSnl|!wSnl|1    |   |^\tau\tilde{\nu}_{L}|^\tau\tilde{\nu}_{L}^{*} |
+e-sneutrino-R   |~nE|~NE|2000012   |0    |Mner|!Sner|1    |   |^e\tilde{\nu}_{R}   |^e\tilde{\nu}_{R}^{*}    |
+mu-sneutrino-R  |~nM|~NM|2000014   |0    |Mnmr|!Snmr|1    |   |^\mu\tilde{\nu}_{R} |^\mu\tilde{\nu}_{R}^{*}  |
+tau-sneutrino-R |~nL|~NL|2000016   |0    |Mnlr|!Snlr|1    |   |^\tau\tilde{\nu}_{R}|^\tau\tilde{\nu}_{R}^{*} |
+u-squark L      |~uL|~UL|1000002   |0    |MSuL|!wSuL|3    |   |\tilde{u}_L         |\tilde{u}_L^{*}          |
+u-squark R      |~uR|~UR|2000002   |0    |MSuR|!wSuR|3    |   |\tilde{u}_R         |\tilde{u}_R^{*}          |
+d-squark L      |~dL|~DL|1000001   |0    |MSdL|!wSdL|3    |   |\tilde{d}_L         |\tilde{d}_L^{*}          |
+d-squark R      |~dR|~DR|2000001   |0    |MSdR|!wSdR|3    |   |\tilde{d}_R         |\tilde{d}_R^{*}          |
+c-squark L      |~cL|~CL|1000004   |0    |MScL|!wScL|3    |   |\tilde{c}_L         |\tilde{c}_L^{*}          |
+c-squark R      |~cR|~CR|2000004   |0    |MScR|!wScR|3    |   |\tilde{c}_R         |\tilde{c}_R^{*}          |
+s-squark L      |~sL|~SL|1000003   |0    |MSsL|!wSsL|3    |   |\tilde{s}_L         |\tilde{s}_L^{*}          |
+s-squark R      |~sR|~SR|2000003   |0    |MSsR|!wSsR|3    |   |\tilde{s}_R         |\tilde{s}_R^{*}          |
+t-squark 1      |~t1|~T1|1000006   |0    |MSt1|!wSt1|3    |   |\tilde{t}_1         |\tilde{t}_1^{*}          |
+t-squark 2      |~t2|~T2|2000006   |0    |MSt2|!wSt2|3    |   |\tilde{t}_2         |\tilde{t}_2^{*}          |
+b-squark 1      |~b1|~B1|1000005   |0    |MSb1|!wSb1|3    |   |\tilde{b}_1         |\tilde{b}_1^{*}          |
+b-squark 2      |~b2|~B2|2000005   |0    |MSb2|!wSb2|3    |   |\tilde{b}_2         |\tilde{b}_2^{*}          |
+im particle     |~00|~00|          |0    |Maux|0    |8    |*  |(00)                |(00)                     |
+im particle     |~01|~01|          |0    |Maux|0    |1    |*  |(01)                |(01)                     |
+im particle     |~02|~02|          |0    |Maux|0    |1    |*  |(02)                |(02)                     |
+im particle     |~03|~03|          |0    |Maux|0    |1    |*  |(03)                |(03)                     |
+im particle     |~04|~04|          |0    |Maux|0    |1    |*  |(04)                |(04)                     |
+im particle     |~05|~05|          |0    |Maux|0    |1    |*  |(05)                |(05)                     |
+im particle     |~06|~07|          |0    |Maux|0    |1    |*  |(06)                |(07)                     |
+im particle     |~08|~09|          |0    |Maux|0    |1    |*  |(08)                |(09)                     |
+im particle     |~0A|~0B|          |0    |Maux|0    |1    |*  |(0A)                |(0B)                     |
+im particle     |~0C|~0D|          |0    |Maux|0    |1    |*  |(0C)                |(0D)                     |
+G~b1G~B1        |~0E|~0F|          |2    |Maux|0    |3    |*  |(0E)                |(0F)                     |
+G~b2G~B2        |~0G|~0H|          |2    |Maux|0    |3    |*  |(0G)                |(0H)                     |
+G~cLG~CL        |~0I|~0J|          |2    |Maux|0    |3    |*  |(0I)                |(0J)                     |
+G~cRG~CR        |~0K|~0L|          |2    |Maux|0    |3    |*  |(0K)                |(0L)                     |
+G~dLG~DL        |~0M|~0N|          |2    |Maux|0    |3    |*  |(0M)                |(0N)                     |
+G~dRG~DR        |~0O|~0P|          |2    |Maux|0    |3    |*  |(0O)                |(0P)                     |
+G~sLG~SL        |~0Q|~0R|          |2    |Maux|0    |3    |*  |(0Q)                |(0R)                     |
+G~sRG~SR        |~0S|~0T|          |2    |Maux|0    |3    |*  |(0S)                |(0T)                     |
+G~t1G~T1        |~0U|~0V|          |2    |Maux|0    |3    |*  |(0U)                |(0V)                     |
+G~t2G~T2        |~0W|~0X|          |2    |Maux|0    |3    |*  |(0W)                |(0X)                     |
+G~uLG~UL        |~0Y|~0Z|          |2    |Maux|0    |3    |*  |(0Y)                |(0Z)                     |
+G~uRG~UR        |~0a|~0b|          |2    |Maux|0    |3    |*  |(0a)                |(0b)                     |

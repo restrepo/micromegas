@@ -1,0 +1,836 @@
+
+%External functions
+
+external_func(one,1).
+external_func(initQCD5,4).
+external_func(McRun,1).
+external_func(MbRun,1).
+external_func(MtRun,1).
+external_func(McEff,1).
+external_func(MbEff,1).
+external_func(MtEff,1).
+external_func(MqEff,2).
+external_func(alphaQCD,1).
+
+
+%QCD sector
+
+parameter LamQCD=initQCD5(alfSMZ,McMc,MbMb,Mtp).
+
+parameter Mt =  MtEff(Q) :'top quark mass',
+	  MbSM = MbEff(Q) :'b-quark mass',
+	  Mc= McEff(Q) :'c-quark mass',
+	  MsSM=MqEff(Ms2GeV,Q):'s-quark mass',
+	  SC  = sqrt(4*PI*alphaQCD(Q)) : 'Drived by CalcHEP'.
+
+%MbMt =MbRun(Mtp)*one(QCDok),
+%McMt =McRun(Mtp)*one(QCDok).
+%parameter t2b=2*tb/(1-tb**2).
+/*
+parameter ca=cos(alpha), sa=sin(alpha), ta=tan(alpha).
+parameter sapb=sa*cb+ca*sb : 'sin(a+b)'.
+parameter samb=sa*cb-ca*sb : 'sin(a-b)'.
+parameter capb=ca*cb-sa*sb : 'cos(a+b)'.
+parameter camb=ca*cb+sa*sb : 'cos(a-b)'.
+parameter s2a=2*sa*ca :     'sin(2a)'.
+parameter c2a=ca**2-sa**2.
+*/
+
+%UMSSM functions
+
+parameter ctE6=cos(tE6),
+	  stE6=sin(tE6).
+angle sin=stE6, cos=ctE6, texname='\\theta_{E_6}'.       
+parameter Q1=-2/sqrt(40)*ctE6 -2/sqrt(24)*stE6:'U(1)prime charge of Hd',
+	  Q2= 2/sqrt(40)*ctE6 -2/sqrt(24)*stE6:'U(1)prime charge of Hu',
+	  Qs=-Q1-Q2:'U(1)prime charge of S',
+	  QQ=-1/sqrt(40)*ctE6 +1/sqrt(24)*stE6:'U(1)prime charge of LH quarks',
+	  Qu=-QQ-Q2:'U(1)prime charge of RH up quarks',
+	  Qd=-QQ-Q1:'U(1)prime charge of RH down quarks',
+	  QL= 3/sqrt(40)*ctE6 +1/sqrt(24)*stE6:'U(1)prime charge of LH leptons',
+	  Qe=-QL-Q1:'U(1)prime charge of RH electrons',
+	  Qn=-QL-Q2:'U(1)prime charge of RH neutrinos'.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Note that :
+%% v_d = v*cb %% v_u = v*sb
+%% s_hd (f_hd) = s_h1 (f_h1) %% s_hu (f_hu) = s_h2 (f_h2)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%				%%
+%%	Gauge boson sector	%%
+%%				%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+parameter caZZ=cos(aZZ),
+	  saZZ=sin(aZZ).
+angle sin=saZZ, cos=caZZ, texname='\\alpha_Z'.
+parameter s2aZ=2*saZZ*caZZ,
+	  c2aZ=caZZ**2-saZZ**2.
+
+parameter MZ  = sqrt( (MZ1*caZZ)**2 + (MZ2*saZZ)**2 ):'Z mass',	
+	  MZp = sqrt( (MZ1*saZZ)**2 + (MZ2*caZZ)**2 ):'Z_prime mass'.
+
+parameter CW  = MW/MZ : 'cos of the Weinberg angle',
+	  SW  = sqrt(1-CW**2) : 'sin of the Weinberg angle'.
+angle sin=SW, cos=CW, texname='\\theta_W'.
+parameter C2W = CW**2 - SW**2.
+let S2W = 2*SW*CW.
+
+parameter v  = 2*SW*MW/EE:'doublet-vev',
+	  g1p= NCp*EE/CW :'coupling of U(1)prime',
+	  gp = EE/CW :'coupling low energy of U(1)Y',
+	  g2 = EE/SW :'coupling low energy of SU(2)L'.
+
+parameter cb = sqrt( s2aZ*(MZ1**2 - MZ2**2)/( (Q1+Q2)*g1p*sqrt(gp**2 + g2**2)*v**2 ) + Q2/(Q1+Q2) ):'Cosine beta',
+	  sb = sqrt(1-cb**2):'Sinus beta',
+	  tb = sb/cb:'Tangent beta'.
+angle sin=sb, cos=cb, tan=tb, texname='\\beta'.
+parameter c2b= cb**2-sb**2 : 'cos(2beta)',
+	  s2b= 2*sb*cb :     'sin(2beta)'.
+
+external_func(sgn,1,'extfunc.so').
+parameter vs = sgn(mu)*sqrt( (MZp**2 - (g1p*v)**2*( (Q1*cb)**2 + (Q2*sb)**2 ))/(g1p*Qs)**2) :'singlet-vev',
+	  lda= mu*sqrt(2)/vs :'coeff lambda'.
+
+parameter delta=g1p/2*sqrt(gp**2 + g2**2)*v**2*(Q1*cb**2 - Q2*sb**2):'off-diagonal part of the Z-Z_prime mixing matrix'.
+
+parameter MSG=MG3:'Gluino mass'.
+
+
+
+external_func(MassArray,2).
+external_func(MixMatrix,3).
+external_func(MixMatrixU,3).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%				%%
+%%	Slepton sector		%%
+%%	(light SM partners)	%%
+%%				%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+parameter MSne=sqrt(c2b*MW**2/2+CW**2*(Ml1**2+QL*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2))/CW:'e-sneutrino_L mass',
+	  MSnm=sqrt(c2b*MW**2/2+CW**2*(Ml2**2+QL*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2))/CW:'mu-sneutrino_L mass',
+	  MSnl=sqrt(c2b*MW**2/2+CW**2*(Ml3**2+QL*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2))/CW:'tau-sneutrino_L mass'.
+
+parameter Mner=sqrt(Mn1**2+Qn*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2):'e-sneutrino_R mass',
+	  Mnmr=sqrt(Mn2**2+Qn*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2):'mu-sneutrino_R mass',
+	  Mn32=Mnlr**2 - Qn*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2:'tau-sneutrino_R^3 soft mass term squared'.
+
+external_func(rDiagonal, *).
+
+do_if sel1_mix==off.
+parameter MSeL=sqrt(-c2b*(CW**2-SW**2)*MW**2/2+CW**2*(Ml1**2+QL*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2))/CW:'selectron_L mass',
+	  MSeR=sqrt(-SW**2*c2b*MW**2+CW**2*(Mr1**2+Qe*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2))/CW:'selectron_R mass'.
+do_else.
+parameter eDiag= rDiagonal(2, Ml1**2 +Me**2 -(1/2-SW**2)*MZ**2*c2b + QL*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2,
+			      Me*(Ae-mu*tb),
+			      Mr1**2+Me**2-SW**2*MZ**2*c2b + Qe*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2).
+
+parameter MSe1= sqrt(MassArray(eDiag,1)):'1st selectron mass', MSe2= sqrt(MassArray(eDiag,2)):'2nd selectron mass'.
+parameter Zl11=MixMatrix(eDiag,1,1),
+	  Zl14=MixMatrix(eDiag,2,1),
+	  Zl41=MixMatrix(eDiag,1,2),
+	  Zl44=MixMatrix(eDiag,2,2).
+OrthMatrix({{Zl11, Zl14}, {Zl41, Zl44}}).
+end_if.
+
+do_if sel2_mix==off.
+parameter MSmL=sqrt(-c2b*(CW**2-SW**2)*MW**2/2+CW**2*(Ml2**2+QL*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2))/CW:'smuon_L mass',
+	  MSmR=sqrt(-SW**2*c2b*MW**2+CW**2*(Mr2**2+Qe*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2))/CW:'smuon_R mass'.
+do_else.
+parameter mDiag= rDiagonal(2, Ml2**2 +Mm**2 -(1/2-SW**2)*MZ**2*c2b + QL*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2,
+			      Mm*(Am-mu*tb),
+			      Mr2**2+Mm**2-SW**2*MZ**2*c2b + Qe*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2).
+
+parameter MSm1= sqrt(MassArray(mDiag,1)):'1st smuon mass', MSm2= sqrt(MassArray(mDiag,2)):'2nd smuon mass'.
+parameter Zl22=MixMatrix(mDiag,1,1),
+	  Zl25=MixMatrix(mDiag,2,1),
+	  Zl52=MixMatrix(mDiag,1,2),
+	  Zl55=MixMatrix(mDiag,2,2).
+OrthMatrix({{Zl22, Zl25}, {Zl52, Zl55}}).
+end_if.
+
+%let                Zl12=0, Zl13=0,         Zl15=0, Zl16=0,
+%           Zl21=0,         Zl23=0, Zl24=0,         Zl26=0,
+%           Zl31=0, Zl32=0,         Zl34=0, Zl35=0,
+%                   Zl42=0, Zl43=0,         Zl45=0, Zl46=0,
+%           Zl51=0,         Zl53=0, Zl54=0,         Zl56=0,
+%           Zl61=0, Zl62=0,         Zl64=0, Zl65=0.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%				%%
+%%	Squark sector		%%
+%%	(light SM partners)	%%
+%%				%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% 1st generation
+
+do_if sq1_mix==off.
+parameter MSuL = sqrt(QQ*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2 +Mq1**2+MZ**2*(1/2-2/3*SW**2)*c2b):'up-squark_L mass',
+	  MSuR = sqrt(Qu*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2 +Mu1**2+MZ**2*(2/3*SW**2)*c2b):'up-squark_R mass'.
+let Zup11=1, Zup14=0, Zup41=0, Zup44=1.
+do_else.
+parameter uDiag= rDiagonal(2, Mq1**2 +Muq**2 +(1/2-2/3*SW**2)*MZ**2*c2b + QQ*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2,
+			      Muq*(Au-mu/tb),
+			      Mu1**2+Muq**2 +2/3*SW**2*MZ**2*c2b + Qu*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2).
+
+parameter MSu1= sqrt(MassArray(uDiag,1)):'1st up-squark mass', MSu2= sqrt(MassArray(uDiag,2)):'2nd up-squark mass'.
+parameter Zup11=MixMatrix(uDiag,1,1),
+	  Zup14=MixMatrix(uDiag,2,1),
+	  Zup41=MixMatrix(uDiag,1,2),
+	  Zup44=MixMatrix(uDiag,2,2).
+OrthMatrix({{Zup11, Zup14}, {Zup41, Zup44}}).
+end_if.
+
+do_if sq1_mix==off.
+parameter MSdL = sqrt(QQ*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2 +Mq1**2-MZ**2*(1/2-1/3*SW**2)*c2b):'down-squark_L mass',
+	  MSdR = sqrt(Qd*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2 +Md1**2+MZ**2*(   -1/3*SW**2)*c2b):'down-squark_R mass'.
+let Zd11=1, Zd14=0, Zd41=0, Zd44=1.
+do_else.
+parameter dDiag= rDiagonal(2, Mq1**2 +MdSM**2 -(1/2-1/3*SW**2)*MZ**2*c2b + QQ*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2,
+			      MdSM*(Ad-mu*tb),
+			      Md1**2+MdSM**2 -1/3*SW**2*MZ**2*c2b + Qd*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2).
+
+parameter MSd1= sqrt(MassArray(dDiag,1)):'1st down-squark mass', MSd2= sqrt(MassArray(dDiag,2)):'2nd down-squark mass'.
+parameter Zd11=MixMatrix(dDiag,1,1),
+	  Zd14=MixMatrix(dDiag,2,1),
+	  Zd41=MixMatrix(dDiag,1,2),
+	  Zd44=MixMatrix(dDiag,2,2).
+OrthMatrix({{Zd11, Zd14}, {Zd41, Zd44}}).
+end_if.
+
+% 2nd generation
+
+do_if usq2_mix==off.
+parameter MScL = sqrt(QQ*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2 +Mq2**2+MZ**2*(1/2-2/3*SW**2)*c2b):'charm-squark_L mass',
+	  MScR = sqrt(Qu*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2 +Mu2**2+MZ**2*(    2/3*SW**2)*c2b):'charm-squark_R mass'.
+let Zup22=1, Zup25=0, Zup52=0, Zup55=1.
+do_else.
+parameter cDiag= rDiagonal(2, Mq2**2 +Mc**2 +(1/2-2/3*SW**2)*MZ**2*c2b + QQ*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2,
+			      Mc*(Ac-mu/tb),
+			      Mu2**2+Mc**2 +2/3*SW**2*MZ**2*c2b + Qu*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2).
+
+parameter MSc1= sqrt(MassArray(cDiag,1)):'1st charm-squark mass', MSc2= sqrt(MassArray(cDiag,2)):'2nd charm-squark mass'.
+parameter Zup22=MixMatrix(cDiag,1,1),
+	  Zup25=MixMatrix(cDiag,2,1),
+	  Zup52=MixMatrix(cDiag,1,2),
+	  Zup55=MixMatrix(cDiag,2,2).
+OrthMatrix({{Zup22, Zup25}, {Zup52, Zup55}}).
+end_if.
+
+do_if dsq2_mix==off.
+parameter MSsL = sqrt(QQ*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2 +Mq2**2-MZ**2*(1/2-1/3*SW**2)*c2b):'strange-squark_L mass',
+	  MSsR = sqrt(Qd*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2 +Md2**2+MZ**2*(   -1/3*SW**2)*c2b):'strange-squark_R mass'.
+let Zd22=1, Zd25=0, Zd52=0, Zd55=1.
+do_else_if dsq2_mix==on.
+parameter sDiag= rDiagonal(2, Mq2**2 +MsSM**2 -(1/2-1/3*SW**2)*MZ**2*c2b + QQ*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2,
+			      MsSM*(As-mu*tb),
+			      Md2**2+MsSM**2 -1/3*SW**2*MZ**2*c2b + Qd*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2).
+
+parameter MSs1= sqrt(MassArray(sDiag,1)):'1st strange-squark mass', MSs2= sqrt(MassArray(sDiag,2)):'2nd strange-squark mass'.
+parameter Zd22=MixMatrix(sDiag,1,1),
+	  Zd25=MixMatrix(sDiag,2,1),
+	  Zd52=MixMatrix(sDiag,1,2),
+	  Zd55=MixMatrix(sDiag,2,2).
+OrthMatrix({{Zd22, Zd25}, {Zd52, Zd55}}).
+end_if.
+
+%let                Zup12=0, Zup13=0,         Zup15=0, Zup16=0,
+%           Zup21=0,         Zup23=0, Zup24=0,         Zup26=0,
+%           Zup31=0, Zup32=0,         Zup34=0, Zup35=0,
+%                   Zup42=0, Zup43=0,         Zup45=0, Zup46=0,
+%           Zup51=0,         Zup53=0, Zup54=0,         Zup56=0,
+%           Zup61=0, Zup62=0,         Zup64=0, Zup65=0.
+%let                Zd12=0, Zd13=0,         Zd15=0, Zd16=0,
+%           Zd21=0,         Zd23=0, Zd24=0,         Zd26=0,
+%           Zd31=0, Zd32=0,         Zd34=0, Zd35=0,
+%                   Zd42=0, Zd43=0,         Zd45=0, Zd46=0,
+%           Zd51=0,         Zd53=0, Zd54=0,         Zd56=0,
+%           Zd61=0, Zd62=0,         Zd64=0, Zd65=0.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                              %%
+%%	Neutralino sector	%%
+%%                              %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+parameter zero=0*0.
+
+parameter NeDiag=
+          rDiagonal(6, MG1, zero, -MZ*SW*cb,  MZ*SW*sb, 	     zero, MK,
+                            MG2 ,  MZ*CW*cb, -MZ*CW*sb,		     zero, zero,
+                                   zero    , -mu      , -lda*v*sb/sqrt(2), Q1*cb*g1p*v,
+                                                  zero, -lda*v*cb/sqrt(2), Q2*g1p*sb*v,
+							    	     zero, Qs*g1p*vs,
+	  	    							   M1p  ).
+
+_i=1-6  in parameter MNE_i=MassArray(NeDiag,_i):'Neutralino _i mass'.
+_i=1-6  in _j=1-6 in parameter Zn_i_j=MixMatrix(NeDiag,_i,_j).
+
+OrthMatrix(Zn__, 6).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                              %%
+%%	Chargino sector		%%
+%%                              %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+external_func(rDiagonalA, 5).
+
+parameter chDiag=rDiagonalA(2,  MG2, Sqrt2*MW*sb,
+		        Sqrt2*MW*cb,  	     mu).
+
+parameter MC1=MassArray(chDiag,1):'Chargino 1 mass', MC2=MassArray(chDiag,2):'Chargino 2 mass'.
+parameter Zu11=MixMatrixU(chDiag,1,1),
+	  Zu12=MixMatrixU(chDiag,1,2),
+	  Zu21=MixMatrixU(chDiag,2,1),
+	  Zu22=MixMatrixU(chDiag,2,2),
+	  Zv11=MixMatrix(chDiag,1,1),
+	  Zv12=MixMatrix(chDiag,1,2),
+	  Zv21=MixMatrix(chDiag,2,1),
+	  Zv22=MixMatrix(chDiag,2,2).
+
+OrthMatrix({{Zu11, Zu21}, {Zu12, Zu22}}).
+OrthMatrix({{Zv11, Zv21}, {Zv12, Zv22}}).
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                              %%
+%%	Sfermion  sector	%%
+%%	(heavy SM partners)	%%
+%%                              %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%% Initialisation of top/bottom mass running - trilinear coupling - soft terms
+
+parameter tDiagp=rDiagonal(2, Mq3**2 +Mtp**2 +(1/2-2/3*SW**2)*MZ**2*c2b + QQ*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2,
+			      Mtp*(At-mu/tb),
+			      Mu3**2+Mtp**2 +2/3*SW**2*MZ**2*c2b + Qu*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2).
+
+parameter MSt1p= sqrt(MassArray(tDiagp,1)), MSt2p= sqrt(MassArray(tDiagp,2)).
+parameter MtMM=MtRun(sqrt(MSt1p*MSt2p)).
+
+parameter Zt11p=MixMatrix(tDiagp,1,1),
+	  Zt12p=MixMatrix(tDiagp,1,2),
+	  Zt21p=MixMatrix(tDiagp,2,1),
+	  Zt22p=MixMatrix(tDiagp,2,2).
+OrthMatrix({{Zt11p, Zt21p}, {Zt12p, Zt22p}}).
+
+%% Elements of the stop matrix as StMMij = sum_k Ztkip*MStkp^2*Ztkjp
+
+parameter StMM11=Zt11p*MSt1p**2*Zt11p+Zt21p*MSt2p**2*Zt21p,
+	  StMM12=Zt11p*MSt1p**2*Zt12p+Zt21p*MSt2p**2*Zt22p,
+	  StMM22=Zt12p*MSt1p**2*Zt12p+Zt22p*MSt2p**2*Zt22p.
+
+parameter Atq= StMM12/MtMM + mu/tb:'running top trilinear coupling'.
+%EvalParameter(Atq).
+
+
+parameter bDiagp=rDiagonal(2, Mq3**2 +MbMb**2 -(1/2-1/3*SW**2)*MZ**2*c2b + QQ*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2,
+			      MbMb*(Ab-mu*tb),
+			      Md3**2+MbMb**2 -1/3*SW**2*MZ**2*c2b + Qd*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2).
+
+parameter MSb1p= sqrt(MassArray(bDiagp,1)), MSb2p= sqrt(MassArray(bDiagp,2)).
+parameter MbMM=MbRun(sqrt(MSb1p*MSb2p)).
+
+parameter Zb11p=MixMatrix(bDiagp,1,1),
+	  Zb12p=MixMatrix(bDiagp,1,2),
+	  Zb21p=MixMatrix(bDiagp,2,1),
+	  Zb22p=MixMatrix(bDiagp,2,2).
+OrthMatrix({{Zb11p, Zb21p}, {Zb12p, Zb22p}}).
+
+%% Elements of the sbottom matrix as SbMMij = sum_k Zbkip*MSbkp^2*Zbkjp
+
+parameter SbMM11=Zb11p*MSb1p**2*Zb11p+Zb21p*MSb2p**2*Zb21p,
+	  SbMM12=Zb11p*MSb1p**2*Zb12p+Zb21p*MSb2p**2*Zb22p,
+	  SbMM22=Zb12p*MSb1p**2*Zb12p+Zb22p*MSb2p**2*Zb22p.
+
+parameter Abq= SbMM12/MbMM + mu*tb:'running bottom trilinear coupling'.
+
+
+parameter Mu3q=sqrt(StMM22-(MtMM**2 +2/3*SW**2*MZ**2*c2b + Qu*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2)):'running third gen. RH up-squark soft term',
+	  Md3q=sqrt(SbMM22-(MbMM**2 -1/3*SW**2*MZ**2*c2b + Qd*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2)):'running third gen. RH down-squark soft term',
+	  Mq3q=sqrt((SbMM11+StMM11-(MbMM**2+MtMM**2-1/3*MZ**2*SW**2*c2b+QQ*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)) )/2):'running third gen. LH squark soft term'.
+
+
+
+%% Calculation
+
+parameter tDiag= rDiagonal(2, Mq3q**2 +MtMM**2 +(1/2-2/3*SW**2)*MZ**2*c2b + QQ*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2,
+			      MtMM*(Atq-mu/tb),
+			      Mu3q**2+MtMM**2 +2/3*SW**2*MZ**2*c2b + Qu*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2).
+
+parameter MSt1= sqrt(MassArray(tDiag,1)):'1st stop mass', MSt2= sqrt(MassArray(tDiag,2)):'2nd stop mass'.
+
+
+parameter Zt11=MixMatrix(tDiag,1,1),
+	  Zt12=MixMatrix(tDiag,1,2),
+	  Zt21=MixMatrix(tDiag,2,1),
+	  Zt22=MixMatrix(tDiag,2,2).
+OrthMatrix({{Zt11, Zt21}, {Zt12, Zt22}}).
+
+
+parameter bDiag= rDiagonal(2, Mq3q**2 +MbMM**2 -(1/2-1/3*SW**2)*MZ**2*c2b + QQ*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2,
+			      MbMM*(Abq-mu*tb),
+			      Md3q**2+MbMM**2 -1/3*SW**2*MZ**2*c2b + Qd*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2).
+
+parameter MSb1= sqrt(MassArray(bDiag,1)):'1st sbottom mass', MSb2= sqrt(MassArray(bDiag,2)):'2nd sbottom mass'.
+parameter Zb11=MixMatrix(bDiag,1,1),
+	  Zb12=MixMatrix(bDiag,1,2),
+	  Zb21=MixMatrix(bDiag,2,1),
+	  Zb22=MixMatrix(bDiag,2,2).
+OrthMatrix({{Zb11, Zb21}, {Zb12, Zb22}}).
+
+
+parameter lDiag= rDiagonal(2, Ml3**2 +Ml**2 -(1/2-SW**2)*MZ**2*c2b + QL*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2,
+			      Ml*(Al-mu*tb),
+			      Mr3**2+Ml**2-SW**2*MZ**2*c2b + Qe*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2).
+
+parameter MSl1= sqrt(MassArray(lDiag,1)):'1st stau mass', MSl2= sqrt(MassArray(lDiag,2)):'2nd stau mass'.
+parameter Zl11=MixMatrix(lDiag,1,1),
+	  Zl12=MixMatrix(lDiag,1,2),
+	  Zl21=MixMatrix(lDiag,2,1),
+	  Zl22=MixMatrix(lDiag,2,2).
+OrthMatrix({{Zl11, Zl21}, {Zl12, Zl22}}).
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                       %%
+%%	Higgs sector	 %%
+%%                       %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%% 1) Tree-level calculation (corrections a la Coleman-Weinberg in comments for CP-even Higgses) 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+/*
+parameter a1=htq**2*mueffq*(mueffq - At*tbq),
+	  a2=htq**2*At*(At - mu/tbq),
+	  a3=mueffq*(htq*v*cb/vs)**2*(mueffq - At*tbq),
+	  gst=2*(1 - ((MSt1**2 + MSt2**2)/(MSt1**2 - MSt2**2))*log(MSt1/MSt2) ),
+	  fst=log((MSt1*MSt2/QSTSB)**2) - gst,
+	  Mh11=((gp**2 + g2**2)/4 + (Q1*g1p)**2)*(v*cb)**2 + (lda*Alda/sqrt(2))*vs*tb + k*( (a1**2*gst/(MSt1**2 - MSt2**2)**2)*(v*cb)**2 + lda*At*fst*htq**2*tb*vs/(2*sqrt(2)) ).
+	  Mh12=-((gp**2 + g2**2)/4 - lda**2 - Q2*Q1*g1p**2)*(s2b*v**2)/2 - (lda*Alda/sqrt(2))*vs + k*( (a2*a1*gst/(MSt1**2 - MSt2**2)**2 + htq**2*a1*(2-gst)/(MSt1**2 + MSt2**2))*v**2*s2b/2 - lda*At*fst*htq**2*vs/(2*sqrt(2))).
+	  Mh13=(lda**2 + Q1*(-Q1-Q2)*g1p**2)*vs*cb*v - (lda*Alda/sqrt(2))*v*sb + k*( (a3*a1*gst/(MSt1**2 - MSt2**2)**2 + (htq*lda)**2*fst/2)*v*cb*vs - lda*At*fst*htq**2*v*sb/(2*sqrt(2))).
+	  Mh22=((gp**2 + g2**2)/4 + (Q2*g1p)**2)*(v*sb)**2 + (lda*Alda/sqrt(2))*vs/tb + k*( a2**2*gst/(MSt1**2 - MSt2**2)**2 + 2*htq**2*a2*(2-gst)/(MSt1**2 + MSt2**2) +htq**4*log((MSt1*MSt2/Mtp**2)**2))*(v*sb)**2 + k*lda*At*fst*htq**2*vs/(tb*2*sqrt(2)).
+	  Mh23=(lda**2 + Q2*(-Q1-Q2)*g1p**2)*vs*sb*v - (lda*Alda/sqrt(2))*v*cb + k*( (a2*a3*gst/(MSt1**2 - MSt2**2)**2 + htq**2*a3*(2-gst)/(MSt1**2 + MSt2**2))*v*sb*vs - lda*At*fst*htq**2*v*cb/(2*sqrt(2))).
+	  Mh33=((-Q1-Q2)*g1p*vs)**2 + (lda*Alda/sqrt(2))*(s2b*v**2)/(2*vs) + k*( a3**2*gst*vs**2/(MSt1**2 - MSt2**2)**2 + lda*At*fst*htq**2*s2b*v**2/(vs*4*sqrt(2)) ).
+*/
+
+
+
+parameter Mh11p=((gp**2 + g2**2)/4 + (Q1*g1p)**2)*(v*cb)**2 + (lda*Alda/sqrt(2))*vs*tb.
+parameter Mh12p=-((gp**2 + g2**2)/4 - lda**2 - Q2*Q1*g1p**2)*(s2b*v**2)/2 - (lda*Alda/sqrt(2))*vs.
+parameter Mh13p=(lda**2 + Q1*Qs*g1p**2)*vs*cb*v - (lda*Alda/sqrt(2))*v*sb.
+parameter Mh22p=((gp**2 + g2**2)/4 + (Q2*g1p)**2)*(v*sb)**2 + (lda*Alda/sqrt(2))*vs/tb.
+parameter Mh23p=(lda**2 + Q2*Qs*g1p**2)*vs*sb*v - (lda*Alda/sqrt(2))*v*cb.
+parameter Mh33p=(Qs*g1p*vs)**2 + (lda*Alda/sqrt(2))*(s2b*v**2)/(2*vs).
+
+parameter hDiagp= rDiagonal(3,  Mh11p, Mh12p, Mh13p,
+			      	       Mh22p, Mh23p,
+					      Mh33p).
+
+_i=1-3  in parameter Mh_ip=sqrt(MassArray(hDiagp,_i)):'tree-level h_i mass'.
+
+
+%% Tree-level CP-odd terms in the NMSSM (A,S) basis (for Higgs loop contributions):
+
+parameter MA11p=2*mu*Alda/s2b,
+	  MA12p=lda*Alda*v/sqrt(2),
+	  MA22p=lda*Alda*v**2*sb*cb/(vs*sqrt(2)),
+	  Mhap=sqrt(lda*Alda*vs/sqrt(2)*(tb+1/tb+cb*sb*(v/vs)**2)):'tree-level CP-odd Higgs mass'.
+
+
+
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%% 2) Runnings
+%%%%%%%%%%%%%%%%%%%%
+
+
+external_func(min,2,'extfunc.so').
+external_func(max,2,'extfunc.so').
+external_func(polint4alfSQS,1,'extfunc.so').
+
+
+parameter Q2MIN=100**2:'Minimum scale for runnings to SUSY scale',
+	  QSTSB=sqrt(max((MSt1*MSt2)**2,Q2MIN**2)):'SUSY scale',
+	  QSQ2=max((2*MSsL**2+MSsR**2+MScR**2)/4,Q2MIN):'2nd gen. squarks scale',
+	  k=3/(4*PI)**2,
+	  M2Q3=Mq3q**2 -(1/2-1/3*SW**2)*MZ**2*c2b + QQ*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2:'3rd gen. LH squark mass term squared',
+	  M2U3=Mu3q**2 +2/3*SW**2*MZ**2*c2b + Qu*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2:'3rd gen. RH up-squark mass term squared',
+	  M2D3=Md3q**2 -1/3*SW**2*MZ**2*c2b + Qd*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2:'3rd gen. RH down-squark mass term squared',
+	  M2L3=Ml3**2 -(1/2-SW**2)*MZ**2*c2b + QL*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2:'3rd gen. LH slepton mass term squared',
+	  M2R3=Mr3**2 -SW**2*MZ**2*c2b + Qe*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2:'3rd gen. RH charged slepton mass term squared'.
+
+
+%%  Electroweak gauge couplings at sqrt(QSTSB) :
+%%  Modifications with respect to NMSSMTools : 
+%%  soft mass -> physical mass because soft mass = 0 allowed in UMSSM
+
+%%   g_2**2 including the Higgs and sparticle thresholds :
+			 
+parameter g2q=g2**2/(1+g2**2*(k/3)*(log(QSTSB/MZ1**2)*19/6
+	  -log(QSTSB/min(QSTSB,max(Mhap**2,MZ1**2)))/6
+	  -log(QSTSB/min(QSTSB,max(mu**2,MZ1**2)))*2/3
+	  -log(QSTSB/min(QSTSB,max(M2Q3,MZ1**2)))/2
+	  -log(QSTSB/min(QSTSB,max(M2L3,MZ1**2)))/6
+	  -log(QSTSB/min(QSTSB,max(MSsL**2,MZ1**2)))
+	  -log(QSTSB/min(QSTSB,max(MSmL**2,MZ1**2)))/3
+	  -log(QSTSB/min(QSTSB,max(MG2**2,MZ1**2)))*4/3)):'SU(2)L coupling constant squared at sqrt(QSTSB)'.
+
+%%   g_p**2 including the top, Higgs and sparticle thresholds :
+
+parameter gpq=gp**2/(1-gp**2*(k/3)*(log(QSTSB/MZ1**2)*53/9
+	  +log(QSTSB/Mtp**2)*17/18
+	  +log(QSTSB/min(QSTSB,max(Mhap**2,MZ1**2)))/6
+	  +log(QSTSB/min(QSTSB,max(mu**2,MZ1**2)))*2/3
+	  +log(QSTSB/min(QSTSB,max(M2Q3,MZ1**2)))/18
+	  +log(QSTSB/min(QSTSB,max(M2U3,MZ1**2)))*4/9
+	  +log(QSTSB/min(QSTSB,max(M2D3,MZ1**2)))/9
+	  +log(QSTSB/min(QSTSB,max(M2L3,MZ1**2)))/6
+	  +log(QSTSB/min(QSTSB,max(M2R3,MZ1**2)))/3
+	  +log(QSTSB/min(QSTSB,max(MSsL**2,MZ1**2)))/9
+	  +log(QSTSB/min(QSTSB,max(MScR**2,MZ1**2)))*8/9
+	  +log(QSTSB/min(QSTSB,max(MSsR**2,MZ1**2)))*2/9
+	  +log(QSTSB/min(QSTSB,max(MSmL**2,MZ1**2)))/3
+	  +log(QSTSB/min(QSTSB,max(MSmR**2,MZ1**2)))*2/3)):'U(1)Y coupling constant squared at sqrt(QSTSB)'.
+
+parameter    gq=(gpq+g2q)/2.
+
+%%   Alphas at Mtp and sqrt(QSTSB)
+
+parameter LQT   =log(max(QSTSB,Mtp**2)/Mtp**2),
+	  alfSMT=alfSMZ/(1+23/(12*PI)*alfSMZ*log((Mtp/MZ1)**2)):'alpha_QCD(Mtp)',
+	  alfSQ =alfSMT/(1+alfSMT/(4*PI)*(7*LQT-2*log(max(QSTSB,MG3**2)/max(MG3**2,Mtp**2)))):'alpha_QCD(sqrt(QSTSB))'.
+
+%%   Yukawas at Mtp
+%%   (ht, hb : running MS_bar couplings, approximation alphas(Mb=4.18)=0.228 used here instead of a NMSSMTools routine for Mb(Mtp))
+
+parameter ht  =Mtp/(1+4*alfSMT/(3*PI)+11*(alfSMT/PI)**2)/(v*sb/sqrt(2)):'Top Yukawa coupling at Mtp',
+	  MBMT=MbMb*((alfSMT/0.228)**(12/23)*(1+7462*(alfSMT-0.228)/(4*PI*1587))),
+	  hb  =MBMT/(v*cb/sqrt(2)):'Bottom Yukawa coupling at Mtp',
+	  hl  =Ml/(v*cb/sqrt(2)):'Tau Yukawa coupling'.
+
+%%   Logs for the Wave Function Renormalization Constants
+
+parameter Lmu   = log(min(max(mu**2,MZ1**2),QSTSB)/QSTSB),
+	  LM1mu = log(min(max(max(MG1**2,mu**2),MZ1**2),QSTSB)/QSTSB),
+	  LM2mu = log(min(max(max(MG2**2,mu**2),MZ1**2),QSTSB)/QSTSB),
+	  Lmunu = log(min(max(mu**2,MZ1**2),QSTSB)/QSTSB),
+	  LMAMT = log(min(max(Mhap**2,Mtp**2),QSTSB)/Mtp**2).
+
+%% Aux. quantities for the resummation of logs ~ht^2*LQT and ~ht^2*LMAMT :
+
+parameter alfSMA=alfSMT/(1+alfSMT/(4*PI)*(7*LMAMT-2*log(max(Mhap**2,MG3**2)/max(MG3**2,Mtp**2)))),
+	  DLA=(alfSMA/alfSMT)**(1/7),
+	  DLQA=(alfSQ/alfSMA)**(1/7),
+	  F1=1-9*(sb*ht)**2*(1-DLA)/(8*PI*alfSMT),
+	  HTMA=ht*DLA**4/sqrt(fabs(F1)),
+	  F2=1-9*(sb*HTMA)**2*(1-DLQA)/(8*PI*alfSMA).
+
+parameter ZHU=(F1*F2)**(-2/3)*(1+(k/3)*(cb**2*(3*hb**2+hl**2)*LMAMT
+	  -gpq/2*LM1mu-3*g2q/2*LM2mu-3/4*(gpq+3*g2q)*log(QSTSB/MZ1**2)-lda**2*Lmunu)):'H_u wave function renormalisation constant'.
+
+parameter ZHD=F1**(-2/3)*(1+(k/3)*(3*hb**2*LQT+(Ml/(v*cb/sqrt(2)))**2*log(QSTSB/MZ1**2)
+	  +sb**2*(-3*hb**2-(Ml/(v*cb/sqrt(2)))**2)*LMAMT-gpq/2*LM1mu-3*g2q/2*LM2mu
+	  -3/4*(gpq+3*g2q)*log(QSTSB/MZ1**2)-lda**2*Lmunu)):'H_d wave function renormalisation constant'.
+
+parameter ZS=1-2*(k/3)*(lda**2*Lmu):'S wave function renormalisation constant'.
+
+%%   Higgs vevs at sqrt(QSTSB)
+
+parameter H2q=(v*sb/sqrt(2))/sqrt(ZHU):'H_u vev (/sqrt(2)) at sqrt(QSTSB)',
+	  H1q=(v*cb/sqrt(2))/sqrt(ZHD):'H_d vev (/sqrt(2)) at sqrt(QSTSB)',
+	  tbq=H2q/H1q,
+	  cbq=1/sqrt(1+tbq**2),
+	  sbq=tbq*cbq.
+
+%%   Top/Bottom Yukawas at sqrt(QSTSB)
+%%   Note: approximation from NMSSMTools to get alphas(sqrt(QSTSB));
+%%   use of cubic interpolation function polint4alfSQS(sqrt(QSTSB)), for sqrt(QSTSB) from 0.1 to 10 TeV
+%%   including electroweak contributions, Logs ht^2*LQT resummed + Conversion to DR_bar :
+
+parameter htq=(ht*(1+7/(4*PI)*alfSMT*LQT)**(-4/7)/sqrt(F1*F2)*(1+(k/3)/4*((-17/6*gpq-9/2*g2q+hb**2)*LQT
+	  +((3*cb**2-1)*hb**2+2*(hl*cb)**2)*LMAMT-2*lda**2*Lmunu-gpq*LM1mu-3*g2q*LM2mu)))*(1-alfSQ/(3*PI)+g2q*k/8):'Top Yukawa coupling at sqrt(QSTSB) + conversion to DR_bar'.
+
+			 
+parameter MBSUSY=MbMb*((alfSMT/0.228)**(12/23)*(1+7462*(alfSMT-0.228)/(4*PI*1587)))
+	  *((polint4alfSQS(sqrt(QSTSB))/alfSMT)**(4/7)
+	  *(1+7398*(polint4alfSQS(sqrt(QSTSB))-alfSMT)/(4*PI*1323))),
+	  hbq=(MBSUSY/H1q*F1**(-1/6)*(1-3*HTMA**2*(1-DLQA)/(8*PI*alfSMA))**(-1/6)
+	  *(1+(k/3)/4*((-5/6*gpq-9/2*g2q+9*hb**2+2*hl**2)*LQT
+	  +(-9*(sb*hb)**2-2*(sb*hl)**2)*LMAMT-2*lda**2*Lmunu-gpq*LM1mu-3*g2q*LM2mu)))*(1-alfSQ/(3*PI)+g2q*k/8):'Bottom Yukawa coupling at sqrt(QSTSB) + conversion to DR_bar'.
+
+%%   Running Top and Bottom Quark Masses :
+
+parameter MTOPQ=htq*H2q,
+	  MBOTQ=hbq*H1q.
+
+%%   Some UMSSM Parameters at sqrt(QSTSB)
+
+parameter LQ2=log(QSTSB/QSQ2),
+	  ldaq=lda*(1+(k/6)*(-gpq-3*g2q+4*lda**2+3*htq**2+3*hbq**2+hl**2)*LQ2),
+	  mueffq=mu*(1+(k/6)*(3*htq**2+3*hbq**2+hl**2+2*lda**2-gpq-3*g2q)*LQ2),
+	  Aldaq=Alda+(k/3)*(4*lda**2*Alda+3*htq**2*At+3*hbq**2*Ab+hl**2*Al+gpq*MG1+3*g2q*MG2)*LQ2.
+
+%%  To do : runnings of trilinear couplings for sfermions sector, running of g1p and other parameters linked to U(1)prime
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%% 3) Loop corrections included in the effective Lagrangian
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+parameter TT=log(QSTSB/Mtp**2),
+	  XT=2*Atq**2/QSTSB*(1-Atq**2/QSTSB/12),
+	  XB=2*Abq**2/QSTSB*(1-Abq**2/QSTSB/12),
+	  rt= k/2*htq**2,
+	  fmt= (MSt2*log(MSt2/sqrt(QSTSB))-MSt1*log(MSt1/sqrt(QSTSB)))/(MSt2-MSt1)-1,
+	  Atb=-(mueffq/sqrt(QSTSB))**2-(mueffq**2-Atq*Abq)**2/QSTSB**2/6+((Atq+Abq)/sqrt(QSTSB))**2/2,
+	  rb= k/2*hbq**2,
+	  fmb= (MSb2*log(MSb2/sqrt(QSTSB))-MSb1*log(MSb1/sqrt(QSTSB)))/(MSb2-MSb1)-1.
+
+
+%%   Leading-log electroweak contributions (1 loop):
+
+
+%%   a) Sfermion contributions
+
+parameter sferm= (k/6)*(H2q**2+H1q**2)*
+	  ((gpq**2/6+3/2*g2q**2)*log(max(M2Q3,MZ1**2)/QSTSB)
+	  +4/3*gpq**2*log(max(M2U3,MZ1**2)/QSTSB)
+	  +1/3*gpq**2*log(max(M2D3,MZ1**2)/QSTSB)
+	  +(gpq**2/3+3*g2q**2)*log(max(MSsL**2,MZ1**2)/QSTSB)
+	  +8/3*gpq**2*log(max(MScR**2,MZ1**2)/QSTSB)
+	  +2/3*gpq**2*log(max(MSsR**2,MZ1**2)/QSTSB)
+	  +(gpq**2/2+g2q**2/2)*log(max(M2L3,MZ1**2)/QSTSB)
+	  +gpq**2*log(max(M2R3,MZ1**2)/QSTSB)
+	  +(gpq**2+g2q**2)*log(max(MSmL**2,MZ1**2)/QSTSB)
+	  +2*gpq**2*log(max(MSmR**2,MZ1**2)/QSTSB)):'Sfermion contributions to loop corrections in the effective Lagrangian'.
+
+
+%%   b) Gauge Loop Corrections (To do : Z2 contrib)
+
+parameter LQZ1= log(QSTSB/MZ1**2).
+parameter gauge= MZ1**2*gq*(k/3)*(-9+12*SW**2-6*SW**4)*LQZ1:'Z1 contribution to loop corrections in the effective Lagrangian'.
+
+
+%%   c) Higgs loop contributions
+%%      Only to the lighter CP-even doublet-like state
+
+parameter P2= max(MA11p+MA22p,MZ1**2),
+	  P1= max((MA11p*MA22p-MA12p**2)/P2,MZ1**2),
+	  LA= log(max(MA11p,MZ1**2)/MZ1**2),
+	  LS= log(Mh33p/MZ1**2),
+	  LP= log(P2/MZ1**2),
+	  LPP= log(P2/P1).
+
+parameter bos= (k/3)*MZ1**2/gq*(
+	  (gq**2*(2*SW**4-2*SW**2*(1+(2*sbq*cbq)**2)-11/4*(2*sbq*cbq)**4+5*(2*sbq*cbq)**2+3/4)
+	  +gq*ldaq**2*(2*SW**2*(2*sbq*cbq)**2+11/2*(2*sbq*cbq)**4-15/2*(2*sbq*cbq)**2-1)
+	  +ldaq**4*(-11/4*(2*sbq*cbq)**4+5/2*(2*sbq*cbq)**2+1) )*LA
+	  +(ldaq**4+3*ldaq**2/Mh33p*(gq+(ldaq**2-gq)*(2*sbq*cbq)**2)*(2*mueffq-2*sbq*cbq*Aldaq)**2
+	  -ldaq**4/Mh33p**2*(2*mueffq-2*sbq*cbq*Aldaq)**4 )*LS
+	  +((gq**2/4*(1-(2*sbq*cbq)**4)+gq*ldaq**2*(1/2*(2*sbq*cbq)**4
+	  +1/2*(2*sbq*cbq)**2-1)+ldaq**4*(-1/4*(2*sbq*cbq)**4-1/2*(2*sbq*cbq)**2+1)+ldaq**4) )*LP
+	  -((gq-ldaq**2)**2/2*MA22p/P2*(2*sbq*cbq)**2*(1-(2*sbq*cbq)**2)
+	  +(ldaq**2*(MA11p-Aldaq**2)-MA22p/2*(gq*(1-(2*sbq*cbq)**2)-ldaq**2*(2-(2*sbq*cbq)**2)))**2/P2**2
+	  -ldaq*MA11p*MA22p*ldaq*(gq*(1-(2*sbq*cbq)**2)-ldaq**2*(2-(2*sbq*cbq)**2))/P2**2 )*LPP
+	  +(gq**2*(-4+(2*sbq*cbq)**2+2*SW**2*(1+(2*sbq*cbq)**2)-2*SW**4)
+	  +gq*ldaq**2*(2+(2*sbq*cbq)**2*(1-2*SW**2))-ldaq**4*(4+2*(2*sbq*cbq)**2) )*LQZ1):'Higgs contributions to loop corrections in the effective Lagrangian'.
+
+parameter LM2mub = log(max(max(MG2**2,mu**2),MZ1**2)/QSTSB),
+	  Lmunub = log(max(mu**2,MZ1**2)/QSTSB).
+
+
+parameter la1=2*(									  % 1-loop (s)top:
+              -k/3*((htq*mueffq)**2/2/QSTSB)**2
+              +k/4*gq*(htq*mueffq)**2/QSTSB
+											  % 1-loop (s)bottom:
+              +k*hbq**4*(TT+XB/2)
+              -k/4*gq*(hbq*Abq)**2/QSTSB
+											  % 2-loop (s)bottom - (s)top:
+              +k**2/6*hbq**4*(
+               TT**2*(64*PI*alfSQ-2/3*gpq-3*(hbq*cbq)**2+3*(htq*sbq)**2)
+               +((log(max(max(QSTSB,Mhap**2),Mtp**2)/Mtp**2))**2
+               -(log(max(Mhap**2,Mtp**2)/Mtp**2))**2)*(-3*(hbq*sbq)**2-htq**2*(3*sbq**2+1)))
+											  % Higgs + SM gauge bosons + sfermions:
+              +(sferm+gauge+bos)/(2*v**2)
+											  % Charginos - Neutralinos:
+              -k/3*((gq**2+g2q**2)*LM2mub+ldaq**4*Lmunub) )/ZHD**2.
+
+
+
+parameter la2=2*(									  % 1-loop (s)top:
+               k*(htq**4*(TT+XT/2))
+              -k/4*gq*(htq*Atq)**2/QSTSB
+											  % 1-loop (s)bottom:
+              -k/3*((hbq*mueffq)**2/2/QSTSB)**2
+              +k/4*gq*(hbq*mueffq)**2/QSTSB
+											  % 2-loop (s)bottom - (s)top:
+              +k**2/6*htq**4*(
+               TT**2*(64*PI*alfSQ+4/3*gpq-3*(htq*sbq)**2+3*(hbq*cbq)**2)
+               +((log(max(max(QSTSB,Mhap**2),Mtp**2)/Mtp**2))**2
+               -(log(max(Mhap**2,Mtp**2)/Mtp**2))**2)*(-3*(htq*cbq)**2-hbq**2*(3*cbq**2+1)))
+											  % Higgs + SM gauge bosons + sfermions:
+              +(sferm+gauge+bos)/(2*v**2)
+											  % Charginos - Neutralinos:
+              -k/3*((gq**2+g2q**2)*LM2mub+ldaq**4*Lmunub) )/ZHU**2.
+
+
+
+parameter la3=	(									  % 1-loop (s)top:
+               k/6*htq**4*mueffq**2/QSTSB*(3-Atq**2/QSTSB)
+              +k/8*(gpq-g2q)*htq**2*(Atq**2-mueffq**2)/QSTSB
+											  % mixing:
+              +2*k*(htq*hbq)**2*(TT+Atb/2)
+											  % 1-loop (s)bottom:
+              +k/6*hbq**4*mueffq**2/QSTSB*(3-Abq**2/QSTSB)
+              +k/8*(gpq-g2q)*hbq**2*(Abq**2-mueffq**2)/QSTSB
+											  % 2-loop (s)bottom - (s)top:
+              +2*k**2/3*(htq*hbq)**2*(32*PI*alfSQ-htq**2-hbq**2)
+               *((log(max(max(QSTSB,Mhap**2),Mtp**2)/Mtp**2))**2
+               -(log(max(Mhap**2,Mtp**2)/Mtp**2))**2)
+											  % Higgs + SM gauge bosons + sfermions:
+              +(-sferm+gauge+bos)/v**2
+											  % Charginos - Neutralinos:
+              +k/3*g2q**2*(3/4*log(max(M2Q3,MZ1**2)/QSTSB)
+                          +3/2*log(max(MSsL**2,MZ1**2)/QSTSB)
+                          +1/4*log(max(M2L3,MZ1**2)/QSTSB)
+                          +1/2*log(max(MSmL**2,MZ1**2)/QSTSB))
+              +k/3*(-(2*gq**2-4*gq*g2q+4*g2q**2)*LM2mub-2*ldaq**4*Lmunub) )/(ZHU*ZHD).
+
+
+parameter la4=	(									  % 1-loop (s)top:
+               k/6*htq**4*mueffq**2/QSTSB*(3-Atq**2/QSTSB)
+              +k/4*g2q*(htq**2*(Atq**2-mueffq**2))/QSTSB
+											  % mixing:
+              -2*k*(htq*hbq)**2*(TT+Atb/2)
+											  % 1-loop (s)bottom:
+              +k/6*hbq**4*mueffq**2/QSTSB*(3-Abq**2/QSTSB) 
+              +k/4*g2q*(hbq**2*(Abq**2-mueffq**2))/QSTSB
+											  % 2-loop (s)bottom - (s)top:
+              -2*k**2/3*(htq*hbq)**2*(32*PI*alfSQ-htq**2-hbq**2)
+               *((log(max(max(QSTSB,Mhap**2),Mtp**2)/Mtp**2))**2
+               -(log(max(Mhap**2,Mtp**2)/Mtp**2))**2)
+											  % Charginos - Neutralinos:
+              -k/3*g2q**2*(3/4*log(max(M2Q3,MZ1**2)/QSTSB)
+                          +3/2*log(max(MSsL**2,MZ1**2)/QSTSB)
+                          +1/4*log(max(M2L3,MZ1**2)/QSTSB)
+                          +1/2*log(max(MSmL**2,MZ1**2)/QSTSB))
+              +k/3*(g2q*(g2q-7*gpq)/4*LQZ1+2*g2q*(g2q-gpq)*LM2mub) )/(ZHU*ZHD).
+
+
+parameter la5=	(
+              -k/6*(htq**2*mueffq*Atq/QSTSB)**2  				% 1-loop (s)top
+              -k/6*(hbq**2*mueffq*Abq/QSTSB)**2 )/(ZHU*ZHD).		% 1-loop (s)bottom
+
+
+parameter la6=	(
+              -k/6*htq**4*mueffq**3*Atq/QSTSB**2
+              +k/4*gq*mueffq*(htq**2*Atq)/QSTSB	            		% 1-loop (s)top
+              +k*hbq**4*Abq*mueffq/QSTSB*(1-Abq**2/6/QSTSB)
+              -k/4*gq*mueffq*(hbq**2*Abq)/QSTSB )/sqrt(ZHU*ZHD**3).	% 1-loop (s)bottom
+
+
+parameter la7=	(
+               k*htq**4*Atq*mueffq/QSTSB*(1-Atq**2/6/QSTSB)
+              -k/4*gq*mueffq*(htq**2*Atq)/QSTSB	     		       	% 1-loop (s)top	
+              -k/6*hbq**4*mueffq**3*Abq/QSTSB**2
+              +k/4*gq*mueffq*(hbq**2*Abq)/QSTSB )/sqrt(ZHU**3*ZHD).	% 1-loop (s)bottom
+
+
+parameter aa5= ldaq*(2*rt*Atq*fmt+2*rb*Abq*fmb)/sqrt(ZS*ZHU*ZHD).
+
+parameter la1s= k/3*(-ldaq**2*(gpq+3*g2q)*LM2mub-2*ldaq**4*Lmunub)/(ZS*ZHD).
+
+parameter la2s= k/3*(-ldaq**2*(gpq+3*g2q)*LM2mub-2*ldaq**4*Lmunub)/(ZS*ZHU).
+
+
+parameter delpm=(la6*(v*cb)**2/2+la7*(v*sb)**2/2+aa5*vs/sqrt(2))*(tb+1/tb)-(la4+la5)*v**2/2:'Loop corrections for charged Higgs'.
+parameter MHc=sqrt(lda*Alda*sqrt(2)*vs/s2b - lda**2*v**2/2 + MW**2 + delpm):'Charged Higgs mass'.
+
+
+%%%%%%%%%%%  CP-even Higgs masses  %%%%%%%%%%%%
+
+parameter del11=la1*(v*cb)**2+(aa5*vs/sqrt(2)-3/2*la6*(v*cb)**2+la7/2*(v*sb)**2)*tb:'Loop corrections for element (1,1) in the CP-even sector',
+	  del12=sb*cb*v**2*(la3+la4+la5)-3/2*(la6*(v*cb)**2+la7*(v*sb)**2)-aa5*vs/sqrt(2):'Loop corrections for element (1,2) in the CP-even sector',
+	  del13=la1s*vs*v*cb-aa5*v*sb/sqrt(2):'Loop corrections for element (1,3) in the CP-even sector',
+	  del23=la2s*vs*v*sb-aa5*v*cb/sqrt(2):'Loop corrections for element (2,3) in the CP-even sector',
+	  del22=la2*(v*sb)**2+(aa5*vs/sqrt(2)+la6/2*(v*cb)**2-3*la7/2*(v*sb)**2)/tb:'Loop corrections for element (2,2) in the CP-even sector',
+	  del33=aa5*cb*sb*v**2/(vs*sqrt(2)):'Loop corrections for element (3,3) in the CP-even sector'.
+
+_j=1-3 in parameter Mh1_j=Mh1_jp + del1_j.
+_j=2-3 in parameter Mh2_j=Mh2_jp + del2_j.
+parameter Mh33=Mh33p + del33.
+
+parameter hDiag= rDiagonal(3,  Mh11, Mh12, Mh13,
+			             Mh22, Mh23,
+				           Mh33).
+
+_i=1-3  in parameter Mh_i=sqrt(MassArray(hDiag,_i)):'h_i mass'.
+_i=1-3  in _j=1-3 in parameter Zh_i_j=MixMatrix(hDiag,_i,_j).
+
+OrthMatrix(Zh__, 3).
+
+
+%%%%%%%%%%%  CP-odd Higgs mass %%%%%%%%%%%%
+
+parameter dela11=(la6/2*(v*cb)**2+la7/2*(v*sb)**2-la5*v**2*cb*sb+aa5*vs/sqrt(2))*tb:'Loop corrections for element (1,1) in the CP-odd sector',
+	  dela12=la6/2*(v*cb)**2+la7/2*(v*sb)**2-la5*v**2*cb*sb+aa5*vs/sqrt(2):'Loop corrections for element (1,2) in the CP-odd sector',
+	  dela13=aa5*v*sb/sqrt(2):'Loop corrections for element (1,3) in the CP-odd sector',
+	  dela23=aa5*v*cb/sqrt(2):'Loop corrections for element (2,3) in the CP-odd sector',
+	  dela22=(la6/2*(v*cb)**2+la7/2*(v*sb)**2-la5*v**2*cb*sb+aa5*vs/sqrt(2))/tb:'Loop corrections for element (2,2) in the CP-odd sector',
+	  dela33=aa5*cb*sb*v**2/(vs*sqrt(2)):'Loop corrections for element (3,3) in the CP-odd sector'.
+
+
+parameter MA11=lda*Alda*tb*vs/sqrt(2) + dela11.
+parameter MA12=lda*Alda*vs/sqrt(2) + dela12.
+parameter MA13=lda*Alda*v*sb/sqrt(2) + dela13.
+parameter MA22=lda*Alda*vs/(sqrt(2)*tb) + dela22.
+parameter MA23=lda*Alda*v*cb/sqrt(2) + dela23.
+parameter MA33=lda*Alda*v**2*s2b/(sqrt(2)*2*vs) + dela33.
+
+parameter ADiag= rDiagonal(3,  MA11, MA12, MA13,
+			             MA22, MA23,
+				           MA33).
+
+parameter Mha = sqrt(MassArray(ADiag,3)):'CP-odd Higgs Mass'.
+_i=1-3  in _j=1-3 in parameter ZA_i_j=MixMatrix(ADiag,_i,_j).
+
+OrthMatrix(ZA__, 3).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%parameter MbSM=MbEff(Q)*one(QCDok),
+%	   Mt=MtEff(Q)*one(QCDok),
+%	   Mc=McEff(Q)*one(QCDok).
+
+%parameter fiuu=atan(-2*Muq*(Au-mu/tb)/(MSuR*MSuR-MSuL*MSuL))/2.
+%parameter ficc=atan(-2*Mc*(Au-mu/tb)/(MScR*MScR-MScL*MScL))/2.
+%parameter fidd=atan(-2*MdSM*(Ad-mu*tb)/(MSdR*MSdR-MSsL*MSdL))/2.
+%parameter fiss=atan(-2*MsSM*(Ad-mu*tb)/(MSsR*MSsR-MSsL*MSsL))/2.
+
+
+%parameter Zu11=cos(fiuu), Zuu12=sin(fiuu),Zuu21=-sin(fiuu), Zuu22=cos(fiuu).
+%parameter Zd11=cos(fidd), Zdd12=sin(fidd),Zdd21=-sin(fidd), Zdd22=cos(fidd).
+%parameter Zc11=cos(ficc), Zcc12=sin(ficc),Zcc21=-sin(ficc), Zcc22=cos(ficc).
+%parameter Zs11=cos(fiss), Zss12=sin(fiss),Zss21=-sin(fiss), Zss22=cos(fiss).

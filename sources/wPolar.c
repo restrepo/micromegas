@@ -92,7 +92,7 @@ int vPolar( int out1,int out2,int out3, double*left,double*right,double*lng)
        pvect[4*in]=  chY*p0 + shY*p3;
        pvect[4*in+3]=shY*p0 + chY*p3;
      }
-     r[i]=(cc->interface->sqme)(1,GG,pvect,&err_code);
+     r[i]=(cc->interface->sqme)(1,GG,pvect,NULL,&err_code);
   }
 
   { double s;

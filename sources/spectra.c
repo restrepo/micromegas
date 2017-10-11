@@ -5,7 +5,7 @@
 #define NEn 28  /* Number of Energy points for interpolation */
 #define Nin 16 
 #define Nout 7
-#define QCUT 2.5
+#define QCUT 25 //2.5
 #define X1CUT (2.E-2)
 
 #define V0 (Vrot/299792.*1.5957691)  /* 2*sqrt(2/PI).  10^(-6)*Mslp < Width */
@@ -55,7 +55,7 @@ double  vcs22(numout * cc,int nsub,int * err)
    for(i=2;i<4; i++) pvect[4*i]=sqrt(pmass[i]*pmass[i] +pcm*pcm);
    pvect[8+3]=pcm;
    pvect[12+3]=-pcm;
-   r=cc->interface->sqme(nsub,GG,pvect,err);
+   r=cc->interface->sqme(nsub,GG,pvect,NULL,err);
 //printf("Mb4e=%E\n", findValW("Mb")); 
    return 3.8937966E8*r*pcm/(16*M_PI*pmass[0]*pmass[1]*(pmass[0]+pmass[1]));  
 }
@@ -121,7 +121,7 @@ static double dSigmadCos23(double csfi)
   }              
 */  
 err_code=0;
-  r=(cc23->interface->sqme)(1,GG,pvect,&err_code)*pcm1*pcm2/(128*M*pmass[0]*pmass[0]*M_PI*M_PI*M_PI);
+  r=(cc23->interface->sqme)(1,GG,pvect,NULL,&err_code)*pcm1*pcm2/(128*M*pmass[0]*pmass[0]*M_PI*M_PI*M_PI);
   if(err_code) return 0;
   return r*3.8937966E8;
 }
@@ -234,9 +234,10 @@ static double Spectra22A(char*name1,char*name2,double ** Spectra,txtList plusA)
   txtList cRec;
   int spin2Dm;
   
-  for(l=0;l<6;l++) if(Spectra[l]) for(i=0;i<NZ;i++) Spectra[l][i]=0;
+  for(l=0;l<6;l++) if(Spectra[l]) { Spectra[l][0]=Mcdm0; for(i=1;i<NZ;i++) Spectra[l][i]=0;}
   if(Spectra[0]==NULL && Spectra[1]==NULL) return 0;
-  
+
+if(Spectra[0])   
   for(l=0;l<nModelParticles;l++)
   {
      if(ModelPrtcls[l].NPDG==22) 
@@ -444,33 +445,86 @@ static void mInterp(double Nmass,  int  CHin,int  CHout, double*tab)
 
 
 static double*tabStat;
-static double FUNN(double x){return  zInterp(x,tabStat);}
-static double FUNE(double x){return  zInterp(x,tabStat)*exp(x);}
+static double FUNN(double x) { return  zInterp(x,tabStat);}
+static double FUNE(double x) { return  zInterp(x,tabStat)*exp(x);}
 
-void spectrInfo(double Xmin,double*tab, double * Ntot,double*Xtot)
+double  spectrInfo(double Emin,double*tab,double*Etot)
 {
-  tabStat=tab;
-  if(Xmin>=1) 
-  { if(Ntot)*Ntot=0;
-    if(Xtot)*Xtot=0;
+  if(Emin>=tab[0] ) 
+  { 
+    if(Etot)*Etot=0;
+    return 0;
   } else 
-  {      
-    if(Ntot)*Ntot=simpson(FUNN, log(Xmin), 0.,1.E-4);
-    if(Xtot)*Xtot=simpson(FUNE, log(Xmin), 0.,1.E-4);
+  { int i1,i2;
+    double Xmin=Emin/tab[0],zmin,zmax=0;
+    if(Xmin<1.22E-7) Xmin=1.22E-7;
+    zmin=log(Xmin); 
+
+    for(i1=Iz(zmin); i1>1 && tab[i1]==0;i1--) continue;
+    if(i1<NZ-1) i1++;
+    if(zmin<Zi(i1)) zmin=Zi(i1)+1E-6;
+
+    
+    for(i2=1; tab[i2]==0 && i2<NZ-1 ;i2++ );
+    if(i2>1) i2--;
+    if(zmax>Zi(i2)) zmax=Zi(i2)-1E-6;
+
+    if(zmax<zmin) return 0;    
+    tabStat=tab;
+    if(Etot)*Etot=tab[0]*simpson(FUNE, zmin, zmax,1.E-4);       
+//    displayFunc(FUNN,Xmin, 0.,"integrand");
+    return simpson(FUNN, zmin, zmax,1.E-4);
   }  
 }
 
-static double m_,mD2_;
+
+double spectrInt(double Emin,double Emax, double * tab)
+{ 
+  double M=tab[0], zmin,zmax;
+  int i1,i2;
+
+  if(Emin<M*exp(Zi(NZ-1))) zmin=Zi(NZ-1); else if( Emin>=M) zmin=0; else zmin=log(Emin/M);
+  if(Emax<M*exp(Zi(NZ-1))) zmax=Zi(NZ-1); else if( Emax>=M) zmax=0; else zmax=log(Emax/M);
+  
+  if(zmin>=zmax) return 0;
+  
+  for(i1=Iz(zmin) ;i1>1 && tab[i1]==0;i1--) continue;
+  if(i1<NZ-1) i1++;
+  if(zmin<Zi(i1)) zmin=Zi(i1)+1E-6;
+ 
+  i2=Iz(zmax)+1; if(i2>NZ-1) i2=NZ-1;
+  for( ;i2<NZ-1 && tab[i2]==0;i2--) continue;
+  if(i2<2) i2--;
+  if(zmax>Zi(i2)) zmax=Zi(i2)-1E-6;
+                
+  
+  tabStat=tab;
+  return simpson(FUNN, zmin, zmax,1.E-4);
+}
+
+
+void  spectrMult( double *spect, double(*func)(double))
+{ 
+  int i; 
+  double M=spect[0];
+  for(i=1;i<NZ;i++)
+  { double E=M*exp(Zi(i));
+    spect[i]*=func(E);
+  }  
+}
+
+
+static double m_;
 
 static double FUNB(double e)
 { double r;
   if(e<=0) return 0;
-  r=zInterp(log(e/mD2_),tabStat)/(e*sqrt(e*(e+2*m_)));
+  r=zInterp(log(e/tabStat[0]),tabStat)/(e*sqrt(e*(e+2*m_)));
   return r;
 }
 
 
-void boost(double Y, double Emax, double mDecay, double mx, double*tab)
+void boost(double Y, double M0, double mx, double*tab)
 { double chY=cosh(Y), shY=sinh(Y);
   int l;
   double tab_out[NZ];  
@@ -478,16 +532,27 @@ void boost(double Y, double Emax, double mDecay, double mx, double*tab)
   if(Y<0.001) return;
 //printf("boost: mDecay=%E 2*tab[0]=%E\n", mDecay,2*tab[0]);
   m_=mx;
-  mD2_=mDecay/2;
+    
   tabStat=tab;
 
   for(l=1;l<NZ;l++)
-  { double e=Emax*exp(Zi(l));
+  { double e=M0*exp(Zi(l));
     double p=sqrt(e*(e+2*mx)); 
     double e1=chY*(e+mx)-shY*p-mx;
     double e2=chY*(e+mx)+shY*p-mx;
-    if(e2>mD2_) e2=mD2_;
+    int k=Iz(log(e1/tab[0]));
+    if(e1>=tab[0]) {tab_out[l]=0; continue;}
+    
+    if(tab[k]==0)
+    { 
+      for(;k>2 && tab[k-1]==0 ;k--);
+      e1=tab[0]*exp(Zi(k));
+    }       
+     
+    if(e2>tab[0]) e2=tab[0];
     if (e1>=e2) tab_out[l]=0; else tab_out[l]=e*simpson(FUNB,e1,e2,1.E-4)/2/shY;
+
+    
 /*     
 if(e1<1.E-5 && e2>3)    
 {
@@ -501,7 +566,7 @@ if(e1<1.E-5 && e2>3)
   }
   
   for(l=1;l<NZ;l++) tab[l]=tab_out[l];
-  tab[0]=Emax;
+  tab[0]=M0;
 }
 
 static double outMass[6]= {0.,0.,0.939,0.,0.,0.};
@@ -531,17 +596,17 @@ int basicSpectra(double Mass, int pdgN, int outN, double * tab)
     double br_b=0.60 , br_l=0.06 ,br_W=0.21, br_Z=0.03, br_G=0.08,br_c=0.017,br_A=0.003;  
     int i;
     for(i=1;i<NZ;i++) tab[i]=0;
-    tab[0]=Mass;
-    mInterp(Mh,5,outN,tabV);  for(i=1;i<NZ;i++) tab[i]+=2*br_b*tabV[i];
-    mInterp(Mh,9,outN,tabV);  for(i=1;i<NZ;i++) tab[i]+=2*br_l*tabV[i];
-    mInterp(Mh,10,outN,tabV); for(i=1;i<NZ;i++) tab[i]+=2*br_Z*tabV[i];
-    mInterp(Mh,13,outN,tabV); for(i=1;i<NZ;i++) tab[i]+=2*br_W*tabV[i];
-    mInterp(Mh,0,outN,tabV);  for(i=1;i<NZ;i++) tab[i]+=2*br_G*tabV[i]; 
-    mInterp(Mh,4,outN,tabV);  for(i=1;i<NZ;i++) tab[i]+=2*br_c*tabV[i];
+    mInterp(Mh/2, 5,outN,tabV);  for(i=1;i<NZ;i++) tab[i]+=2*br_b*tabV[i];
+    mInterp(Mh/2, 9,outN,tabV);  for(i=1;i<NZ;i++) tab[i]+=2*br_l*tabV[i];
+    mInterp(Mh/2,10,outN,tabV);  for(i=1;i<NZ;i++) tab[i]+=2*br_Z*tabV[i];
+    mInterp(Mh/2,13,outN,tabV);  for(i=1;i<NZ;i++) tab[i]+=2*br_W*tabV[i];
+    mInterp(Mh/2, 0,outN,tabV);  for(i=1;i<NZ;i++) tab[i]+=2*br_G*tabV[i]; 
+    mInterp(Mh/2, 4,outN,tabV);  for(i=1;i<NZ;i++) tab[i]+=2*br_c*tabV[i];
+    tab[0]=tabV[0];
     if(outN==0) tab[1]+=br_A*8/(Zi(1)-Zi(2));
-    Y=acosh(Mcdm0/Mh);
+    Y=acosh(Mass/Mh);
 //printf("Mass=%E Mcdm0=%E\n", Mass,Mcdm0);    
-    boost(Y, Mcdm0,Mh , outMass[outN], tab); 
+    boost(Y, Mass, outMass[outN], tab); 
   }
   return 0;
 }
@@ -698,7 +763,7 @@ static void getSpectrum(int wPol, double M, double m1,double m2,char*n1,char*n2,
                     continue;
                  }
         Y=acosh(E[k]/mm[k]);
-        boost(Y, M/2, mm[k], outMass[outP], tabAux);
+        boost(Y, M/2, outMass[outP], tabAux);
         for(i=1;i<NZ;i++)tab[i]+=tabAux[i]/w; 
                 
       }
@@ -722,7 +787,7 @@ void addSpectrum(double *Spect, double * toAdd)
   double m2=toAdd[0];
   double buff[NZ];
   int i;
-   
+
   if(m1>m2) for(i=1;i<NZ;i++) 
   { 
      double E= m1*exp(Zi(i));
@@ -733,7 +798,7 @@ void addSpectrum(double *Spect, double * toAdd)
     for(i=0;i<NZ;i++) Spect[i]=toAdd[i];
     for(i=1;i<NZ;i++) 
     {  
-       double E= m2*exp(Zi(i));    
+       double E= m2*exp(Zi(i)); 
        if(E>m1) return;
        Spect[i]+=  SpectdNdE(E,buff)*E;
     } 
@@ -1043,12 +1108,15 @@ double calcSpectrum(int key, double *Sg,double*Se, double*Sp, double*Sne,double*
     {  nAnCh0=nAnCh;
        if(Spectra[0]) dSigmadE_x1=zInterp(log(X1),Spectra_[0])/(X1*Mcdm0);  
        if(Spectra[1]) dSigmadE_x1_e=zInterp(log(X1),Spectra_[1])/(X1*Mcdm0);
-       vcs+=c*Spectra22A(name,aname,Spectra_,plusA);   
+       vcs+=c*Spectra22A(name,aname,Spectra_,plusA);
+
+          
        for(l=0;l<6;l++) if(Spectra[l])
        { 
           for(k=1;k<NZ;k++)Spectra_[l][k]*=c;
           addSpectrum(Spectra[l], Spectra_[l]);
        }
+        
        for(k=nAnCh0;k<nAnCh;k++) vSigmaCh[k].weight*=c;
        cleanTxtList(plusA);
        plusA=NULL;
@@ -1111,12 +1179,41 @@ double SpectdNdE(double E, double *tab){
   return 1/E*zInterp(z,tab); 
 }
 
-int displaySpectrum(double*tab, char*mess,double Emin,double Emax)
+int displaySpectrum( char*mess,double Emin,double Emax,double*tab)
 {
   int i;
-  double f[NZ];
-  for(i=0;i<NZ;i++) f[i]=SpectdNdE(Emin+i*(Emax-Emin)/(NZ-1),tab);
-  displayPlot(mess, "E[GeV]", "dN/dE", Emin, Emax,NZ,f,NULL);
+  double f[100];
+  for(i=0;i<100;i++) f[i]=SpectdNdE(Emin+(i+0.5)*(Emax-Emin)/100.,tab);
+  displayPlot(mess,Emin, Emax, "E[GeV]",100,1,f,NULL,"dN/dE");
   return 0;     
+}
+
+int displaySpectra(char * title, double Emin,double Emax, int N,...)
+{
+  int i,dim=100; 
+  double **f,**ff,**nu; char**Y; 
+  va_list ap;    
+        
+  nu=malloc(N*sizeof(double*)); 
+  f=malloc(N*sizeof(double*));
+  ff=malloc(N*sizeof(double*)); 
+  Y = malloc(N*sizeof(char*));  
+ 
+  va_start(ap,N);  
+  for(i=0;i<N;i++)  
+  { int j;
+    nu[i]=va_arg(ap,double*);
+    f[i]=malloc(dim*sizeof(double));
+    for(j=0;j<dim;j++) f[i][j]=SpectdNdE(Emin+(j+0.5)*(Emax-Emin)/dim,nu[i]);  
+    ff[i]=NULL; 
+    Y[i]=va_arg(ap,char*); 
+  }    
+  va_end(ap); 
+ 
+  displayPlotN(title,Emin,Emax,"E[GeV]", dim,N, f,ff,Y); 
+  
+  for(i=0;i<N;i++) free(f[i]);
+  free(nu); free(f); free(ff);free(Y);
+  return 0;
 }
 

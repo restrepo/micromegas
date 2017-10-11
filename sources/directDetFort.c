@@ -12,10 +12,6 @@ void calcscalarquarkff_(double *muDmd,double *msDmd,double *sigmaPiN,double *sig
 { calcScalarQuarkFF(*muDmd,*msDmd,*sigmaPiN,*sigmaS);}
 
 
-
-double fescloop_(double * sing, double * mq, double * msq, double *mne)
-{ return FeScLoop(*sing,*mq,*msq,*mne);}
-
 static double(*_XYloop)(double*,double*,double*,double*);
 
 double XYloop_(double sing, double mq, double msq, double mne)
@@ -29,14 +25,11 @@ double noloop_(double *sing, double *mq, double *msq, double *mne)
 }
 
 
-int nucleonamplitudes_(char * cmdF,  double (*LF)(double*,double*,double*,double*),double*pA0,double*pA5,double*nA0,double*nA5,int len)
-{ double (*LF_)(double,double,double,double);
+int nucleonamplitudes_(char * cmdF,double*pA0,double*pA5,double*nA0,double*nA5,int len)
+{
   char cdmC[20];
   fName2c(cmdF,cdmC,len);
-  if(LF==&noloop_) LF_=NULL; else
-  if(LF== fescloop_) LF_=FeScLoop;else {_XYloop=LF; LF_=&XYloop_;}
-/*printf("OK  LF=%p nullloop=%p &nullloop=%p \n",LF, noloop_,&noloop_);*/
-  return nucleonAmplitudes(cdmC,*LF_, pA0,pA5,nA0,nA5);
+  return nucleonAmplitudes(cdmC,pA0,pA5,nA0,nA5);
 }
 
 double fermiff_(int *A, double * Qfermi)
@@ -59,22 +52,17 @@ static void Sxx_(double p,double*S00,double*S01,double*S11){ (*_Sxx)(&p,S00,S01,
 
 double nucleusrecoil_(
      double(*fDv)(double*),int*A, int*Z, double*J, 
-     void(*Sxx)(double*,double*,double*,double*),
-     double (*LF)(double*,double*,double*,double*), double * dNdE )
+     void(*Sxx)(double*,double*,double*,double*), double * dNdE )
 {  
-  double (*LF_)(double,double,double,double);
-  if(LF==noloop_) LF_=NULL; else
-  if(LF== fescloop_) LF_=FeScLoop;else {_XYloop=LF; LF_=&XYloop_;}
-  
   _Sxx=Sxx;
   
   if(fDv  == maxwell_)
-    return  nucleusRecoil(Maxwell, *A,*Z,*J,Sxx_,LF_,dNdE);
+    return  nucleusRecoil(Maxwell, *A,*Z,*J,Sxx_,dNdE);
   else  if(fDv==fdvdelta_)  
-    return  nucleusRecoil(fDvDelta, *A,*Z,*J,Sxx_,LF_,dNdE);
+    return  nucleusRecoil(fDvDelta, *A,*Z,*J,Sxx_,dNdE);
   else  
   { _fDv=fDv;
-    return  nucleusRecoil(fDv_, *A,*Z,*J,Sxx_,LF_,dNdE);
+    return  nucleusRecoil(fDv_, *A,*Z,*J,Sxx_,dNdE);
   }    
 }
 
@@ -99,19 +87,11 @@ double nucleusrecoil0_( double (*fDv)(double*),
  int*A,int*Z,double*J,double*Sp,double*Sn,
  double (*LF)(double*,double*,double*,double*),double*dNdE)
 {
-  double (*LF_)(double,double,double,double);
-  if(LF==noloop_) LF_=NULL; else
-  if(LF== fescloop_) LF_=FeScLoop;else {_XYloop=LF; LF_=&XYloop_;}
 
-  return nucleusRecoil0(Maxwell,*A,*Z,*J,*Sp,*Sn,NULL/*LF_*/,dNdE); 
-
-
-  if(fDv  == maxwell_)
-  {  printf("Maxwell OK\n");
-  }               
+  if(fDv  == maxwell_) return nucleusRecoil0(Maxwell,*A,*Z,*J,*Sp,*Sn,dNdE);
   else 
   { _fDv=fDv;  
-    return nucleusRecoil0( fDv_,*A,*Z,*J,*Sp,*Sn,LF_,dNdE);
+    return nucleusRecoil0( fDv_,*A,*Z,*J,*Sp,*Sn,dNdE);
   }
 }
 

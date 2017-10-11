@@ -54,38 +54,7 @@ static void  writeSLHA(void)
       name=ModelPrtcls[i].name;
       mass=pMass(name);
       if(!mass) continue;
-      width=pWidth(name,&all);
-      fprintf(f,"DECAY %d  %E # %s\n",ModelPrtcls[i].NPDG,width,name);
-      for(;all;all=all->next)
-      { int dim; 
-        char pn[20], buff[100], *chB,*chE;
-        strcpy(buff,all->txt);
-        sscanf(buff,"%s", pn);
-        chB=strstr(buff,"->");
-        chB+=2;
-        for(dim=1; ;dim++)
-        { 
-           chE=strchr(chB,',');
-           if(chE)chB=chE+1;else break;
-        }
-        fprintf(f," %s %d  ",pn,dim);
-         
-        strcpy(buff,all->txt);        
-        chB=strstr(buff,"->");
-        chB+=2;
-        for(;;)
-        { 
-           chE=strchr(chB,',');
-           if(chE)chE[0]=0;
-           sscanf(chB,"%s",pn);
-           fprintf(f," %d", qNumbers(pn,NULL,NULL,NULL));
-           if(chE)chB=chE+1;else break;
-        }
-        
-        
-        chB=strstr(all->txt,"->");   
-        fprintf(f,"  # %s \n",chB+2);
-      }
+      slhaDecayPrint(name,0,f);
       fprintf(f,"#\n");          
    }
    fclose(f);

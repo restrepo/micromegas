@@ -119,7 +119,7 @@ int  odeint(double * ystart, int nvar, double x1, double x2, double eps,
 }
 
 
-static double bessi0(double  x)
+double bessI0(double  x)
 {
 	double ax,ans;
 	double y;
@@ -139,7 +139,7 @@ static double bessi0(double  x)
 	return ans;
 }
 
-static double bessi1(double x)
+static double bessI1(double x)
 {
 	double ax,ans;
 	double y;
@@ -160,7 +160,7 @@ static double bessi1(double x)
 	return x < 0.0 ? -ans : ans;
 }
 
-double bessk0(double x)
+double bessK0(double x)
 {
 /*
    M.Abramowitz and I.A.Stegun, Handbook of Mathematical Functions,
@@ -171,7 +171,7 @@ double bessk0(double x)
 
 	if (x <= 2.0) {
 		y=x*x/4.0;
-		ans=(-log(x/2.0)*bessi0(x))+(-0.57721566+y*(0.42278420
+		ans=(-log(x/2.0)*bessI0(x))+(-0.57721566+y*(0.42278420
 			+y*(0.23069756+y*(0.3488590e-1+y*(0.262698e-2
 			+y*(0.10750e-3+y*0.74e-5))))));
 	} else {
@@ -184,13 +184,13 @@ double bessk0(double x)
 }
 
 
-double bessk1(double x)
+double bessK1(double x)
 {
 	double y,ans;
 
 	if (x <= 2.0) {
 		y=x*x/4.0;
-		ans=(log(x/2.0)*bessi1(x))+(1.0/x)*(1.0+y*(0.15443144
+		ans=(log(x/2.0)*bessI1(x))+(1.0/x)*(1.0+y*(0.15443144
 			+y*(-0.67278579+y*(-0.18156897+y*(-0.1919402e-1
 			+y*(-0.110404e-2+y*(-0.4686e-4)))))));
 	} else {
@@ -202,13 +202,13 @@ double bessk1(double x)
 	return  ans;
 }
 
-double bessk2(double x)
+double bessK2(double x)
 {
 	double bk,bkm,bkp,tox;
 
 	tox= 2.0/x;
-	bkm=bessk0(x);
-	bk=bessk1(x);
+	bkm=bessK0(x);
+	bk=bessK1(x);
 	bkp=bkm+tox*bk;
 	bkm=bk;
 	bk=bkp;
@@ -218,13 +218,13 @@ double bessk2(double x)
 double K2pol(double x)
 {
    if(x<0.1) return 1+ 1.875*x*(1+0.4375*x*(1-0.375*x));
-   else      return bessk2(1/x)*exp(1/x)*sqrt(2/M_PI/x);
+   else      return bessK2(1/x)*exp(1/x)*sqrt(2/M_PI/x);
 }
 
 double K1pol(double x)
 {
   if(x<0.1) return 1+ 0.375*x*(1-0.3125*x*(1+0.875*x));
-  else      return bessk1(1/x)*exp(1/x)*sqrt(2/M_PI/x); 
+  else      return bessK1(1/x)*exp(1/x)*sqrt(2/M_PI/x); 
 }
 
 static double  polintN(double x, int n,  double *xa, double *ya)
@@ -372,50 +372,6 @@ int buildInterpolation(double (*Fun)(double), double x1,double x2, double eps,do
 }
 
 
-#define SQ(x)  ((x)*(x))
-
-double   LintIk(int II,double MSQ,double MQ,double MNE)
-{  
-  double LAM,SPPM,SPMM,R1,R2,R3,del,CMD;
-  double msq2=MSQ*MSQ, mq2=MQ*MQ, mne2=MNE*MNE;
-
-  SPPM=  msq2+mq2-mne2, SPMM= msq2-mq2-mne2;
-  R1  =(msq2-mq2)/mne2;
-  R2  =(mq2-mne2)/msq2;
-  R3  =(msq2-mne2)/mq2;
-
-  del =2.*mne2*(mq2+msq2)-mne2*mne2-SQ(msq2-mq2);
-  
-  if(del>0) LAM=2.*atan(sqrt(del)/SPPM)/sqrt(del);
-  if(del<0) LAM=log((SPPM+sqrt(-del))/(SPPM-sqrt(-del)))/sqrt(-del);
-
-  switch(II)
-  { 
-    case 1:  
-      CMD=1./del*(R2/3-2/3.*R3-5/3.+ (2*msq2-2/3.*mne2)*LAM);	
-    break; 
-    case 2: 
-      CMD=(log(msq2/mq2)-SPMM*LAM)/2./mne2/mne2+
-         ( ((mq2*mq2-mq2*msq2)/mne2-7/3.*mq2+2/3.*(mne2-msq2))*LAM+R2/3+R1+2/3.
-         )/del;
-    break;
-    case 3:
-      CMD=-3/SQ(del)*SPPM+LAM/del*(-1+6*mq2*msq2/del);
-    break;	
-    case 4:
-      CMD=((log(msq2/mq2) - SPMM*LAM)/2/mne2-1/msq2 -mq2*SPMM/del*LAM)/mne2/mne2
-      
-         +( mq2/mne2/mne2-SQ(1-mq2/mne2)/msq2+0.5/mne2
-            +3*mq2/del*(1 +  R1 + (-R1*mq2-2*mq2-msq2+mne2)*LAM)
-          )/del;
-    break;
-    case 5:
-     CMD=(log(msq2/mq2)-SPMM*LAM)/(2*mne2*mne2)-(LAM*(2*(msq2-mne2)+3*mq2+R1*mq2)-3-R1)/del;
-     break;
-    default: CMD=0.; 
-  }
-  return CMD;
-}
 
 double MaxGapLim(double x, double mu) 
 /* S.Yellin, Phys.Rev. D66,032005(2002)
@@ -544,11 +500,11 @@ int N0, double Nfact, double eps,double * dI)
   double ti[MAXSTEP],dti[MAXSTEP];
   double ii,dii,chi2;
 
-  vegPtr=vegas_init(ndim,50);
+  vegPtr=vegas_init(ndim,Integrand,50);
   
   for(k=0;k<MAXSTEP;k++)
   { double s0=0,s1=0,s2=0; 
-    vegas_int(vegPtr, N0 , 1.5, Integrand, ti+k, dti+k);
+    vegas_int(vegPtr, N0 , 1.5, nPROCSS, ti+k, dti+k);
     printf("ti=%E dti=%E\n",ti[k], dti[k]);
     if(dti[k]==0) break;
     for(l=k;l>=k/2;l--)
@@ -571,6 +527,8 @@ int N0, double Nfact, double eps,double * dI)
   if(dI) *dI=dii;
   return ii;
 }  
+
+
 
 void spline(double x[], double y[], int n, double y2[])
 {
@@ -613,3 +571,64 @@ void splint(double xa[], double ya[], double y2a[], int n, double x, double *y)
 	b=(x-xa[klo])/h;
 	*y=a*ya[klo]+b*ya[khi]+((a*a*a-a)*y2a[klo]+(b*b*b-b)*y2a[khi])*(h*h)/6.0;
 }
+
+
+
+static int findMinLimit(double mu,double b,double cl)
+{
+  double r[300],p[300],s,rMax;
+  int N,n,n0,nMin,nMax;
+  
+  r[0]=exp(-mu);
+  p[0]=exp(-mu-b);
+  nMax=0;
+  rMax=r[0];
+   for(n=1;n<300;n++) p[n]=1;
+  for(n=1,s=0; 1-s> cl/100 ;n++)
+  {  double mu_best;
+     if(n>b) mu_best=n-b; else mu_best=0;
+     r[n]=pow((mu+b)/(mu_best+b),n)*exp(mu_best-mu);
+     if(r[n]>rMax) {rMax=r[n];nMax=n;}
+     p[n]=p[n-1]*(mu+b)/n;
+     s+=p[n];
+  }
+
+  N=n;
+  cl-=p[nMax]; nMin=nMax-1; nMax++; 
+  for( ;cl>0;)
+  {
+    if(nMin>=0) { if(nMax<N && r[nMax]>r[nMin]) cl-=p[nMax++];  else  cl-=p[nMin--];}
+    else  cl-=p[nMax++];
+  }
+  if(nMin>0) return nMin; else return 0; 
+} 
+
+
+double FeldmanCousins(int n0, double b, double cl)
+{
+   double delta,mu;
+   
+   for(mu=0,delta=1; delta>0.01; delta/=2, mu-=delta)
+   {  
+     for(;findMinLimit(mu, b,cl)<n0;mu+=delta);
+   }    
+   return mu;
+}
+
+static double alpha=0.25,cc, p_exp;
+static double ch2pva_int(double f)
+{ 
+  if(f<=0) return 0;
+  return pow(f,(1-alpha)/alpha)* pow(-log(f)/alpha,p_exp)/cc;
+
+}
+
+double ch2pval(int nexp, double ch2obs)
+{
+   p_exp=0.5*nexp-1;  
+   alpha=1/(1+p_exp/log(2));
+  cc=exp(lgamma(nexp/2.))*alpha;
+//   displayFunc(ch2pva_int,0,exp(-alpha*ch2obs/2),"ch2pva_int");   
+   return simpson(ch2pva_int, 0, exp(-alpha*ch2obs/2), 1.E-3);///exp(lgamma(nexp/2.))/alpha;
+}
+

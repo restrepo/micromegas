@@ -9,6 +9,42 @@
 int nFiles=0;
 
 
+static  void addCol(int CC, int pos, int*arr)
+{ if(arr[pos]) { pos=(pos+1)%2; CC*=-1;}    
+  arr[pos]=CC; 
+}
+
+void ch2pythColors(int*CC, int nin, int nout, int * ch_color, int * pth_color)
+{ 
+   int i;
+   for(i=0;i<2*(nin+nout);i++) pth_color[i]=0;
+
+   for(i=0; ;i++,(*CC)+=4) switch(ch_color[4*i]) 
+   { case 0: return;
+     case 2:
+     { int k1=ch_color[4*i+1]-1,k2=ch_color[4*i+2]-1;
+       int n=*CC;
+       if(k1<nin)  addCol(n,0,pth_color+2*k1); else addCol(n,1,pth_color+2*k1);
+       if(k2<nin)  addCol(n,1,pth_color+2*k2); else addCol(n,0,pth_color+2*k2);
+     } break;  
+   
+     case 3: 
+     {  int k1=ch_color[4*i+1]-1,k2=ch_color[4*i+2]-1,k3=ch_color[4*i+3]-1;
+        int n=*CC;
+        if(k1<nin)  addCol(n+1,0,pth_color+2*k1); else addCol(n+1,1,pth_color+2*k1); 
+        if(k2<nin)  addCol(n+2,0,pth_color+2*k2); else addCol(n+2,1,pth_color+2*k2);
+        if(k3<nin)  addCol(n+3,0,pth_color+2*k3); else addCol(n+3,1,pth_color+2*k3);            
+     } break;
+
+     case -3: 
+     {  int k1=ch_color[4*i+1]-1,k2=ch_color[4*i+2]-1,k3=ch_color[4*i+3]-1;
+        int n=*CC;
+        if(k1<nin)  addCol(n+1,1,pth_color+2*k1); else addCol(n+1,0,pth_color+2*k1); 
+        if(k2<nin)  addCol(n+2,1,pth_color+2*k2); else addCol(n+2,0,pth_color+2*k2);
+        if(k3<nin)  addCol(n+3,1,pth_color+2*k3); else addCol(n+3,0,pth_color+2*k3);            
+     } break;
+   }        
+}
 
 
 
@@ -140,7 +176,7 @@ eventfile_info * initEventFile(char* fname)
    return NULL; 
 }
 
-int readEvent(eventfile_info *Finfo, int *Nmom, double * mom, int * clr1, int * clr2, double *Qf,double *alphaQCD, int * w)
+int readEvent(eventfile_info *Finfo, int *Nmom, double * mom, int * color, double *Qf,double *alphaQCD, int * w)
 { int n=0;
 
   if(Finfo->F==NULL)
@@ -175,8 +211,9 @@ int readEvent(eventfile_info *Finfo, int *Nmom, double * mom, int * clr1, int * 
      *Nmom=n;
      if(2!=fscanf(Finfo->F,"| %lf %lf",Qf,alphaQCD)) return 2;
      if(Finfo->Nin==1 && Finfo->firstRd==0)  Rot3D(2*(drand48()-0.5) ,2*M_PI*drand48(),M_PI*drand48(),Finfo->Nout ,mom);  
-     for(n=0;2==fscanf(Finfo->F," (%d %d)",clr1+n,clr2+n);n++);
-     clr1[n]=0; clr2[n]=0;
+     for(n=0;
+       4==fscanf(Finfo->F," (%d %d %d %d)",color+n,color+n+1,color+n+2,color+n+3);
+       n+=4); color[n]=0;
      return 0;
   }
 }

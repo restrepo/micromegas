@@ -8,11 +8,14 @@ static double pt_min[2]={0.1,0.1};    /* Minimal Pt cut [GeV] of outgoing proton
 static const double Maxpt_min = 1.;   /* Maximal of minimal  Pt cut [GeV], */
 /* controls approximation of q2 as a function of pt  */
 
-/* ********************************************************* */
-/*  Equivalent photon approximation structure function.    * */
-/*     Improved Weizsaecker-Williams formula               * */
-/*   V.M.Budnev et al., Phys.Rep. 15C (1975) 181           * */
-/* ********************************************************* */
+// * ********************************************************* 
+// *  Equivalent photon approximation structure function.    * 
+// *     Improved Weizsaecker-Williams formula               * 
+// *   V.M.Budnev et al., Phys.Rep. 15C (1975) 181           * 
+// *      see  details on page 273                           *
+// * The code was written by Muriel Vander Donckt            *       
+// * *********************************************************
+
 
 
 int  p_epp__ (int*pNum){ if(pNum[0]==22 && pNum[1]==0) return 1; else return 0; }
@@ -108,7 +111,10 @@ static double phi(double x, double qq)
   qq1=1+qq;
   y= x*x/(1-x);
   f=(1+a*y)*(-log(qq1/qq)+1/qq1+1/(2*qq1*qq1)+1/(3*qq1*qq1*qq1));
-  f+=(1-b)*y/(4*qq*qq1*qq1*qq1);
+  f+=(1-b)*y/(4*qq*qq1*qq1*qq1);  // here  sign  is differnt  with Budnev et al and corresponds to 
+      // realization by Muriel Vander Donckt. Investigation by Richard Ruiz revealed that 
+      // Budnev et al have mistake in this place.  
+          
   f+=c*(1+y/4)*(log((qq1-b)/qq1)+b/qq1+b*b/(2*qq1*qq1)+b*b*b/(3*qq1*qq1*qq1));
   return f;
 }

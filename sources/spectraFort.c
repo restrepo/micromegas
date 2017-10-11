@@ -48,19 +48,19 @@ double calcspectrum_(int*key, double *Sg, double *Se, double *Sp, double *Sne, d
   return calcSpectrum(*key,Sg_, Se_, Sp_, Sne_, Snm_, Snl_ ,err); 
 }
 
-void spectrinfo_(double *Xmin,double*tab, double * Ntot,double*Etot)
-{ spectrInfo(*Xmin,tab, Ntot,Etot);}
+double  spectrinfo_(double *Xmin,double*tab, double*Etot)
+{ return spectrInfo(*Xmin,tab, Etot);}
 
 
 double zinterp_(double*x, double*tab) {  return zInterp(*x, tab);}
 
 double spectdnde_(double *E, double *tab){ return SpectdNdE(*E, tab); }   
  
-int displayspectrum_(double*tab, char*fmess,double *Emin,double *Emax,int len)
+int displayspectrum_(char*fmess,double *Emin,double *Emax,double*tab,int len)
 {
    char cmess[200];
    fName2c(fmess,cmess, len);
-   return  displaySpectrum(tab, cmess,*Emin,*Emax);
+   return  displaySpectrum( cmess,*Emin,*Emax,tab);
 } 
 
 
@@ -85,8 +85,8 @@ extern void  solarmodulation_(double *PHI, double *mass, double * inTab, double 
 int basicspectra_(double *Mass, int *pdgN, int *outN, double * tab)
 { return basicSpectra(*Mass,*pdgN, *outN, tab);}
 
-int basicnuspectra_(int*forSun, double *Mass, int *pdgN, int *outN, double * tab)
-{ return basicNuSpectra(*forSun,*Mass, *pdgN, *outN, tab);}
+int basicnuspectra_(int*forSun, double *Mass, int *pdgN, int*pol, double * nu, double * nuB)
+{ return basicNuSpectra(*forSun,*Mass, *pdgN,*pol, nu, nuB);}
 
 
 
@@ -100,3 +100,19 @@ void displayfunc_(double (*F)(double*),double *x1,double *x2,char *fmess,int len
   dFdF_displayFunc=F;
   displayFunc(dFdC_displayFunc,*x1,*x2,cmess);
 }
+
+double  spectrint(double *Emin,double *Emax, double * tab)
+{
+  return spectrInt(*Emin,*Emax, tab);
+}
+
+static   double(*fFunc)(double *x);
+static   double cFunc(double x){ return fFunc(&x);}
+
+
+void spectrmult_( double *spect, double(*func)(double*))
+{ 
+  fFunc=func; 
+  spectrMult(spect, cFunc);
+}
+  

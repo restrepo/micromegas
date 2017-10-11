@@ -92,7 +92,7 @@ int main(void)
     int err=0;
     p3[3]=Pout*cos_fi; p4[3]=-p3[3];
     p3[2]=Pout*sin_fi; p4[2]=-p3[2];
-    DsigmaDcos=totcoef*cc->interface->sqme(1,GG,pvec,&err); 
+    DsigmaDcos=totcoef*cc->interface->sqme(1,GG,pvec,NULL,&err); 
     sigmaTot += DsigmaDcos*cos_step;
   }
   printf("sigmaTot(Pcm=%E)= %E\n",Pin,sigmaTot);

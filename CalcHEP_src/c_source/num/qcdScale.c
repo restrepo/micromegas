@@ -61,7 +61,9 @@ static void*  act_num_(char* ch,int n, void**args)
    
    switch (ch[0])
    { 
-     case '-': 
+     case '-': p=malloc(strlen(p1)+10);
+               sprintf(p,"(-(%s))",p1);
+               return p;
      case '+': 
      case '*': p=malloc(strlen(p1)+strlen(p2)+10);
                sprintf(p,"(%s)%c(%s)",p1,ch[0],p2);
@@ -140,7 +142,6 @@ int initScales(char*sF,char*sR,char * mess)
    fprintf(fout,"         \n");
    fprintf(fout," double Qfactorization;\n");   
    ch=readExpression(sF,rd_num_,act_num_,free);
-   
    if(!ch) 
    { fclose(fout); 
      if(mess)

@@ -48,8 +48,8 @@ static double s_integrandT_(double  sqrtS )
 }   
 
 /*
-bessk2(x) = exp(-x)*sqrt(M_PI/2/x)*K2pol(1/x)
-bessk1(x) = exp(-x)*sqrt(M_PI/2/x)*K1pol(1/x) 
+bessK2(x) = exp(-x)*sqrt(M_PI/2/x)*K2pol(1/x)
+bessK1(x) = exp(-x)*sqrt(M_PI/2/x)*K1pol(1/x) 
 */
 
 static double u_integrand_( double u)
@@ -88,9 +88,9 @@ static double vsigma23integrandT(double *x, double w)
    r=kinematic_23(pcmIn,i3, M45, 2*x[2]-1 ,2*x[3]-1,M_PI*x[4],pmass,pvect)*8*M_PI*(M45_max-M45_min); //  /pcmIn
    if(r==0) return 0;
    GG=sqrt(4*M_PI*parton_alpha(sqrtS));
-   r*= CI->sqme(1,GG, pvect,&err);
+   r*= CI->sqme(1,GG, pvect,NULL,&err);
    bess= sqrt(2*x1*x2/y/M_PI)*exp(-(y-x1-x2))*K1pol(1/y)/(K2pol(1/x1)*K2pol(1/x2));
-//   bess=bessk1(sqrtS/T_)/bessk2(M1/T_)/bessk2(M2/T_);
+//   bess=bessK1(sqrtS/T_)/bessK2(M1/T_)/bessK2(M2/T_);
 
    Rm=sqrtS/M1/M2;   
    
@@ -108,7 +108,7 @@ static double vsigma23integrand0(double *x, double w)
    r=kinematic_23(0.,i3,M45_min+x[0]*(M45_max-M45_min),0.5,2*x[1]-1,M_PI*x[2],pmass,pvect)*8*M_PI*(M45_max-M45_min);
    if(r==0) return 0;
    GG=sqrt(4*M_PI*parton_alpha(sqrtS));
-   r*= CI->sqme(1,GG, pvect,&err);
+   r*= CI->sqme(1,GG, pvect,NULL,&err);
    r*= (M1+M2)/M1/M2;
 //printf("r=%e\n",r);   
    return r; 
@@ -140,9 +140,9 @@ static double vsigma24integrandT(double *x, double w)
    r=kinematic_24(pcmIn,i3,i4, M34, M56,  2*x[3]-1 ,2*x[4]-1,2*x[5]-1, 2*M_PI*x[6], 2*M_PI*x[7],pmass,pvect)
                   *(M34_max-M34_min)*(M56_max-M56_min)*2*4*M_PI*4*M_PI; //  /pcmIn
    GG=sqrt(4*M_PI*parton_alpha(sqrtS));
-   r*= CI->sqme(1,GG, pvect,&err);
+   r*= CI->sqme(1,GG, pvect,NULL,&err);
    bess=    sqrt(2*x1*x2/y/M_PI)*exp(-(y-x1-x2))*K1pol(1/y)/(K2pol(1/x1)*K2pol(1/x2));
-//   bess=bessk1(sqrtS/T_)/bessk2(M1/T_)/bessk2(M2/T_);
+//   bess=bessK1(sqrtS/T_)/bessK2(M1/T_)/bessK2(M2/T_);
 
    Rm=sqrtS/M1/M2;   
    
@@ -167,7 +167,7 @@ static double vsigma24integrand0(double *x, double w)
                      *(M34_max-M34_min)*(M56_max-M56_min)*2*4*M_PI*4*M_PI; 
    
    GG=sqrt(4*M_PI*parton_alpha(sqrtS));
-   r*= CI->sqme(1,GG, pvect,&err);
+   r*= CI->sqme(1,GG, pvect,NULL,&err);
    r*= (M1+M2)/M1/M2;
 //printf("r=%e\n",r);   
    return r; 

@@ -2,6 +2,8 @@
  Copyright (C) 1997,2006, Alexander Pukhov
 */
 
+#include <unistd.h>
+#include <signal.h>
 #include "chep_crt.h"
 #include "syst2.h"
 #include "physics.h"
@@ -42,6 +44,8 @@ static symb_data  block[6*MAXINOUT],fermres[maxvert];
 
 static symb_data rnum; 
 static poly factn, factd;
+
+static int onlineWrt=1;
 
 
 static poly  polyfactor(poly p)
@@ -98,9 +102,12 @@ static poly  polyfactor(poly p)
 
 static void memoryInfo_(int used)
 { 
-  goto_xy(14,16);  
-  print("%d Kb    ",used >> 10);
-  if (escpressed()) save_sos(-2);
+  if(onlineWrt)
+  {
+     goto_xy(14,16);  
+     print("%d Kb    ",used >> 10);
+     if (escpressed()) save_sos(-2);
+  }   
 }
 
       
@@ -434,12 +441,14 @@ static void  multblocks(int v1,int v2,int saveEps)
    ind1=vertinfo[v1-1].ind;
    ind2=vertinfo[v2-1].ind;
 
-   strcpy(messtxt,"Indices contraction   ");
+
+if(onlineWrt)
+{   strcpy(messtxt,"Indices contraction   ");
    for (i = 1; i <= 15; i++) if (set_in(i,ind1) && set_in(i,ind2)) 
            sprintf(messtxt+strlen(messtxt)," L%d",i);
    strcat(messtxt,"           ");
    wrtoperat(messtxt);
-
+}
    msind=set_and(ind1,ind2);
    msind=set_and(msind,setmassindex);
 
@@ -802,7 +811,6 @@ static int  delImageryOne(rmptr   t_factor)
 }
 
 
-
 static int  symbcalc(hlpcsptr ghst)
 {  vcsect       vcs_copy;
    hlpcsptr     gstcopy;
@@ -817,10 +825,13 @@ static int  symbcalc(hlpcsptr ghst)
    poly          mon;
    polyvars *   vardef_s;
 
+if(onlineWrt)
+{  
    goto_xy(14,15); clr_eol();
    wrtoperat("Factors normalization");
+}   
    diagramsrfactors(ghst,&d_facts,&t_fact);
-   wrtoperat("Preparing for calculation");
+if(onlineWrt) wrtoperat("Preparing for calculation");
    vcs_copy = vcs;
    first = 1;
 
@@ -869,13 +880,16 @@ static int  symbcalc(hlpcsptr ghst)
 
    do
    {   
+if(onlineWrt)
+{
       goto_xy(14,15);
       print("%d(of %d)  ",ghst->num,ghst->maxnum);
+}      
       coloringvcs(ghst);
       attachvertexes();
       findReversVert();
       secondVertexReading();
-      wrtoperat("Fermion loops calculation  ");
+if(onlineWrt)      wrtoperat("Fermion loops calculation  ");
 
       calcFermLoops();
 #ifdef STRACE
@@ -969,9 +983,9 @@ for (i = 0;i<=n_vrt-1;i++)
 
    if(rnum.expr.t->re==NULL) return 2;
 
-   wrtoperat("Total factor calculation");
+if(onlineWrt)   wrtoperat("Total factor calculation");
    transformfactor(&t_fact,mon,del);
-   wrtoperat("Denominator calculation");
+if(onlineWrt)   wrtoperat("Denominator calculation");
    if(factn) return 1; else return 2;
 }
 
@@ -1016,6 +1030,7 @@ void  calcallproc(void)
    marktp     heap_beg;
    int        ArcNum;
 
+onlineWrt=1;
    polyvars  varsInfo[3]={ {0,NULL}, {0,NULL}, {0,NULL} };
    
    memerror=heap_is_empty;
@@ -1035,7 +1050,6 @@ void  calcallproc(void)
    print(" Press Esc to halt calculations \n");
    
    scrcolor(Blue,BGmain);
-
    
    catalog = fopen(CATALOG_NAME,"rb");
    if(catalog==NULL)  ArcNum=1; else
@@ -1087,7 +1101,7 @@ void  calcallproc(void)
                wrtoperat("Writing result             ");
                vardef=&(varsInfo[0]);     
                ArcNum=whichArchive(ArcNum,'w'); 
-               saveanaliticresult(rnum.expr.t->re,factn,factd, vcs,ArcNum); 
+               saveanaliticresult(rnum.expr.t->re,factn,factd, vcs, nrecord+ndiagr-1, ArcNum); 
                newCodes=1;
             }
             release_(&heap_beg);
@@ -1110,4 +1124,150 @@ exi:
    scrcolor(FGmain,BGmain);
    clrbox(1,14,70,20);
    memerror=NULL;
+}
+
+static int toFinish=0;
+static void my_signal(int n) { toFinish=1;}
+
+void calcWithFork(int np, int * diag,int fi)
+{  int        ndel, ncalc, nrest;
+   long       nrecord;
+   csdiagram  csd;
+   unsigned   noutmemtot;
+   shortstr   txt;
+   marktp     heap_beg;
+   int        ArcNum;
+   int k;
+   char ctlgName[50];
+
+   struct sigaction new_action;
+   
+   if(diag[0]<0) return;
+onlineWrt=0;
+toFinish=0;
+   new_action.sa_handler = my_signal;
+   sigemptyset (&new_action.sa_mask);
+   new_action.sa_flags = 0;
+   sigaction (SIGUSR1, &new_action, NULL);
+
+
+   polyvars  varsInfo[3]={ {0,NULL}, {0,NULL}, {0,NULL} };
+
+   memerror=heap_is_empty;
+   memoryInfo=memoryInfo_;
+ 
+   sprintf(ctlgName,"%s_%d",CATALOG_NAME,np);
+   catalog = fopen(ctlgName,"ab");
+
+   ArcNum=1+10*np;
+     
+   calcdiag_sq = 0;
+   noutmemtot = 0;
+   
+   
+   diagrq=fopen(DIAGRQ_NAME,"r+b");
+
+   for(k=0;diag[k]>=0;k++)
+   { int one=1; 
+     fseek(diagrq,sizeof(csd)*diag[k],SEEK_SET);
+     FREAD1(csd,diagrq);
+     nsub=csd.nsub;
+     ndiagr=csd.ndiagr;
+     vardef=&varsInfo[0];
+     mark_(&heap_beg);
+     calcproc(&csd);
+     if(csd.status == 1)
+     { 
+        vardef=&(varsInfo[0]);     
+        ArcNum=whichArchive(ArcNum,'w'); 
+        saveanaliticresult(rnum.expr.t->re,factn,factd, vcs,diag[k],ArcNum); 
+     }else if(csd.status == 2) saveanaliticresult(NULL,NULL,NULL, vcs,diag[k],ArcNum); 
+     
+     release_(&heap_beg);
+     {int i; for(i=0;i<3;i++) clearVars(varsInfo+i);}
+     write(fi,&one,sizeof(int));
+     if(toFinish) goto exi;            
+   }
+exi:
+
+   fclose(diagrq); 
+   fclose(catalog);
+   whichArchive(0,0);      
+   memerror=NULL;
+}
+
+int sqDiagList( int **sd, int nCore)
+{
+  int i,n,ntot,ntot_,l; 
+  csdiagram  csd;
+  diagrq=fopen(DIAGRQ_NAME,"rb"); 
+  for(ntot=0;FREAD1(csd,diagrq);) if(csd.status==0)ntot++;
+  
+  ntot_=ntot;
+  l=0;
+  rewind(diagrq);
+  for(n=0;n<nCore;n++)
+  { int n1=ntot_/(nCore-n);
+    int i=0;
+    sd[n]=malloc(sizeof(int)*(n1+1));
+    for(i=0;i<n1;l++) { FREAD1(csd,diagrq); if(csd.status==0) sd[n][i++]=l;}
+    sd[n][n1]=-1;
+    ntot_=ntot_-n1;
+  }
+  fclose(diagrq);
+  
+  return ntot;
+}
+
+void updateMenuQ(void)
+{
+   catrec  cr;
+   csdiagram  csd;
+
+   int rdOk;
+   int        ndel, ncalc, nrest;
+   long       nrecord;
+        
+
+   catalog = fopen(CATALOG_NAME,"r");
+   if(!catalog) return;
+   diagrq=fopen(DIAGRQ_NAME,"r+b");
+   while(FREAD1(cr,catalog))
+   {
+      fseek(diagrq, sizeof(csd)*cr.ndiagr_abs,SEEK_SET); 
+      FREAD1(csd,diagrq);
+      csd.status =cr.status;
+      fseek(diagrq,sizeof(csd)*cr.ndiagr_abs,SEEK_SET)  ;
+      FWRITE1(csd,diagrq);         
+   }
+   fclose(catalog);
+   fclose(diagrq);
+   
+   diagrq=fopen(DIAGRQ_NAME,"rb");
+   menuq=fopen(MENUQ_NAME,"r+b");
+   nsub=1;
+   ncalc=0;
+   
+   calcdiag_sq=0;
+   for(rdOk=1;rdOk;)
+   { rdOk=FREAD1(csd,diagrq);
+     if(rdOk)
+     {  if(csd.status>0)
+        { if(csd.nsub==nsub){  ncalc++;  continue;} 
+          else  if(ncalc==0){  ncalc==1; nsub=csd.nsub; continue;}  
+        } else continue;
+     }
+     if( (!rdOk && ncalc) || (rdOk && csd.nsub!=nsub))
+     { int ncalc0;
+       shortstr   txt;
+       rd_menu(2,nsub,txt,&ndel,&ncalc0,&nrest,&nrecord);
+        if( ncalc0 != ncalc)
+        { nrest -= ncalc-ncalc0;
+          wrt_menu(2,nsub,txt,ndel,ncalc,nrest,nrecord);
+        }
+        if(rdOk) { nsub=csd.nsub; ncalc=1;}
+     }
+   }
+   fclose(menuq);
+   fclose(diagrq);  
 }

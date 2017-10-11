@@ -31,5 +31,6 @@ extern void   getdatapath(char* dirpath, int len);
 extern void   initpdfsetbynamem(int *P,char *name, int len);
 extern void   evolvepdfm(int* P,double *x,double *Q,double *f);
 extern void   initpdfm(int* P,int * nSet,double*xMin,double*xMax,double*qMin,double*qMax );
-extern void  numberpdfm(int* P,int * nMax);
+extern void   numberpdfm(int* P,int * nMax);
+extern double alphaspdfm(int*S,double*Q);
 #endif

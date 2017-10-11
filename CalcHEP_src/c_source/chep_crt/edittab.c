@@ -567,7 +567,7 @@ static int s_edit(int x1,  int x2, int x0, int  y1, char * s, int show )
          printf(" s-cursor: x=%d\n",x);
 #endif 
             if( mouse_info.col==X1 && mouse_info.row==Y1-1) push_key(KB_ESC);
-            else if (rc=hbl_select(hbl/*->next*/)) push_key(rc);
+            else if((rc=hbl_select(hbl))) push_key(rc);
             else if (m_inbox(x1-1,y1-1,x2+1,y1+1)) scrCur=mouse_info.col;
             else if (m_inbox(e_box.x1,e_box.y1,e_box.x2,e_box.y2)) 
             { 
@@ -851,7 +851,7 @@ printf(" cursor: x=%d, x1=%d, y=%d\n",c_tab.x1,c_tab.x2,c_tab.y);
 #endif
 
             if( mouse_info.col==X1 && mouse_info.row==Y1-1) push_key(KB_ESC);
-       else if (rc=hbl_select(hbl)) push_key(rc);						  		
+       else if((rc=hbl_select(hbl))) push_key(rc);						  		
        else if(c_tab.top &&    m_inbox(X1,Y1+1,X2,Y2) 
                && tab->format[mouse_info.col-X1+c_tab.x0-2]!=SEPR_CHAR ) 
        {  linelist ll=c_tab.edit;

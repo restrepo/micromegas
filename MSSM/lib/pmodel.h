@@ -90,7 +90,7 @@ double Rsl, double dmH_d2, double dmH_u2, double d_Y, double n5_1, double n5_2, 
 extern int  readLesH(char*fname, int SM );
 extern int  writeLesH(char*fname);     
 
-int lesHinput(char * fname);
+extern int lesHinput(char * fname);
 
 
 
@@ -139,9 +139,8 @@ extern double qbox_(void);
       
 extern int MSSMDDtest(int loop, double*pA0,double*pA5,double*nA0,double*nA5);
 
-
 extern int  HBblocks(char * fname); 
-
+extern int  LiLithF(char*fname);
 
 #ifdef __cplusplus
 }

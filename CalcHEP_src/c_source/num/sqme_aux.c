@@ -97,7 +97,7 @@ int prepDen(int nden, int nin,double BWrange2, REAL*dmass,REAL*dwidth, char** Qt
      continue;
    } 
    if(WIDTH_FOR_OMEGA && !stype(nin,Qtxt[i])) dwidth[i]=0.01*fabs(dmass[i]);
-   
+
 #endif
 
   Q1[i]=dmass[i]*dmass[i]-sqrMom(nin,Qtxt[i],momenta);   

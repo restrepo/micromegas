@@ -1,16 +1,11 @@
 /*
- Copyright (C) 1997, Alexander Kryukov
+ Written by  Alexander Kryukov 1990-1999 
+ Rewritten by Alexander Pukhov 2014 
+    a) color 6 and  vertexes 333, 633, and 866  are added    
+    b) general conception was saved, but implementation 
+        was changed completely.  
 */
-/**********************************************************/
-/*  CopyRight (C) 1990, SCL                               */
-/*  Author        A.Kryukov                               */
-/*  E-mail        kryukov@theory.npi.msu.su               */
-/*  Version       4.61                                    */
-/*--------------------------------------------------------*/
-/*  Last Rev.     08/01/90                                */
-/*                18/02/94    t2k - gluon transfer vert.  */
-/*                19/03/99    findl fix tedpole bug       */
-/**********************************************************/
+
 
 #ifdef CALCHEP
 #include "syst2.h"
@@ -25,14 +20,15 @@
 #include "syst.h"
 #include "colorf.h"
 
-int MAXGLEN, SIZE, MAX_POW;
+
+int MAXGLEN, MAX_POW;
 #define CERRLEV1 0    /*  Run time error level            */
 #define CERRLEV2 0    /*  Halt level                      */ 
 
 static int cerror(int n,char* s)
 { /*  - generate error message occur in color package - 08/01/90  */
 
-   fprintf(stderr,"***** %s\n",s);
+   fprintf(stdout,"***** %s\n",s);
         if (n > CERRLEV1) fprintf(stderr,"Error  %u in  colorf.c \n",n), sortie(55);
    else if (n > CERRLEV2) sortie(56); 
    return 0;
@@ -41,56 +37,67 @@ static int cerror(int n,char* s)
 /*==============     FACTOR SESSION ==================*/
 
 static void fct_init(factor * fct) 
-{ fct->len=0; fct->dpow=0; fct->dc=1; 
-  MAX_POW=10;
-  fct->nc=malloc(MAX_POW*sizeof(long));
+{ int i;
+  fct->len=0; fct->powN=0; fct->pow2=0; 
+  for(i=0;i<4*MAXINOUT;i++) fct->nc[i]=0;
 }
 
-static void add_fct(factor *f, long sgn, long pow2,int powN,int powNN_1)
-{ long dd;
-  int i,j;
+static void add_fct(factor *f, int sgn, int pow2, int powNm1,int powN,int powNp1)
+{ int dd,i,k,Len,s[4*MAXINOUT];
+
   if(!sgn) return;
-   
-  if (pow2>=0) sgn*=f->dc<<pow2  ; else
-  {  pow2=1<<(-pow2);
-     if(pow2>f->dc) {dd=pow2/f->dc; f->dc=pow2; for(i=0;i<f->len;i++) f->nc[i]*=dd;}
-     else if(pow2<f->dc) sgn*=f->dc/pow2;
-  }
 
-  if(-powN>f->dpow)
-  { dd=-powN-f->dpow; f->dpow=-powN;
-    f->len+=dd; 
-    if(f->len>MAX_POW) {MAX_POW=2*f->len; f->nc=realloc(f->nc,MAX_POW*sizeof(long));}
-    for(i= f->len-1; i>=dd; i--) f->nc[i]=f->nc[i-dd];
-    for(i=0;i<dd;i++)f->nc[i]=0;
-    powN=0;
-  } else powN=f->dpow+powN;
+  if(pow2 > f->pow2)  sgn*=1<<(pow2 - f->pow2) ;   // pow2 matching
+  else if(f->pow2 > pow2) 
+  {  long q=1<<(f->pow2 - pow2);
+     for(i=0;i<f->len;i++) f->nc[i]*=q;
+     f->pow2=pow2;
+  }       
 
-  if(f->len < powN+2*powNN_1+1)
-  {  dd=powN+2*powNN_1+1 - f->len;
-     f->len=powN+2*powNN_1+1;
-     if(f->len>MAX_POW){MAX_POW=2*f->len; f->nc=realloc(f->nc,MAX_POW*sizeof(long));}
-     for(i= f->len-dd; i<f->len;i++) f->nc[i]=0;
-  }
-
-  if(powNN_1&1) sgn*=-1;
-  for(i=0,j=0; i<1+2*powNN_1; i+=2,j++)
-  { f->nc[i+powN]+=sgn;
-    sgn=  -sgn*(powNN_1-j)/(j+1);
-  }
-
-  for(dd=0; !f->nc[dd] && dd<f->len;dd++);
-  if(dd)
+  if(powN > f->powN ) powN-= f->powN;              // powN matching 
+  else  
   {
-     for(i=0;i<f->len-dd; i++) f->nc[i]= f->nc[i+dd];
-     f->len-=dd;
-     f->dpow-=dd;
-  }
-  if(!f->len) {f->dpow=0; f->dc=1; f->len=1; f->nc[0]=0;}
+    dd=f->powN-powN;
+    f->powN=powN;
+    powN=0;
 
-  dd=f->dc-1;
-  for(i=0;i<f->len && dd;i++)  while(f->nc[i]&(long)dd) dd/=2;
-  if(dd){ dd++; for(i=0;i<f->len;i++) f->nc[i]/=dd; f->dc/=dd; }
+    for(i=f->len-1;i>=0;i--) f->nc[i+dd]=f->nc[i];
+    for(i=0;i<dd;i++) f->nc[i]=0;
+    f->len+=dd;
+  } 
+
+  Len=1+powN+powNm1+powNp1;
+  if(Len>f->len)
+  { for(i=f->len;i<Len;i++) f->nc[i]=0;
+    f->len=Len;
+  } else Len=f->len;
+
+  for(i=0;i<Len;i++) s[i]=0;
+      
+  s[0]=sgn; if(powNm1&1) s[0]*=-1; 
+
+
+  for(k=1;k<=powNm1;k++)for(i=k;i>=1;i--) s[i]-=s[i-1];
+  for(k=1;k<=powNp1;k++)for(i=k+powNm1;i>=1; i--) s[i]+=s[i-1];
+
+  for(i=0;i<=powNm1+powNp1;i++) f->nc[i+powN]+=s[i];
+
+  for(i=0; i<f->len && f->nc[i]==0 ;i++);
+  if(i)
+  {  dd=i;
+     for( ;i<f->len; i++) f->nc[i-dd]= f->nc[i];
+     f->len-=dd;
+     f->powN+=dd;
+  }
+  for(;f->len && f->nc[f->len-1]==0;) f->len--; 
+  
+  if(!f->len) {f->pow2=0; f->powN=0; return;}
+  for(;;)
+  { 
+    for(i=0;i<f->len;i++) if(f->nc[i]%2) break;
+    if(i<f->len) break;
+    f->pow2++; for(i=0;i<f->len;i++) f->nc[i]/=2;
+  }  
 }
 /* ================= END OF FACTOR ==================== */
 
@@ -101,11 +108,11 @@ static void add_fct(factor *f, long sgn, long pow2,int powN,int powNN_1)
 typedef struct cgraph 
    {  struct cgraph *    next;
 
-      int          sgn, pow2, powN, powNN_1; /* factor */
-
-      int          en;            /* Name of next edge */
-      int          gl;            /* Number of vertecies (graph length) */
-      cvertex       vl[2];         /* array of verticies */
+      int          sgn, pow2, powN, powNm1,powNp1; /* factor */
+      int          en;             /* Name of next edge */
+      int          gl;             /* Number of vertecies (graph length) */
+      int         mgl;             /* max Number of vertecies */
+      cvertex  *   vl;             /* array of verticies */
    }  cgraph; 
 
 /* ************************** Cross reference ************************* */ 
@@ -122,41 +129,174 @@ typedef struct cgraph
 /* ******************************************************************** */ 
 
 
-#  if (CDEBLEV > DEBLEV) 
-static char  vtarr[5][4]  = {"ZV", "TV", "G2", "QG", "G3"};
+//#  if (CDEBLEV > DEBLEV) 
+
+static int ltype(int n, int l, cgraph* cg)
+{ 
+/*
+typedef enum { zv=1,      // ZV     Colourless vertex        
+               t88=4,     // 2*2    Transfer gluon vertex   { 8, 8, 0}
+               vFabc=8,   // 2*2*2  Three gluon vertex      { 8, 8, 8}
+               t33=15,    // 3*5    q-q_  tranfer vertex    { 0,-3, 3}
+               v333=27,   // 3*3*3  q-q-q                   { 3, 3, 3}
+               v833=30,   // 2*3*5  g-q-q_                  { 8,-3, 3}
+               t66=77,    // 7*11   6-6_ transfer           { 0,-6, 6}
+               V633=99,   // 11*3*3 6_-q-q                  {-6, 3, 3}
+               V333=125,  // 5*5*5  q_-q_-q_                {-3,-3,-3}
+               v633=175,  // 7*5*5  6-q_-q_                 { 6,-3,-3}
+               v866=154   // 2*7*11 g-6-6_                  { 8,-6, 6}
+              } vtype;
+*/
+  switch(cg->vl[n].vt) 
+  {
+    case  t88:  switch(l)
+                { case 0: return 8;
+                  case 1: return 8;
+                  case 2: return 10;
+                }   
+    case  vFabc:switch(l)
+                { case 0: return 8;
+                  case 1: return 8;
+                  case 2: return 8;
+                }   
+  
+    case  t33: switch(l)
+                { case 0: return 11;
+                  case 1: return -3;
+                  case 2: return  3;
+                }   
+    
+    case  v333: switch(l)
+                { case 0: return 3;
+                  case 1: return 3;
+                  case 2: return 3;
+                }   
+   
+    case  v833:switch(l)
+                { case 0: return 8;
+                  case 1: return -3;
+                  case 2: return 3;
+                }   
+   
+    case  t66:switch(l)
+                { case 0: return 12;
+                  case 1: return -6;
+                  case 2: return  6;
+                }   
+    
+    case  V633:switch(l)
+                { case 0: return -6;
+                  case 1: return  3;
+                  case 2: return  3;
+                }   
+   
+    case  V333:switch(l)
+                { case 0: return -3;
+                  case 1: return -3;
+                  case 2: return -3;
+                }   
+   
+    case  v633:switch(l)
+                { case 0: return 6;
+                  case 1: return -3;
+                  case 2: return -3;
+                }   
+   
+    case  v866:switch(l)
+                { case 0: return 8;
+                  case 1: return -6;
+                  case 2: return 6;
+                }   
+   default : return 13;    
+  }	
+
+}
+
+static int findv2(vtype vt,cgraph* cg,int * n)
+{ /* return True and number first vertex with type VT in C-graph - 06/01/90 */ 
+  int  i=0; 
+  for(i=0;i<cg->mgl;i++) if(cg->vl[i].vt == vt) {*n=i; return 1;} 
+  return 0;   
+}    
+
+static int findl2(int e1,int n,cgraph* cg,int*l)
+{ /* - find number of vertex contane edge e1 - 08/01/90  */ 
+                                             /* 19/03/99 */
+  int  i = 1,j, e = cg->vl[n].e[e1]; 
+
+  for(i=0;i< cg->mgl;i++) if(cg->vl[i].vt!=zv)
+  for(j=0;j<3;j++) if(cg->vl[i].e[j]==e && (i!=n || j!=e1) )
+  {  if(l)*l=j; return i;}
+
+printf(" no couple for line %d  \n", e);         
+   cerror(253,"FindL(2): nonconnected edge"); 
+} 
+
+
+static int testGraph(cgraph* cg)
+{ int n,l,n_,l_;
+  for(n=0;n<cg->mgl;n++) if(cg->vl[n].vt != zv) for(l=0;l<3;l++)
+  { int t=ltype(n,l,cg),t_;
+    if(t>8) continue;
+//printf("n=%d v=%d\n", n,cg->vl[n].vt);    
+    n_=findl2(l,n,cg,&l_);
+    t_=ltype(n_,l_,cg);
+    if( !((t==8 && t_==8) || t+t_==0)){ printf(" type(%d %d)= %d    type(%d %d)=%d\n",n,l,t,n_,l_,t_);      return n;}   
+  }
+  return 0;
+}  
 
 static void wrcg(cgraph* cg)
 {/*  Write C-graph on standard device - 04/01/90 */ 
    int      i; 
-   printf("Kr: [(%ld*2^%ld) N^%ld (N^2-1)^%ld \n",
-	   cg->sgn,cg->pow2,cg->powN,cg->powNN_1);
-   printf("en=%d, gl=%d\n",cg->en,cg->gl);
-   for (i = MAXGLEN; i >= 1; i--)
-      if (cg->vl[i-1].vt != zv)
+   printf("Kr: {(%d*2^%d) N^%d (N-1)^%d  (N+1)^%d\n",
+	   cg->sgn,cg->pow2,cg->powN,cg->powNm1,cg->powNp1);
+   for (i =0; i< cg->mgl; i++)
+      if (cg->vl[i].vt != zv)
       {
-	fprintf(stderr,"(%d/%s ",i,vtarr[cg->vl[i-1].vt-1]);
-	fprintf(stderr,"%d,%d,%d)",
-	 cg->vl[i-1].e[0],cg->vl[i-1].e[1],cg->vl[i-1].e[2]);
+	printf("[%d/",i);
+        switch(cg->vl[i].vt) 
+        {
+          case  t88:    printf("t88");   break;
+          case  vFabc:  printf("vFabc"); break;
+          case  t33:    printf("t33");   break;
+          case  v333:   printf("v333");  break; 
+          case  v833:   printf("v833");  break;
+          case  t66:    printf("t66");   break;
+          case  V633:   printf("V633");  break; // 11*3*3 6_-q-q   
+          case  V333:   printf("V333");  break; 
+          case  v633:   printf("v633");  break;
+          case  v866:   printf("v866");  break;  
+          default  :    printf("%d",cg->vl[i].vt); break;
+        }	
+	printf(" (%d,%d,%d)]",
+	 cg->vl[i].e[0],cg->vl[i].e[1],cg->vl[i].e[2]);
       }   /* if */
-   fprintf(stderr,"]\n");
+   printf("}");
+   
+   i=testGraph(cg);
+   if(i) printf(" error in vertex %d\n",i); else printf("ok\n");   
 } 
-#endif
+//#endif
 
-static int getv(cgraph* cg)
+
+static int getv2(cgraph* cg,int lbl)
 { /* return number of first free vertex in C-graph - 04/01/90 */ 
-   int      ok; 
-   int      n; 
-    
-   ok = 0; 
-   n = 1; 
-   while (n <= MAXGLEN && !ok)
-      if (cg->vl[n-1].vt == zv)  ok = 1;  else  n++; 
-
-   if (n > MAXGLEN) cerror(254,"GetV: no free vertex in C-graph"); 
-   else  { ++(cg->gl);  return n; }  
-   return 0;
-}  
-
+ 
+   int      n,i,j; 
+   for(n=0;n<cg->mgl;n++) if(cg->vl[n].vt == zv) break;
+   if(n==cg->mgl)
+   { cg->vl=realloc(cg->vl, sizeof(cvertex)*(cg->mgl+4));
+     for(i=cg->mgl; i<cg->mgl+4;i++)
+     { cg->vl[i].vt=zv;
+       for(j=0;j<3;j++) cg->vl[i].e[j]=0;
+     }
+     cg->mgl+=4;
+   } 
+   cg->vl[n].vt = lbl; 
+   (cg->gl)++;  
+   return n;
+}     
 
 #define SINGL   1    /* Colour singlet */ 
 #define TRIPL  -3    /* Colour triplet */ 
@@ -164,175 +304,164 @@ static int getv(cgraph* cg)
 #define OCTET   8    /* Colour octet   */ 
 #define DEBLEV 10    /*  Debug level   */ 
 
-
-static void initcg(cgraph* cg)
-{ /* Initiate color graph - 04/01/90 */ 
-
-   int  i; 
-   cg->sgn=1;  cg->pow2=0;  cg->powN=0; cg->powNN_1=0;
-
-   cg->en = 0; 
-   cg->gl = 0; 
-   for (i = 0; i < MAXGLEN; i++)
-   {  cg->vl[i].vt = zv; 
-      cg->vl[i].e[0] = 0; 
-      cg->vl[i].e[1] = 0; 
-      cg->vl[i].e[2] = 0; 
+static cgraph * initcg(int nv, cvertex*vl)
+{ 
+  int i,j;  
+  cgraph *cg=malloc(sizeof(cgraph));
+  cg->sgn=1;  cg->pow2=cg->powN=cg->powNm1=cg->powNp1=0;
+  cg->en = 0; 
+  cg->gl = nv;
+  cg->mgl= nv+2;
+  cg->next=NULL;
+  cg->vl= malloc( sizeof(cvertex)*cg->mgl); 
+   for (i = 0; i < nv; i++) 
+   { cg->vl[i]=vl[i];
+     for(j=0;j<3;j++) if(vl[i].e[j]>cg->en) cg->en=vl[i].e[j];  
+   }
+   for (i = nv; i < cg->mgl; i++)
+   {
+      cg->vl[i].vt = zv; 
+      cg->vl[i].e[0]=cg->vl[i].e[1] = cg->vl[i].e[2] = 0; 
    } 
+   return cg;
 }
 
 
-static int findv(vtype vt,cgraph* cg,int * n)
-{ /* return True and number first vertex with type VT in C-graph - 06/01/90 */ 
- 
-  int      i = 1; 
-    
-  while (i <= MAXGLEN && cg->vl[i-1].vt != vt) i++;
-  if (i > MAXGLEN) return 0;  else  *n = i; 
-  return 1; 
-} 
 
-
-static int findl(int e1,int n,cgraph* cg)
-{ /* - find number of vertex contane edge e1 - 08/01/90  */ 
-                                             /* 19/03/99 */
-  int  i = 1, ok=0, e = cg->vl[n-1].e[e1-1]; 
-
-  while (i <= MAXGLEN && !ok)
-     if (i != n && cg->vl[i-1].vt != zv && 
-          (cg->vl[i-1].e[0] == e || 
-           cg->vl[i-1].e[1] == e || 
-           cg->vl[i-1].e[2] == e))  ok = 1;
-     else if (i == n)
-           {  int j;
-              for(j=1;j<3 && !ok;j++) if(cg->vl[i-1].e[(e1-1+j)%3] == e) ok=1;
-              if (!ok)  i++;
-            }
-      else 
-          i++; 
-         
-   if (i > MAXGLEN) cerror(253,"FindL: nonconnected edge"); 
-   return i; 
-} 
 
 
 static cgraph * addcg(cgraph ** cg) 
 { /*- add C-graph CG to weight structure - 16/10/99 -*/   
-   cgraph  *pgl = (cgraph *) malloc(SIZE);
-   memcpy(pgl, *cg ,SIZE); 
+   cgraph  *pgl = (cgraph *) malloc(sizeof(cgraph));
+   memcpy(pgl, *cg ,sizeof(cgraph)); 
    pgl->next = *cg; 
    *cg = pgl; 
+   pgl->vl=malloc(sizeof(cvertex)*pgl->mgl);
+   memcpy(pgl->vl,pgl->next->vl,sizeof(cvertex)*pgl->mgl);    
    return pgl;
 }
 
-static void remqg_qg2(int n0,int n1,cgraph* cg)
-{  int     n2; 
-/* - remove subgraph (see figure) from C-graph - 08/01/90 */
-     cg->powNN_1++;                        /*           v1     */
-     cg->powN--;                           /*   v2 -->--*--    */
-     cg->pow2--;                           /*           :  |   */
-   n2 = findl(2,n1,cg);                    /*           :  |   */
-   cg->vl[n2-1].e[2] = cg->vl[n0-1].e[2];  /*   v3 --<--*--    */
-}                                          /*           v0     */
-
-
-static void remqg_qg(int n0,int n1, cgraph ** c)
+static void rem833_833(int n0,int n1, cgraph ** c)
 { /* - remove gluon connected vertex n0 and n1 (see fugure) from first C-graph - 08/01/90  */ 
-  int  n2, n5;    
+  int  l01,l02,l11,l12, n0_, n1_, i0_, i1_;    
   cgraph * cg=*c;   
-
 #  if (CDEBLEV > DEBLEV) 
-     printf(".......RemQG-QG........%u,%u\n",(unsigned int) n0,
-             (unsigned int) n1);
+     printf("rem833_833(%d,%d)",n0,n1);  wrcg(cg);
 #  endif 
-   
-   cg->vl[n0-1].vt = zv; 
-   cg->vl[n1-1].vt = zv; 
-   cg->gl -= 2; 
-   if (cg->vl[n0-1].e[1] == cg->vl[n1-1].e[2] &&   /*         v1      */
-       cg->vl[n0-1].e[2] == cg->vl[n1-1].e[1])     /*    -->--*--     */
-   {                                               /*   |     :  |    */
-      cg->powNN_1++;                               /*   |     :  |    */
-      cg->pow2--;                                  /*    --<--*--     */
-   }                                               /*         v0      */
-   else  if (cg->vl[n0-1].e[1] == cg->vl[n1-1].e[2])  remqg_qg2(n0,n1,cg); 
-   else  if (cg->vl[n0-1].e[2] == cg->vl[n1-1].e[1])  remqg_qg2(n1,n0,cg); 
-   else 
+   l01=cg->vl[n0].e[1]; l02=cg->vl[n0].e[2];
+   l11=cg->vl[n1].e[1]; l12=cg->vl[n1].e[2]; 
+
+   cg->pow2--;
+   cg->vl[n0].vt = cg->vl[n1].vt = zv; cg->gl -= 2;
+         
+   if(l01==l12 && l02==l11) { cg->powNm1++; cg->powNp1++;}  
+   else  if(l01 == l12)
+   { 
+     cg->powNm1++; cg->powNp1++; cg->powN--;                 
+     n1_ = findl2(1,n1,cg,&i1_); 
+     cg->vl[n1_].e[i1_] = l02;   
+   } 
+   else  if(l02 == l11)
    {  
-      n2 = findl(2,n0,cg);                         /*         v0        */
-      cg->vl[n2-1].e[2] = cg->vl[n1-1].e[2];       /*  v2-->--*-->--v3  */
-      n5 = findl(2,n1,cg);                         /*         :         */
-      cg->vl[n5-1].e[2] = cg->vl[n0-1].e[2];       /*         :         */
-      cg->pow2--;                                  /*  v4--<--*--<--v5  */
-                                                   /*         v1        */
+      cg->powNm1++;  cg->powNp1++; cg->powN--; 
+      n1_ = findl2(2,n1,cg,&i1_); 
+      cg->vl[n1_].e[i1_] = l01;
+   
+   } else 
+   {  
+      n0_ = findl2(1,n0,cg,&i0_);
+      cg->vl[n0_].e[i0_] = l12;
+      n1_ = findl2(1,n1,cg,&i1_);        
+      cg->vl[n1_].e[i1_] = l02;
+                                             
       cg=addcg(c); 
       cg->sgn*=-1;
       cg->powN--; 
-      cg->vl[n2-1].e[2] =  cg->vl[n0-1].e[2]; 
-      cg->vl[n5-1].e[2] =  cg->vl[n1-1].e[2];  
-   }  
+      cg->vl[n0_].e[i0_] =  l02; 
+      cg->vl[n1_].e[i1_] =  l12;  
+   }     
+      
 #  if (CDEBLEV > DEBLEV) 
       wrcg(cg); 
-      if (cg->next != NULL) 
-         wrcg(cg->next); 
+      if (cg->next) wrcg(cg->next); 
 #  endif 
 } 
 
 
-static void rev3g(int en,cvertex* v)
-{ /* - reverse 3G vertex such that edge EN will be first - 08/01/90  */  
-   if (en != v->e[0]) 
-   {
-      if (en == v->e[1]) 
-      { 
-         v->e[1] = v->e[2]; 
-         v->e[2] = v->e[0]; 
-         v->e[0] = en; 
-      } 
-      else  if (en == v->e[2]) 
-         { 
-            v->e[2] = v->e[1]; 
-            v->e[1] = v->e[0]; 
-            v->e[0] = en; 
-         }  
-         else  cerror(255,"Rev3G: Invalid select edge");
-   }      
-}  
 
 
-static void remqg_3g(int n0,int n1, cgraph  ** c)
+static void rem833_866(int n3,int n6, cgraph ** c)
+{ /* - remove gluon connected vertex n0 and n1 (see fugure) from first C-graph - 08/01/90  */ 
+  int  n31,n32,n61,n62, l31,l32,l61,l62,lg;
+  cgraph * cg=*c;   
+
+#  if (CDEBLEV > DEBLEV) 
+     printf(" rem833_866(%d,%d)\n",n3,n6); wrcg(cg); 
+#  endif 
+      
+   n31=findl2(1,n3,cg,&l31);        //         v3
+   n32=findl2(2,n3,cg,&l32);        //  v31-->--*-->--v32
+   n61=findl2(1,n6,cg,&l61);        //          :
+   n62=findl2(2,n6,cg,&l62);        //          :
+   lg=cg->vl[n3].e[0];              //  v61--<--*--<--v62
+                                    //         v6
+   cg->pow2--;
+       
+   cg->vl[n3].vt = v633;                cg->vl[n6].vt = V633;
+   cg->vl[n3].e[0]=cg->vl[n62].e[l62];  cg->vl[n6].e[0]=cg->vl[n61].e[l61];
+   cg->vl[n3].e[1]=cg->vl[n31].e[l31];  cg->vl[n6].e[1]= cg->vl[n32].e[l32];
+   cg->vl[n3].e[2]=lg;                   cg->vl[n6].e[2]=lg;
+    
+   cg=addcg(c); 
+   cg->sgn*=-1;
+   cg->powN--; 
+   cg->vl[n3].vt = zv; 
+   cg->vl[n6].vt = zv; 
+   cg->gl -= 2;
+    
+   cg->vl[n31].e[l31] =  cg->vl[n32].e[l32]; 
+   cg->vl[n61].e[l61] =  cg->vl[n62].e[l62];  
+
+   
+#  if (CDEBLEV > DEBLEV) 
+      wrcg(cg); 
+      if (cg->next) wrcg(cg->next); 
+#  endif 
+} 
+
+static void rem833_Fabc(int nq,int ng, cgraph  ** c)
 /* - remove gluon connected vertex n0 and n1 (see figure)
      from first C-graph - 08/01/90  */ 
-{int          n2, n3;   /*         v1        */ 
- int          en;       /*  v2.....*.....v3  */ 
- cgraph * cg = *c;      /*         :         */ 
+{ int  i0,i1,i2,        n1, n2,lg1,lg2,lq1,lq2,lg;
+   cgraph * cg = *c;
+                        /*         v1        */ 
+                        /*  v2.....*.....v3  */ 
+                        /*         :         */ 
                         /*         :         */ 
                         /*  v3-->--*-->--v4  */ 
                         /*          v0       */ 
-#  if (CDEBLEV > DEBLEV) 
-   fprintf(stderr,".......RemQG-3G........%u,%u\n",
-      (unsigned int)n0,(unsigned int)n1);
-#  endif 
-   rev3g(cg->vl[n0-1].e[0],&cg->vl[n1-1]); 
-   n2 = findl(2,n1,cg); 
-   if (cg->vl[n2-1].vt == g3) 
-      rev3g(cg->vl[n1-1].e[1],&cg->vl[n2-1]); 
-   cg->vl[n0-1].vt = qg; 
-   cg->vl[n0-1].e[0] = cg->vl[n2-1].e[0]; 
-   en = cg->vl[n0-1].e[2]; 
-   cg->vl[n0-1].e[2] = cg->vl[n1-1].e[0]; 
-   n3 = findl(3,n1,cg); 
-   if (cg->vl[n3-1].vt == g3) 
-      rev3g(cg->vl[n1-1].e[2],&cg->vl[n3-1]); 
-   cg->vl[n1-1].vt = qg; 
-   cg->vl[n1-1].e[0] = cg->vl[n3-1].e[0]; 
-   cg->vl[n1-1].e[1] = cg->vl[n0-1].e[2]; 
-   cg->vl[n1-1].e[2] = en; 
 
+#  if (CDEBLEV > DEBLEV) 
+   printf("rem833_Fabc(%d,%d)\n",nq,ng);
+#  endif 
+
+   findl2(0,nq,cg,&i0);
+   i1=(i0+1)%3;
+   i2=(i1+1)%3;
+
+   lq1=cg->vl[nq].e[1];  lq2=cg->vl[nq].e[2];
+   lg1=cg->vl[ng].e[i1]; lg2=cg->vl[ng].e[i2];
+   lg=cg->vl[nq].e[0];
+
+   cg->vl[ng].vt=v833; n1=ng;
+   n2=nq;
+
+   cg->vl[n1].e[1]=lq1;  cg->vl[n1].e[2]=cg->vl[n2].e[1]=lg; 
+   cg->vl[n1].e[0]=lg1;  cg->vl[n2].e[0]=lg2;
+                                          
    cg=addcg(c);
    cg->sgn*=-1;
-   cg->vl[n0-1].e[0] = cg->next->vl[n1-1].e[0]; 
-   cg->vl[n1-1].e[0] = cg->next->vl[n0-1].e[0]; 
+   cg->vl[n1].e[0]= lg2; cg->vl[n2].e[0]=lg1;
 
 #  if (CDEBLEV > DEBLEV) 
        wrcg(cg); 
@@ -341,194 +470,300 @@ static void remqg_3g(int n0,int n1, cgraph  ** c)
 }  /* RemQG_3G */ 
 
 
-static int istadpole(int n,cgraph* cg)
-{ /* return True if vertex n is teadpole - 08/01/90  */ 
-   return
-      cg->vl[n-1].e[0] == cg->vl[n-1].e[1] || 
-      cg->vl[n-1].e[1] == cg->vl[n-1].e[2] || 
-      cg->vl[n-1].e[0] == cg->vl[n-1].e[2]    ; 
-}
-
-
-static void remg(int n0, cgraph ** c)
-{ /* - remove gluon issue from vertex n0  from first C-graph - 08/01/90  */ 
-   int  n1; 
+static void rem866_Fabc(int n866,int n3g, cgraph  ** c)
+{  int   i0,i1,i2,l0,l1,l2,N1,N2,n1, n2; 
+   cgraph * cg = *c;    
 #  if (CDEBLEV > DEBLEV) 
-      printf(".......RemG........%u\n",(unsigned int)n0);
-      wrcg(*c); 
-#  endif 
-   n1 = findl(1,n0,*c); 
-   if (istadpole(n0,*c) || istadpole(n1,*c)) 
-   { 
-      (*c)->sgn=0;
-      (*c)->gl = 0; 
-      (*c)->vl[n0-1].vt = zv; 
-      (*c)->vl[n1-1].vt = zv; 
-#     if (CDEBLEV > DEBLEV) 
-         wrcg(*c); 
-#     endif 
-   }
-   else  if((*c)->vl[n1-1].vt==qg) remqg_qg(n0,n1,c); else remqg_3g(n0,n1,c); 
-
-#  if (CDEBLEV > DEBLEV) 
-     fprintf(stderr,".......end RemG........\n");
-#  endif 
-} /* RemG */ 
-
-
-static void exp3g(int n0, cgraph ** c)
-{ 
- int       n1, n2, n4, n5; 
- int       e04, e05, e45; 
- cgraph * cg=*c;
- 
-/* expand 3G vertex (see figure) - 08/01/90  */ 
-/* 14/03/99: Check tadpole before expanding */    
-
-#  if (CDEBLEV > DEBLEV) 
-      fprintf(stderr,".......Exp3G........\n");
+   printf("rem866_Fabc(%d,%d)\n", n866,n3g);
 #  endif 
 
-   n1 = findl(1,n0,cg); 
-   if (istadpole(n0,cg) || istadpole(n1,cg)) 
-   {
-      cg->sgn=0; 
-      cg->gl = 0; 
-      cg->vl[n0-1].vt = zv; 
-      cg->vl[n1-1].vt = zv; 
-#     if (CDEBLEV > DEBLEV) 
-         wrcg(cg); 
-#     endif 
-      return;
-   }
-   n1 = findl(1,n0,cg);      /*      v0            v4  v5     */   
-   n2 = findl(2,n0,cg);      /*  v1..*...v2    v1..*-<-*..v2  */   
-                             /*      :              \ /       */   
-   n4 = getv(cg);            /*      :      ->       *v0      */
-   e45 = ++(cg->en);         /*      :               :        */
-   e04 = ++(cg->en);         /*      v3              v3       */
-   cg->vl[n4-1].vt = qg; 
-   if (cg->vl[n1-1].vt == g3) 
-      rev3g(cg->vl[n0-1].e[0],&cg->vl[n1-1]); 
-   cg->vl[n4-1].e[0] = cg->vl[n1-1].e[0]; 
-   cg->vl[n4-1].e[1] = e45; 
-   cg->vl[n4-1].e[2] = e04; 
-   n5 = getv(cg); 
-   e05 = ++(cg->en); 
-   cg->vl[n5-1].vt = qg; 
-   if (cg->vl[n2-1].vt == g3) 
-      rev3g(cg->vl[n0-1].e[1],&cg->vl[n2-1]); 
-   cg->vl[n5-1].e[0] = cg->vl[n2-1].e[0]; 
-   cg->vl[n5-1].e[1] = e05; 
-   cg->vl[n5-1].e[2] = e45; 
-   rev3g(cg->vl[n0-1].e[2],&cg->vl[n0-1]); 
-   cg->vl[n0-1].vt = qg; 
-   cg->vl[n0-1].e[1] = e04; 
-   cg->vl[n0-1].e[2] = e05; 
-   cg->sgn*=-1;  cg->pow2++;
+   findl2(0,n866,cg,&i0);
+   i1=(i0+1)%3;
+   i2=(i1+1)%3;
+   l0=cg->vl[n3g].e[i0]; l1=cg->vl[n3g].e[i1]; l2=cg->vl[n3g].e[i2];
+              
+   N1=getv2(cg,V633); cg->vl[N1].e[0]=cg->vl[n866].e[1];
+   N2=getv2(cg,v633); cg->vl[N2].e[0]=cg->vl[n866].e[2];
 
-   cg=addcg(c);   /*  Second term  */ 
-   cg->vl[n0-1].e[1] = e05; 
-   cg->vl[n0-1].e[2] = e04; 
-   cg->vl[n4-1].e[1] = e04; 
-   cg->vl[n4-1].e[2] = e45; 
-   cg->vl[n5-1].e[1] = e45; 
-   cg->vl[n5-1].e[2] = e05; 
-   cg->sgn*=-1;
+   cg->vl[N1].e[2]=cg->vl[N2].e[2]= ++(cg->en);
+   cg->vl[N1].e[1]= ++(cg->en); cg->vl[N2].e[1]=++(cg->en);
    
-#  if (CDEBLEV > DEBLEV) 
-      wrcg(cg); 
-      wrcg(cg->next); 
-      fprintf(stderr,".......end Exp3G........\n");
-#  endif 
-}  /* Exp3G */ 
+   n1=n866; cg->vl[n1].vt=v833; 
+   n2=n3g;  cg->vl[n2].vt=v833;
+   
+   cg->vl[n1].e[1]=cg->vl[N1].e[1];  cg->vl[n2].e[2]=cg->vl[N2].e[1];
+   cg->vl[n1].e[2]=cg->vl[n2].e[1]=l0;   
+   cg->vl[n1].e[0]= l1; cg->vl[n2].e[0]=l2;
 
+   cg=addcg(c);
+   cg->sgn*=-1;
+   cg->vl[n1].e[0]= l2; cg->vl[n2].e[0]=l1;
+
+#  if (CDEBLEV > DEBLEV) 
+       wrcg(cg);  wrcg(cg->next); 
+#  endif 
+}  
+
+static void exp866(int n866, cgraph  ** c)
+{ int   N1,N2,n833;
+
+  cgraph * cg = *c;
+
+#  if (CDEBLEV > DEBLEV) 
+   printf("exp866(%d)\n",n866);
+#  endif 
+
+   N1=getv2(cg,V633);  cg->vl[N1].e[0]=cg->vl[n866].e[1];
+   N2=getv2(cg,v633);  cg->vl[N2].e[0]=cg->vl[n866].e[2];
+   
+   cg->vl[N1].e[2]=cg->vl[N2].e[2]= ++(cg->en);
+   
+   n833=n866; cg->vl[n833].vt=v833;
+   
+   cg->vl[n833].e[1]=cg->vl[N1].e[1]= ++(cg->en); 
+   cg->vl[n833].e[2]=cg->vl[N2].e[1]= ++(cg->en);
+
+#  if (CDEBLEV > DEBLEV) 
+       wrcg(cg);
+#  endif 
+}  
+
+static int istadpole2(int n,cgraph* cg)
+{ /* return True if vertex n is teadpole - 08/01/90  */ 
+   if(cg->vl[n].e[0] == cg->vl[n].e[1] || 
+      cg->vl[n].e[1] == cg->vl[n].e[2] || 
+      cg->vl[n].e[0] == cg->vl[n].e[2]    )
+   { cg->sgn=0;return 1;} else return 0;   
+  
+}
 
 static void remtv(cgraph * pgl )
 { /* Remove transfered vertex from all C-graphs - 06/01/90     */ 
 
  int         n, n1; 
  int         vt0;   /* Original type */   
- int         ee;
-                                           /*       v0        */ 
                                            /*  -->--*-->--v1  */ 
 #if (CDEBLEV > DEBLEV)                     /*                 */ 
-  fprintf(stderr,".......RemTV........\n");/*                 */
+  printf(".......RemTV........\n");/*                 */
 #endif                                     /*       v0        */ 
                                            /*  .....*.....v1  */ 
-
-   while (findv(tv,pgl,&n) || findv(g2,pgl,&n))
-   {
+                                           
+   while (findv2(t33,pgl,&n) || findv2(t88,pgl,&n)||findv2(t66,pgl,&n) )
+   { int l;
 #  if (CDEBLEV > DEBLEV)                                   
          if (pgl != NULL) wrcg(pgl);                      
 #  endif                                                   
-      vt0 = pgl->vl[n-1].vt;                               
-      pgl->vl[n-1].vt = zv;                                
-      pgl->gl--;                                           
-      if (istadpole(n,pgl))                                
-         if (pgl->vl[n-1].e[0] != 0) pgl->powNN_1++;       
-         else  pgl->powN++;                                
-      else if (pgl->vl[n-1].e[0] != 0) {                   
-        n1 = findl(1,n,pgl);                               
-        if (pgl->vl[n1-1].vt == g2 &&                      
-            pgl->vl[n1-1].e[0] != pgl->vl[n-1].e[0]) {     
-          ee = pgl->vl[n1-1].e[0];                         
-          pgl->vl[n1-1].e[0] = pgl->vl[n1-1].e[1];         
-          pgl->vl[n1-1].e[1] = ee;                         
-        }                                                  
-        else if (pgl->vl[n1-1].vt == g3)                   
-          rev3g(pgl->vl[n-1].e[0],&pgl->vl[n1-1]);         
-        pgl->vl[n1-1].e[0] = pgl->vl[n-1].e[1];            
-      }                                                    
-      else {                                               
-        n1 = findl(2,n,pgl);                               
-        pgl->vl[n1-1].e[2] = pgl->vl[n-1].e[2];            
-      }                                                    
-   }                                                       
+      vt0 = pgl->vl[n].vt;                                     
+      pgl->gl--; 
+      n1=findl2(1,n,pgl,&l); 
+      if (n1==n)  switch(vt0)
+      { case t33 : pgl->powN++; break;
+        case t88 : pgl->powNm1++; pgl->powNp1++; break;
+        case t66: pgl->powN++; pgl->powNp1++; pgl->pow2--; break;
+      }                                                            
+      else  pgl->vl[n1].e[l]= (vt0==t88)?pgl->vl[n].e[0]:pgl->vl[n].e[2];
+      pgl->vl[n].vt = zv; 
+   } 
+   #  if (CDEBLEV > DEBLEV) 
+         wrcg(pgl);
+   #  endif                                                       
 }   
+
+
+static void expFabc(int n0, cgraph ** c)
+{ 
+ int  n1,n2,l0,l1,l2,m0,m1,m2; 
+ cgraph * cg=*c;
+  
+#  if (CDEBLEV > DEBLEV) 
+      printf("expFabc(%d)\n",n0);
+#  endif 
+
+   l0=cg->vl[n0].e[0];
+   l1=cg->vl[n0].e[1];
+   l2=cg->vl[n0].e[2];
+  
+   n1 = getv2(cg,v833);
+   n2 = getv2(cg,v833);
+   cg->vl[n0].vt=v833;
+    
+   cg->vl[n0].e[0]=l0;  cg->vl[n1].e[0]=l1; cg->vl[n2].e[0]=l2;
+   
+   cg->vl[n0].e[2]=cg->vl[n1].e[1]=m0=++(cg->en);
+   cg->vl[n1].e[2]=cg->vl[n2].e[1]=m1=++(cg->en);
+   cg->vl[n2].e[2]=cg->vl[n0].e[1]=m2=++(cg->en);
+
+   cg->pow2++;
+   cg=addcg(c); 
+   cg->vl[n0].e[1]=cg->vl[n1].e[2]=m0;
+   cg->vl[n1].e[1]=cg->vl[n2].e[2]=m1;
+   cg->vl[n2].e[1]=cg->vl[n0].e[2]=m2;
+   cg->sgn*=-1;      
+   
+#  if (CDEBLEV > DEBLEV) 
+      wrcg(cg); wrcg(cg->next); 
+#  endif 
+}  /* Exp3G */ 
+
+
+
+static int exp6(int n6,  cgraph ** c)
+{  int N6,n6_1,n6_2, l31,l32,L31,L32;
+   cgraph * cg=*c;
+   
+
+   N6=findl2(0,n6,cg,NULL);
+   if(cg->vl[N6].vt !=V633) return 0;
+
+#  if (CDEBLEV > DEBLEV) 
+      printf("exp6(%d)",n6);  wrcg(cg);
+#  endif 
+
+   
+   n6_1=findl2(1,N6,cg,NULL); 
+   n6_2=findl2(2,N6,cg,NULL); 
+      
+   if(n6_1==n6 && n6_2==n6) 
+   { cg->powNp1++; cg->powN++; cg->pow2--;
+     cg->vl[N6].vt=zv; cg->vl[n6].vt=zv; cg->gl-=2;
+#  if (CDEBLEV > DEBLEV) 
+      wrcg(cg); 
+#  endif 
+     return 1;
+   }
+   
+   l31=  cg->vl[N6].e[1];
+   l32=  cg->vl[N6].e[2];
+   L31= cg->vl[n6].e[1];
+   L32= cg->vl[n6].e[2];
+   cg->pow2--;
+   
+   cg->vl[n6].vt=t33;     cg->vl[N6].vt=t33;
+   cg->vl[n6].e[0]=0;     cg->vl[N6].e[0]=0;
+   cg->vl[n6].e[1]=L31;   cg->vl[N6].e[1]=L32;       
+   cg->vl[n6].e[2]=l31;   cg->vl[N6].e[2]=l32;
+   
+   cg=addcg(c); 
+   cg->vl[n6].e[1]=L32;   cg->vl[N6].e[1]=L31; 
+   cg->vl[n6].e[2]=l31;   cg->vl[N6].e[2]=l32;
+   
+#  if (CDEBLEV > DEBLEV) 
+      wrcg(cg); 
+      wrcg(cg->next); 
+#  endif 
+   return 1;
+}  
+
+
+static int rem333(int n0, cgraph ** c)
+{ 
+ int  n1,l01,l11,l02,l12,i; 
+ cgraph * cg=*c;
+
+
+#  if (CDEBLEV > DEBLEV) 
+      printf("rem333(%d)",n0); wrcg(cg);
+#  endif 
+
+   n1 = findl2(0,n0,cg,&i);
+   
+   if(cg->vl[n1].vt!=V333) return 0;
+   
+   if(i)
+   {   cg->vl[n1].e[i]=cg->vl[n1].e[0];
+       cg->vl[n1].e[0]=cg->vl[n0].e[0];
+       cg->sgn*=-1;
+   }
+   
+   l01=cg->vl[n0].e[1];  l02=cg->vl[n0].e[2];
+   l11=cg->vl[n1].e[1];  l12=cg->vl[n1].e[2];
+   
+   
+   cg->vl[n0].vt = t33;  cg->vl[n0].e[0]=0; 
+   cg->vl[n1].vt = t33;  cg->vl[n1].e[0]=0; 
+   
+   cg->vl[n0].e[1]=l11; cg->vl[n0].e[2]=l01;
+   cg->vl[n1].e[1]=l12; cg->vl[n1].e[2]=l02; 
+       
+   cg=addcg(c); 
+   cg->sgn*=-1;
+   
+   cg->vl[n0].e[1]=l12; 
+   cg->vl[n1].e[1]=l11;
+
+#  if (CDEBLEV > DEBLEV) 
+      wrcg(cg); 
+      wrcg(cg->next); 
+#  endif 
+   return 1;
+}  /* Exp3Q */ 
 
 
 factor *colorFactor (int nv, cvertex * vl)
 {  /* - calculate color weight (two int n,d) - 08/01/90  */
    cgraph    * cg;
-   int         n0,i,j;
    factor *f=(factor *)malloc(sizeof(factor));
-   cgraph model;
-
    fct_init(f);
 
-   SIZE= sizeof(model) + (nv)*((char*)&model.vl[1]-(char*)&model.vl[0]);
-   MAXGLEN=nv+2;
-      
-   cg = (cgraph *) malloc(SIZE);   
 
-   initcg(cg);
-   cg->gl=nv;
-   cg->next=NULL;
-   cg->en=0;
-   for(i=0;i<nv;i++)
-   {  cg->vl[i]=vl[i];
-      for(j=0;j<3;j++) if(vl[i].e[j]>cg->en) cg->en=vl[i].e[j];
-   }
+   cg =initcg(nv,vl);
 
 #  if (CDEBLEV > DEBLEV) 
-       wrcg(cg); 
-#  endif 
-   remtv(cg); 
-#  if (CDEBLEV > DEBLEV) 
-       wrcg(cg); 
+    printf("INPUT:");   wrcg(cg); 
 #  endif 
    while(cg)
-   {  cgraph  * pgl;
+   { 
+      cgraph  * pgl;
+      
       while (cg->gl && cg->sgn)
-         if (findv(qg,cg,&n0)) remg(n0,&(cg));
-         else if (findv(g3,cg,&n0)) exp3g(n0,&(cg));
-         else cerror(251,"CWTarG: Invalid type of vertex.");
+      {  int n0,ng, l;    
+         remtv(cg); if(!cg->gl) break; 
+if(findv2(vFabc,cg,&n0)) 
+if(istadpole2(n0,cg)) break;  else {expFabc(n0,&cg); continue; }
+         
+         
+                         
+         if(findv2(v833,cg,&n0)) 
+         {          
+         if(istadpole2(n0,cg)) break;  
+            ng=findl2(0,n0,cg,&l);
+            if(istadpole2(ng,cg)) break;
+            switch(cg->vl[ng].vt)
+            { case v833:  rem833_833(n0,ng,&cg); continue;
+              case vFabc: rem833_Fabc(n0,ng,&cg);continue;
+//              case v866:  rem833_866(n0,ng,&cg); continue; 
+            }  
+         }
+         
+         if(findv2(v866,cg,&n0))
+         { 
+           if(istadpole2(n0,cg))  break;
+              
+           ng=findl2(0,n0,cg,&l);           
+           if(istadpole2(ng,cg))  break;
+            
+           switch(cg->vl[ng].vt)
+           {
+             case vFabc:  rem866_Fabc(n0,ng,&cg); continue;  
+//             case v866:   rem866_866(n0,ng,&cg); continue; 
 
+             default: exp866(n0,&cg);  continue; 
+           }  
+         }
+          
+         if(findv2(v633,cg,&n0)) { if(exp6(n0,&cg)) continue;}
+         
+         if(findv2(vFabc,cg,&n0)) 
+          if(istadpole2(n0,cg)) break;  else {expFabc(n0,&cg); continue; }
+                   
+         if(findv2(v333,cg,&n0)) { if(rem333(n0,&(cg))) continue; }
+
+         wrcg(cg); cerror(251,"No rules to expend diagram");
+      } 
       pgl = cg;
-      if(pgl->sgn)  add_fct(f,pgl->sgn,pgl->pow2,pgl->powN,pgl->powNN_1);
+      if(pgl->sgn)  add_fct(f,pgl->sgn,pgl->pow2,pgl->powNm1,pgl->powN,pgl->powNp1);
       cg = cg->next; 
-      free(pgl); 
+      free(pgl->vl);  free(pgl); 
    }  
    return f;
 } 
@@ -545,30 +780,17 @@ static void rednd(long * n,long * d,int b)
 } /* RedND */
 
 
-void fct_num_calc(factor * fct2,int Nc, long * n, long *d)
+void fct_num_calc(factor * fct,int Nc, long * n, long *d)
 { 
 	int i;
-	long p=1;
-	factor *fct=fct2;
+	long p;
+	for(i=0,*n=0,p=1;i<fct->len;i++) { *n+=p*fct->nc[i];p*=Nc;}
+  
+	*d=1;
+	if(fct->pow2>0) *n*=1<<fct->pow2; else *d*=1<<(-fct->pow2);
 	
-	*n=0;
-	for(i=0;i<fct->len;i++) 
-	{
-		*n+=p*fct->nc[i]; 
-		p*=Nc;
-	}
-
-	p=1;
-	*d=fct->dc;
-	if(fct->dpow>0)
-	{
-		for(i=0;i< fct->dpow;i++) *d*=Nc;
-	}
-	else
-	{
-		for(i=0;i<-fct->dpow;i++) *n*=Nc;
-	}
-			
+	if(fct->powN>0) for(i=0;i<fct->powN;i++) *n*=Nc;
+	else for(i=0;i<-fct->powN;i++) *d*=Nc;		
 	rednd(n,d,Nc); 
 	rednd(n,d,2);
 }
@@ -591,73 +813,31 @@ void fct_print(factor *fct, char *s)
 	  }
   sprintf(s+strlen(s),")");
 
-  if(fct->dpow>0) 
-	  sprintf(s+strlen(s),"/(%ld*N^%d)",fct->dc,fct->dpow);
-  else if(fct->dpow<0) 
-	  sprintf(s+strlen(s),"*N^%d/%ld",-fct->dpow,fct->dc);
-  else
-	  sprintf(s+strlen(s),"/%ld",fct->dc);
+  if(fct->powN)  sprintf(s+strlen(s),"*(N^%d)",fct->powN);
+  if(fct->pow2<0) sprintf(s+strlen(s),"*2^%d",fct->pow2);
 }
 
-  /* ************************** Cross reference ************************* */ 
-  /* *                                                                  * */ 
-  /* *  colorFactor                                                     * */ 
-  /* *    +-----> RemTV                                                 * */ 
-  /* *    |       +------> FindV                                        * */ 
-  /* *    |       +------> isTadpole                                    * */ 
-  /* *    |       +------> FindL                                        * */ 
-  /* *    |       +------> Rev3G                                        * */ 
-  /* *    |       +------> WrCG (Color)                                 * */ 
-  /* *    |                                                             * */ 
-  /* *    +-----> FindV                                                 * */ 
-  /* *    +-----> RemG                                                  * */ 
-  /* *    |       +------> WrCG (Color)                                 * */ 
-  /* *    |       +------> FindL                                        * */ 
-  /* *    |       +------> isTadpole                                    * */ 
-  /* *    |       +------> RemQG_QG                                     * */ 
-  /* *    |       |        +------> RemQG_QG1                           * */ 
-  /* *    |       |        +------> RemQG_QG2                           * */ 
-  /* *    |       |        |        +-------> FindL                     * */ 
-  /* *    |       |        |                                            * */ 
-  /* *    |       |        +------> FindL                               * */ 
-  /* *    |       |        +------> AddCG                               * */ 
-  /* *    |       |        +------> WrCG (Color)                        * */ 
-  /* *    |       |                                                     * */ 
-  /* *    |       +------> RemQG_3G                                     * */ 
-  /* *    |                +------> Rev3G                               * */ 
-  /* *    |                +------> FindL                               * */ 
-  /* *    |                +------> AddCG                               * */ 
-  /* *    |                +------> WrCG                                * */ 
-  /* *    |                                                             * */ 
-  /* *    +-----> Exp3G                                                 * */ 
-  /* *    |       +------> FindL                                        * */ 
-  /* *    |       +------> GetV (Color)                                 * */ 
-  /* *    |       +------> GetEN (Color)                                * */ 
-  /* *    |       +------> Rev3G                                        * */ 
-  /* *    |       +------> AddCG                                        * */ 
-  /* *    |                                                             * */ 
-  /* *    +-----> CError (Color)                                        * */ 
-  /* *    +-----> DispCG                                                * */ 
-  /* *            +------> RedND                                        * */ 
-  /* *                                                                  * */ 
-  /* ******************************************************************** */
 
 vtype typev(vert0 v,int valence)
-{int  ng = 0, ne, nq = 0;
+{ int n, color=1;
  
 /* Return color type of vertex - 06/01/90  */ 
       
-   for (ne = 0; ne < valence; ne++)
-      if (prtclbase[v[ne].partcl-1].cdim != 1) 
-      {   if (prtclbase[v[ne].partcl-1].cdim == 8) ng++; else nq++;} 
-   switch (ng) 
-   {    
-      case 0:   return nq == 2 ? tv : zv; 
-      case 1:   return qg; 
-      case 2:   return g2; 
-      case 3:   return g3; 
-      default:  return cerror(252,"TypeV: invalid vertex type"); 
-   }  /* case */ 
+   for (n = 0; n < valence; n++) switch(prtclbase[v[n].partcl-1].cdim)
+   {
+      case  8: color*=2; break;
+      case  3: color*=3; break;
+      case -3: color*=5; break;
+      case  6: color*=7; break;
+      case -6: color*=11;break;  
+   }
+   
+{ int i, permit[]={1,4,8,15,27,30,77,99,125,175,154};
+  for(i=0;i<11;i++) if(color==permit[i]) break;
+  if(i==11) { printf("unknown colour vertex\n");} 
+}   
+   return color;
+   
 }  /* TypeV */ 
 
 
@@ -688,18 +868,30 @@ void t2k2(vcsect* g, int * nv, cvertex * vl)
                maptar[g->vertlist[i][ne].link.vno]
                      [g->vertlist[i][ne].link.edno]=l; 
             } 
-         
-            if (vl[*nv].vt != g3 && vl[*nv].vt != g2) 
-            switch (dim) 
-            {
-              case  8:  vl[*nv].e[0]=l;  break; 
-              case -3:  vl[*nv].e[1]=l;  break; 
-              case  3:  vl[*nv].e[2]=l;  break; 
-              default: cerror(252,"t2k - invalid particle color");
-            } else vl[*nv].e[k++] = l;
-         } 
+            
+            switch(vl[*nv].vt)
+            { case  v833: case  t33: case v866: case t66: 
+                switch (dim) 
+                {
+                  case  8:  vl[*nv].e[0]=l;  break; 
+                  case -3:
+                  case -6:  vl[*nv].e[1]=l;  break; 
+                  case  3: 
+                  case  6:  vl[*nv].e[2]=l;  break;
+                 default: cerror(252,"t2k - invalid particle color");
+                }
+                break;
+              case  V633: case v633:
+                switch (dim) 
+                {
+                  case  6: case -6:  vl[*nv].e[0]=l;     break;
+                  case  3: case -3: if(!k)k=1;  vl[*nv].e[k++] = l; break;
+                }
+                break;              
+              default:  vl[*nv].e[k++] = l;  break; // vFabc, t88 v333,V333
+            } 
+         }
       }  
       (*nv)++;
    } 
 }
-

@@ -32,6 +32,7 @@ C     check LEP mass limits
 
 C#define HIGGSBOUNDS "../Packages/HiggsBounds-4.2.0"
 C#define HIGGSSIGNALS "../Packages/HiggsSignals-1.3.0"
+#define SMODELS "../Packages/smodels-v1.0.3-micromegas"
 
 #define OMEGA
 C    Calculate relic density and display contribution of
@@ -61,7 +62,7 @@ C     and recoil energy distibution for various nuclei
 C#define DECAYS 
 C     Calculates particle widths and branchings
 
-C#define CROSS_SECTIONS
+#define CROSS_SECTIONS
 C     Calculate cross sections and widths for
 C      reactions specified by the user
  
@@ -105,7 +106,7 @@ C Variables
       integer ntot,l, nin,nout
       character*6 name(4)
       real*8 mass(4)
-      real*8  Etest,Emin,sigmaV,fi,dfi,cs
+      real*8  Etest,Emin,sigmaV,fi,dfi,cs,Qren, Qfact,pTmin
       real*8 SpA(NZ),Spe(NZ),SpP(NZ)
       real*8 FluxA(NZ),FluxE(NZ),FluxP(NZ)
       character*100 mess
@@ -117,14 +118,15 @@ C  for CDM_NUCLEUS
       real*8  dNdE(200),nEvents
 C  for NEUTRINO 
       integer forSun
-      real*8 IntFlux, rhoDet
+      real*8  rhoDet
       real*8 FluxN(NZ),FluxNb(NZ),FluxMu(NZ)   
 C  For DECAYS
-      integer txtL(2)
+      integer*8 txtL
       real*8 width
       character*20 pname
 C  for LoopGAMMA
       real*8 vcs_zg, vcs_gg 
+      real*8 res
 
 C   to save the SLHA  input/output file call with (0)  
  
@@ -133,6 +135,8 @@ C    for spectrum calculation use
 C       call setSysTimeLim(1000,10)
 C   to Force calculation of matrix elements in Unitary Gauge call with (1)
       call ForceUG(0)
+
+       WIMPSIM=1
 
 #ifdef SUGRA
       write(*,*)
@@ -478,6 +482,18 @@ C* PDF 1 - box ; 2 = Gaussian; 3 box+Gaussia
 #undef DataSet
 #endif
 
+#ifdef SMODELS
+      call smodels(4000.,5, 0.1, 'smodels.in',0)
+      call system("make -C "//SMODELS) 
+      call system(SMODELS//"/runTools.py xseccomputer -p -N -O -f smodels.in")
+      call system(SMODELS//"/runSModelS.py -f smodels.in -s smodels.res  > smodels.out ") 
+      err=slhaRead("smodels.res", 1)
+      res=slhaVal2("SModelS-Exclusion",0.d0,0,0) 
+      if(res.eq.-1)  write(*,*) "SMODELS: no channels for testing"
+      if(res.eq.0)   write(*,*) "SMODELS: not excluded"
+      if(res.eq.1)   write(*,*) "SMODELS: excluded"
+
+#endif
 
 #ifdef OMEGA
 
@@ -540,7 +556,7 @@ C  Use SpectdNdE(E, SpX) to calculate energy distribution in 1/GeV units.
 #ifdef SHOWPLOTS      
       write(mess,fmt="('gamma flux[cm^2 s GeV]^{-1} at fi=',F4.2,
      > ' from cone with angle=',F4.2,'[rad]')")fi,dfi*2  
-      err= displaySpectrum(FluxA,mess,Emin,Mcdm)
+      err= displaySpectrum(mess,Emin,Mcdm,FluxA)
 #endif
       write(*,fmt="('Photon flux =',1PE8.2,
      >'[cm^2 s GeV]^{-1} for E=',0PF5.1,'[GeV]')")
@@ -550,8 +566,8 @@ C  Use SpectdNdE(E, SpX) to calculate energy distribution in 1/GeV units.
 
 #ifdef SHOWPLOTS      
       err= 
-     >displaySpectrum(FluxE,'positron flux [cm^2 s sr GeV]^{-1}',
-     >Emin,Mcdm)
+     >displaySpectrum('positron flux [cm^2 s sr GeV]^{-1}',
+     >Emin,Mcdm,FluxE)
 #endif
       write(*,fmt="('Positron flux  = ',1PE8.2,
      >'[cm^2 sr s GeV]^{-1} for E=',0PF6.1,'[GeV]')")
@@ -562,8 +578,8 @@ C  Use SpectdNdE(E, SpX) to calculate energy distribution in 1/GeV units.
 
 #ifdef SHOWPLOTS      
       err= 
-     >displaySpectrum(FluxP,'a-proton flux [cm^2 s sr GeV]^{-1}',Emin,
-     >Mcdm)
+     >displaySpectrum('a-proton flux [cm^2 s sr GeV]^{-1}',Emin,
+     >Mcdm,FluxP)
 #endif
       write(*,fmt="('Anti proton flux  = ',1PE8.2,
      >'[cm^2 sr s GeV]^{-1} for E=',0PF6.1,'[GeV]')")
@@ -624,7 +640,7 @@ C      call  calcScalarQuarkFF(0.553d0,18.9d0,55.d0,243.5d0)
       write(*,*) '==== Calculation of CDM-nucleons amplitudes  ====='
 
 
-      err=nucleonAmplitudes(CDM1,FeScLoop, pA0,pA5,nA0,nA5)
+      err=nucleonAmplitudes(CDM1, pA0,pA5,nA0,nA5)
       write(*,*)'CDM-nucleon amplitudes:'
       write(*,fmt="(' proton:  SI=',1PE9.2,' SD=',E9.2)")pA0(1),pA5(1)
       write(*,fmt="(' neutron: SI=',1PE9.2,' SD=',E9.2)")nA0(1),nA5(1) 
@@ -650,7 +666,7 @@ C  nucleon mass
       write(*,*) 'Ge:'
 
       nEvents=nucleusRecoil(Maxwell,73,Z_Ge,J_Ge73,
-     >SxxGe73,FeScLoop,dNdE)
+     >SxxGe73,dNdE)
 C  See '../sources/micromegas.h' for description of arguments
 C  Instead of Maxwell  one can use 'fDvDelta' Delta-function
 C  velocity distribution.
@@ -669,7 +685,7 @@ C  velocity distribution.
        write(*,*)
        write(*,*) '131Xe:'  
        nEvents=nucleusRecoil(Maxwell,131,Z_Xe,J_Xe131,
-     > SxxXe131,FeScLoop,dNdE)
+     > SxxXe131,dNdE)
 
       write(*,fmt=
      >"('Total number of events=',1PE9.2,' /day/kg')")nEvents
@@ -700,31 +716,31 @@ C rhoDet - detector density
 
       err=neutrinoFlux(Maxwell,forSun, FluxN,FluxNb)
 #ifdef SHOWPLOTS
-      err=displaySpectrum(FluxN, "nu flux from Sun [1/Year/km^2/GeV]",Emin,Mcdm)
-      err=displaySpectrum(FluxNb,"nu-bar from Sun  [1/Year/km^2/GeV]",Emin,Mcdm)
+      err=displaySpectrum("nu flux from Sun [1/Year/km^2/GeV]",Emin,Mcdm,FluxN)
+      err=displaySpectrum("nu-bar from Sun  [1/Year/km^2/GeV]",Emin,Mcdm,FluxNb)
 #endif
-      call spectrInfo(Emin/Mcdm,FluxN, IntFlux,NULL)
-      write(*,fmt='("E>", 1PE8.2," GeV neutrino flux =", E8.2," [1/Year/km^2]")') Emin,IntFlux
-      call  spectrInfo(Emin/Mcdm,FluxNb, IntFlux,NULL)
-      write(*,fmt='("E>", 1PE8.2," GeV anti-neutrino flux =", E8.2," [1/Year/km^2]")') Emin,IntFlux 
-  
+      write(*,fmt='("E>", 1PE8.2," GeV neutrino flux =", E8.2," [1/Year/km^2]")') Emin,spectrInfo(Emin,FluxN,NULL)
+      write(*,fmt='("E>", 1PE8.2," GeV anti-neutrino flux =", E8.2," [1/Year/km^2]")') Emin, spectrInfo(Emin,FluxNb,NULL) 
+ 
+C!  ICE CUBE
+      if(forSun.eq.1) then 
+         write(*,fmt='("IceCube22 exclusion confidence level = ",1PE8.2,"%")')  100*exLevIC22(FluxN,FluxNb,NULL)
+      endif
 C ======  Upward events
   
       call muonUpward(FluxN,FluxNb,FluxMu)
 #ifdef SHOWPLOTS  
-      err= displaySpectrum(FluxMu,"Upward muons[1/Year/km^2/GeV]",Emin,Mcdm/2)
+      err= displaySpectrum("Upward muons[1/Year/km^2/GeV]",Emin,Mcdm/2,FluxMu)
 #endif
 
-      call spectrInfo(Emin/Mcdm,FluxMu, IntFlux,NULL)
-      write(*,fmt='("E>", 1PE8.2," GeV Upward muon flux =", E8.2," [1/Year/km^2]")') Emin,IntFlux
+      write(*,fmt='("E>", 1PE8.2," GeV Upward muon flux =", E8.2," [1/Year/km^2]")') Emin,spectrInfo(Emin,FluxMu,NULL)
   
 C ======  Contained events 
       call muonContained(FluxN,FluxNb,rhoDet, FluxMu)
 #ifdef SHOWPLOTS  
-      err=displaySpectrum(FluxMu,"Contained  muons[1/Year/km^3/GeV]",Emin,Mcdm)
+      err=displaySpectrum("Contained  muons[1/Year/km^3/GeV]",Emin,Mcdm,FluxMu)
 #endif
-      call spectrInfo(Emin/Mcdm,FluxMu, IntFlux,NULL)
-      write(*,fmt='("E>", 1PE8.2," Contained muon flux =", E8.2," [1/Year/km^3]")') Emin,IntFlux
+      write(*,fmt='("E>", 1PE8.2," Contained muon flux =", E8.2," [1/Year/km^3]")') Emin,spectrInfo(Emin,FluxMu,NULL)
 #endif
 
 #ifdef DECAYS
@@ -748,34 +764,22 @@ C ======  Contained events
 
 #endif
 
-
-
 #ifdef CROSS_SECTIONS
       write(*,*)
       write(*,*)'======Calculations of cross sections======='
-
-      Pcm=500
-      cosmin=-0.99
-      cosmax=0.99
-      write(*,fmt="('Process e,E->2*x at Pcm= ',F6.1,'[GeV]')") Pcm
-      call setHelicities(0.5D0,-0.5D0)
-      call newProcess('e%,E%->2*x',cc)
-      if(cc(1).ne.0 ) then
-        call procInfo1(cc,ntot,nin,nout)
-        do l=1,ntot
-          cs= cs22(cc,l,Pcm,cosmin,cosmax,err)
-          if((err.eq.0) .and. (cs.ne.0)) then 
-            call procInfo2(cc,l,name,mass)
-            write(*,fmt='(A3,1x,A3,A4,A3,1x,A3,$)')
-     >      name(1),name(2),' -> ', name(3),name(4)
-            write(*,fmt="(1PE8.2,'[pb]')") cs
-          endif 
-        enddo
-      endif     
+      write(*,*) ' Process p,p -> ~o1,~o2'
+      Pcm=4000 
+      Qren=pMass("~o2")
+      Qfact=Qren
+      pTmin=0
+      cs=hCollider(Pcm,1,3,Qren, Qfact, "~o1","~o2",pTmin,1)
+      write(*,fmt="(1PE8.2,'[pb]')") cs 
 #endif
 
 #ifdef CLEAN
-      call system("rm -f inp spectr nngg.out ")
+      call system("rm -f suspect2_lha.in suspect2_lha.out suspect2.out Key.dat  nngg.out output.flha")
+      call system("rm -f HB.in HB.out HS.in HS.out hb.stdout hs.stdout debug_channels.txt debug_predratio.txt")
+      call system("rm -f Lilith_in.xml  Lilith_out.slha  smodels.* summary.*  particles.py")
 #endif 
       call killPlots
 

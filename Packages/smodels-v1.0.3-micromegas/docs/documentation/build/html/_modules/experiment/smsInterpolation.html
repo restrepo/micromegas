@@ -1,0 +1,403 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>experiment.smsInterpolation &mdash; SModelS 1.0.3 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="SModelS 1.0.3 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SModelS 1.0.3 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for experiment.smsInterpolation</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: experiment.smsInterpolation</span>
+<span class="sd">   :synopsis: smsInterpolation is called by smsResults.getSmartUpperLimit. UpperLimit</span>
+<span class="sd">       takes arbitrary input masses and checks if there is a corresponding upper</span>
+<span class="sd">       limit for the given analysis and topology. The upper limit is returned in</span>
+<span class="sd">       &#39;pb&#39;. If several histograms with different x-values are available, an</span>
+<span class="sd">       interpolation is performed.</span>
+
+<span class="sd">.. moduleauthor:: Ursula Laa &lt;Ursula.Laa@assoc.oeaw.ac.at&gt;</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">smodels.experiment</span> <span class="kn">import</span> <span class="n">smsResults</span><span class="p">,</span> <span class="n">smsHelpers</span>
+<span class="kn">from</span> <span class="nn">smodels.tools.physicsUnits</span> <span class="kn">import</span> <span class="n">pb</span><span class="p">,</span> <span class="n">GeV</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">griddata</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="upperLimit"><a class="viewcode-back" href="../../experiment.html#experiment.smsInterpolation.upperLimit">[docs]</a><span class="k">def</span> <span class="nf">upperLimit</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">topology</span><span class="p">,</span> <span class="n">masses</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return upper limit for analysis-topology for given masses. </span>
+<span class="sd">    </span>
+<span class="sd">    :param masses: list of masses, with (mother, intermediate(s), LSP). For</span>
+<span class="sd">           intermediate masses: if possible do interpolation over upper limits for</span>
+<span class="sd">           different x-values. If interpolation is not possible: check if masses are</span>
+<span class="sd">           comparable to the assumptions in the histogram.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">smsResults</span><span class="o">.</span><span class="n">getaxes</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">topology</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">smsHelpers</span><span class="o">.</span><span class="n">getPath</span><span class="p">(</span><span class="n">analysis</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">d</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s"> not found.&quot;</span><span class="p">,</span> <span class="n">analysis</span><span class="p">,</span> <span class="n">topology</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">masses</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span><span class="o">==</span><span class="nb">type</span><span class="p">(</span><span class="mi">1</span><span class="o">*</span><span class="n">GeV</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Please give input masses with unum units.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">masses</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;No results for single mass entry&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">masses</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">&#39;mz&#39;</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">smsResults</span><span class="o">.</span><span class="n">getUpperLimit</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">topology</span><span class="p">,</span>
+                                        <span class="n">masses</span><span class="p">[</span><span class="n">_getAxis</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">&#39;axes&#39;</span><span class="p">])],</span>
+                                        <span class="n">masses</span><span class="p">[</span><span class="n">_getAxis</span><span class="p">(</span><span class="s">&#39;y&#39;</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">&#39;axes&#39;</span><span class="p">])],</span>
+                                        <span class="n">interpolate</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">masses</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">&#39;mz&#39;</span><span class="p">]:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Need intermediate mass input for </span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s">.&quot;</span><span class="p">,</span> <span class="n">analysis</span><span class="p">,</span>
+                     <span class="n">topology</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">masses</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">&#39;mz&#39;</span><span class="p">]:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;No intermediate mass in </span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s">.&quot;</span><span class="p">,</span> <span class="n">analysis</span><span class="p">,</span> <span class="n">topology</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">masses</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">&#39;mz&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;More than one intermediate mass in </span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s">. Cannot find &quot;</span>
+                     <span class="s">&quot;upper limit for topologies with more than one &quot;</span>
+                     <span class="s">&quot;intermediate mass.&quot;</span><span class="p">,</span> <span class="n">analysis</span><span class="p">,</span> <span class="n">topology</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">masses</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">_compareMasses</span><span class="p">(</span><span class="n">masses</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="k">return</span> <span class="n">smsResults</span><span class="o">.</span><span class="n">getUpperLimit</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span>
+                                            <span class="n">_getHistName</span><span class="p">(</span><span class="n">topology</span><span class="p">,</span>
+                                                         <span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">&#39;mz&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span>
+                                            <span class="n">masses</span><span class="p">[</span><span class="n">_getAxis</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">&#39;axes&#39;</span><span class="p">])],</span>
+                                            <span class="n">masses</span><span class="p">[</span><span class="n">_getAxis</span><span class="p">(</span><span class="s">&#39;y&#39;</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">&#39;axes&#39;</span><span class="p">])],</span>
+                                            <span class="n">interpolate</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;Only one histogram available for </span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s">, cannot &quot;</span>
+                       <span class="s">&quot;interpolate for intermediate mass.&quot;</span><span class="p">,</span> <span class="n">analysis</span><span class="p">,</span>
+                       <span class="n">topology</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">return</span> <span class="n">_doGridData</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">topology</span><span class="p">,</span> <span class="n">masses</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+
+</div>
+<span class="k">def</span> <span class="nf">_getHistName</span><span class="p">(</span><span class="n">topo</span><span class="p">,</span> <span class="n">mz</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Build histogram name for given topology and mz information.</span>
+<span class="sd">    </span>
+<span class="sd">    :param mz: given in the axes-information</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">mz</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">topo</span>
+    <span class="k">elif</span> <span class="s">&#39;D&#39;</span> <span class="ow">in</span> <span class="n">mz</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">topo</span> <span class="o">+</span> <span class="s">&#39;D&#39;</span> <span class="o">+</span> <span class="n">mz</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;=&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">topo</span> <span class="o">+</span> <span class="n">mz</span>
+
+
+<span class="k">def</span> <span class="nf">_doGridData</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span> <span class="n">topology</span><span class="p">,</span> <span class="n">masses</span><span class="p">,</span> <span class="n">dPar</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create np.array and uses scipy.griddata function for analysis-topology.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">masslist</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">ullist</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">cter</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">dPar</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ds</span><span class="p">[</span><span class="s">&#39;mz&#39;</span><span class="p">]:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;No information on intermediate mass available for &quot;</span>
+                         <span class="s">&quot;</span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s">.&quot;</span><span class="p">,</span> <span class="n">analysis</span><span class="p">,</span> <span class="n">topology</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+        <span class="n">d</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">l</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">m1</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="k">if</span> <span class="n">ds</span><span class="p">[</span><span class="s">&#39;mz&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;D&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">ds</span><span class="p">[</span><span class="s">&#39;mz&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;=&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="n">ds</span><span class="p">[</span><span class="s">&#39;mz&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;LSP&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">l</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">ds</span><span class="p">[</span><span class="s">&#39;mz&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;LSP&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="n">ds</span><span class="p">[</span><span class="s">&#39;mz&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;M1&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">m1</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">ds</span><span class="p">[</span><span class="s">&#39;mz&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;M1&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">ulDict</span> <span class="o">=</span> <span class="n">smsHelpers</span><span class="o">.</span><span class="n">getUpperLimitDictionary</span><span class="p">(</span><span class="n">analysis</span><span class="p">,</span>
+                                                    <span class="n">_getHistName</span><span class="p">(</span><span class="n">topology</span><span class="p">,</span>
+                                                                 <span class="n">ds</span><span class="p">[</span><span class="s">&#39;mz&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span>
+                                                    <span class="n">path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ulDict</span><span class="p">:</span> <span class="k">continue</span>
+        <span class="n">cter</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ulDict</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">ulDict</span><span class="p">[</span><span class="n">x</span><span class="p">]:</span>
+
+                <span class="k">if</span> <span class="n">d</span><span class="p">:</span>
+                    <span class="n">massv</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">]</span>
+                    <span class="n">massv</span><span class="p">[</span><span class="n">_getAxis</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">,</span> <span class="n">ds</span><span class="p">[</span><span class="s">&#39;axes&#39;</span><span class="p">])]</span> <span class="o">=</span> <span class="n">x</span>
+                    <span class="n">massv</span><span class="p">[</span><span class="n">_getAxis</span><span class="p">(</span><span class="s">&#39;y&#39;</span><span class="p">,</span> <span class="n">ds</span><span class="p">[</span><span class="s">&#39;axes&#39;</span><span class="p">])]</span> <span class="o">=</span> <span class="n">y</span>
+                    <span class="k">if</span> <span class="n">massv</span><span class="p">[</span><span class="n">_getAxis</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">,</span> <span class="n">ds</span><span class="p">[</span><span class="s">&#39;mz&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])]</span> <span class="o">==</span> <span class="mf">0.</span><span class="p">:</span>
+                        <span class="n">massv</span><span class="p">[</span><span class="n">_getAxis</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">,</span> <span class="n">ds</span><span class="p">[</span><span class="s">&#39;mz&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])]</span> <span class="o">=</span> \
+                                <span class="n">massv</span><span class="p">[</span><span class="n">_getAxis</span><span class="p">(</span><span class="s">&#39;y&#39;</span><span class="p">,</span> <span class="n">ds</span><span class="p">[</span><span class="s">&#39;mz&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])]</span> <span class="o">+</span> <span class="n">d</span>
+                    <span class="k">if</span> <span class="n">massv</span><span class="p">[</span><span class="n">_getAxis</span><span class="p">(</span><span class="s">&#39;y&#39;</span><span class="p">,</span> <span class="n">ds</span><span class="p">[</span><span class="s">&#39;mz&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])]</span> <span class="o">==</span> <span class="mf">0.</span><span class="p">:</span>
+                        <span class="n">massv</span><span class="p">[</span><span class="n">_getAxis</span><span class="p">(</span><span class="s">&#39;y&#39;</span><span class="p">,</span> <span class="n">ds</span><span class="p">[</span><span class="s">&#39;mz&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])]</span> <span class="o">=</span> \
+                                <span class="n">massv</span><span class="p">[</span><span class="n">_getAxis</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">,</span> <span class="n">ds</span><span class="p">[</span><span class="s">&#39;mz&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])]</span> <span class="o">-</span> <span class="n">d</span>
+
+                <span class="k">elif</span> <span class="n">l</span><span class="p">:</span>
+                    <span class="n">massv</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="n">l</span><span class="p">]</span>
+                    <span class="n">massv</span><span class="p">[</span><span class="n">_getAxis</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">,</span> <span class="n">ds</span><span class="p">[</span><span class="s">&#39;axes&#39;</span><span class="p">])]</span> <span class="o">=</span> <span class="n">x</span>
+                    <span class="n">massv</span><span class="p">[</span><span class="n">_getAxis</span><span class="p">(</span><span class="s">&#39;y&#39;</span><span class="p">,</span> <span class="n">ds</span><span class="p">[</span><span class="s">&#39;axes&#39;</span><span class="p">])]</span> <span class="o">=</span> <span class="n">y</span>
+
+                <span class="k">elif</span> <span class="n">m1</span><span class="p">:</span>
+                    <span class="n">massv</span> <span class="o">=</span> <span class="p">[</span><span class="n">m1</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">]</span>
+                    <span class="n">massv</span><span class="p">[</span><span class="n">_getAxis</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">,</span> <span class="n">ds</span><span class="p">[</span><span class="s">&#39;axes&#39;</span><span class="p">])]</span> <span class="o">=</span> <span class="n">x</span>
+                    <span class="n">massv</span><span class="p">[</span><span class="n">_getAxis</span><span class="p">(</span><span class="s">&#39;y&#39;</span><span class="p">,</span> <span class="n">ds</span><span class="p">[</span><span class="s">&#39;axes&#39;</span><span class="p">])]</span> <span class="o">=</span> <span class="n">y</span>
+
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">massv</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">_getxval</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">ds</span><span class="p">[</span><span class="s">&#39;mz&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">mass</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span> <span class="n">y</span><span class="p">]</span>
+
+                <span class="n">masslist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">massv</span><span class="p">)</span>
+                <span class="n">ullist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ulDict</span><span class="p">[</span><span class="n">x</span><span class="p">][</span><span class="n">y</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">cter</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;Could not find results for </span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">analysis</span><span class="p">,</span> <span class="n">topology</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">None</span>
+
+    <span class="k">if</span> <span class="n">cter</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;Only one histogram available for </span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s">, cannot interpolate for intermediate mass.&quot;</span><span class="p">,</span> <span class="n">analysis</span><span class="p">,</span> <span class="n">topology</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">None</span>
+
+    <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">masslist</span><span class="p">)</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ullist</span><span class="p">)</span>
+
+    <span class="n">mx</span> <span class="o">=</span> <span class="n">masses</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">GeV</span>
+    <span class="n">my</span> <span class="o">=</span> <span class="n">masses</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">GeV</span>
+    <span class="n">mz</span> <span class="o">=</span> <span class="n">masses</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">GeV</span>
+
+    <span class="n">r</span> <span class="o">=</span> <span class="n">griddata</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="p">(</span><span class="n">mx</span><span class="p">,</span> <span class="n">my</span><span class="p">,</span> <span class="n">mz</span><span class="p">),</span> <span class="n">method</span><span class="o">=</span><span class="s">&quot;linear&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">r</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Masses out of range for </span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s"> (no extrapolation)&quot;</span><span class="p">,</span>
+                     <span class="n">analysis</span><span class="p">,</span> <span class="n">topology</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">None</span>
+
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">*</span> <span class="n">pb</span> 
+
+
+<span class="k">def</span> <span class="nf">_getAxis</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Find according index in the masses-list for w == x, y.</span>
+<span class="sd">    </span>
+<span class="sd">    Use the axes-information a == (mx - my).</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ml</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">ml</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;M1&#39;</span><span class="p">))</span>
+    <span class="n">ml</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;M2&#39;</span><span class="p">))</span>
+    <span class="n">ml</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;M0&#39;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">w</span> <span class="o">==</span> <span class="s">&#39;x&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_getIndex</span><span class="p">(</span><span class="n">ml</span><span class="p">,</span> <span class="n">second</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">w</span> <span class="o">==</span> <span class="s">&#39;y&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_getIndex</span><span class="p">(</span><span class="n">ml</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_getxval</span><span class="p">(</span><span class="n">mx</span><span class="p">,</span> <span class="n">my</span><span class="p">,</span> <span class="n">mz</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate x-value for one point.</span>
+<span class="sd">    Note: all masses have to be without units!</span>
+<span class="sd">    If mass == True is selected, return intermediate mass instead of x-value.</span>
+<span class="sd">    </span>
+<span class="sd">    :param mx: Mother-mass</span>
+<span class="sd">    :param my: LSP-mass</span>
+<span class="sd">    :param mz: information on the intermediate mass as given in the</span>
+<span class="sd">    axes-information.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">mz</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">and</span> <span class="n">mz</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;C&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">and</span> <span class="n">mz</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;y&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">xfac</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">mz</span><span class="p">)</span> <span class="o">/</span> <span class="mi">100</span>
+        <span class="k">if</span> <span class="n">mass</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">xfac</span> <span class="o">*</span> <span class="n">mx</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">xfac</span><span class="p">)</span> <span class="o">*</span> <span class="n">my</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">mz</span><span class="p">)</span> <span class="o">/</span> <span class="mi">100</span>
+    <span class="k">if</span> <span class="n">mz</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">tx</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">mz</span><span class="p">[</span><span class="n">mz</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span><span class="n">mz</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">4</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">tx</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="c"># if mz.find(&#39;y&#39;) &gt; -1: ty = float(mz[mz.find(&#39;y&#39;) + 1])</span>
+    <span class="c"># else: ty = None</span>
+    <span class="k">if</span> <span class="n">mz</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;C&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">mz</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;C&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="mf">0.</span>
+    <span class="k">if</span> <span class="n">tx</span><span class="p">:</span>
+        <span class="n">z</span> <span class="o">+=</span> <span class="n">tx</span> <span class="o">*</span> <span class="n">my</span> <span class="o">/</span> <span class="mi">100</span>
+    <span class="c"># if ty: z += ty*mx</span>
+    <span class="k">if</span> <span class="n">c</span><span class="p">:</span>
+        <span class="n">z</span> <span class="o">+=</span> <span class="n">c</span>
+    <span class="k">if</span> <span class="n">mass</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">z</span>
+    <span class="n">xval</span> <span class="o">=</span> <span class="p">(</span><span class="n">z</span> <span class="o">-</span> <span class="n">my</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">mx</span> <span class="o">-</span> <span class="n">my</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">xval</span>
+
+
+<span class="k">def</span> <span class="nf">_compareMasses</span><span class="p">(</span><span class="n">masses</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check if input masses are comparable to masses in the histogram.</span>
+<span class="sd">    </span>
+<span class="sd">    Masses are comparable corresponding to the information given in</span>
+<span class="sd">    axes-dictionary d.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Check if histogram axes are M1, M0, return 1 if x-value of histogram is</span>
+    <span class="c"># comparable to x value for given masses, 0 if not</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">x1</span> <span class="o">=</span> <span class="n">_getxval</span><span class="p">(</span><span class="n">masses</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">GeV</span><span class="p">,</span> <span class="n">masses</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">GeV</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s">&#39;mz&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">x2</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">masses</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">GeV</span> <span class="o">-</span> <span class="n">masses</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">GeV</span><span class="p">)</span> <span class="o">/</span> \
+                <span class="p">(</span><span class="n">masses</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span><span class="n">GeV</span> <span class="o">-</span> <span class="n">masses</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">GeV</span>  <span class="p">)</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">x2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">x1</span> <span class="o">+</span> <span class="n">x2</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="c"># Check if histogram for fixed LSP mass, return 1 if my is comparable</span>
+        <span class="c"># to LSP mass of the histogram, 0 if not</span>
+        <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="s">&#39;mz&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;LSP&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">mlsp</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s">&#39;mz&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;LSP&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">mlsp</span> <span class="o">-</span> <span class="n">masses</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">GeV</span>  <span class="p">)</span> <span class="o">/</span> \
+                    <span class="p">(</span><span class="n">mlsp</span> <span class="o">+</span> <span class="n">masses</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">GeV</span>  <span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">None</span>
+        <span class="c"># Check for fixed deltaM</span>
+        <span class="k">elif</span> <span class="n">d</span><span class="p">[</span><span class="s">&#39;mz&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;D&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">ml</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">ml</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s">&#39;mz&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;M1&#39;</span><span class="p">))</span>
+            <span class="n">ml</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s">&#39;mz&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;M2&#39;</span><span class="p">))</span>
+            <span class="n">ml</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s">&#39;mz&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;M0&#39;</span><span class="p">))</span>
+            <span class="n">deltam</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s">&#39;mz&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;=&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">deltain</span> <span class="o">=</span> <span class="n">masses</span><span class="p">[</span><span class="n">_getIndex</span><span class="p">(</span><span class="n">ml</span><span class="p">,</span> <span class="n">second</span><span class="o">=</span><span class="bp">True</span><span class="p">)]</span> <span class="o">/</span> <span class="n">GeV</span> <span class="o">-</span> \
+                    <span class="n">masses</span><span class="p">[</span><span class="n">_getIndex</span><span class="p">(</span><span class="n">ml</span><span class="p">)]</span> <span class="o">/</span> <span class="n">GeV</span>
+            <span class="k">if</span> <span class="n">deltain</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">None</span>
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">deltain</span> <span class="o">-</span> <span class="n">deltam</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">deltain</span> <span class="o">+</span> <span class="n">deltam</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">None</span>
+        <span class="c"># Check for fixed m_mother</span>
+        <span class="k">elif</span> <span class="n">d</span><span class="p">[</span><span class="s">&#39;mz&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;M1&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">mmother</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s">&#39;mz&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;M1&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">mmother</span> <span class="o">-</span> <span class="n">masses</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">GeV</span><span class="p">)</span> <span class="o">/</span> \
+                    <span class="p">(</span><span class="n">mmother</span> <span class="o">+</span> <span class="n">masses</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">GeV</span>  <span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">None</span>
+
+
+<span class="k">def</span> <span class="nf">_getIndex</span><span class="p">(</span><span class="n">ls</span><span class="p">,</span> <span class="n">second</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Find index of list element with maximum value.</span>
+<span class="sd">    </span>
+<span class="sd">    If the last element is the maximum, return -1. If second == True, find</span>
+<span class="sd">    second largest list element.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">ls</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">second</span><span class="p">:</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ls</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">i</span> <span class="o">==</span> <span class="n">ind</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">ls</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">v</span><span class="p">:</span>
+                    <span class="n">v</span> <span class="o">=</span> <span class="n">ls</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="n">ind2</span> <span class="o">=</span> <span class="n">i</span>
+        <span class="k">if</span> <span class="n">ind2</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">ls</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">return</span> <span class="n">ind2</span>
+    <span class="k">if</span> <span class="n">ind</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">ls</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="k">return</span> <span class="n">ind</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SModelS 1.0.3 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Sabine Kraml, Suchita Kulkarni, Ursula Laa, Andre Lessa, Veronika Magerl, Wolfgang Magerl, Doris Proschofsky, Michael Traub, Wolfgang Waltenberger.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

@@ -207,9 +207,8 @@ static int  testin(int l,decayDiagram restmp)
    }
 
    if(l==ndecay) 
-   {
+   { int nVV=0,pdg;
      for(j=0;liminsp[j].who;j++) if(copyins[j]<-1) return 0;
-     int nVV=0,pdg;
      for (i = 1; i <= 2 * (l - 1); i++)
      { np = restmp[i-1];
        if (np < 0)
@@ -219,9 +218,9 @@ static int  testin(int l,decayDiagram restmp)
        } 
      }
      
-     if(nVV > ZWmax || nVV < ZWmin) return 0;
+     if(nVV > ZWmax || nVV < ZWmin) return 0; 
    }
-   
+
    return (nneed <= 0);
 }
 
@@ -729,7 +728,7 @@ static int* prclist(long * power )
   int l=nin+nout-n_x;
   int * list;
 
-  for(i=0;i<l;i++) N*=hadrons[i].pow;
+  for(i=0;i<l;i++) N*=hadrons[i].len;
   list=malloc(l*N*sizeof(int));
    
   for(i=0;i<l;i++) num[i]=0;
@@ -740,7 +739,7 @@ static int* prclist(long * power )
      for(i=0;i<l;i++) list[m*l+i]=hadrons[i].parton[num[i]]; 
      for(c=l-1;c>=0;c--)
      {   num[c]++;  
-         if(num[c]==hadrons[c].pow)num[c]=0; else break;
+         if(num[c]==hadrons[c].len)num[c]=0; else break;
      }
   }
 
@@ -772,7 +771,7 @@ static int* prclist(long * power )
 /*delete copies */
   { long  n0=1,m1,k;
 
-    for(i=0;i<nin;i++)n0*=hadrons[i].pow;
+    for(i=0;i<nin;i++)n0*=hadrons[i].len;
     m1=N/n0;
     for(k=0; k<n0;k++)
     for(m=0; m<m1;m++) if(list[(k*m1+m)*l])

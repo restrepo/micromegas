@@ -159,8 +159,6 @@ static void  prtcllist(int  key)
 }
 
 
-
-
 static char * errTxt=NULL;
 static char err_Txt[40];
 
@@ -210,7 +208,7 @@ static int enter_h(int * y,char* name,int num,int scat)
     strcpy(hadrons[num].name,name);
     strcpy(hadrons[num].contents,name); 
     hadrons[num].parton[0] = j; 
-    hadrons[num].pow = 1;
+    hadrons[num].len = 1;
     if(!scat && num==0 && strcmp(prtclbase1[j].massidnt,"0")==0) 
     { errTxt="Decay of massless particle.";
       return -1;
@@ -232,8 +230,8 @@ static int enter_h(int * y,char* name,int num,int scat)
   if(!strcmp(hadrons[i].name,name))
   {  strcpy(hadrons[num].name,name);
      strcpy(hadrons[num].contents,hadrons[i].contents);
-     hadrons[num].pow=hadrons[i].pow;
-     for(j=0;j<hadrons[num].pow;j++)
+     hadrons[num].len=hadrons[i].len;
+     for(j=0;j<hadrons[num].len;j++)
      { hadrons[num].parton[j]=hadrons[i].parton[j];  
        if(nout) hadrons[num].polarized[j]=0;
        else hadrons[num].polarized[j]=hadrons[i].polarized[j];
@@ -256,9 +254,20 @@ static int enter_h(int * y,char* name,int num,int scat)
      m=errpos? errpos-hadrch+1: 0;
   
      do 
-     {  char direction[100];
-        sprintf(direction,"composite '%s'  consists of: ",name);
-        redres=input(*y, "s_ent_2", direction,  hadrch, m , STRSIZ-1);
+     {  char composite[500];
+        sprintf(composite,"composite '%s'  consists of: ",name);
+        if(hadrch[0]==0 &&  strcmp(name,"p*")==0)
+        { int pdg[11]={21,1,-1,2,-2,3,-3,4,-4,5,-5};
+          int k;
+          for(k=0;k<11;k++) for(i=0;i<nparticles;i++) 
+          if(!strchr("*fcCtT",prtclbase[i].hlp) && prtclbase[i].N==pdg[k])
+          { if(hadrch[0]) strcat(hadrch,",");
+             strcat(hadrch,prtclbase[i].name);
+             break;
+          }
+          m=strlen(hadrch)+1;
+        }
+        redres=input(*y, "s_ent_2", composite,  hadrch, m , STRSIZ-1);
         if(redres==KB_ESC) return 1;               
      }  while (redres!=KB_ENTER && redres!=KB_ESC);
 
@@ -266,9 +275,9 @@ static int enter_h(int * y,char* name,int num,int scat)
   
       
      items=stritems(" ,",hadrch);
-     for(m=0,hadrons[num].pow=0; items[m]; m++) 
+     for(m=0,hadrons[num].len=0; items[m]; m++) 
      { char  name[100];
-       if(hadrons[num].pow>=100) {errTxt="too many partons";break;}   
+       if(hadrons[num].len>=100) {errTxt="too many partons";break;}   
        sscanf(items[m],"%[^ ,]",name);
        locateinbase(name,&j);  
        if (j==0 || pseudop(j)) 
@@ -286,15 +295,15 @@ static int enter_h(int * y,char* name,int num,int scat)
            ) 
          { errTxt="This particle can not be polarized";   
               break;
-         } else  hadrons[num].polarized[hadrons[num].pow]=1; 
-       } else hadrons[num].polarized[hadrons[num].pow]=0; 
-       hadrons[num].parton[hadrons[num].pow++]=j;
+         } else  hadrons[num].polarized[hadrons[num].len]=1; 
+       } else hadrons[num].polarized[hadrons[num].len]=0; 
+       hadrons[num].parton[hadrons[num].len++]=j;
      }
 
      errpos=items[m]; 
      if(!errpos)
-     {  for(i=0;i<hadrons[num].pow;i++)
-        for(j=i+1;j<hadrons[num].pow;j++)
+     {  for(i=0;i<hadrons[num].len;i++)
+        for(j=i+1;j<hadrons[num].len;j++)
         if(hadrons[num].parton[i]==hadrons[num].parton[j])
         {  errpos=items[j];
            errTxt="duplicate parton";
@@ -362,8 +371,7 @@ do{
          if(k<0) ZWmin=-k-1;
          continue;
       }
-                                                 
-
+                                             
       locateinbase(frgm,&j);
       if ((j == 0) || (!anti&&pseudop(j)))
       {  errTxt="wrong limit statement";
@@ -400,7 +408,7 @@ int enter(void)
 
    ZWmax= 1000;
    ZWmin=-1000;
-     
+
    prtcllist(0);
    scrcolor(Red,BGmain);
    y0 = ycons;

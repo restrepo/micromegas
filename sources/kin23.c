@@ -98,7 +98,7 @@ static double Idfi(double cs2)
   {  double fi=M_PI*(0.5+i)/Np,ds;
      factor=kinematic_23(Pcm_,i3, M_, cs1_, cs2,fi,pmass,pvect)/Pcm_;
      if(factor==0.) return 0;   
-     ds=factor*(cc23_->interface->sqme)(nsub_,GG, pvect,&err);
+     ds=factor*(cc23_->interface->sqme)(nsub_,GG, pvect,NULL,&err);
      s+=ds;
   } 
   return 2*M_PI*s/Np;  
@@ -206,7 +206,7 @@ static double func_23(double *x, double wgt)
   double  factor;
   factor=kinematic_23(Pcm_, i3, Mmin+x[0]*(Mmax-Mmin),2*(x[1]-0.5) ,2*(x[2]-0.5), M_PI*x[3],pmass,pvect)/Pcm_;
   if(factor==0) return 0; 
-  return  factor*2*(Mmax-Mmin)*4*M_PI*(cc23_->interface->sqme)(nsub_,GG, pvect,&err);
+  return  factor*2*(Mmax-Mmin)*4*M_PI*(cc23_->interface->sqme)(nsub_,GG, pvect,NULL,&err);
 }
 
 double cs23Vegas(numout * cc, int nsub, double Pcm, int ii3, 
@@ -237,13 +237,13 @@ double cs23Vegas(numout * cc, int nsub, double Pcm, int ii3,
   Mmax=sqrt(Pcm*Pcm+pmass[0]*pmass[0])+sqrt(Pcm*Pcm+pmass[1]*pmass[1])-pmass[i3];
   Mmin=pmass[i4]+pmass[i5];
 
-  vegPtr=vegas_init(4,50);
+  vegPtr=vegas_init(4,func_23,50);
   for(k=0;k<2;k++)
   if(nSess[k] && nCall[k]) 
   { double ti,dti,s0=0,s1=0,s2=0;
      
     for(i=0;i<nSess[k];i++)
-    {  *err=vegas_int(vegPtr, nCall[k], 1.5, func_23, &ti, &dti); 
+    {  *err=vegas_int(vegPtr, nCall[k], 1.5,  nPROCSS, &ti, &dti); 
         printf("ti=%E, dti=%E\n", ti,dti);    
         if(*err) { vegas_finish(vegPtr);return 0;}
         dti=1/(dti*dti);                                                            
@@ -364,7 +364,7 @@ static double func_24(double *x, double wgt)
   factor*=2*2*2*(2*M_PI)*(2*M_PI)*kinematic_24(Pcm_,i3,i4,M1,M2,1-2*x[2],1-2*x[3],1-2*x[4],2*M_PI*x[5],2*M_PI*x[6],pmass,pvect);
                              
   if(factor==0) return 0; 
-  return  factor*(cc24_->interface->sqme)(nsub_,GG, pvect,&err);
+  return  factor*(cc24_->interface->sqme)(nsub_,GG, pvect,NULL,&err);
 }
 
 
@@ -393,13 +393,13 @@ double cs24Vegas(numout * cc, int nsub, double Pcm, int ii3, int ii4,
   sqrtS=sqrt(Pcm*Pcm+pmass[0]*pmass[0])+sqrt(Pcm*Pcm+pmass[1]*pmass[1]);
   *err=0;
 
-  vegPtr=vegas_init(7,50);
+  vegPtr=vegas_init(7,func_24,50);
   for(k=0;k<2;k++)
   if(nSess[k] && nCall[k]) 
   { double ti,dti,s0=0,s1=0,s2=0;
      
     for(i=0;i<nSess[k];i++)
-    {  *err=vegas_int(vegPtr, nCall[k], 1.5, func_24, &ti, &dti); 
+    {  *err=vegas_int(vegPtr, nCall[k], 1.5,  nPROCSS, &ti, &dti); 
         if(*err) { vegas_finish(vegPtr);return 0;}
         dti=1/(dti*dti);                                                            
         s0+=dti;                                                         

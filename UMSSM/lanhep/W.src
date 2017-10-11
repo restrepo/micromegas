@@ -1,0 +1,76 @@
+%
+% Terms going from superpotential (FF and Yukawa)
+%
+
+
+keep_lets superW.
+
+		
+let superW = eps2*(
+		 
+		 ml1*s_hd*s_l1*s_r1
+		+ml2*s_hd*s_l2*s_r2
+		+ml3*s_hd*s_l3*s_r3
+		
+		+mn1*s_hu*s_l1*s_n1					
+		+mn2*s_hu*s_l2*s_n2					
+		+mn3*s_hu*s_l3*s_n3					
+
+		+md1*s_hd*(Vud*s_q1+Vcd*s_q2+Vtd*s_q3)*s_d1
+		+md2*s_hd*(Vus*s_q1+Vcs*s_q2+Vts*s_q3)*s_d2
+		+md3*s_hd*(Vub*s_q1+Vcb*s_q2+Vtb*s_q3)*s_d3
+
+		+mu1*s_hu*s_q1*s_u1
+		+mu2*s_hu*s_q2*s_u2
+		+mu3*s_hu*s_q3*s_u3
+		
+		+lda*s_s*s_hd*s_hu							
+		).
+
+
+% FF terms
+
+lterm -dfdfc(superW,Ai) where
+	Ai=s_hd; Ai=s_hu; Ai=s_s; 							
+	Ai=s_l1; Ai=s_l2; Ai=s_l3;
+	Ai=s_r1; Ai=s_r2; Ai=s_r3;
+	Ai=s_q1; Ai=s_q2; Ai=s_q3;
+	Ai=s_u1; Ai=s_u2; Ai=s_u3;
+	Ai=s_d1; Ai=s_d2; Ai=s_d3;
+	Ai=s_n1; Ai=s_n2; Ai=s_n3. 					
+
+% Yukawa terms
+
+lterm ( -df(superW,Ai,Aj)*Fi*Fj/2 + AddHermConj            
+							   where
+	Ai=s_hd,Fi=f_hd; Ai=s_hu,Fi=f_hu; Ai=s_s,Fi=f_S;				
+	Ai=s_l1,Fi=f_l1; Ai=s_l2,Fi=f_l2; Ai=s_l3,Fi=f_l3;
+	Ai=s_r1,Fi=f_r1; Ai=s_r2,Fi=f_r2; Ai=s_r3,Fi=f_r3;
+	Ai=s_q1,Fi=f_q1; Ai=s_q2,Fi=f_q2; Ai=s_q3,Fi=f_q3;
+	Ai=s_u1,Fi=f_u1; Ai=s_u2,Fi=f_u2; Ai=s_u3,Fi=f_u3;
+	Ai=s_d1,Fi=f_d1; Ai=s_d2,Fi=f_d2; Ai=s_d3,Fi=f_d3;
+	Ai=s_n1,Fi=f_n1; Ai=s_n2,Fi=f_n2; Ai=s_n3,Fi=f_n3) 		
+							   where 
+	Aj=s_hd,Fj=f_hd; Aj=s_hu,Fj=f_hu; Aj=s_s,Fj=f_S;				
+	Aj=s_l1,Fj=f_l1; Aj=s_l2,Fj=f_l2; Aj=s_l3,Fj=f_l3;
+	Aj=s_r1,Fj=f_r1; Aj=s_r2,Fj=f_r2; Aj=s_r3,Fj=f_r3;
+	Aj=s_q1,Fj=f_q1; Aj=s_q2,Fj=f_q2; Aj=s_q3,Fj=f_q3;
+	Aj=s_u1,Fj=f_u1; Aj=s_u2,Fj=f_u2; Aj=s_u3,Fj=f_u3;
+	Aj=s_d1,Fj=f_d1; Aj=s_d2,Fj=f_d2; Aj=s_d3,Fj=f_d3;
+	Aj=s_n1,Fj=f_n1; Aj=s_n2,Fj=f_n2; Aj=s_n3,Fj=f_n3.		
+
+%cancellation of Yukawa terms (Mb and Mt mass evaluated at Qsusy, low scale mass wanted) 
+
+lterm  eps2*(  md3*s_hd*f_q3*f_d3
+              +mu3*s_hu*f_q3*f_u3)+ AddHermConj.			
+
+%New Yukawa terms (Mb and Mt mass at low scale), also for h-qq couplings with light q 
+
+lterm   -eps2*(    -MbSM*vvev1/cb*s_hd*f_q3*f_d3			
+                 +Mt*vvev1/sb*s_hu*f_q3*f_u3
+                   -MsSM*vvev1/cb*s_hd*f_q2*f_d2			
+                 +Mc*vvev1/sb*s_hu*f_q2*f_u2
+                   -MdSM*vvev1/cb*s_hd*f_q1*f_d1			
+                 +Muq*vvev1/sb*s_hu*f_q1*f_u1
+                   -Me*vvev1/cb*s_hd*f_l1*f_r1			
+                   -Mm*vvev1/cb*s_hd*f_l2*f_r2) + AddHermConj.

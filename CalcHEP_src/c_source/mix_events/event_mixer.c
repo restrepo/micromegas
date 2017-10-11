@@ -10,6 +10,8 @@
 
 #include "event2pyth.h"
 
+#define RUN_DETAILS
+#define  HEPML
 static  char* pdg2name(int pdg)
 { static char buff[40];
   switch(pdg)
@@ -118,7 +120,6 @@ int main(int argc,char ** argv)
   fprintf(lun1,"            <eventsNumber> ");
   posNevents=ftell(lun1);
   fprintf(lun1,"              </eventsNumber>\n");
-
   fprintf(lun1,"            <crossSection unit=\"pb\">%.4E</crossSection>\n",cs);
   fprintf(lun1,"            <fileSize> ");
   posSize=ftell(lun1);
@@ -136,7 +137,7 @@ int main(int argc,char ** argv)
   
   fprintf(lun1,"    <description>\n");
   
-  fprintf(lun1,"        <title> </title>\n");
+  fprintf(lun1,"        <title>  </title>\n");
   fprintf(lun1,"        <abstract> </abstract>\n");
   fprintf(lun1,"        <authorComments> </authorComments>\n");
 
@@ -144,7 +145,7 @@ int main(int argc,char ** argv)
   fprintf(lun1,"	    <experiment> </experiment>\n");
   fprintf(lun1,"	    <group> </group>\n");
   fprintf(lun1,"	    <responsiblePerson> </responsiblePerson>\n");
-  fprintf(lun1,"	    <description> </description>\n");
+  fprintf(lun1,"	    <description>  </description>\n");
   fprintf(lun1,"	</experimentGroup>\n");
 
   fprintf(lun1,"        <generator>\n");
@@ -203,7 +204,6 @@ int main(int argc,char ** argv)
   fprintf(lun1,"                <particle KFcode=\"%d\">%s</particle>\n",R_.IDBMUP[1],pdg2name(R_.IDBMUP[0]));
   fprintf(lun1,"                <energy unit=\"GeV\">%.3E</energy>\n",R_.EBMUP[1]);
   fprintf(lun1,"                <pdf name= \"%s\"> </pdf>\n", getField("run_details.txt","pdf2 :"));  
-  
 //  fprintf(lun1,"                <QCDCoupling>\n");
 //  fprintf(lun1,"                    <Lambda unit=\"GeV\">0.226200</Lambda>\n");
 //  fprintf(lun1,"                    <NFlavours>6</NFlavours>\n");
@@ -227,7 +227,7 @@ int main(int argc,char ** argv)
   fprintf(lun1,"	    </finalState>\n");
 
   fprintf(lun1,"            <crossSection unit=\"pb\">%.3E</crossSection>\n",cs);
- 
+  
   fprintf(lun1,"            <subprocesses>\n");
   printProcInfo(lun1);
 
@@ -316,7 +316,7 @@ int main(int argc,char ** argv)
     }
         
     fprintf(lun1,"</slha>\n");
-
+#ifdef RUN_DETAILS
     if(access("run_details.txt", R_OK)==0) 
     {  FILE * f=fopen("run_details.txt","r");
        int ch;
@@ -327,7 +327,7 @@ int main(int argc,char ** argv)
        }
       fclose(f);
     }
-    
+#endif    
     fprintf(lun1,"</header>\n");	
     fprintf(lun1,"<init>\n");
     fprintf(lun1," %5d %5d %18.11E %18.11E %5d %5d %5d %5d %5d %5d\n",
@@ -382,7 +382,7 @@ int main(int argc,char ** argv)
     fseek(lun1,posSize,SEEK_SET);
     fprintf(lun1,"%ld", size);
 #endif
-    fclose(lun1);
+    fclose(lun1);   
   }  
   closeevents_();
   return 0;

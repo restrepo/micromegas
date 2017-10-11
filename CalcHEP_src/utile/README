@@ -32,7 +32,10 @@ where parton has to be presented by PDG numerical code.
 It writes on the screen parton density  dN/dx and alpha(q)
 ==========================================================================
 5. main_22.c - is an example of 'main' program that generates and uses  CalcHEP 
-c-code output. Use $CALCHEP/main/make_main to compile it. 
+c-code output. Use 
+   $CALCHEP/bin/make_main  main_22.c 
+ to compile it. Produced executable a.out should be launched from CalcHEP
+working directory.
 ==========================================================================
 6.  
 sum_22.m sum_22.red sum_cd.m sum_cd.red sum_int.m sum_int.red sum_num.red -

@@ -17,6 +17,7 @@ static unsigned long Xshort=0x330E;
 #define  Cshort 0xB   
 #define FIRST16 0xFFFF
 
+pthread_mutex_t drandXX_key=PTHREAD_MUTEX_INITIALIZER;
 
 double drandXX(void)
 {
@@ -45,6 +46,23 @@ char * seedXX(char * init)
   }     
   return cbuff;
 }
+
+/*
+
+double drandXX_( rndState * rnd )
+{  unsigned  long Xshort=rnd->Xshort, Xlong=rnd->Xlong, bot=Xshort*Ashort, top= Clong+ (bot>>16);   
+   bot=(bot&FIRST16)+Cshort;
+   Xlong=(top + (bot>>16)+Along*Xshort+Ashort*Xlong+((Along16*Xlong)))&0xFFFFFFFF;
+   Xshort=bot&FIRST16;
+
+   rnd->Xlong=Xlong;
+   rnd->Xshort=Xshort;   
+   return ( (double)Xshort + Xlong*(double)0x10000 )*float48;
+}
+            
+*/
+
+
 /*
 #include<limits.h>
 int main(void)

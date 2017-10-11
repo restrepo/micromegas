@@ -43,8 +43,10 @@ static int runTools(char * cmd, char * fout,int mode)
    fprintf(f,"Block MODSEL    # Select model\n"   
              "  1    0           # EWSB input\n"
              "  3    1           # NMSSM PARTICLE CONTENT\n"
+             "  8    2           # Precision for Higgs masses\n"
              "  9    0           # FLAG FOR MICROMEGAS (0=NO, 1=YES\n"
              " 10    0           # No scan, no ...\n"
+             " 13    1           # Sparticles decays\n"
            "Block SMINPUTS    # Standard Model inputs\n");
 //   fprintf(f," 1   %.8E       # alpha_em^(-1)(MZ) SM MSbar\n",1/findValW("alfEMZ"));
 //   fprintf(f," 2   %.8E       # G_Fermi \n",1.16637E-5); 
@@ -119,8 +121,10 @@ double sugraNMSSM( double m0, double mhf, double a0, double tb, double sgn,
            "Block MODSEL       # Select model\n"
            "  1    1            # SUGRA\n"   
            "  3    1            # NMSSM PARTICLE CONTENT\n"
+           "  8    2           # Precision for Higgs masses\n"
            "  9    0            # FLAG FOR MICROMEGAS (0=NO)\n" 
            " 10    0            # No scan, no ...\n"
+           " 13    1           # Sparticles decays\n"
            "Block SMINPUTS               # Standard Model inputs\n");
 //   fprintf(f," 1   %.8E       # alpha_em^(-1)(MZ) SM MSbar\n",1/findValW("alfEMZ"));
 //   fprintf(f," 2   %.8E       # G_Fermi \n",1.16637E-5); 

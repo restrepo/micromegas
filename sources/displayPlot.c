@@ -2,43 +2,21 @@
 #include"micromegas.h"
 #include"micromegas_aux.h"
 #include"../CalcHEP_src/c_source/chep_crt/include/crt.h"
-//#define OLD_VERSION
-#ifdef OLD_VERSION
-
-void displayPlot(char * title, char*xName, char*yName, double xMin, double xMax, int dim, double *f,double *ff)
-{ 
-  int i;
-  char *buff;
-  if(ff) i=2;else i=1;
- 
-  buff=malloc(100+ strlen(title)+strlen(xName)+strlen(yName)+strlen(calchepDir) +dim*(11*i+2));  
- 
-  sprintf(buff,"echo \"#type %d\n#title %s\n#xName %s\n#yName %s\n#xMin %.3E\n#xMax %.3E\n#xDim %d\n",
-  i-1,title,xName,yName, xMin,xMax,dim);
-  if(ff) for(i=0;i<dim;i++) sprintf(buff+strlen(buff),"%.2E %.2E\n",f[i],ff[i]);
-  else   for(i=0;i<dim;i++) sprintf(buff+strlen(buff),"%.3E\n",f[i]); 
-  
-  sprintf(buff + strlen(buff),"\" | %s/bin/plot_view &",calchepDir);
-
-  system(buff);
-  free(buff);
-}
-
-void  killPlots(void){;}
-
-#else 
 
 #include <sys/types.h>
 #include <unistd.h>
 #include <signal.h>              
 #include <sys/wait.h>
+#include <stdarg.h>
+ 
+
  
 static int First=1;
   
 static void disconnect(int N) { setsid();}
   
 
-extern void   plot_1(double xMin, double xMax, int dim,
+extern void  plot_1(double xMin, double xMax, int dim,
                        double *f, double *ff,char* upstr, 
                        char* xstr, char* ystr);
 extern int blind;
@@ -49,14 +27,16 @@ static int pidList[100];
 
 extern char pathtocalchep[], pathtohelp[];
   
-void displayPlot(char * title, char*xName, char*yName, double xMin, double xMax, int dim, double *f,double *ff)
+void displayPlotN(char * title, double xMin, double xMax,  char*xName,  int dim, int N, double**f,double**ff,char**Y)
 { int pid;
   
   if(First) { First=0;   signal(SIGUSR1, disconnect);}  
   
   pid=fork();
   if(pid==0) 
-  {  int err;
+  {  int err,i;
+     va_list ap;   
+     
      blind=0; 
      err=start1("micrOMEGAs Plot",NULL ,"calchep.ini",NULL);
      if(err) 
@@ -65,11 +45,34 @@ void displayPlot(char * title, char*xName, char*yName, double xMin, double xMax,
      }
      sprintf(pathtocalchep,"%s/",calchepDir);
      sprintf(pathtohelp,"%s/help/",pathtocalchep);
-     clearTypeAhead();  
-     plot_1(xMin,xMax,dim,f,ff,title,xName,yName);
+     clearTypeAhead();     
+     plot_Nar(title,xMin,xMax,xName, dim, N, f,ff,Y);
      finish();
      exit(0);
   } else pidList[newPID++]=pid;
+}
+
+void displayPlot(char * title, double xMin, double xMax,  char*xName,  int dim, int N, ...)
+{
+  int i;
+  double **f; double**ff; char**Y;  
+  va_list ap;   
+        
+  f =malloc(N*sizeof(double*));
+  ff=malloc(N*sizeof(double*));
+  Y = malloc(N*sizeof(char*));
+  
+  va_start(ap,N);
+  for(i=0;i<N;i++) 
+  { f[i]=va_arg(ap,double*);
+    ff[i]=va_arg(ap,double*);
+    Y[i]=va_arg(ap,char*);
+  }   
+  va_end(ap);
+  
+  displayPlotN(title,xMin,xMax, xName, dim,N, f,ff,Y);
+
+  free(f); free(ff);free(Y);
 }
 
 
@@ -88,7 +91,7 @@ void  killPlots(void)
   newPID=0;
 }
 
-#endif
+
 
 void  killplots_(void) { killPlots();}
 
@@ -97,8 +100,8 @@ void displayFunc(double (*F)(double), double x1  ,double x2, char * mess)
   int i;
   double f[100];
   
-  for(i=0;i<100;i++) f[i]=F(x1+i*(x2-x1)/99.);
-  displayPlot(mess,"x","F(x)",x1,x2,100,f,NULL);
+  for(i=0;i<100;i++) f[i]=F(x1+(i+0.5)*(x2-x1)/100.);
+  displayPlot(mess,x1,x2,"x",100,1,f,NULL,"F(x)");
 }  
 
 void displayFunc10(double (*F)(double), double x1  ,double x2, char * mess)
@@ -106,6 +109,6 @@ void displayFunc10(double (*F)(double), double x1  ,double x2, char * mess)
   int i;
   double f[100];
   
-  for(i=0;i<100;i++) f[i]=F(pow(10,x1+i*(x2-x1)/99.));
-  displayPlot(mess,"x","F(10^x)",x1,x2,100,f,NULL);
+  for(i=0;i<100;i++) f[i]=F(pow(10,x1+(i+0.5)*(x2-x1)/99.));
+  displayPlot(mess,x1,x2,"x",100,1,f,NULL,"F(10^x)");
 }  

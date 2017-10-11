@@ -6,10 +6,10 @@
 
 #include<math.h>
 #include<complex.h>
-
+ 
 #ifdef _LONG_  
 
-#define REAL  long double
+#define REAL    long double
 #define COMPLEX long double complex
 
 #define sqrt   sqrtl
@@ -60,7 +60,7 @@
 
 #ifdef _QUAD16_
 #define REAL _Quad
-#define COMPLEX  complex_Quad
+#define COMPLEX  complex _Quad
 //http://software.intel.com/en-us/forums/topic/289725
 
 #define sin    __sinq  

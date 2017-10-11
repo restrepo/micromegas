@@ -1,0 +1,251 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>tools.toolBox &mdash; SModelS 1.0.3 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="SModelS 1.0.3 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SModelS 1.0.3 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for tools.toolBox</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: tools.toolBox</span>
+<span class="sd">   :synopsis: Contains a singleton-like class that keeps track of all external</span>
+<span class="sd">      &quot;HEP&quot; tools, such as pythia, nllfast, etc. </span>
+<span class="sd">      Used primarily for installation and deployment.</span>
+
+<span class="sd">.. moduleauthor:: Wolfgang Waltenberger &lt;wolfgang.waltenberger@gmail.com&gt;</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">types</span>
+<span class="kn">from</span> <span class="nn">smodels.tools</span> <span class="kn">import</span> <span class="n">externalPythia6</span>
+<span class="kn">from</span> <span class="nn">smodels.tools</span> <span class="kn">import</span> <span class="n">externalNllFast</span>
+<span class="kn">from</span> <span class="nn">smodels.tools</span> <span class="kn">import</span> <span class="n">externalPythonTools</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ToolBox"><a class="viewcode-back" href="../../tools.html#tools.toolBox.ToolBox">[docs]</a><span class="k">class</span> <span class="nc">ToolBox</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A singleton-like class that keeps track of all external tools.</span>
+<span class="sd">    Intended to make installation and deployment easier.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">__shared_state</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;tools&quot;</span> <span class="p">:</span> <span class="p">{}}</span>
+
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructor creates the singleton.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># instead of making this a singleton, we introduce</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__shared_state</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__shared_state</span><span class="p">[</span><span class="s">&quot;tools&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">initSingleton</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="ToolBox.initSingleton"><a class="viewcode-back" href="../../tools.html#tools.toolBox.ToolBox.initSingleton">[docs]</a>    <span class="k">def</span> <span class="nf">initSingleton</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes singleton instance (done only once for the entire class).</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">externalPythia6</span><span class="o">.</span><span class="n">ExternalPythia6</span><span class="p">())</span>
+        <span class="k">for</span><span class="p">(</span><span class="n">sqrts</span><span class="p">,</span> <span class="n">tool</span><span class="p">)</span> <span class="ow">in</span> <span class="n">externalNllFast</span><span class="o">.</span><span class="n">nllFastTools</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">tool</span><span class="p">)</span>
+        <span class="k">for</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">tool</span><span class="p">)</span> <span class="ow">in</span> <span class="n">externalPythonTools</span><span class="o">.</span><span class="n">pythonTools</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">tool</span><span class="p">)</span>
+        
+</div>
+<div class="viewcode-block" id="ToolBox.add"><a class="viewcode-back" href="../../tools.html#tools.toolBox.ToolBox.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a tool by passing an instance to this method.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tools</span><span class="p">[</span><span class="n">instance</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">instance</span>
+
+</div>
+<div class="viewcode-block" id="ToolBox.listOfTools"><a class="viewcode-back" href="../../tools.html#tools.toolBox.ToolBox.listOfTools">[docs]</a>    <span class="k">def</span> <span class="nf">listOfTools</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a simple list with the tool names.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="ToolBox.installationOk"><a class="viewcode-back" href="../../tools.html#tools.toolBox.ToolBox.installationOk">[docs]</a>    <span class="k">def</span> <span class="nf">installationOk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ok</span><span class="p">,</span> <span class="n">colors</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns color coded string to signal installation issues.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">green</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\033</span><span class="s">[0;32m&#39;</span>
+        <span class="n">red</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\033</span><span class="s">[0;31m&#39;</span>
+        <span class="n">reset</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\033</span><span class="s">[;0m&#39;</span>
+        <span class="k">if</span> <span class="n">ok</span> <span class="o">==</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="s">&quot;installation ok!&quot;</span>
+            <span class="k">if</span> <span class="n">colors</span><span class="p">:</span>
+                <span class="n">ret</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s%s%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">green</span><span class="p">,</span> <span class="n">ret</span><span class="p">,</span> <span class="n">reset</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">ret</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="s">&quot;problem with installation&quot;</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">ok</span><span class="p">)</span> <span class="o">==</span> <span class="n">types</span><span class="o">.</span><span class="n">StringType</span><span class="p">:</span>
+            <span class="n">ret</span> <span class="o">+=</span> <span class="s">&quot; (</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">ok</span>
+        <span class="k">if</span> <span class="n">colors</span><span class="p">:</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s%s%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">red</span><span class="p">,</span> <span class="n">ret</span><span class="p">,</span> <span class="n">reset</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ret</span>
+
+</div>
+<div class="viewcode-block" id="ToolBox.checkInstallation"><a class="viewcode-back" href="../../tools.html#tools.toolBox.ToolBox.checkInstallation">[docs]</a>    <span class="k">def</span> <span class="nf">checkInstallation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">make</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">printit</span><span class="o">=</span><span class="bp">True</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks if all tools listed are installed properly, </span>
+<span class="sd">        returns True if everything is ok, False otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="s">&quot;The following tools are found in the Toolbox:</span><span class="se">\n</span><span class="s">&quot;</span>
+        <span class="n">hasMade</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">allOk</span><span class="o">=</span><span class="bp">True</span>
+        <span class="k">for</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">instance</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">ok</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">checkInstallation</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">ok</span><span class="p">:</span>
+                <span class="n">allOk</span><span class="o">=</span><span class="bp">False</span>
+            <span class="n">exe</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">pathOfExecutable</span><span class="p">()</span>
+            <span class="n">maxl</span> <span class="o">=</span> <span class="mi">45</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">exe</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">maxl</span> <span class="o">+</span> <span class="mi">4</span><span class="p">:</span>
+                <span class="n">exe</span> <span class="o">=</span> <span class="s">&quot;... &quot;</span> <span class="o">+</span> <span class="n">instance</span><span class="o">.</span><span class="n">pathOfExecutable</span><span class="p">()[</span><span class="o">-</span><span class="n">maxl</span><span class="p">:]</span>
+            <span class="n">ret</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="si">%-12s</span><span class="s"> [</span><span class="si">%-50s</span><span class="s">]:    </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">exe</span><span class="p">,</span>
+                                               <span class="bp">self</span><span class="o">.</span><span class="n">installationOk</span><span class="p">(</span><span class="n">ok</span><span class="p">,</span> <span class="n">colors</span><span class="p">))</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">ok</span> <span class="ow">and</span> <span class="n">make</span><span class="p">:</span>
+                <span class="n">hasMade</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="n">instance</span><span class="o">.</span><span class="n">compile</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">make</span> <span class="ow">and</span> <span class="n">hasMade</span><span class="p">:</span>
+            <span class="n">ret</span> <span class="o">+=</span> <span class="s">&quot;Check again:</span><span class="se">\n</span><span class="s">&quot;</span>
+            <span class="n">ret</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkInstallation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">colors</span><span class="p">,</span> <span class="n">make</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="c"># # logger.info(ret)</span>
+        <span class="k">if</span> <span class="n">printit</span><span class="p">:</span>
+            <span class="k">print</span> <span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">allOk</span>
+
+</div>
+<div class="viewcode-block" id="ToolBox.compile"><a class="viewcode-back" href="../../tools.html#tools.toolBox.ToolBox.compile">[docs]</a>    <span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Tries to compile and install tools that are not yet marked</span>
+<span class="sd">        as &#39;installed&#39;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">instance</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">installOk</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">checkInstallation</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">installOk</span> <span class="o">==</span> <span class="bp">True</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Installation of &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot; not correct. </span><span class="se">\</span>
+<span class="s">                        Trying to compile.&quot;</span><span class="p">)</span>
+            <span class="n">instance</span><span class="o">.</span><span class="n">compile</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="ToolBox.get"><a class="viewcode-back" href="../../tools.html#tools.toolBox.ToolBox.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tool</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets instance of tool from the toolbox.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">tool</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tools</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Asking for non-existent tool ``</span><span class="si">%s</span><span class="s">&#39;&#39;&quot;</span> <span class="o">%</span> <span class="n">tool</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tools</span><span class="p">[</span><span class="n">tool</span><span class="p">]</span>
+
+</div></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Run as a script we report on the status of the installation. &quot;&quot;&quot;</span>
+    <span class="n">argparser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&#39;simple script to check </span><span class="se">\</span>
+<span class="s">            if all external &quot;HEP&quot; tools are installed and compiled&#39;</span><span class="p">)</span>
+    <span class="n">argparser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">&#39;-n&#39;</span><span class="p">,</span> <span class="s">&#39;--nocolors&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;turn off colors&#39;</span><span class="p">,</span>
+                           <span class="n">action</span><span class="o">=</span><span class="s">&#39;store_true&#39;</span><span class="p">)</span>
+    <span class="n">argparser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">&#39;-m&#39;</span><span class="p">,</span> <span class="s">&#39;--make&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;compile packages if needed&#39;</span><span class="p">,</span>
+                           <span class="n">action</span><span class="o">=</span><span class="s">&#39;store_true&#39;</span><span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">argparser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    <span class="n">tmp</span> <span class="o">=</span> <span class="n">ToolBox</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">make</span><span class="p">:</span>
+        <span class="n">tmp</span><span class="o">.</span><span class="n">compile</span><span class="p">()</span>
+    <span class="n">tmp</span><span class="o">.</span><span class="n">checkInstallation</span><span class="p">(</span><span class="n">colors</span><span class="o">=</span><span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">nocolors</span><span class="p">,</span> <span class="n">printit</span><span class="o">=</span><span class="bp">True</span> <span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SModelS 1.0.3 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Sabine Kraml, Suchita Kulkarni, Ursula Laa, Andre Lessa, Veronika Magerl, Wolfgang Magerl, Doris Proschofsky, Michael Traub, Wolfgang Waltenberger.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

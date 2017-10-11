@@ -3,7 +3,7 @@
 #include "micromegas_f.h"
 #include"../CalcHEP_src/c_source/ntools/include/vegas.h"
 
-double (*sqme22)(int nsub, double GG, REAL *pvect, int * err_code)=NULL; 
+double (*sqme22)(int nsub, double GG, REAL *pvect, REAL*cb_coeff, int * err_code)=NULL; 
 int  nsub22=0;
 
 /*===========================================================*/
@@ -59,7 +59,7 @@ double  dSigma_dCos(double  cos_f)
    pvect[14]=-pvect[10];
    
    
-   r = (*sqme22)(nsub22,sqrt(4*M_PI*parton_alpha(GGscale)),pvect,&err_code);
+   r = (*sqme22)(nsub22,sqrt(4*M_PI*parton_alpha(GGscale)),pvect,NULL,&err_code);
    err_code=0;
    return r * totcoef;
 }
@@ -97,19 +97,34 @@ static numout * colliderProduction(char * name1,char *name2, int nf, int J)
   char libname[100], process[100], lName1[20], lName2[20];
   numout *cc;
   int i,first;
-    
-  pname2lib(name1,lName1);
-  pname2lib(name2,lName2);
-  if(strcmp(lName1,lName2)>0)sprintf(libname,"PP_%s%s",lName1,lName2);
-  else                       sprintf(libname,"PP_%s%s",lName2,lName1); 
 
-  sprintf(libname+strlen(libname),"_nf%d",nf);
   
+  if(name1==NULL && name2==NULL) return NULL;
+  if(name1) pname2lib(name1,lName1);
+  if(name2) pname2lib(name2,lName2);
+  if(name1==NULL)
+  {
+    sprintf(libname,"PP_%s",lName2);
+    sprintf(process,"proton,proton->%s",name2);
+  } else if(name2==NULL)
+  { 
+    sprintf(libname,"PP_%s",lName1);
+    sprintf(process,"proton,proton->%s",name1); 
+  } else
+  {               
+     if(strcmp(lName1,lName2)>0)sprintf(libname,"PP_%s%s",lName1,lName2);
+     else                       sprintf(libname,"PP_%s%s",lName2,lName1); 
+     sprintf(process,"proton,proton->%s,%s",name1,name2);
+  }
+     
+  sprintf(libname+strlen(libname),"_nf%d",nf);
+ 
   if(J)
-  {  sprintf(process,"proton,proton->%s,%s,proton{",name1,name2);
+  {  sprintf(process+strlen(process),",proton");
      strcat(libname,"_J");
   }
-  else  sprintf(process,"proton,proton->%s,%s{",name1,name2);
+  
+  sprintf(process+strlen(process),"{");
   
   for(i=0,first=1;i<nModelParticles;i++) 
   { int pdg=abs(ModelPrtcls[i].NPDG);
@@ -137,7 +152,7 @@ static double  cos_integrand(double xcos)
   pvect[13]=-pvect[9];
   pvect[14]=-pvect[10];
   q=Q_ren>0? Q_ren: pvect[0]+pvect[4];  
-  return  sqme22(nsub22,sqrt(4*M_PI*parton_alpha(q)),pvect,&err);  
+  return  sqme22(nsub22,sqrt(4*M_PI*parton_alpha(q)),pvect,NULL,&err);  
 }
 
 
@@ -160,7 +175,7 @@ static double  s_integrand(double y)
    pvect[11]=0;
    pvect[12]=sqrt(pmass[3]*pmass[3]+pcmOut*pcmOut);
    pvect[15]=0;
-   x0=s/sMax;
+
    q=Q_fact>0? Q_fact: sqrt(s);
    r=  3.8937966E8*pcmOut/(32*M_PI*pcmIn*s)*simpson(cos_integrand,-1.,1.,1.E-3);
    r*=convStrFun2(x0,q,pc1_,pc2_,ppFlag);
@@ -252,7 +267,7 @@ static double veg_intergrand(double *x, double w)
    {   double q= Q_ren>0? Q_ren : M12;
        double x0=M12*M12/sMax;
       
-       r*= sqme22(nsub22,sqrt(4*M_PI*parton_alpha(q)),pvect,&err);
+       r*= sqme22(nsub22,sqrt(4*M_PI*parton_alpha(q)),pvect,NULL,&err);
        q= Q_fact>0? Q_fact: M12;
        r*= convStrFun2(x0,q,pc1_,pc2_,ppFlag);
    }
@@ -362,7 +377,7 @@ static double vegas_cycle(vegasGrid *vegPtr, double eps, double aeps,int maxStep
   for(k=0;k<maxStep;k++)
   { 
     double s0=0,s1=0,s2=0;    
-    vegas_int(vegPtr, NN , 1.5,veg_intergrand , ti+k, dti+k);
+    vegas_int(vegPtr, NN , 1.5, nPROCSS  , ti+k, dti+k);
 //    printf("ti=%E dti=%E  NN=%d \n",ti[k], dti[k],NN);
     if(dti[k]==0){ dii=0; ii=ti[k];  break;}
     for(l=k;l>=k/2;l--)
@@ -388,26 +403,40 @@ static double vegas_cycle(vegasGrid *vegPtr, double eps, double aeps,int maxStep
   return ii;
 }
 
-double hCollider(double Pcm, int pp, int nf, double Qren,double Qfact, char * name1,char *name2,double pTmin)
+double hCollider(double Pcm, int pp, int nf, double Qren,double Qfact, char * name1,char *name2,double pTmin,int wrt)
 { 
   double  sigma_tot=0, Qstat;
   int i;
   numout *cc;
   int n1,n2;
   int nout;
-  double dI;
+  double dI,m1,m2;
+  
+  if(name1==NULL  && name2==NULL) return 0;
   
   if(nf>5)nf=5; 
   if(nf<0)nf=0;
   
-  n1=pTabPos(name1);  if(n1==0) { printf("%s - no such particle\n",name1); return 0;}
-  n2=pTabPos(name2);  if(n2==0) { printf("%s - no such particle\n",name2); return 0;}
-
+  
+ if(name1) 
+ { n1=pTabPos(name1);  
+    if(n1==0) { printf("%s - no such particle\n",name1); return 0;}
+    m1=pMass(name1);
+ }
+ else { n1=0; m1=0;}
+ if(name2) 
+ {  n2=pTabPos(name2);  
+    if(n2==0) { printf("%s - no such particle\n",name2); return 0;}
+    m2=+pMass(name2);   
+ }
+ else { n2=0; m2=0;}
+ 
+  
   sMax=4*Pcm*Pcm; 
-  if(pTmin<=0) sMin=pMass(name1)+pMass(name2);
+  if(pTmin<=0) sMin=m1+m2;
   else 
   {
-    double MM=pMass(name1)+pMass(name2);
+    double MM=m1+m2;
     sMin=sqrt(MM*MM+pTmin*pTmin)+pTmin;
     pTmin_=pTmin;
   }
@@ -423,7 +452,7 @@ double hCollider(double Pcm, int pp, int nf, double Qren,double Qfact, char * na
    
   if(Qaddress)
   { Qstat=*Qaddress;
-    *Qaddress=pMass(name1)+pMass(name2);
+    *Qaddress=sqrt(sMin);
 //    printf("Q=%E\n",findValW("Q"));
     calcMainFunc();
   }  
@@ -436,7 +465,9 @@ double hCollider(double Pcm, int pp, int nf, double Qren,double Qfact, char * na
   sqme22=cc->interface->sqme;
       
   sigma_tot=0;
-  if(pTmin>0) nout=3; else nout=2;   
+  if(pTmin>0) nout=1;else nout=0;
+  if(n1)nout++;
+  if(n2)nout++;
   for(nsub22=1;nsub22<=cc->interface->nprc; nsub22++) 
   { int pc[5];
     char*n[5];
@@ -447,12 +478,33 @@ double hCollider(double Pcm, int pp, int nf, double Qren,double Qfact, char * na
     { pc1_=pc[0];
       pc2_=pc[1];
       
-     for(i=0;i<2+nout;i++) {printf("%s ",n[i]); if(i==1) printf(" -> ");}
-      
-     if(nout==2){  tmp=simpson(s_integrand,0.,1.,1.E-2); printf("cs=%E \n", tmp);} 
-     else 
-     {   double m3q;
-         vegasGrid *vegPtr=vegas_init(5,50);
+     if(wrt)for(i=0;i<2+nout;i++) {printf("%s ",n[i]); if(i==1) printf(" -> ");}
+     
+     switch(nout)
+     { case 1: 
+       { 
+          double pcmIn=decayPcm(pmass[2],pmass[0], pmass[1]);
+          double q;
+          int err;
+          
+          if(pcmIn==0) return 0;
+           pvect[0]=sqrt(pmass[0]*pmass[0]+pcmIn*pcmIn);
+           pvect[1]=pcmIn; pvect[2]=0; pvect[3]=0;
+           pvect[4]=sqrt(pmass[1]*pmass[1]+pcmIn*pcmIn);
+           pvect[5]=-pcmIn; pvect[6]=0; pvect[7]=0;
+           pvect[8]=pmass[2];pvect[9]=pvect[10]=pvect[11]=0;
+           q=Q_fact>0? Q_fact: pmass[2];
+          tmp=convStrFun2(pmass[2]*pmass[2]/sMax,q,pc1_,pc2_,ppFlag);
+           q=Q_ren>0? Q_ren: pmass[2];
+          tmp*=cc->interface->sqme(nsub22,sqrt(4*M_PI*parton_alpha(q)),pvect,NULL,&err);
+          tmp*=389379660.0*M_PI/(2*pcmIn*pmass[2]*sMax);
+          if(wrt)printf("cs=%E \n",tmp); 
+          break;
+       }
+       case 2:  tmp=simpson(s_integrand,0.,1.,1.E-2); if(wrt)printf("cs=%E \n", tmp);  break;
+       case 3:
+       { double m3q;
+         vegasGrid *vegPtr=vegas_init(5,veg_intergrand,50);
          char s0[3]={0,0,0};
          double eps,aEps;
          
@@ -476,24 +528,26 @@ double hCollider(double Pcm, int pp, int nf, double Qren,double Qfact, char * na
          s0[0]=i4+1;s0[1]=i5+1; getPoles(cc,nsub22,s0,M45_min,      M45_max,      &npole45,&pole45); 
          s0[0]=1;   s0[1]=2;    getPoles(cc,nsub22,s0,sqrt(sMin),   sqrt(sMax),   &npole12,&pole12);                 
 
-         setGrid(50,  vegPtr->x_grid     , 0, 1,sqrt(sMin),sqrt(sMax),npole12,pole12);
-         setGrid(50,  vegPtr->x_grid+1*51, 0, 1,M45_min,M45_max,npole45,pole45);
+         setGrid(50,  vegPtr->x_grid[0]   , 0, 1,sqrt(sMin),sqrt(sMax),npole12,pole12);
+         setGrid(50,  vegPtr->x_grid[1]   , 0, 1,M45_min,M45_max,npole45,pole45);
          
          if(npole34 && npole35)
-         { setGrid(25,  vegPtr->x_grid+3*51, 0, 0.5, sqrt(S34_min),sqrt(S34_max),npole34,pole34);
-           setGrid(25,  vegPtr->x_grid+3*51+25, 0.5, 1, sqrt(S35_min),sqrt(S35_max),npole35,pole35);
+         { setGrid(25,  vegPtr->x_grid[3], 0, 0.5, sqrt(S34_min),sqrt(S34_max),npole34,pole34);
+           setGrid(25,  vegPtr->x_grid[3]+25, 0.5, 1, sqrt(S35_min),sqrt(S35_max),npole35,pole35);
          }else if(npole34)
-           setGrid(50,  vegPtr->x_grid+3*51, 0, 1, sqrt(S34_min),sqrt(S34_max),npole34,pole34);
+           setGrid(50,  vegPtr->x_grid[3], 0, 1, sqrt(S34_min),sqrt(S34_max),npole34,pole34);
           else if (npole35)
-           setGrid(50,  vegPtr->x_grid+3*51, 0, 1, sqrt(S35_min),sqrt(S35_max),npole35,pole35);
+           setGrid(50,  vegPtr->x_grid[3], 0, 1, sqrt(S35_min),sqrt(S35_max),npole35,pole35);
          eps=0.01;
          aEps=1E-6;
          if(fabs(sigma_tot)*eps>aEps) aEps=sigma_tot*eps;
          tmp=vegas_cycle(vegPtr,0.05, aEps, 20,5000, 1.1,&dI); 
          vegas_finish(vegPtr);
-         printf("cs=%E +/-%E \n", tmp,dI);
+         if(wrt)printf("cs=%E +/-%E \n", tmp,dI);
          free(pole12); free(pole34); free(pole35); free(pole45);
          pole12=pole34=pole35=pole45=NULL;
+         break;
+       }  
      }
      sigma_tot+=tmp;
     }
@@ -541,10 +595,13 @@ double cs22_(int*ccf,int*nsub,double*P,double*cos1,double*cos2,int*err)
 void  sethelicities_(double *h1,double *h2) { Helicity[0]=*h1; Helicity[1]=*h2;}
 
 
-double hcollider_(double*Pcm, int*pp, int* nf, double*Qren,double*Qfact, char * name1,char *name2,double*pTmin,int len1,int len2)
+double hcollider_(double*Pcm, int*pp, int* nf, double*Qren,double*Qfact, char * name1,char *name2,double*pTmin,int*wrt,int len1,int len2)
 { 
   char cname1[20], cname2[20];
+  char *cname1_,*cname2_;
   fName2c(name1,cname1,len1);
   fName2c(name2,cname2,len2);
-  return  hCollider(*Pcm, *pp, *nf, *Qren,*Qfact, cname1,cname2,*pTmin);  
+  if(strlen(cname1)==0) cname1_=NULL; else  cname1_=cname1;
+  if(strlen(cname2)==0) cname2_=NULL; else  cname2_=cname2;
+  return  hCollider(*Pcm, *pp, *nf, *Qren,*Qfact, cname1_,cname2_,*pTmin,*wrt);  
 }

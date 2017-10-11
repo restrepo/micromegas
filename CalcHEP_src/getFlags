@@ -30,7 +30,7 @@ echo UNIX `uname`
 case `uname` in
 
 Linux) CC=gcc
-       CFLAGS="-g -fsigned-char -Wstrict-prototypes -Wimplicit  -Wmissing-prototypes -std=gnu99"
+       CFLAGS="-g -fsigned-char -Wstrict-prototypes -Wimplicit -Wmissing-prototypes -std=gnu99"
 #       CFLAGS="-fsigned-char -Wall"
        lDL="-rdynamic -ldl"       
        SHARED=-shared
@@ -57,7 +57,7 @@ OSF1)  CC=cc
        RANLIB=ranlib
      ;;
 SunOS) CC=cc
-       CFLAGS="-g -std=gnu99"
+       CFLAGS=-g -std=gnu99
        SHARED=-G
        SONAME=
        FC=f77
@@ -69,7 +69,7 @@ SunOS) CC=cc
        RANLIB=ranlib
      ;;
 Darwin)CC=gcc
-       CFLAGS="-g -fsigned-char -std=gnu99 "
+       CFLAGS="-g -fsigned-char -std=gnu99"
        lDL=-ldl
        SHARED=-dynamiclib
        SONAME="-install_name "
@@ -96,7 +96,7 @@ CYGWIN*)
      ;;
 
 
-   *) CC=gcc
+   *) CC=cc
       CFLAGS="-g -std=gnu99" 
       FC=f77
       lFort=
@@ -550,9 +550,10 @@ cd fTest
 if(test -r ../FlagsForSh) then
   . ../FlagsForSh
 
-if(test -z "$LX11") then
-    LX11=-lX11
-fi
+#if(test -z "$LX11") then
+#    LX11=-lX11
+#fi
+
 
 else 
   findMAKE
@@ -568,6 +569,13 @@ testSO;  if(test $? -ne 0  ) then  exit 1; fi
 if(test -z "$LX11") then 
   echo You have empty LX11 paremeter that means that 
   echo calchep will be compiled for  "Blind" job only.  
+  echo"
+  If you  would like to use CalcHEP in interactive
+  mode, please, install the following additional package:
+    libX11-devel    for Fedora/Scientific, Darwin(MAC)
+    libX11-dev      for Ubuntu/Debian
+    xorg-x11-devel  for SUSE"
+
 else 
  testX11
  if(test $? -ne 0) then 

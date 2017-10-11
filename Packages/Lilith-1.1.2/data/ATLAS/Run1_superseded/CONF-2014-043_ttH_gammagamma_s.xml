@@ -1,0 +1,21 @@
+<!--
+ATLAS result for mu(ttH, gammagamma) at mH = 125.4 GeV
+https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/CONFNOTES/ATLAS-CONF-2014-043/
+ -->
+
+<expmu decay="gammagamma" dim="1" type="n">
+  <experiment>ATLAS</experiment>
+  <source type="preliminary">CONF-2014-043</source>
+  <sqrts>7+8</sqrts>
+  <mass>125.4</mass>
+
+  <eff prod="ttH">1</eff>
+
+  <bestfit>1.2</bestfit>
+  
+  <param>
+    <uncertainty side="left">-1.7</uncertainty>
+    <uncertainty side="right">2.6</uncertainty>
+    <!-- if not needed, just <uncertainty></uncertainty> -->
+  </param>
+</expmu>

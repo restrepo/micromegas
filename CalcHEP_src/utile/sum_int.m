@@ -31,7 +31,7 @@ initSum:= Module[
       If[MM1+MM2==MM3+MM4 && MM1*MM2==MM3*MM4, 
         be$=Simplify[((s-MM1 -MM2)^2 - 4*MM1*MM2)/s^2], 
         Clear be$;        
-        IF[MM1==MM2 && MM3==MM4 && (MM1==0 || MM3==0), 
+        If[MM1==MM2 && MM3==MM4 && (MM1==0 || MM3==0), 
            subS=Simplify[2*sumMass/(1-be$^2)]] 
       ] 
    ];
@@ -63,7 +63,7 @@ Ordp[v1_,v2_]:=Module[
    For[i=1,i<=Length[s1]&&i<=Length[s2]&&Part[s1,i]==Part[s2,i],i++];
 
    If[i>Length[s1],Res=False,
-      IF[i>Length[s2],Res=True,
+      If[i>Length[s2],Res=True,
         If[Part[s1,i]>Part[s2,i], Res=True,Res=False];
       ];
    ];

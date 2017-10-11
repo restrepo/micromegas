@@ -12,12 +12,13 @@ numout*newProcess(char*Process)
 }
 */
 
-void newprocess_(char*Process, int * address, int len1)
+long  newprocess_(char*Process, int len1)
 { char cProcess[100];
   numout*cc;
   fName2c(Process,cProcess,len1);
   cc=newProcess(cProcess);
-  if(!cc) *address=0;else memcpy(address,&cc,sizeof(cc)); 
+  if(!cc) return 0; 
+  return (long)cc;
 }
   
      

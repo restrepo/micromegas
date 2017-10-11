@@ -1,0 +1,55 @@
+% Soft SUSY-breaking terms
+
+
+let M2_Hd = -(1/2)*( (gp**2 + g2**2)/4 + (Q1*g1p)**2)*(v*cb)**2 +1/2*( (gp**2 + g2**2)/4 - lda**2 - Q1*Q2*g1p**2)*(v*sb)**2-1/2*(lda**2 + Q1*Qs*g1p**2)*vs**2 + lda*Alda*tb*vs/Sqrt2
++aa5*vevs*tb -la1*vev1**2 -(la3+la4+la5)*vev2**2 +3*la6*vev1*vev2 +la7*vev2**2*tb -la1s*vevs**2.
+
+let M2_Hu = -(1/2)*( (gp**2 + g2**2)/4 + (Q2*g1p)**2)*(v*sb)**2 +1/2*( (gp**2 + g2**2)/4 - lda**2 - Q1*Q2*g1p**2)*(v*cb)**2-1/2*(lda**2 + Q2*Qs*g1p**2)*vs**2 + lda*Alda*vs/(Sqrt2*tb)
++aa5*vevs/tb -la2*vev2**2 -(la3+la4+la5)*vev1**2 +3*la7*vev1*vev2 +la6*vev1**2/tb -la2s*vevs**2.
+
+let M2_S = -(1/2)*(lda**2 + Q1*Qs*g1p**2)*(v*cb)**2 -1/2*(lda**2 + Q2*Qs*g1p**2)*(v*sb)**2 -1/2*(Qs*g1p*vs)**2+ lda*Alda*cb*sb*v**2/(Sqrt2*vs) +aa5*vev1*vev2/vevs -la1s*vev1**2 -la2s*vev2**2.
+
+
+lterm  -M2_Hd*s_hd*s_Hd.
+lterm  -M2_Hu*s_hu*s_Hu.
+lterm  -M2_S*s_s*s_S.
+
+parameter M2Hd = -(1/2)*( (gp**2 + g2**2)/4 + (Q1*g1p)**2)*(v*cb)**2 +1/2*( (gp**2 + g2**2)/4 - lda**2 - Q1*Q2*g1p**2)*(v*sb)**2-1/2*(lda**2 + Q1*Qs*g1p**2)*vs**2 + lda*Alda*tb*vs/Sqrt2
++aa5*tb*vs/Sqrt2 -la1*(cb*v/Sqrt2)**2 -(la3+la4+la5)*(sb*v/Sqrt2)**2 +3*la6*(cb*v/Sqrt2)*(sb*v/Sqrt2) +la7*(sb*v/Sqrt2)**2*tb -la1s*(vs/Sqrt2)**2,
+	  M2Hu = -(1/2)*( (gp**2 + g2**2)/4 + (Q2*g1p)**2)*(v*sb)**2 +1/2*( (gp**2 + g2**2)/4 - lda**2 - Q1*Q2*g1p**2)*(v*cb)**2-1/2*(lda**2 + Q2*Qs*g1p**2)*vs**2 + lda*Alda*vs/(Sqrt2*tb)
++aa5*(vs/Sqrt2)/tb -la2*(sb*v/Sqrt2)**2 -(la3+la4+la5)*(cb*v/Sqrt2)**2 +3*la7*(cb*v/Sqrt2)*(sb*v/Sqrt2) +la6*(cb*v/Sqrt2)**2/tb -la2s*(vs/Sqrt2)**2,
+	  M2S  = -(1/2)*(lda**2 + Q1*Qs*g1p**2)*(v*cb)**2 -1/2*(lda**2 + Q2*Qs*g1p**2)*(v*sb)**2 -1/2*(Qs*g1p*vs)**2+ lda*Alda*cb*sb*v**2/(Sqrt2*vs) +aa5*(cb*v/Sqrt2)*(sb*v/Sqrt2)/(vs/Sqrt2) -la1s*(cb*v/Sqrt2)**2 -la2s*(sb*v/Sqrt2)**2.
+
+
+lterm  -Mq1**2*s_q1*s_Q1  -Mq2**2*s_q2*s_Q2  -Mq3q**2*s_q3*s_Q3.
+lterm  -Mu1**2*s_u1*s_U1  -Mu2**2*s_u2*s_U2  -Mu3q**2*s_u3*s_U3.
+lterm  -Md1**2*s_d1*s_D1  -Md2**2*s_d2*s_D2  -Md3q**2*s_d3*s_D3.
+
+lterm  -Ml1**2*s_l1*s_L1  -Ml2**2*s_l2*s_L2  -Ml3**2*s_l3*s_L3.
+lterm  -Mr1**2*s_r1*s_R1  -Mr2**2*s_r2*s_R2  -Mr3**2*s_r3*s_R3.
+lterm  -Mn1**2*s_n1*s_N1  -Mn2**2*s_n2*s_N2  -Mn32*s_n3*s_N3.
+
+lterm   MG1*f_B0*f_B0/2+AddHermConj.
+lterm   MG2*f_Wb*f_Wc/2+AddHermConj.
+lterm   MG3*(~g)*cc(~g)/2.
+lterm   M1p*f_Bp*f_Bp/2+AddHermConj.
+lterm   MK*f_Bp*f_B0+AddHermConj.
+
+lterm s_hd*eps2*( ls1*s_l1*s_r1
+                 +ls2*s_l2*s_r2
+                 +ls3*s_l3*s_r3) + AddHermConj.
+
+lterm s_hu*eps2*( ns1*s_l1*s_n1
+                 +ns2*s_l2*s_n2
+                 +ns3*s_l3*s_n3) + AddHermConj.
+
+
+lterm s_hu*eps2*( us1*s_q1*s_u1
+                 +us2*s_q2*s_u2
+                 +us3*s_q3*s_u3) + AddHermConj.
+
+lterm s_hd*eps2*(  ds1*(Vud*s_q1+Vcd*s_q2+Vtd*s_q3)*s_d1
+		  +ds2*(Vus*s_q1+Vcs*s_q2+Vts*s_q3)*s_d2
+		  +ds3*(Vub*s_q1+Vcb*s_q2+Vtb*s_q3)*s_d3 ) + AddHermConj.
+
+lterm -eps2*lda*Alda*s_s*s_hd*s_hu + AddHermConj.

@@ -2,7 +2,6 @@
 #include<stdlib.h>
 #include"micromegas.h"
 #include"micromegas_aux.h"
-
 //#define PRINT
 
 #define Gconst (0.7426E-30) /* m/g */
@@ -10,6 +9,7 @@
 #define mp_g   (1.673E-24)  /* proton mass in grams */
 #define mp_gev (0.939)   
 #define GeVfm  (5.067731162)
+
 
 /*====================  CAPTURE RATES ===============================*/
 
@@ -25,7 +25,7 @@ static double v_stat,MA, muX, FFalpha;
 static char*CDM;
 /*
 double Tcapture(double T, double w, double v)
-{ double mu=Mcdm/MA;
+{ double mu=M_cdm/MA;
   double muP= (mu+1)/2;
   double muM= (mu-1)/2;
   double aP=sqrt(MA/(2*T))*(muP*v + muM*w);
@@ -35,7 +35,7 @@ double Tcapture(double T, double w, double v)
    
 
  return - T/(MA*mu*mu)*(  mu*(-aP*exp(-aM*aM) - aM*exp(-aP*aP))/sqrt(M_PI) 
-                         +(mu/2 -mu*aP*aM - muP*muM)*( erf(aP)-erf(-aM)) + muP*muP*( erf(bP)-erf(-bM))*exp(-Mcdm/(2*T)*(v*v-w*w)));  
+                         +(mu/2 -mu*aP*aM - muP*muM)*( erf(aP)-erf(-aM)) + muP*muP*( erf(bP)-erf(-bM))*exp(-M_cdm/(2*T)*(v*v-w*w)));  
 
 }
 */
@@ -164,7 +164,7 @@ static int readSunData(void)
   return 0;
 }
 
-static double captureSun(double(*vfv)(double),  double pA0, double nA0, double pA5, double nA5)
+static double captureSun(double(*vfv)(double), double M_cdm, double pA0, double nA0, double pA5, double nA5)
 { 
   /*                 H    He      C     N     O    Ne     Mg    Si    S     Fe    Na    Al   Cl    Ar     Ca   Cr   Ni */
   int      A[17] ={  1,   4   , 12   ,14   ,   16,   20,   24,   28,   32,   56,   23,   27,   35,   40,   40,  52,  59  };
@@ -178,37 +178,37 @@ static double captureSun(double(*vfv)(double),  double pA0, double nA0, double p
   readSunData();
   fvStat=vfv;
   
-  mu=Mcdm*mp_gev/(Mcdm+mp_gev); 
+  mu=M_cdm*mp_gev/(M_cdm+mp_gev); 
   csSDp=12/M_PI*(pA5*mu)*(pA5*mu)*3.8937966E8*1E-36;  // cm^2
   
   for(sumI=0,i=0;i<17;i++) 
   { double si,FF,fr, cI;
     double vmaxC,vmaxQ;
     MA=A[i]*mp_gev;
-    mu=Mcdm*MA/(Mcdm+MA);
+    mu=M_cdm*MA/(M_cdm+MA);
     si= (Z[i]*pA0+(A[i]-Z[i])*nA0)*mu;
     si=4/M_PI*si*si*3.8937966E8*1E-36;  // cm^2
     FF=1;
     if(i==0) si+=csSDp;
     if(i<4) {aFraction=sunFractions[i];fr=1;}  else { aFraction=O16sun; fr=A[i]/((double)A[4])*pow(10., P10[i]-P10[4]);}
-    muX=(Mcdm-MA)*(Mcdm-MA)/(4*Mcdm*MA);
+    muX=(M_cdm-MA)*(M_cdm-MA)/(4*M_cdm*MA);
     vmaxC=(Vesc+Vrot)/(1.E-3*Vlight);
     vmaxQ=vmaxC*vmaxC;
     if(vmaxQ*muX> 2*phiSun[0] ) vmaxQ=2*phiTab[0]/muX;
 
-    if(i==0) FFalpha=0; else FFalpha=Mcdm*MA*pow((0.91*pow(MA,0.3333333) +0.3)*GeVfm,2)/3;
+    if(i==0) FFalpha=0; else FFalpha=M_cdm*MA*pow((0.91*pow(MA,0.3333333) +0.3)*GeVfm,2)/3;
     cI=fr*FF/A[i]*si*simpson(vIntegrand,0,1.E-3*Vlight*sqrt(vmaxQ),1.E-3);     
     sumI+=cI;
-//printf("C%d = %E  \n",A[i],rhoDM/Mcdm*cI);
+//printf("C%d = %E  \n",A[i],rhoDM/M_cdm*cI);
   }
-//printf("Sun capture =%E\n",rhoDM*sumI/Mcdm);  
-  return  rhoDM*sumI/Mcdm;
+//printf("Sun capture =%E\n",rhoDM*sumI/M_cdm);  
+  return  rhoDM*sumI/M_cdm;
 }
 
 
 
 
-static double sigmaSun(double pA0, double nA0, double pA5, double nA5, double R3)
+static double sigmaSun(double M_cdm,double pA0, double nA0, double pA5, double nA5, double R3)
 { 
   double si,fr, cI,sumI,csSDp,mu;
   /*                 H    He      C     N     O    Ne     Mg    Si    S     Fe    Na    Al   Cl    Ar     Ca   Cr   Ni */
@@ -220,13 +220,13 @@ static double sigmaSun(double pA0, double nA0, double pA5, double nA5, double R3
   
   readSunData();
      
-  mu=Mcdm*mp_gev/(Mcdm+mp_gev); 
+  mu=M_cdm*mp_gev/(M_cdm+mp_gev); 
   csSDp=12/M_PI*(pA5*mu)*(pA5*mu)*3.8937966E8*1E-36;  // cm^2
 
   for(sumI=0,i=0;i<5;i++) 
   {
     MA=A[i]*mp_gev;
-    mu=Mcdm*MA/(Mcdm+MA);
+    mu=M_cdm*MA/(M_cdm+MA);
     si= (Z[i]*pA0+(A[i]-Z[i])*nA0)*mu;
     si=4/M_PI*si*si*3.8937966E8*1E-36;  // cm^2
     if(i==0) si+=csSDp;
@@ -240,7 +240,7 @@ static double sigmaSun(double pA0, double nA0, double pA5, double nA5, double R3
   
   for(i=5;i<17;i++) 
   { MA=A[i]*mp_gev;
-    mu=Mcdm*MA/(Mcdm+MA);
+    mu=M_cdm*MA/(M_cdm+MA);
     si= (Z[i]*pA0+(A[i]-Z[i])*nA0)*mu;
     si=4/M_PI*si*si*3.8937966E8*1E-36;  // cm^2
     sumI+=cI*si/A[i]*pow(10,P10[i]);
@@ -262,7 +262,7 @@ static int readEarthData(void)
     sprintf(fname,"%s/sources/data_nu/EarthModel.dat",micrO);
     f=fopen(fname,"r"); 
     fscanf(f,"%*[^\n]"); 
-    for(i=0;i<SUNPOINTS;i++)
+    for(i=0;i<EARTHPOINTS;i++)
     {
       fscanf(f,"%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf",
       rEarth+i, tEarth+i, rhoEarth+i, OEarth+i,  NaEarth+i,  MgEarth+i,   AlEarth+i,  SiEarth+i,  PEarth+i, 
@@ -285,7 +285,7 @@ static int readEarthData(void)
 //double fracFun(double r){ return polint2(r,nTab, rTab,aFraction);}
 
 
-static double captureEarth(double(*vfv)(double),  double pA0, double nA0, double pA5, double nA5)
+static double captureEarth(double(*vfv)(double),double M_cdm,  double pA0, double nA0, double pA5, double nA5)
 { 
 /*            O  Na  Mg   Al  Si  P   S   Ca  Cr, Fe  Ni  Cu  */
   int A[12] ={16, 23 ,24, 27, 28, 30, 32, 40, 52, 56, 58, 64};
@@ -303,24 +303,23 @@ static double captureEarth(double(*vfv)(double),  double pA0, double nA0, double
     double vmaxC,vmaxQ;
     MA=A[i]*mp_gev;
     aFraction=earthFractions[i]; 
-    mu=Mcdm*MA/(Mcdm+MA);
+    mu=M_cdm*MA/(M_cdm+MA);
     si= (Z[i]*pA0+(A[i]-Z[i])*nA0)*mu;
     si=4/M_PI*si*si*3.8937966E8*1E-36;  // cm^2
-    muX=(Mcdm-MA)*(Mcdm-MA)/(4*Mcdm*MA);
+    muX=(M_cdm-MA)*(M_cdm-MA)/(4*M_cdm*MA);
     vmaxC=(Vesc+Vrot)/(1.E-3*Vlight);
     vmaxQ=vmaxC*vmaxC;
     if(vmaxQ*muX> 2*phiTab[0] ) vmaxQ=2*phiTab[0]/muX;
-    FFalpha=Mcdm*MA*pow((0.91*pow(MA,0.3333333) +0.3)*GeVfm,2)/3; 
+    FFalpha=M_cdm*MA*pow((0.91*pow(MA,0.3333333) +0.3)*GeVfm,2)/3; 
     cI=si/A[i]*simpson(vIntegrand,0,1.E-3*Vlight*sqrt(vmaxQ),1.E-3);     
     sumI+=cI;
-//printf("C%d = %E  \n",A[i],rhoDM/Mcdm*cI);
+//printf("C%d = %E  \n",A[i],rhoDM/M_cdm*cI);
   }
-  return  rhoDM*sumI/Mcdm;
+  return  rhoDM*sumI/M_cdm;
 }
 
 
-
-static double sigmaEarth(double pA0, double nA0, double pA5, double nA5, double R3)
+static double sigmaEarth(double M_cdm,double pA0, double nA0, double pA5, double nA5, double R3)
 { 
   double si,cI,sumI,mu;
 /*               O  Na  Mg   Al  Si  P   S   Ca  Cr, Fe  Ni  Cu  */
@@ -335,7 +334,7 @@ static double sigmaEarth(double pA0, double nA0, double pA5, double nA5, double 
   for(sumI=0,i=0;i<11;i++) 
   {
     MA=A[i]*mp_gev;
-    mu=Mcdm*MA/(Mcdm+MA);
+    mu=M_cdm*MA/(M_cdm+MA);
     si= (Z[i]*pA0+(A[i]-Z[i])*nA0)*mu;
     si=4/M_PI*si*si*3.8937966E8*1E-36;  // cm^2
     aFraction=earthFractions[i];
@@ -345,11 +344,11 @@ static double sigmaEarth(double pA0, double nA0, double pA5, double nA5, double 
   return  sumI;
 }
 
-double captureAux(double(*vfv)(double),int forSun, double csIp,double csIn,double csDp, double csDn)
+double captureAux(double(*vfv)(double),int forSun, double M_cdm, double csIp,double csIn,double csDp, double csDn)
 { 
   double pA0, nA0, pA5, nA5;
   double MN=0.939;
-  double Mr=MN*Mcdm/(MN+Mcdm);
+  double Mr=MN*M_cdm/(MN+M_cdm);
   double sCoeff= 2*sqrt(3.8937966E8/M_PI)*Mr;
            
   pA0=sqrt(fabs(csIp))/sCoeff;   if(csIp<0) pA0*=-1;
@@ -357,168 +356,278 @@ double captureAux(double(*vfv)(double),int forSun, double csIp,double csIn,doubl
   pA5=sqrt(fabs(csDp/3))/sCoeff; if(csDp<0) pA5*=-1;
   nA5=sqrt(fabs(csDn/3))/sCoeff; if(csDn<0) nA5*=-1;
   
-  if(forSun) return captureSun(vfv,pA0,nA0,pA5,nA5);
-       else  return captureEarth(vfv,pA0,nA0,pA5,nA5);               
+  if(forSun) return captureSun(vfv,M_cdm,pA0,nA0,pA5,nA5);
+       else  return captureEarth(vfv,M_cdm,pA0,nA0,pA5,nA5);               
 }
 
 
-/* ================ Basic Spectra  =====   hep-ph/0506298v5 ============== */
+
+/* ================ Basic Spectra  =====  */
 
 
-static double massTabSun[12]={10, 30, 50, 70, 90, 100, 200, 300, 500, 700, 900, 1000};
-static double xTab[100]={0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1,0.11,0.12,0.13,0.14,0.15,0.16,0.17,0.18,0.19,0.2,0.21,0.22,0.23,0.24,0.25,0.26,0.27,0.28,0.29,0.3,0.31,0.32,0.33,0.34,0.35,0.36,0.37,0.38,0.39,0.4,0.41,0.42,0.43,0.44,0.45,0.46,0.47,0.48,0.49,0.5,0.51,0.52,0.53,0.54,0.55,0.56,0.57,0.58,0.59,0.6,0.61,0.62,0.63,0.64,0.65,0.66,0.67,0.68,0.69,0.7,0.71,0.72,0.73,0.74,0.75,0.76,0.77,0.78,0.79,0.8,0.81,0.82,0.83,0.84,0.85,0.86,0.87,0.88,0.89,0.9,0.91,0.92,0.93,0.94,0.95,0.96,0.97,0.98,0.99,1.};
-static double nuTabSun[12][2][8][100];
-static char * chan[8]={"nu","b","tau","c","q","t","Z","W"};
-static double nuTabEarth[14][2][8][100];
-static double massTabEarth[14]= {10, 30, 50, 70, 90, 100, 150, 200, 250, 300, 500, 700, 900, 1000};
-
-static int rdSunOk=0,rdEarthOk=0;
-
-static int   nuSunRead(void)
-{ int i,j,k,l,nLine=2;
-  double x,mass;
-  char *fname;
-  const char* fnameL[2]={"Sun_numu_EVOL.dat","Sun_numub_EVOL.dat"};
+typedef struct
+{ int nX,nM,nCh;
+  double *x; 
+  double *m;
+  int *ch;
+  float *data;
+// data[ iCh+nCh*(iX+nX*iM)]
+  double*buff;        
+}  nuTableStr;
   
-  fname=malloc(strlen(micrO)+100);
-  for(l=0;l<2;l++)
-  {
-     FILE*f;
-     sprintf(fname,"%s/sources/data_nu/%s",micrO,fnameL[l]);
-     f=fopen(fname,"r"); 
-     if(!f) return -(l+1);
-     fscanf(f,"%*[^\n]");   
-    
-     for(i=0;i<12;i++) for(j=0;j<100;j++) 
-     { fscanf(f," %lf %lf ",&mass, &x);
-       if(mass!=massTabSun[i]) { printf(" wrong mass %E !=%E  line %d\n",mass,massTabSun[i],nLine); return 1;}
-       if(x!=xTab[j])          { printf(" wrong x  %E !=%E line=%d  \n",x,xTab[j],nLine); return 2;}
-       for(k=0;k<8;k++) fscanf(f," %lf ",nuTabSun[i][l][k]+j);
-       nLine++;            
-     }
-     fclose(f);
-  }
-  free(fname);
-  rdSunOk=1;
-  return 0;
-}  
+static   void cleanNuTab(nuTableStr*t)
+  { if(t) { if(t->x) free(t->x);
+            if(t->m) free(t->m);
+            if(t->ch)free(t->ch);
+            if(t->buff)free(t->buff);
+            if(t->data) free(t->data);
+            free(t);
+           }              
+  }          
 
-static int   nuEarthRead(void)
-{ int i,j,k,l,nLine=2;
-  double x,mass;
-  char *fname=malloc(strlen(micrO)+100);
-  const char * fnameL[2]={"Earth_numu_EVOL.dat","Earth_numub_EVOL.dat"};
-  for(l=0;l<2;l++)
-  {
-     FILE*f;
-     sprintf(fname,"%s/sources/data_nu/%s",micrO,fnameL[l]); 
-     f=fopen(fname,"r");
-     if(!f) return -(l+1);
-     fscanf(f,"%*[^\n]");   
-    
-     for(i=0;i<14;i++) for(j=0;j<100;j++) 
-     { fscanf(f," %lf %lf ",&mass, &x);
-       if(mass!=massTabEarth[i]) { printf(" wrong mass %E !=%E  line %d\n",mass,massTabEarth[i],nLine); return 1;}
-       if(x!=xTab[j])       { printf(" wrong x  %E !=%E line=%d  \n",x,xTab[j],nLine); return 2;}
-       nuTabEarth[i][l][0][j]=0;
-       for(k=1;k<8;k++) fscanf(f," %lf ",nuTabEarth[i][l][k]+j);
-       nLine++;            
-     }
-     fclose(f);
+
+static nuTableStr*readNuTable( FILE*F)
+{  
+  
+  nuTableStr*T=malloc(sizeof(nuTableStr));
+  T->x=T->m=T->buff=NULL; T->ch=NULL; T->data=NULL;
+  T->nX=T->nM=T->nCh=0;
+  
+  fscanf(F,"%*[^\n]\n");
+  int posLn=ftell(F);
+  fseek(F,0,SEEK_SET);
+  fscanf(F,"%*s %*s");
+
+  while(ftell(F)<posLn) 
+  { T->nCh++;
+    T->ch=realloc(T->ch,T->nCh*(sizeof(int)));
+    if(1!=fscanf(F," %d ",T->ch+T->nCh-1))
+    { printf("Format Error: file position %d\n",ftell(F));  cleanNuTab(T); return NULL;} 
   }
-  free(fname);
-  rdEarthOk=1;
-  return 0;  
+  
+
+  int id=0,ix=0;
+  for(int ix=0;;)
+  {  
+    double m,x;
+
+    if(2!=fscanf(F," %lf %lf ", &m,&x)) break;
+//printf("m=%e x=%e\n",m,x);    
+    if(!T->m) 
+    {  T->m=malloc(sizeof(double)); T->nM=1; T->m[0]=m;
+//printf("T->m[0]=%E\n", T->m[0]);    
+       T->x=malloc(sizeof(double)); T->nX=1; T->x[0]=x;
+       ix=0;
+    }
+    else if(m!=T->m[T->nM-1])
+    { 
+      T->nM++;
+      T->m=realloc(T->m,T->nM*sizeof(double));
+      T->m[T->nM-1]=m;
+      if(ix!=T->nX-1) { printf("Format Error: file position %d\n",ftell(F));cleanNuTab(T); return NULL;}
+      ix=0;
+    } else
+    {
+      if(T->nM==1)
+      { T->nX++;
+        T->x=realloc(T->x,T->nX*(sizeof(double)));
+        T->x[T->nX-1]=x;
+      }
+      ix++;    
+    }
+    if(x!=T->x[ix]) { printf("Format Error: file position %d\n", ftell(F)); cleanNuTab(T); return NULL;} 
+    
+    T->data=realloc(T->data,(id+T->nCh)*sizeof(float));
+    for(int i=0;i<T->nCh;i++) fscanf(F," %f ", T->data+(id++));
+  }
+  T->buff=malloc(T->nX*sizeof(double));
+/*  
+  { int i,j,k;
+    id=0;
+    for(i=0;i<T->nM;i++) for(j=0;j<T->nX;j++)
+    { printf(" %.2E %.2E | ", T->m[i],T->x[j]);
+      for(k=0;k<T->nCh;k++) printf(" %.2E(%.2E)",T->data[id++],T->data[k+T->nCh*(j+T->nX*i)] );
+      printf("\n");
+    }    
+  }   
+*/  
+  return T;  
 }
-
-
-static void mInterpSun(double Nmass,  int  CHin, int  CHout, double*tab)
-{  
-   int l,i0;
-   double c0,c1;
-   double *p0,*p1;
-   if(!rdSunOk) nuSunRead();
-   for(i0=0; i0<12 && Nmass>=massTabSun[i0] ;i0++);
-   if(i0) i0--;
-   p0=nuTabSun[i0  ][CHout][CHin];
-   p1=nuTabSun[i0+1][CHout][CHin];
-   if(i0==12-1) for(l=0;l<100;l++) tab[l]= p0[l];
-   else
-   {   
-     c1=(Nmass*Nmass -massTabSun[i0]*massTabSun[i0])/(massTabSun[i0+1]*massTabSun[i0+1] - massTabSun[i0]*massTabSun[i0]);
-     c0=1-c1;
-     for(l=0;l<100;l++) tab[l]= c0*p0[l]+c1*p1[l];
-   }
-}   
-
-
-static void mInterpEarth(double Nmass,  int  CHin,int  CHout, double*tab)
-{  
-   int l,i0;
-   double c0,c1;
-   double *p0,*p1;
-   if(!rdEarthOk) nuEarthRead();
-   for(i0=0; i0<14 && Nmass>=massTabEarth[i0] ;i0++);
-   if(i0) i0--;
-   p0=nuTabEarth[i0  ][CHout][CHin];
-   p1=nuTabEarth[i0+1][CHout][CHin];
-   if(i0==14-1) for(l=0;l<100;l++) tab[l]= p0[l];
-   else
-   {   
-     c1=(Nmass*Nmass -massTabEarth[i0]*massTabEarth[i0])/(massTabEarth[i0+1]*massTabEarth[i0+1] - massTabEarth[i0]*massTabEarth[i0]);
-     c0=1-c1;
-     for(l=0;l<100;l++) tab[l]= c0*p0[l]+c1*p1[l];
-   }
-}   
   
-                                                     
-int basicNuSpectra(int forSun, double Mass, int pdgN, int outN, double * tab)
-{ 
-  int inP,i,j;
-  int N=abs(pdgN);
-  double tab100[100];
-  double c=1;
+
+static int  nuTabInterpolation(nuTableStr*T,double Mass,int pdgN,int pol, int smooth, double*tab)
+{  
+  int i;
   
   tab[0]=Mass;
   for(i=1;i<NZ;i++) tab[i]=0;
+  if(!T) return -1;
   
-//  if(N==12 ||N==14 ||N==16) {  if( pdgN*outN<0) return 0; else c=1;}
+  int iCh,iM;
+  for(iCh=0;iCh<T->nCh;iCh++) if(T->ch[iCh]==abs(pdgN)) break;
   
-  switch(N)
-  {
-    case 1: case 2: 
-    case 3: case 21: inP=4; break;
-    case 4:          inP=3; break;
-    case 5:          inP=1; break; 
-    case 6:          inP=5; break;
- 
-    case 15:         inP=2; break;  /*l  */ 
-    case 23:         inP=6; break;  /*z  */ 
-    case 24:         inP=7; break;  /*w  */
-    case 12:
-    case 14:
-    case 16:  if(forSun) inP=0; else 
-              {  if((pdgN==14 && outN>0)||(pdgN==-14 && outN<0)) tab[1]=2/(Zi(1)-Zi(2)); 
-                 return 0; 
-              }     /*nu */
-              break;  
-    default:                       return 1;
-  }  
-  
-  if(forSun) mInterpSun(Mass,inP,-(outN-1)/2,tab100); 
-    else     mInterpEarth(Mass,inP,-(outN-1)/2,tab100);
+  if(iCh==T->nCh) { return -2;}
 
+  int err=0;
+
+  for(iM=0;iM<T->nM && Mass>T->m[iM];iM++);
+  if(iM>0)iM--;
+  if(iM>T->nM-2)iM=T->nM-2;
+{  
+  double a[4],m[4], aL[3],aR[4];
+  int j1=0,j2=4;   
+  
+  double mm=log(Mass);
+  if(iM>0 && iM<T->nM-2)
+  { 
+    double alpha; 
+    j1=0;j2=4;
+  
+    m[0]=log(T->m[iM-1]);
+    m[1]=log(T->m[iM]);
+    m[2]=log(T->m[iM+1]);
+    m[3]=log(T->m[iM+2]);
+    alpha=(m[2]-mm)/(m[2]-m[1]);
+    
+    aL[0]=           (mm-m[1])*(mm-m[2])/            (m[0]-m[1])/(m[0]-m[2]);
+    aL[1]= (mm-m[0])*          (mm-m[2])/(m[1]-m[0])/            (m[1]-m[2]);
+    aL[2]= (mm-m[0])*(mm-m[1])          /(m[2]-m[0])/(m[2]-m[1])           ;
+
+    aR[1]=           (mm-m[2])*(mm-m[3])/            (m[1]-m[2])/(m[1]-m[3]);
+    aR[2]= (mm-m[1])*          (mm-m[3])/(m[2]-m[1])/            (m[2]-m[3]);
+    aR[3]= (mm-m[1])*(mm-m[2])          /(m[3]-m[1])/(m[3]-m[2]); 
+    
+    a[0]=alpha*aL[0];
+    a[1]=alpha*aL[1]+(1-alpha)*aR[1];
+    a[2]=alpha*aL[2]+(1-alpha)*aR[2];
+    a[3]=(1-alpha)*aR[3]; 
+
+/*  
+  a[0]=           (mm-m[1])*(mm-m[2])*(mm-m[3])/            (m[0]-m[1])/(m[0]-m[2])/(m[0]-m[3]); 
+  a[1]= (mm-m[0])*          (mm-m[2])*(mm-m[3])/(m[1]-m[0])/            (m[1]-m[2])/(m[1]-m[3]);
+  a[2]= (mm-m[0])*(mm-m[1])*          (mm-m[3])/(m[2]-m[0])/(m[2]-m[1])/            (m[2]-m[3]);
+  a[3]= (mm-m[0])*(mm-m[1])*(mm-m[2])          /(m[3]-m[0])/(m[3]-m[1])/(m[3]-m[2]); 
+*/     
+  } else if(iM==0)
+  { j1=1;j2=4;
+    m[1]=log(T->m[iM]);  
+    m[2]=log(T->m[iM+1]);
+    m[3]=log(T->m[iM+2]);
+         
+    a[1]=           (mm-m[2])*(mm-m[3])/            (m[1]-m[2])/(m[1]-m[3]);
+    a[2]= (mm-m[1])*          (mm-m[3])/(m[2]-m[1])/            (m[2]-m[3]);
+    a[3]= (mm-m[1])*(mm-m[2])          /(m[3]-m[1])/(m[3]-m[2]); 
+  } else             
+  { 
+    j1=0;j2=3;
+    m[0]=log(T->m[iM-1]);
+    m[1]=log(T->m[iM]);  
+    m[2]=log(T->m[iM+1]);
+    a[0]=           (mm-m[1])*(mm-m[2])/            (m[0]-m[1])/(m[0]-m[2]);
+    a[1]= (mm-m[0])*          (mm-m[2])/(m[1]-m[0])/            (m[1]-m[2]);
+    a[2]= (mm-m[0])*(mm-m[1])          /(m[2]-m[0])/(m[2]-m[1]); 
+  } 
+  
+  for(i=0;i<T->nX;i++) T->buff[i]=0;
+
+  int poleData= iCh<T->nCh-1 && T->ch[iCh]==T->ch[iCh+1]; 
+  
+  if(abs(pol)>1 || (pol!=0 && !poleData)){ err=2; pol=0;}
+ 
+  if(pol==0 && poleData)  for(i=0;i<T->nX;i++)
+  { 
+    for(int j=j1;j<j2;j++)  T->buff[i]+= a[j]*(T->data[iCh+T->nCh*(i+T->nX*(iM+j-1))] + T->data[1+iCh+T->nCh*(i+T->nX*(iM+j-1))])/2;
+  }     
+  else
+  { 
+    if(pol==1) iCh++;
+    for(i=0;i<T->nX;i++) for(int j=j1;j<j2;j++)  T->buff[i]+= a[j]*T->data[iCh+T->nCh*(i+T->nX*(iM+j-1))];
+  }
+}                                    
+
+//printf("alpha=%E  T->ch[%d]=%d\n", alpha,iCh,T->ch[iCh]  );  
+//  for(i=0;i<T->nX;i++) printf("x=%e  Y=%e\n", T->x[i], T->buff[i]);
   for(i=1;i<NZ;i++)
   { double x=exp(Zi(i));
-    tab[i]+=c*x*polint3(x,100, xTab ,tab100);  
+    tab[i]=smooth?  x*polint3(x,T->nX, T->x ,T->buff): x*polint2(x,T->nX, T->x ,T->buff);
   }
+  
+  
+  if(Mass<T->m[0] || Mass>T->m[T->nM-1]) err++;             
+                                    
+  return err;
+}
 
-  return 0;
+
+
+int basicNuSpectra(int forSun, double Mass, int pdgN, int pol, double*nu, double*nuB)
+{
+  static nuTableStr *allTab[3][2][2]={{{NULL,NULL},{NULL,NULL}},  {{NULL,NULL},{NULL,NULL}}, {{NULL,NULL},{NULL,NULL}}};
+  nuTableStr *currentTab;
+  if(nu)  {nu[0]=Mass;  for(int i=1;i<NZ;i++) nu[i]=0; }
+  if(nuB) {nuB[0]=Mass; for(int i=1;i<NZ;i++) nuB[i]=0;}
+  if(!pdgN) return -2;
+  pdgN=abs(pdgN);       
+  if(forSun)  forSun=1;
+  int outN,err;
+  int pkgN;
+  switch(WIMPSIM)
+  { case 1: pkgN=2;
+     if(pdgN<4) pdgN=1;
+     break;
+    case 0:
+     if(forSun)
+     {
+       pkgN=1; 
+       if(pdgN<4) pdgN=1;
+       break;
+     } else printf("PPPC4DM$nu does not contain spectra of neutrinos produced in the center of Earth.\n"
+                   "DM nu stectra are used instead\n");   
+    default:pkgN=0;
+    if( pdgN==11 || pdgN==13) return 0;
+    if(pdgN==21 || pdgN<4) pdgN=1;
+    else if(pdgN==12 || pdgN==14 || pdgN==16)
+    { if(forSun) pdgN=14; 
+      else switch(pdgN)
+      { case 12: case 16: return 0;
+        case 14: if(nu)  nu[1] =2/(Zi(1)-Zi(2));
+                 if(nuB) nuB[1]=2/(Zi(1)-Zi(2));  
+                 return 0;
+      }
+    }       
+  }
+  for(outN=0;outN<2;outN++)
+  if(!allTab[pkgN][forSun][outN])
+  {
+     char * packages[3]={"EVOL","MC","WIMPSIM"};
+     char * source[2]={"Earth","Sun"};
+     char * yeald[2] ={"numub","numu"};
+     char * fname=malloc(50+strlen(micrO));    
+     sprintf(fname,"%s/sources/data_nu/%s_%s_%s.txt",micrO,source[forSun],yeald[outN], packages[pkgN]);
+     FILE *F=fopen(fname,"r");
+     if(!F)
+     { printf("Can not open file %s\n",fname); free(fname); return -1;}      
+     allTab[pkgN][forSun][outN]=readNuTable(F);
+     fclose(F);
+     
+     if(!allTab[pkgN][forSun][outN]) 
+     { printf("Wrong file format: %s\n",fname);
+       free(fname);
+       return -2;
+     }
+     free(fname);  
+  }
+  { 
+    nuTableStr*T=allTab[pkgN][forSun][0];
+    if(Mass<T->m[0] || Mass>T->m[T->nM-1]) return 1;
+  }  
+  if(nu)  err=  nuTabInterpolation(allTab[pkgN][forSun][1],Mass,pdgN, pol , pkgN!=2, nu);
+  if(nuB) err=  nuTabInterpolation(allTab[pkgN][forSun][0],Mass,pdgN, pol , pkgN!=2, nuB);  
+  return err;
 }
 
 
 /*  ===================  Spectra ========================== */
-
 
 static void getSpectrum(int forSun, double M, double m1,double m2,char*n1,char*n2, int N1, int N2,int outP, double *tab)
 {
@@ -532,8 +641,12 @@ static void getSpectrum(int forSun, double M, double m1,double m2,char*n1,char*n
 
   if(abs(N1)==abs(N2)) switch(abs(N1))
   { case 22: case 11: case 13: return;}
-     
-  if(N1+N2==0  || (N1==21 && N2==21) || (N1==23 && N2==23) )  { if(basicNuSpectra(forSun, M/2, N1, outP,tab)==0) return;} 
+
+  if(N1+N2==0  || (N1==21 && N2==21) || (N1==22 && N2==22) ||  (N1==23 && N2==23)|| (N1==25 && N2==25) )  
+  { 
+    if(outP>0) {  if(basicNuSpectra(forSun, M/2, N1,0, tab,NULL)==0)  return; }
+     else      {  if(basicNuSpectra(forSun, M/2, N1,0, NULL,tab)==0)  return; }
+  } 
 
   nn[0]=n1;  nn[1]=n2;
   mm[0]=m1;  mm[1]=m2;  
@@ -551,25 +664,28 @@ static void getSpectrum(int forSun, double M, double m1,double m2,char*n1,char*n
     
   E[0]=sqrt(mm[0]*mm[0]+p2*p2);
   E[1]=sqrt(mm[1]*mm[1]+p2*p2);
-    
+
   for(k=0;k<2;k++)
   {   double dY;
       double tabAux[NZ];
-      
+      int err;
       if(abs(pdg[k])==11 || abs(pdg[k])==13 || abs(pdg[k])==22) continue;
-      if(basicNuSpectra(forSun,E[k],pdg[k], outP,tabAux)==0)
+      if(outP>0) err=basicNuSpectra(forSun,E[k],pdg[k],0,tabAux,NULL);
+       else      err=basicNuSpectra(forSun,E[k],pdg[k],0,NULL,tabAux);
+      if(err==0)
       { double kf; 
         dY=log(M/E[k]/2);
         switch(abs(pdg[k]))
         { case 12: case 14: case 16: 
           if(pdg[k]*outP>1) kf=1; else kf=0; break;
           default: kf=0.5;
-        } 
-        boost(dY, M/2, E[k], 0., tabAux);
-        for(i=1;i<NZ;i++)tab[i]+=kf*tabAux[i]; 
+        }  
+        for(i=1;i<NZ;i++)tabAux[i]*=kf; 
+        addSpectrum(tab,tabAux);
       }
       else
-      { double w=0;
+      { 
+        double w=0,Qstat;
         numout * d2Proc;
         int l; 
         char* n[4];
@@ -583,54 +699,51 @@ static void getSpectrum(int forSun, double M, double m1,double m2,char*n1,char*n
         strcpy(plib,"2width_");
         sprintf(process,"%s->2*x",nn[k]);
         pname2lib(nn[k],plib+7);
+        tabAux[0]=E[k];
         for(i=1;i<NZ;i++) tabAux[i]=0;
                      
         d2Proc=getMEcode(0,ForceUG,process,NULL,NULL,plib);
         if(!d2Proc) { fprintf(stderr,"Can not find decay modes for  mass %s\n",nn[k]); continue; }
         procInfo1(d2Proc,&ntot,NULL,NULL);
-        { double  Qstat;
-          if(Qaddress) { Qstat=*Qaddress; setQforParticle(Qaddress,nn[k]); }  
-          for(l=1;l<=ntot ;l++)
-          {    
+        
+        if(Qaddress) { Qstat=*Qaddress; setQforParticle(Qaddress,nn[k]); }  
+        for(l=1;l<=ntot ;l++)
+        {    
             double wP=pWidth2(d2Proc,l);
             
             if(wP>0)
             { int N2=d2Proc->interface->pinfAux(l,2,NULL,NULL,NULL);
               int N3=d2Proc->interface->pinfAux(l,3,NULL,NULL,NULL); 
-              procInfo2(d2Proc,l,n,m);    
-              getSpectrum(forSun,m[0],m[1],m[2],n[1],n[2],N2,N3,outP, tab_p);
-              tabAux[0]=tab_p[0];
+              procInfo2(d2Proc,l,n,m); 
+              getSpectrum(forSun,E[k],m[1],m[2],n[1],n[2],N2,N3,outP, tab_p);
               for(i=1;i<NZ;i++) tabAux[i]+=wP*tab_p[i];
               w+=wP;
             }
-          }
-          if(Qaddress){ *Qaddress=Qstat; calcMainFunc();}
         }
-         
+        if(Qaddress){ *Qaddress=Qstat; calcMainFunc();}
+          
         if(w==0) { if(abs(pdg[k])!= abs(pNum(CDM)))   fprintf(stderr,"Can't find decays for  %s\n",nn[k]);
                    continue;
                  }
-        dY=acosh(E[k]/mm[k]);
-        boost(dY, M/2, mm[k], 0., tabAux);
-        tab[0]=M/2;
-        for(i=1;i<NZ;i++)tab[i]+=tabAux[i]/w;
-      }
-    } 
+                 
+       for(i=1;i<NZ;i++)tabAux[i]/=w;          
+       addSpectrum(tab,tabAux);
+     }           
+  } 
 }
 
-
-
-static double calcSpectrum0(char *name1,char*name2, int forSun,   double *Spectranu, double *SpectraNu, double *alpha)
+static double calcSpectrum0(char *name1, char*name2, int forSun, double *Spectranu, double *SpectraNu, double *alpha)
 {
   int i,k;
   double vcsSum=0,vcsSum1=0; 
   int ntot,err;
   double * v_cs;
+  double M1=pMass(name1),M2=pMass(name2);
   
   char name1L[10],name2L[10], lib[20],process[400];
   numout * libPtr;
   
-  Spectranu[0]=SpectraNu[0]=0.5*(pMass(name1)+pMass(name2));  
+  Spectranu[0]=SpectraNu[0]=0.5*(M1+M2);  
   for(i=1;i<NZ;i++) Spectranu[i]=SpectraNu[i]=0;  
 
   pname2lib(name1,name1L);
@@ -642,8 +755,8 @@ static double calcSpectrum0(char *name1,char*name2, int forSun,   double *Spectr
   
   
   if(!libPtr) return 0;
-  if(Qaddress && *Qaddress!=pMass(name1)+pMass(name2)) 
-  { *Qaddress=pMass(name1)+pMass(name2);
+  if(Qaddress && *Qaddress!=M1+M2) 
+  { *Qaddress=M1+M2;
      calcMainFunc();
   }   
   passParameters(libPtr);
@@ -684,13 +797,13 @@ static double calcSpectrum0(char *name1,char*name2, int forSun,   double *Spectr
     { int i3W;  
       double  r,m1,v0=0.001;
       for(i3W=2;i3W<5;i3W++) if(strcmp(cc23->interface->pinf(1,i3W+1,NULL,NULL),N[l_])==0) break;
-      r=v0*cs23(cc23,1,v0*Mcdm/2,i3W)/br;
+      r=v0*cs23(cc23,1,v0*M1*M2/(M1+M2),i3W)/br;
        
       if(pdg[l_]==23 || abs(pdg[l_])==24)
       { double wV2;
         
         wV2=pWidth(N[l_],NULL);
-        r*=decayPcmW(2*Mcdm,m[l],m[l_],wV,wV2,0)/decayPcmW(2*Mcdm,m[l],m[l_],wV,0,0);
+        r*=decayPcmW(M1+M2,m[l],m[l_],wV,wV2,0)/decayPcmW(M1+M2,m[l],m[l_],wV,0,0);
         if(pdg[l]==pdg[l_]) r/=2;
       }
       v_cs[k]=r;
@@ -723,9 +836,16 @@ static double calcSpectrum0(char *name1,char*name2, int forSun,   double *Spectr
          sprintf(txt,"%s,%s -> %s %s", N[0],N[1],N[2],N[3]);
          printf("  %-20.20s  %.2E\n",txt,v_cs[k]*2.9979E-26);
        }
-#endif       
-    getSpectrum(forSun, pMass(name1)+pMass(name2), m[2], m[3],N[2],N[3],pdg[0],pdg[1], 1,tab2);
+#endif   
+    getSpectrum(forSun, pMass(name1)+pMass(name2), m[2], m[3],N[2],N[3],pdg[0],pdg[1], 1,tab2); 
+/*    
+{ char txt[20];
+  sprintf(txt,"%s %s",N[2],N[3]);
+displaySpectrum(txt,1,pMass(name1),tab2);
+} 
+*/    
     for(i=1;i<NZ;i++) Spectranu[i]+=tab2[i]*v_cs[k]/vcsSum;
+//displaySpectrum("all",1,pMass(name1),Spectranu);    
     getSpectrum(forSun, pMass(name1)+pMass(name2), m[2], m[3],N[2],N[3],pdg[0],pdg[1],-1,tab2);
     for(i=1;i<NZ;i++) SpectraNu[i]+=tab2[i]*v_cs[k]/vcsSum;  
   } 
@@ -768,14 +888,23 @@ int neutrinoFlux(double (* fvf)(double), int forSun, double* nu, double * Nu)
   
   if(CDM1&&CDM2) { printf(" The 'neutrinoFlux' code is still not upgrated for 2DM case\n");  return 1;}
   if(CDM1) CDM=CDM1; else CDM=CDM2;
-  nu[0]=Nu[0]=2*pMass(CDM);
-  err=nucleonAmplitudes(CDM,FeScLoop,pA0,pA5,nA0,nA5);
+
+  double M_cdm=pMass(CDM);
+     
+  if(nu)nu[0]=M_cdm;
+  if(Nu)Nu[0]=M_cdm;
+
+  err=basicNuSpectra(forSun,M_cdm,5,0,NULL,NULL);
+  if(err) return err;
+  
+  err=nucleonAmplitudes(CDM,pA0,pA5,nA0,nA5);
 
   if(err) return err;
-  Cr0=forSun? captureSun(fvf,pA0[0],nA0[0],pA5[0],nA5[0]):captureEarth(fvf, pA0[0],nA0[0],pA5[0],nA5[0]); 
   
+  Cr0=forSun? captureSun(fvf,M_cdm,pA0[0],nA0[0],pA5[0],nA5[0]):captureEarth(fvf,M_cdm, pA0[0],nA0[0],pA5[0],nA5[0]); 
+
   if(pA0[0]==pA0[1] && nA0[0]==nA0[1] &&pA5[0]==pA5[1]&&nA5[0]==nA5[1]) Cr1=Cr0; else
-  Cr1=forSun? captureSun(fvf,pA0[1],nA0[1],pA5[1],nA5[1]):captureEarth(fvf,pA0[1],nA0[1],pA5[1],nA5[1]);  
+  Cr1=forSun? captureSun(fvf,M_cdm,pA0[1],nA0[1],pA5[1],nA5[1]):captureEarth(fvf,M_cdm,pA0[1],nA0[1],pA5[1],nA5[1]);  
                          
   name=CDM;
   aname=pdg2name(-pNum(CDM));
@@ -789,7 +918,7 @@ int neutrinoFlux(double (* fvf)(double), int forSun, double* nu, double * Nu)
      for(i=0,r_=0;i<10;i++) 
      { T=polint2(r_/Rcm,nTab,rTab,tTab)*KelvinEv*1E-9;
        rho= polint2(r_/Rcm,nTab,rTab,rhoTab);
-       r_= sqrt(6*T/(Gconst*100*rho*Mcdm))/M_PI;
+       r_= sqrt(6*T/(Gconst*100*rho*M_cdm))/M_PI;
        if(r_>Rcm) r_=Rcm;
      }
 
@@ -800,19 +929,19 @@ int neutrinoFlux(double (* fvf)(double), int forSun, double* nu, double * Nu)
      T*=KelvinEv*1E-9;
      r095*=Rcm;
      Veff1=pow(r_*M_PI,3)/8;
-     if(forSun) S=sigmaSun(pA0[0],nA0[0],pA5[0],nA5[0],r095*r095*r095);
-     else       S=sigmaEarth(pA0[0],nA0[0],pA5[0],nA5[0],r095*r095*r095);
-     v_=sqrt(8*T/(M_PI*Mcdm));
-     ph=phiTab[0]*Mcdm/T;
+     if(forSun) S=sigmaSun(M_cdm,pA0[0],nA0[0],pA5[0],nA5[0],r095*r095*r095);
+     else       S=sigmaEarth(M_cdm,pA0[0],nA0[0],pA5[0],nA5[0],r095*r095*r095);
+     v_=sqrt(8*T/(M_PI*M_cdm));
+     ph=phiTab[0]*M_cdm/T;
      ph=ph*exp(-ph);
      
      Ev[0]=v_*S/Veff1*ph*Vlight*100;
      if(strcmp(name,aname))
-     { if(forSun)S=sigmaSun(pA0[1],nA0[1],pA5[1],nA5[1],r095);
-       else S=sigmaEarth(pA0[1],nA0[1],pA5[1],nA5[1],r095);
+     { if(forSun)S=sigmaSun(M_cdm,pA0[1],nA0[1],pA5[1],nA5[1],r095);
+       else S=sigmaEarth(M_cdm,pA0[1],nA0[1],pA5[1],nA5[1],r095);
        Ev[1]=v_*S/Veff1*ph*Vlight*100; 
      } 
-     Veff=pow(Gconst*100*rho*Mcdm/T/3,-1.5);
+     Veff=pow(Gconst*100*rho*M_cdm/T/3,-1.5);
   } 
 
   if(strcmp(name,aname))
@@ -868,6 +997,54 @@ int neutrinoFlux(double (* fvf)(double), int forSun, double* nu, double * Nu)
   return 0;
 }
 
+static double cosFi_stat=0.1;//   0.34;
+
+// ========================== Earth Attenuation =====================
+
+
+static double inte_grand(double x){ return polint2(sqrt(1+x*x-2*x*cosFi_stat) ,EARTHPOINTS,rEarth,rhoEarth); }
+
+void makeTabl(void)
+{ int i;
+
+  readEarthData();
+  for(i=0;i<=20;i++)
+  { cosFi_stat=i/20.;
+    printf("cos=%E rho=%E\n", cosFi_stat,2*RE*simpson(inte_grand,0,cosFi_stat,1.E-3));  
+  }
+}
+
+
+double nuAttenuation(int nu, double cs,double E)  // 1/pb
+{ double NA=6.002141E23;
+  double GF=1.16637E-5;  /* GeV^(−2) */
+  double GeVcm=0.50677E14;
+  double C=2*GF*GF*mp_gev/M_PI/GeVcm/GeVcm;    
+
+  double cos[21]={0.000000E+00,5.000000E-02,1.000000E-01,1.500000E-01,2.000000E-01,2.500000E-01,3.000000E-01,3.500000E-01,4.000000E-01,4.500000E-01,5.000000E-01,5.500000E-01,6.000000E-01,6.500000E-01,7.000000E-01,7.500000E-01,8.000000E-01,8.500000E-01,9.000000E-01,9.500000E-01,1.000000E+00};
+  double rho[21]={0.000000E+00,1.775227E+08,3.755063E+08,6.110139E+08,8.372967E+08,1.056885E+09,1.293592E+09,1.538506E+09,1.841714E+09,2.167974E+09,2.553811E+09,2.913635E+09,3.278042E+09,3.656525E+09,4.047799E+09,4.461401E+09,4.899167E+09,6.159285E+09,7.876339E+09,9.341818E+09,1.096080E+10};
+   
+  double  tag=NA*polint3(fabs(cs),  21,cos,rho);  // particles/cm^2
+  double sigma;
+    
+  if(nu>0)  sigma=C*0.5*E*((0.15+0.25) +(0.04+0.06)/3);  // sigma[cm^2]
+  else      sigma=C*0.5*E*((0.04+0.06) +(0.15+0.25)/3);
+  return exp(-tag*sigma);
+}
+
+#ifdef QQ
+double sigmaNu(int nu,double E)  //  pb
+{ 
+   double GF=1.16637E-5;  /* GeV^(−2) */
+   double GeVcm=0.50677E14;
+   double C=2*GF*GF*mp_gev/M_PI/GeVcm/GeVcm;    
+       
+    if(nu>0) return C*0.5*E*((0.15+0.25) +(0.04+0.06)/3);  
+    else     return C*0.5*E*((0.04+0.06) +(0.15+0.25)/3);     
+}
+#endif
+
+
 /* ==================  Muon flux =========  0906.4364  =============  */
 
 static double *SpN_stat=NULL;
@@ -876,40 +1053,31 @@ static double (*nuSpectrum)(double)=tabNuSpectrum;
 static double Enu_stat,Emu_stat,alpha_stat,beta_stat;
 
 
-static int inPr=1; /* proton;   -1 for neutron */
+static int inPr=1; /* proton;    0 for neutron */
 static int inNu=1; /* neutrino; -1 for anti-neutrino */
 
 
-static double dSigmadE_nu2mu(double Enu,double Emu)   /*result in   1/cm^2/GeV */ 
+static double dSigmadE_nu2mu(int inNu,  double Enu,double Emu)   /*result in   1/cm^2/GeV */ 
 {  double GF=1.16637E-5;  /* GeV^(−2) */
    double GeVcm=0.50677E14;
-   double C=2*GF*GF*mp_gev/M_PI/GeVcm/GeVcm;
-   double a=0,b=0;
+   double C=GF*GF*mp_gev/M_PI/GeVcm/GeVcm;
+   double ap=0,an=0,bp=0,bn=0;
    switch (inNu)
-   { case  1:switch (inPr)
-             { 
-               case  1: a=0.15,b=0.04; break;
-               case -1: a=0.25,b=0.06; break; 
-             }
-             break;  
-     case -1:switch (inPr)
-             { 
-               case  1: a=0.06,b=0.25; break;
-               case -1: a=0.04,b=0.15; break; 
-             }
-             
-             break;
+   { case  1: ap=0.15,bp=0.04; an=0.25,bn=0.06; break; 
+     case -1: ap=0.06,bp=0.25; an=0.04,bn=0.15; break; 
    }
-   return C*(a+b*Emu*Emu/(Enu*Enu));       
+             
+   return C*((ap+an)+(bp+bn)*Emu*Emu/(Enu*Enu));       
 } 
 
 static double integrandX(double x)
 {  double g=alpha_stat/beta_stat;  
    double ex=exp(x*beta_stat);
-   double q= (0.10566 /* muon mass*/)/(65865.4 /* (muon_life_time)*c in cm */)/alpha_stat;
+//   double q= (0.10566 /* muon mass*/)/65865.4 /* (muon_life_time)*c in cm */)/alpha_stat;
+   double q= (0.10566 /* muon mass*/)/(6665865.4 /* (muon_life_time)*c in cm */)/alpha_stat;
    double Emu_prim=(Emu_stat+g)*ex-g;
    double Psurv=pow(Emu_stat*(Emu_prim+g)/(Emu_prim*(Emu_stat+g)),q);
-   return  dSigmadE_nu2mu(Enu_stat, Emu_prim )*ex*Psurv; 
+   return  dSigmadE_nu2mu(inNu,  Enu_stat, Emu_prim )*ex*Psurv; 
 } 
 
 static double integrandEnuUpward(double e)
@@ -918,46 +1086,78 @@ static double integrandEnuUpward(double e)
   E=1/e;
   Enu_stat=E;
   double g=alpha_stat/beta_stat;
-  double xMax=log((Enu_stat+g)/(Emu_stat+g))/beta_stat;
+  double xMax=log((Enu_stat+g)/(Emu_stat+g))/beta_stat ;  
+   
   return  E*E*nuSpectrum(E)*simpson(integrandX,0,xMax,1.E-4);
 }
+
+
+static double integrandEnuUpward_sigma(double e)
+{ double E;
+  if(e==0) return 0;
+  E=1/e;
+  Enu_stat=E;
+  double g=alpha_stat/beta_stat;
+  double xMax=log((Enu_stat+g)/(Emu_stat+g))/beta_stat ;  
+  double sigma=0.0122/pow(1E-3*E,0.7);
+  sigma*=sigma; 
+  return  sigma*E*E*nuSpectrum(E)*simpson(integrandX,0,xMax,1.E-4);
+}
+
 
 void muonUpward(double*nu, double*Nu, double*mu)
 {
    int i,k,l;
    double C;
    double  NA=6.002141E23 /* mol-1*/;
-   double Nrate[2]={0.5,0.5}; /* proton , neutron */
    double*Sp[2]={nu,Nu};
-   double rho=2.6;
+   double rho,M;
+   double *sigma=NULL;
+   if(nu && Nu) M=nu[0]>Nu[0]?nu[0]:Nu[0];
+   else if(nu) M=nu[0]; else if(Nu) M=Nu[0]; else return;
+          
    
+   if(forRocks)   
+   {   rho=2.6;
+      alpha_stat=0.002*rho;
+      beta_stat=3.0E-6*rho;
+   }   
+   else      
+   {
+      rho=1;  
+      alpha_stat=0.00262*rho;
+      beta_stat=3.5E-6*rho;
+   }
    nuSpectrum=tabNuSpectrum;  
-   alpha_stat=0.002*rho;
-   beta_stat=3.0E-6*rho;
 
-   mu[0]=nu[0];
+   mu[0]=M;
    mu[1]=0;
+   if(sigma){ sigma[0]=nu[0]; sigma[1]=0; for(i=1;i<NZ;i++)sigma[i]=0;}   
    for(i=2;i<NZ;i++) 
-   {  Emu_stat=Mcdm*exp(Zi(i));
+   {  double sigma_mem;
+      Emu_stat=M*exp(Zi(i));
       mu[i]=0;
-      if(Emu_stat>0.01) for(k=0;k<2;k++) for(l=0;l<2;l++)
-      {
-         inNu=1-2*k;
-         if(Sp[k])
+      if(sigma) sigma[i]=0;
+      if(Emu_stat>0.01)
+      {  for(k=0;k<2;k++) if(Sp[k])
          {
+           inNu=1-2*k;
            SpN_stat=Sp[k];
-           inPr=-1+2*l;
-           mu[i]+=simpson(integrandEnuUpward,1/Mcdm,1/Emu_stat,1.E-4)*Nrate[l];          
-         }  
-      }   
-      mu[i]*=rho*NA*Emu_stat;      
+           mu[i]+=simpson(integrandEnuUpward,1/M,1/Emu_stat,1.E-4);
+           if(sigma) sigma[i]+=simpson(integrandEnuUpward_sigma,1/M,1/Emu_stat,1.E-4); 
+         }    
+         if(sigma) {  sigma_mem=sigma[i]= sqrt(sigma[i]/mu[i]); sigma[i]*=Emu_stat;}
+         mu[i]*=rho*NA*Emu_stat;        
+      } else { if(sigma) sigma[i]=sigma_mem*Emu_stat;}  
    }
 }
+
+
 
 static double integrandEnuContained(double e) 
 {  double E; 
    if(e==0) return 0; 
-   E=1/e; return  E*E*nuSpectrum(E)*dSigmadE_nu2mu(E,Emu_stat) ; 
+   E=1/e; return  E*E*nuSpectrum(E)*dSigmadE_nu2mu(inNu,E,Emu_stat) ; 
 }
 
 void muonContained(double*nu,double*Nu,double rho, double*mu)
@@ -965,22 +1165,25 @@ void muonContained(double*nu,double*Nu,double rho, double*mu)
   int i,k,l;
   double C;
   double  NA=6.002141E23 /* mol-1*/;
-  double Nrate[2]={0.5,0.5}; /* proton , neutron */
   double*Sp[2]={nu,Nu};
+  double M_cdm;
+  
+  if(nu && Nu) M_cdm=nu[0]>Nu[0]?nu[0]:Nu[0];
+  else if(nu)  M_cdm=nu[0]; else if(Nu) M_cdm=Nu[0]; else return;
+       
   
   nuSpectrum=tabNuSpectrum; 
   mu[0]=nu[0]; 
   mu[1]=0;
   for(i=2;i<NZ;i++)
-  {  Emu_stat=Mcdm*exp(Zi(i));
+  {  Emu_stat=M_cdm*exp(Zi(i));
      mu[i]=0;
-     if(Emu_stat>0.01) for(k=0;k<2;k++) for(l=0;l<2;l++)
+     if(Emu_stat>0.01) for(k=0;k<2;k++)
      { inNu=1-2*k;
        if(Sp[k])
        {
          SpN_stat=Sp[k];
-         inPr=-1+2*l;
-         mu[i]+=simpson(integrandEnuContained,1/Mcdm, 1/Emu_stat,1.E-4)*Nrate[l];
+         mu[i]+=simpson(integrandEnuContained,1/M_cdm, 1/Emu_stat,1.E-4);
        }  
      }  
      mu[i]*=rho*NA*Emu_stat*1E5;
@@ -989,14 +1192,23 @@ void muonContained(double*nu,double*Nu,double rho, double*mu)
 
 // Background 
 
-static double cosFi_stat;
 
-static double  ATMdNudE(double E) // for NuBar *1.35/1.95 
+double  ATMdNudE(double E) // for NuBar *1.35/1.95 
 {
   int i;
   const double gamma=1.74, a=0.018, b=0.024,c=0.0069, e=0.00139;
   return 1.95E17*pow(E,-gamma-1)*(a/(1+b*E*cosFi_stat)+c/(1+e*E*cosFi_stat));
 } 
+
+double  atmNuFlux_(int nu,double cs, double E)
+{ double tmp=cosFi_stat;
+  double r;
+  cosFi_stat=cs;
+  r=ATMdNudE(E);
+  cosFi_stat=tmp;
+  if(nu<0) r*=1.35/1.95;
+  return r;
+}    
 
 
 double  ATMmuonUpward(double cosFi, double E)
@@ -1004,11 +1216,18 @@ double  ATMmuonUpward(double cosFi, double E)
    int k,l;
    double  NA=6.002141E23 /* mol-1*/;
    double Nrate[2]={0.5,0.5}; /* proton , neutron */
-   double rho=2.6;
+   double rho;
    double mu=0;
-     
-   alpha_stat=0.002*rho;
-   beta_stat=3.0E-6*rho;
+   if(forRocks)    
+   {  rho=2.6;
+      alpha_stat=0.002*rho;
+      beta_stat=3.0E-6*rho;
+   } else 
+   {    
+      rho=1;
+      alpha_stat=0.00262*rho;
+      beta_stat=3.5E-6*rho;
+   }
    Emu_stat=E;
    cosFi_stat=cosFi;
    nuSpectrum=ATMdNudE;
@@ -1031,6 +1250,8 @@ double  ATMmuonContained(double cosFi, double E,double rho)
    
    alpha_stat=0.002*rho;
    beta_stat=3.0E-6*rho;
+   
+   
    Emu_stat=E;
    cosFi_stat=cosFi;
    nuSpectrum=ATMdNudE;
@@ -1043,3 +1264,67 @@ double  ATMmuonContained(double cosFi, double E,double rho)
    }   
    return  mu*rho*NA*1.E5;      
 }
+
+typedef  struct 
+{ double E[31];
+  double data[31][10];
+}  atmDataStr;
+
+static atmDataStr *atmNu=NULL, *atmNuBar=NULL;
+
+static int readATMnuTab(void)
+{ FILE*f;
+  char fname[300];
+  int i;
+
+  if(atmNu && atmNuBar) return 0;  
+    
+  sprintf(fname,"%s/sources/data_nu/atm_nu_tab.dat",micrO);
+  f=fopen(fname,"r");
+  if(!f) return 1;
+  atmNu=malloc(sizeof(atmDataStr)); 
+  for(i=0;i<5;i++) fscanf(f," %*[^\n]");
+  for(i=0;i<31;i++)
+  {  int j;
+     double norm;
+     fscanf(f," %lf", atmNu->E+i);
+     for(j=0;j<10;j++) fscanf(f," %lf",  atmNu->data[i]+j);
+     fscanf(f," %lf",&norm);
+     for(j=0;j<10;j++)   atmNu->data[i][j]*=norm;
+  }
+  fscanf(f," %*[^\n]");
+  atmNuBar=malloc(sizeof(atmDataStr));
+  for(i=0;i<31;i++)
+  {  int j;
+     double norm;
+     fscanf(f," %lf", atmNuBar->E+i);
+     for(j=0;j<10;j++) fscanf(f," %lf",  atmNuBar->data[i]+j);
+     fscanf(f," %lf",&norm);    
+     for(j=0;j<10;j++)   atmNuBar->data[i][j]*=norm;
+  }
+  fclose(f);
+  return 0;
+} 
+
+double atmNuFlux(int nu,double cs, double E)
+{
+  double alpha;
+  double cstab[10]={0.05,0.15,0.25,0.35,0.45,0.55,0.65,0.75,0.85,0.95};
+  atmDataStr *data;
+  int i;
+
+  if(E<10 || E>1E4)  printf("ATM neutrino flux: Energy %E out of table range\n",E);
+
+  if((!atmNu || !atmNuBar) && readATMnuTab() ) { printf(" Can not read data file for atmospheric neutrino\n"); return -1;}  
+  if(nu>=0) data=atmNu; else data=atmNuBar; 
+  
+  i=10*log10(E/10);
+
+  if(i<0) i=0;else if(i>29) i=29; 
+  
+  alpha= (log(data->E[i+1])-log(E) )/(log(data->E[i+1])-log(data->E[i]));
+
+  return   1.E6*365*24*60*60*pow(polint2(cs, 10,cstab,data->data[i]),alpha)*pow(polint2(cs, 10,cstab,data->data[i+1]),1-alpha);    
+}  
+
+ 

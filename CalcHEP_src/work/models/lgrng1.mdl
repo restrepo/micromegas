@@ -1,7 +1,7 @@
 Standard Model
  Vertices
 A1   |A2   |A3   |A4   |         Factor               |  Lorentz part                                                         |
-G    |G    |G    |     |GG                            |m1.m2*(p1-p2).m3+m2.m3*(p2-p3).m1+m3.m1*(p3-p1).m2
+G    |G    |G    |     | GG                           |m1.m2*(p1-p2).m3+m2.m3*(p2-p3).m1+m3.m1*(p3-p1).m2
 G    |G    |G.t  |     |GG/Sqrt2                      |m1.M3*m2.m3-m1.m3*m2.M3
 W+   |W-   |A    |     |-EE                           |m1.m2*(p1-p2).m3+m2.m3*(p2-p3).m1+m3.m1*(p3-p1).m2
 W+   |W-   |Z    |     |-EE*CW/SW                     |m1.m2*(p1-p2).m3+m2.m3*(p2-p3).m1+m3.m1*(p3-p1).m2

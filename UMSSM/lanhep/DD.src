@@ -1,0 +1,82 @@
+
+% DD terms
+
+%% SU(3)
+
+let _a1=SC*s_Q1*lambda*s_q1,
+    _a2=SC*s_Q2*lambda*s_q2,
+    _a3=SC*s_Q3*lambda*s_q3,
+    _a4=SC*(s_U1*lambda*s_u1 + s_U2*lambda*s_u2 + s_U3*lambda*s_u3),
+    _a5=SC*(s_D1*lambda*s_d1 + s_D2*lambda*s_d2 + s_D3*lambda*s_d3).
+
+   lterm   - ( _a1 + _a2 + _a3 + _a4 + _a5 ) ** 2 / 2.
+
+
+clear _a1, _a2, _a3, _a4, _a5.
+
+%% SU(2)
+
+let _a1=EE/SW*s_Q1*tau*s_q1/2,
+    _a2=EE/SW*s_Q2*tau*s_q2/2,
+    _a3=EE/SW*s_Q3*tau*s_q3/2,
+    _a4=EE/SW*s_L1*tau*s_l1/2,
+    _a5=EE/SW*s_L2*tau*s_l2/2,
+    _a6=EE/SW*s_L3*tau*s_l3/2,
+    _a7=EE/SW*s_Hd*tau*s_hd/2,
+    _a8=EE/SW*s_Hu*tau*s_hu/2.
+
+/*
+
+let  su2_p= s_Q1*taup*s_q1 + s_Q2*taup*s_q2 + s_Q3*taup*s_q3 + s_L1*taup*s_l1
+          + s_L2*taup*s_l2 + s_L3*taup*s_l3 + s_H1*taup*s_h1 + s_H2*taup*s_h2 + s_H3*taup*s_h3.
+
+let  su2_m= s_Q1*taum*s_q1 + s_Q2*taum*s_q2 + s_Q3*taum*s_q3 + s_L1*taum*s_l1
+          + s_L2*taum*s_l2 + s_L3*taum*s_l3 + s_H1*taum*s_h1 + s_H2*taum*s_h2 + s_H3*taum*s_h3.
+
+let  su2_3= s_Q1*tau3*s_q1 + s_Q2*tau3*s_q2 + s_Q3*tau3*s_q3 + s_L1*tau3*s_l1
+          + s_L2*tau3*s_l2 + s_L3*tau3*s_l3 + s_H1*tau3*s_h1 + s_H2*tau3*s_h2 + s_H3*tau3*s_h3.
+
+
+%lterm - (su2_3)**2/2.
+%lterm - (su2_p)*(su2_m)/2.
+
+*/
+
+%parameter QQQ=1.
+
+lterm   -( _a1 + _a2 + _a3 + _a4 + _a5 + _a6 + _a7 + _a8 ) ** 2 / 2.
+
+clear _a1, _a2, _a3, _a4, _a5, _a6, _a7, _a8.
+
+%% U(1)
+
+
+let _a1=  EE/CW/2*(s_Q1*s_q1+s_Q2*s_q2+s_Q3*s_q3)/3,
+    _a2= -EE/CW/2*(s_L1*s_l1+s_L2*s_l2+s_L3*s_l3),
+    _a3= -EE/CW/2*(s_U1*s_u1+s_U2*s_u2+s_U3*s_u3)*4/3,
+    _a4=  EE/CW/2*(s_D1*s_d1+s_D2*s_d2+s_D3*s_d3)*2/3,
+    _a5=2*EE/CW/2*(s_R1*s_r1+s_R2*s_r2+s_R3*s_r3),
+    _a6= -EE/CW/2*s_Hd*s_hd,
+    _a7=  EE/CW/2*s_Hu*s_hu.		/*no s because Y1(s)=0*/
+
+
+lterm   -( _a1 + _a2 + _a3 + _a4 + _a5 + _a6 + _a7 ) ** 2 / 2.
+
+clear _a1, _a2, _a3, _a4, _a5, _a6, _a7.
+
+%% U(1)prime
+
+
+let _a1=  NCp*EE/CW*QQ*(s_Q1*s_q1+s_Q2*s_q2+s_Q3*s_q3),
+    _a2=  NCp*EE/CW*QL*(s_L1*s_l1+s_L2*s_l2+s_L3*s_l3),
+    _a3=  NCp*EE/CW*Qu*(s_U1*s_u1+s_U2*s_u2+s_U3*s_u3),
+    _a4=  NCp*EE/CW*Qd*(s_D1*s_d1+s_D2*s_d2+s_D3*s_d3),
+    _a5=  NCp*EE/CW*Qe*(s_R1*s_r1+s_R2*s_r2+s_R3*s_r3),
+    _a6=  NCp*EE/CW*Q1*s_Hd*s_hd,
+    _a7=  NCp*EE/CW*Q2*s_Hu*s_hu,
+    _a8=  NCp*EE/CW*Qs*s_S*s_s,
+    _a9=  NCp*EE/CW*Qn*(s_N1*s_n1+s_N2*s_n2+s_N3*s_n3).
+
+lterm   -( _a1 + _a2 + _a3 + _a4 + _a5 + _a6 + _a7 + _a8 + _a9) ** 2 / 2.
+
+clear _a1, _a2, _a3, _a4, _a5, _a6, _a7, _a8, _a9.

@@ -3,8 +3,7 @@
 #define  _XOPEN_SOURCE_EXTENDED
 #include<unistd.h>
 #include <sys/types.h>
-#include <signal.h>
-       
+#include <signal.h>   
 
 unsigned sysTimeLim=0;
 unsigned sysTimeQuant=10;

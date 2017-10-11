@@ -1,0 +1,104 @@
+% Gauge fixing
+
+lterm  -1/2*(deriv*A)**2.
+
+lterm  -1/2*(deriv*G)**2.
+
+lterm  -1/2*(2*(deriv*'W+'+i*MW*'W+.f')*(deriv*'W-'-i*MW*'W-.f') +
+	(deriv*Z1-MZ1*'Z1.f')**2 + (deriv*Z2-MZ2*'Z2.f')**2).
+
+
+% Ghost terms
+
+lterm  i*(EE/SW)*eps*deriv*WGh*Wgh*W.
+lterm -i*SC*f_SU3*ccghost(G)*G^mu*deriv^mu*ghost(G).
+
+
+
+% Scalar Higgs-charged ghost-charged ghost terms of D W+-.f
+
+lterm -EE**2/SW**2/4*Sqrt2*{vev1, vev2}*{{Zh11,Zh21,Zh31},{Zh12,Zh22,Zh32}}*('W-.C'*'W+.c'+'W+.C'*'W-.c')*{h1, h2, h3}.
+
+
+
+% Pseudoscalar Higgs-charged ghost-charged ghost terms of D W+-.f
+
+lterm -i*EE**2/SW**2/4*Sqrt2*{vev1, vev2}*{{-ZA11,-ZA21,-ZA31},{ZA12,ZA22,ZA32}}*(-'W+.C'*'W-.c'+'W-.C'*'W+.c')*{Zf, Zpf, ha}.
+
+
+
+% Goldstone-ghost-ghost terms of D W+-.f
+
+lterm -EE*MW/2/SW/CW*('W-.C'*Zc*(CW**2-SW**2)	+'W-.C'*'A.c'*2*SW*CW)*'W+.f'.
+
+lterm -EE*MW/2/SW/CW*('W+.C'*Zc*(CW**2-SW**2)	+'W+.C'*'A.c'*2*SW*CW)*'W-.f'.
+
+
+
+% Pure UMSSM Goldstone-ghost-ghost terms of D W+-.f 
+ 
+lterm MW*EE*NCp/CW*('W-.C'*Zpc)*('W+.f'*(Q1*cb**2 -Q2*sb**2) + Qs*cb*sb*'H+').
+lterm MW*EE*NCp/CW*('W+.C'*Zpc)*('W-.f'*(Q1*cb**2 -Q2*sb**2) + Qs*cb*sb*'H-').
+
+
+
+% Charged Goldstone-ghost-ghost terms of ZC*D Z.f
+
+lterm -cbZZ*MZ1*ZC*EE/2/SW*( -ZA11*('W+.c'*(cb*'W-.f' - sb*'H-') + 'W-.c'*(cb*'W+.f' - sb*'H+') )
+			     +ZA12*('W+.c'*(sb*'W-.f' + cb*'H-') + 'W-.c'*(sb*'W+.f' + cb*'H+') )).
+
+
+% Neutral Goldstone-ghost-ghost terms of ZC*D Z.f
+
+lterm cbZZ*MZ1*EE/2/SW/CW*ZC*Zc*( -ZA11*(h1*Zh11 + h2*Zh21 + h3*Zh31)
+				  +ZA12*(h1*Zh12 + h2*Zh22 + h3*Zh32)).
+
+
+% Pure UMSSM Neutral Goldstone-ghost-ghost terms of ZC*D Z.f
+
+lterm -cbZZ*MZ1*EE*NCp/CW*ZC*Zpc*( Q1*ZA11*(h1*Zh11 + h2*Zh21 + h3*Zh31)
+				  +Q2*ZA12*(h1*Zh12 + h2*Zh22 + h3*Zh32)
+				  +Qs*ZA13*(h1*Zh13 + h2*Zh23 + h3*Zh33)).
+
+
+
+% Goldstone-ghost-ghost terms of ZC*D Zp.f
+
+lterm -sbZZ*MZ1*ZC*EE/2/SW*(-ZA21*('W+.c'*(cb*'W-.f' - sb*'H-') + 'W-.c'*(cb*'W+.f' - sb*'H+') )
+			    +ZA22*('W+.c'*(sb*'W-.f' + cb*'H-') + 'W-.c'*(sb*'W+.f' + cb*'H+') )).
+
+lterm sbZZ*MZ1*EE/2/SW/CW*ZC*Zc*( -ZA21*(h1*Zh11 + h2*Zh21 + h3*Zh31)
+			          +ZA22*(h1*Zh12 + h2*Zh22 + h3*Zh32)).
+
+lterm -sbZZ*MZ1*EE*NCp/CW*ZC*Zpc*( Q1*ZA21*(h1*Zh11 + h2*Zh21 + h3*Zh31)
+				  +Q2*ZA22*(h1*Zh12 + h2*Zh22 + h3*Zh32)
+				  +Qs*ZA23*(h1*Zh13 + h2*Zh23 + h3*Zh33)).
+
+
+
+% Goldstone-ghost-ghost terms of ZpC*D Z.f
+
+lterm sbZZ*MZ2*ZpC*EE/2/SW*( -ZA11*('W+.c'*(cb*'W-.f' - sb*'H-') + 'W-.c'*(cb*'W+.f' - sb*'H+') )
+			     +ZA12*('W+.c'*(sb*'W-.f' + cb*'H-') + 'W-.c'*(sb*'W+.f' + cb*'H+') )).
+
+lterm -sbZZ*MZ2*EE/2/SW/CW*ZpC*Zc*( -ZA11*(h1*Zh11 + h2*Zh21 + h3*Zh31)
+			            +ZA12*(h1*Zh12 + h2*Zh22 + h3*Zh32)).
+
+lterm sbZZ*MZ2*EE*NCp/CW*ZpC*Zpc*( Q1*ZA11*(h1*Zh11 + h2*Zh21 + h3*Zh31)
+				  +Q2*ZA12*(h1*Zh12 + h2*Zh22 + h3*Zh32)
+				  +Qs*ZA13*(h1*Zh13 + h2*Zh23 + h3*Zh33)).
+
+
+
+% Goldstone-ghost-ghost terms of ZpC*D Zp.f
+
+lterm -cbZZ*MZ2*ZpC*EE/2/SW*(-ZA21*('W+.c'*(cb*'W-.f' - sb*'H-') + 'W-.c'*(cb*'W+.f' - sb*'H+') )
+			     +ZA22*('W+.c'*(sb*'W-.f' + cb*'H-') + 'W-.c'*(sb*'W+.f' + cb*'H+') )).
+
+lterm cbZZ*MZ2*EE/2/SW/CW*ZpC*Zc*( -ZA21*(h1*Zh11 + h2*Zh21 + h3*Zh31)
+			           +ZA22*(h1*Zh12 + h2*Zh22 + h3*Zh32)).
+
+lterm -cbZZ*MZ2*EE*NCp/CW*ZpC*Zpc*( Q1*ZA21*(h1*Zh11 + h2*Zh21 + h3*Zh31)
+				   +Q2*ZA22*(h1*Zh12 + h2*Zh22 + h3*Zh32)
+				   +Qs*ZA23*(h1*Zh13 + h2*Zh23 + h3*Zh33)).
+

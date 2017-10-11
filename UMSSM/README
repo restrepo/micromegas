@@ -1,0 +1,103 @@
+UMSSM model.
+
+If you use this model, please cite :
+
+1) G. Bélanger, J. Da Silva and A. Pukhov,
+   "The Right-handed sneutrino as thermal dark matter in U(1) extensions of the MSSM",
+    JCAP 1112, 014 (2011), arXiv:1110.2414 [hep-ph]
+
+2) Jonathan Da Silva,
+   "Supersymmetric Dark Matter candidates in light of constraints from collider and astroparticle observables"
+   tel-00912650, arXiv:1312.0257 [hep-ph]
+
+3) G. Bélanger, J. Da Silva, U. Laa and A. Pukhov,
+   "Probing U(1) extensions of the MSSM at the LHC Run I and in dark matter searches",
+    JHEP 1509 (2015) 151, arXiv:1505.06243 [hep-ph]
+
+As for other micrOMEGAs models, compile the UMSSM as
+		make main=main.c
+and execute the code after specifying the file containing the input parameters
+		./main umssm.par
+
+In main.c :
+
+To compute the UMSSM spectrum : 
+		err=sortOddParticles(cdmName);
+Then to check if there is an error in computing the spectrum :
+		if(err) {printf("Can't calculate %s\n",cdmName);} 
+
+To use the limit on the invisible Z1-width :
+		if(Zinv()!=0) {printf(" Invisible Z1-width above 0.5 MeV \n");}
+
+To use LEP limits on sparticles :
+		if(masslimits()!=0) {printf(" LEP limits not satisfied \n");}
+		
+To use LHC limits on the new gauge boson :
+		if(Zprimelimits()!=0) {printf(" LHC limits on new Zprime not satisfied \n");}
+
+To compute low energy and Higgs physics observables :
+Use UMSSMTools which contain an adaptation of several routines of NMSSMTools :
+		err=UMSSMTools();
+-> Output in SLHA format : - UMSSM_inp.dat		
+			   - UMSSM_spectr.dat
+			   - UMSSM_decay.dat
+			   - SM_decay.dat
+
+i) U. Ellwanger, J. F. Gunion and C. Hugonie, JHEP 0502(2005) 006, arXiv:hep-ph/0406215
+ii) U. Ellwanger and C. Hugonie, Comput. Phys. Commun. 175 (2006) 290, arXiv:hep-ph/0508022
+iii) G. Belanger, F. Boudjema, C. Hugonie, A. Pukhov, A. Semenov, JCAP 0509:001 (2005), arXiv:hep-ph/0505142 
+
+The following command displays the warning messages from UMSSMTools :
+		slhaWarnings(stdout);
+They are also printed in UMSSM_spectr.dat. The following warning messages can be given :
+
+		0  Not excluded by UMSSMTools
+		2  excluded by Z -> neutralinos
+		3  charged Higgs too light
+		4  excluded by ee -> hZ 
+		5  excluded by ee -> hZ, h -> bb
+		6  excluded by ee -> hZ, h -> tautau
+		7  excluded by ee -> hZ, h -> invisible 
+		8  excluded by ee -> hZ, h -> 2jets
+		9  excluded by ee -> hZ, h -> 2photons
+		10 excluded by ee -> hZ, h -> AA -> 4bs
+		11 excluded by ee -> hZ, h -> AA -> 4taus
+		12 excluded by ee -> hZ, h -> AA -> 2bs 2taus
+		13 excluded by Z -> hA (Z width)
+		14 excluded by ee -> hA -> 4bs
+		15 excluded by ee -> hA -> 4taus
+		16 excluded by ee -> hA -> 2bs 2taus
+		17 excluded by ee -> hA -> AAA -> 6bs
+		18 excluded by ee -> hA -> AAA -> 6taus
+		19 excluded by ee -> Zh -> ZAA -> Z + light pairs
+		20 excluded by stop -> b l sneutrino
+		21 excluded by stop -> neutralino c
+		22 excluded by sbottom -> neutralino b
+		23 squark/gluino too light
+		32 b->s gamma more than 2 sigma away
+		33 Delta M_s more than 2 sigma away
+		34 Delta M_d more than 2 sigma away
+		35 B_s->mu+mu- more than 2 sigma away
+		36 B+-> tau+nu_tau more than 2 sigma away
+		37 (g-2)_muon more than 2 sigma away
+		38 excluded by Upsilon(1S) -> A gamma
+		39 excluded by eta_b(1S) mass measurement
+		40 BR(B-->X_s mu+ mu-) more than 2 sigma away
+		41 excluded by ee -> hZ, h -> AA -> 4taus (new ALEPH analysis)
+		42 excluded by top -> b H+, H+ -> c s (CDF, D0)
+		43 excluded by top -> b H+, H+ -> tau nu_tau (D0)
+		44 excluded by top -> b H+, H+ -> W+ A1, A1 -> 2taus (CDF)
+		45 excluded by t -> bH+ (LHC)"
+		46 no Higgs in the [MHMIN,MHMAX] GeV mass range
+		47 chi2(H->gg) > chi2MAX
+		48 chi2(H->bb) > chi2MAX
+		49 chi2(H->ZZ) > chi2MAX
+		51 excluded by H/A->tautau
+		52 Excluded H_125->AA->4mu (CMS)
+
+To get the loop-improved Higgs branching ratios from UMSSMTools (useful before computing relic abundance for instance) use : slhaRead("UMSSM_decay.dat",0);
+
+
+First public version : 4 august 2015.
+ 
+

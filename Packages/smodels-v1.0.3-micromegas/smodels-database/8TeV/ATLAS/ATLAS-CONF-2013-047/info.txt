@@ -1,0 +1,13 @@
+sqrts: 8.0*TeV
+lumi: 20.3/fb
+id: ATLAS-CONF-2013-047
+url: https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/CONFNOTES/ATLAS-CONF-2013-047/
+superseded_by: ATLAS-SUSY-2013-02
+digitaldata: True
+constraint: T2 -> [[['jet']],[['jet']]]
+constraint: T1 -> [[['jet','jet']],[['jet','jet']]]
+fuzzycondition: T2 -> None
+fuzzycondition: T1 -> None
+axes: T1: M1 M0, T2: M1 M0
+branchcondition: T2 -> equal branches
+branchcondition: T1 -> equal branches

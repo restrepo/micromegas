@@ -524,7 +524,7 @@ printf("         BOX DIAGRAMS\n");
     
 #endif
 
-    nucleonAmplitudes(CDM1,FeScLoop, pA0,pA5,nA0,nA5);
+    nucleonAmplitudes(CDM1,pA0,pA5,nA0,nA5);
     printf("CDM-nucleon micrOMEGAs amplitudes:\n");
     printf("proton:  SI  %.3E  SD  %.3E\n",pA0[0],pA5[0]);
     printf("neutron: SI  %.3E  SD  %.3E\n",nA0[0],nA5[0]); 
@@ -542,7 +542,7 @@ printf("         BOX DIAGRAMS\n");
 
 printf("\n======== Direct Detection ========\n");    
 
-  nEvents=nucleusRecoil(Maxwell,73,Z_Ge,J_Ge73,SxxGe73,FeScLoop,dNdE);
+  nEvents=nucleusRecoil(Maxwell,73,Z_Ge,J_Ge73,SxxGe73,dNdE);
 
   printf("73Ge: Total number of events=%.2E /day/kg\n",nEvents);
   printf("Number of events in 10 - 50 KeV region=%.2E /day/kg\n",
@@ -552,7 +552,7 @@ printf("\n======== Direct Detection ========\n");
     displayRecoilPlot(dNdE,"Distribution of recoil energy of 73Ge",0,199);
 #endif
 
-  nEvents=nucleusRecoil(Maxwell,131,Z_Xe,J_Xe131,SxxXe131,FeScLoop,dNdE);
+  nEvents=nucleusRecoil(Maxwell,131,Z_Xe,J_Xe131,SxxXe131,dNdE);
 
   printf("131Xe: Total number of events=%.2E /day/kg\n",nEvents);
   printf("Number of events in 10 - 50 KeV region=%.2E /day/kg\n",
@@ -561,7 +561,7 @@ printf("\n======== Direct Detection ========\n");
     displayRecoilPlot(dNdE,"Distribution of recoil energy of 131Xe",0,199);
 #endif
 
-  nEvents=nucleusRecoil(Maxwell,23,Z_Na,J_Na23,SxxNa23,FeScLoop,dNdE);
+  nEvents=nucleusRecoil(Maxwell,23,Z_Na,J_Na23,SxxNa23,dNdE);
 
   printf("23Na: Total number of events=%.2E /day/kg\n",nEvents);
   printf("Number of events in 10 - 50 KeV region=%.2E /day/kg\n",
@@ -570,7 +570,7 @@ printf("\n======== Direct Detection ========\n");
     displayRecoilPlot(dNdE,"Distribution of recoil energy of 23Na",0,199);
 #endif
 
-  nEvents=nucleusRecoil(Maxwell,127,Z_I,J_I127,SxxI127,FeScLoop,dNdE);
+  nEvents=nucleusRecoil(Maxwell,127,Z_I,J_I127,SxxI127,dNdE);
 
   printf("I127: Total number of events=%.2E /day/kg\n",nEvents);
   printf("Number of events in 10 - 50 KeV region=%.2E /day/kg\n",
@@ -586,7 +586,7 @@ printf("\n======== Direct Detection ========\n");
 { double nu[NZ], nu_bar[NZ],mu[NZ];
   double Ntot;
   int forSun=1;
-  double Emin=0.01;
+  double Emin=1;
   
  printf("\n===============Neutrino Telescope=======  for  "); 
  if(forSun) printf("Sun\n"); else printf("Earth\n");  
@@ -596,12 +596,9 @@ printf("\n======== Direct Detection ========\n");
   displaySpectrum(nu,"nu flux from Sun [1/Year/km^2/GeV]",Emin,Mcdm,1);
   displaySpectrum(nu_bar,"nu-bar from Sun [1/Year/km^2/GeV]",Emin,Mcdm,1);
 #endif
-{ double Ntot;
-  double Emin=1; //GeV
-  spectrInfo(Emin/Mcdm,nu, &Ntot,NULL);
-    printf(" E>%.1E GeV neutrino flux       %.2E [1/Year/km^2] \n",Emin,Ntot);
-  spectrInfo(Emin/Mcdm,nu_bar, &Ntot,NULL);
-    printf(" E>%.1E GeV anti-neutrino flux  %.2E [1/Year/km^2]\n",Emin,Ntot);  
+{ 
+    printf(" E>%.1E GeV neutrino flux       %.2E [1/Year/km^2] \n",Emin,spectrInfo(Emin,nu,NULL));
+    printf(" E>%.1E GeV anti-neutrino flux  %.2E [1/Year/km^2]\n",Emin,spectrInfo(Emin,nu_bar,NULL));  
 } 
   
 /* Upward events */
@@ -610,22 +607,14 @@ printf("\n======== Direct Detection ========\n");
 #ifdef SHOWPLOTS  
   displaySpectrum(mu,"Upward muons[1/Year/km^2/GeV]",1,Mcdm/2,1);
 #endif
-  { double Ntot;
-    double Emin=1; //GeV
-    spectrInfo(Emin/Mcdm,mu, &Ntot,NULL);
-    printf(" E>%.1E GeV Upward muon flux    %.2E [1/Year/km^2]\n",Emin,Ntot);
-  } 
+    printf(" E>%.1E GeV Upward muon flux    %.2E [1/Year/km^2]\n",Emin,spectrInfo(Emin,mu,NULL));
   
 /* Contained events */
   muonContained(nu,nu_bar,1., mu);
 #ifdef SHOWPLOTS  
   displaySpectrum(mu,"Contained  muons[1/Year/km^3/GeV]",Emin,Mcdm,1); 
 #endif
-  { double Ntot;
-    double Emin=1; //GeV
-    spectrInfo(Emin/Mcdm,mu, &Ntot,NULL);
-    printf(" E>%.1E GeV Contained muon flux %.2E [1/Year/km^3]\n",Emin,Ntot);
-  }  
+    printf(" E>%.1E GeV Contained muon flux %.2E [1/Year/km^3]\n",Emin,spectrInfo(Emin,mu,NULL));
 }        
 #endif 
 

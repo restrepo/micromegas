@@ -1,0 +1,28 @@
+<!--
+parametrization of a 2D Gaussian fitted from the 68% CL contour
+in the plane mu(gg+ttH, tau tau) vs. mu(VBF+VH, tau tau)
+at mH = 125.5 GeV, shown in ATLAS-CONF-2014-009, Fig. 2
+https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/CONFNOTES/ATLAS-CONF-2014-009/
+ -->
+
+<expmu decay="tautau" dim="2" type="n">
+  <experiment>ATLAS</experiment>
+  <source type="preliminary">CONF-2014-009</source>
+  <sqrts>8</sqrts>
+  <mass>125.5</mass>
+  <CL>68%</CL> <!-- optional -->
+  
+  <eff axis="x" prod="ggH">1.0</eff>
+  <eff axis="y" prod="VVH">1.0</eff>
+
+  <bestfit>
+    <x>1.20239</x>
+    <y>1.66093</y>
+  </bestfit>
+  
+  <param>
+    <a>0.951997</a>
+    <b>0.762936</b>
+    <c>2.33793</c>
+  </param>
+</expmu>

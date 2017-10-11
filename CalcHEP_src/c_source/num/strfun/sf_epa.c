@@ -4,9 +4,13 @@
 #include"interface.h"
 #include"sf_epa.h"
 #include "crt_util.h"
+#include "vp.h"
+#include "syst.h"
 #include<math.h>
 
-    static double q_max[2] = { 100.,100. };
+    static char   q_max_txt[2][20] = { "100.", "100." };
+    static REAL q_max_val[2]={100,100};     
+    static REAL*q_max_ptr[2]={q_max_val,q_max_val+1};
     static int pc[2]={1,-1};
 
 /* ********************************************************* */
@@ -31,17 +35,26 @@ void n_epa__(int i,char * name)
     case  1: pname="e^+";  break;
     case  2: pname="mu^+"; break;
   }
-  sprintf(name,"Equiv.Photon(particle= %s |Q|max=%.8G)", pname, q_max[i]);
+  sprintf(name,"Equiv.Photon(particle= %s |Q|max= %s)", pname, q_max_txt[i]);
 }  
 
 int r_epa__(int i, char *name)
 {
   char pname[10];
+  double v;
   i--;
   if(2!= sscanf(name,
-    "Equiv.Photon(particle= %s%*[^=]%*c%lf",pname,q_max+i)) return 0;
-    if (q_max[i] <= 0.) return 0;
-
+    "Equiv.Photon(particle= %s |Q|max= %[^)]",pname,q_max_txt[i])) return 0;
+  trim(q_max_txt[i]);  
+  if(1==sscanf(q_max_txt[i],"%lf",&v))
+  {  
+     if (v <= 0.) return 0;
+     q_max_val[i]=v;
+     q_max_ptr[i]=q_max_val+i;  
+  } else 
+  { q_max_ptr[i]=varAddress(q_max_txt[i]);
+    if(!q_max_ptr[i]) return 0;
+  }
        if(strcmp(pname,"mu^-")==0) pc[i]=-2;
   else if(strcmp(pname,"e^-") ==0) pc[i]=-1;
   else if(strcmp(pname,"e^+") ==0) pc[i]= 1;
@@ -87,16 +100,34 @@ int m_epa__(int i, int * pString)
       if(pc[i]<0) n=3+pc[i]; else n=2+pc[i];
    
       improveStr(strmen,"XXX","%4.4s",mstr+1+(n-1)*mstr[0]);
-      improveStr(strmen,"ZZZ","%.8G Gev",q_max[i]);
+      improveStr(strmen,"ZZZ","%s GeV",q_max_txt[i]);
       menu1(38,10,"",strmen, "n_sf_epa",&pscr,&mode);
     
       switch(mode)
       {
-      case 0: return 1;
+      case 0: { double v;
+                if(1==sscanf(q_max_txt[i],"%lf",&v))
+                {  
+                   q_max_val[i]=v;
+                   q_max_ptr[i]=q_max_val+i;
+                   return 1;
+                } else 
+                { trim(q_max_txt[i]);
+                  q_max_ptr[i]=varAddress(q_max_txt[i]);
+                  if(!q_max_ptr[i]) 
+                  { char buff[50];
+                    sprintf(buff,"Can not find parameter '%s'",q_max_txt[i]);
+                    continue;   
+                  }
+                }
+                return 1;
+              }      
+      
       case 1: menu1(38,13,"",mstr,"",NULL,&n);
               if(n<3) pc[i]=n-3; else pc[i]=n-2; 
               break;
-      case 2: correctDouble(40,16,"Enter new value ",q_max+i ,1); break;
+      case 2: correctStr (40,16,"Enter new value ",q_max_txt[i],19,1);
+ break;
       }
     }
     return 1;     
@@ -109,7 +140,7 @@ double c_epa__(int i, double x, double q)
   i--;
   {  double delt = (abs(pc[i])>1)? 0.10566:5.11E-4;
      double f;   
-     delt/=q_max[i];
+     delt/=fabs(*(q_max_ptr[i]));
      delt*=delt;
      f=  alpha/(M_PI * 2) 
      * (log((1 - x) / (x * x * delt)) * ((1-x) * (1-x) + 1) / x 

@@ -66,6 +66,6 @@ int ch_class::ProcInfo2(int nsub, char**pnames,double * pmass)
                                                          }
                                                          
 double ch_class::Sqme(int nsub,double GG, double *pvect,int*err)
-                                                         { if(cc) return cc->interface->sqme(nsub,GG,pvect,err);
+                                                         { if(cc) return cc->interface->sqme(nsub,GG,pvect,NULL,err);
                                                            else printf("process is not compiled\n");
                                                          } 

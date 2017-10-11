@@ -14,12 +14,11 @@
 #include "s_files.h"
 #include "file_scr.h"
 #include "read_mdl.h"
-
+#include "sortarr.h"
 #include "m_utils.h"
 
 
 #define nhardmdl 4
-//#define newmodeltxt "   IMPORT OF MODELS   "
 #define newmodeltxt "   IMPORT MODEL       "
 
 #define MAX_MODEL_NUM  ((STRSIZ-2)/22 -2)
@@ -89,68 +88,78 @@ int  deletemodel(int n)
 }
 
 int  makenewmodel(void)
-{ char dirName[200];
-  int       key, nmdl=0;
-  int  n, i,k, xmdl;
+{ char dirName[STRSIZ];
+  char fname[STRSIZ];
+  char buff[STRSIZ];
+  int   nmdl=0;
+  int  i, xmdl;
   DIR *dirPtr;
   FILE*f,*g;
   struct dirent * dp;  
-  char new[4000];
   void *pscr = NULL;
-
-  char fname[STRSIZ];
-  char buff[STRSIZ];
+  int *all=NULL;
+  char*newM=NULL; 
 
   for(;;)
-  {
-    if(!findCalcHEPfile(dirName)) return 0; 
+  { 
+    int len=0;
+    if(!findCalcHEPfile(dirName)) {free(all); free(newM);return 0;} 
     dirPtr=opendir(dirName);
     if(!dirPtr)
     {  messanykey(10,10,"Such directory is absent");
        continue;
     }
-    strcpy(new,"\040");
     while((dp=readdir(dirPtr)))
     { char tail[100];
-      if(sscanf(dp->d_name,"vars%d.%s",&n,tail)==2 && n<100 && strcmp(tail,"mdl")==0)
-      { 
-         for(i=3;i>=0;i--)
-         {   
-            sprintf(fname,"%s/%s%d.mdl",dirName,mdFls[i],n);
-            f=fopen(fname,"r");
-            if(!f) break;
-            if(i==0)
-            {  fscanf(f,"%[^\n]",buff);
-               trim(buff);
-               buff[22]=0;
-               if(strlen(new)==1)  strcat(new,"    Download all models         ");
-               sprintf(new+strlen(new),"%22.22s |%3d.mdl ",buff,n);
-            }
-            fclose(f);
+      int n;
+      if(sscanf(dp->d_name,"vars%d.%s",&n,tail)==2 && strcmp(tail,"mdl")==0)
+      {
+         for(i=1;i<4;i++)
+         { sprintf(fname,"%s/%s%d.mdl",dirName,mdFls[i],n);  
+           if(access(fname,R_OK)) break;
          }
-      }
-    } 
-    if(strlen(new)==1) 
+      
+         if(i==4) 
+         {  
+           len++;
+           all=realloc(all,len*sizeof(int));
+           all[len-1]=n;
+         }
+      }  
+    }
+    closedir(dirPtr);
+    if(len==0)
     { messanykey(12,12," This directory does not contain\n"
                        " model files");
       continue;
     }
-    menu1(5,12,"Choose a model",new,NULL,&pscr,&nmdl);
-    if(nmdl==0) continue;
-    k=0;
-    for(xmdl=2;xmdl<=strlen(new)/new[0];xmdl++) if(nmdl==1 || nmdl==xmdl)
-    { 
-      sscanf(new+1+new[0]*(xmdl-1), "%22c |%d",buff,&n);
+
+    SORTARR(all,len)
+    newM=realloc(newM,(len+1)*32+2);
+    newM[0]=32;
+    sprintf(newM+1,"%32.32s","    Download all models         ");
+    for(i=0;i<len;i++)
+    { sprintf(fname,"%s/%s%d.mdl",dirName,mdFls[0],all[i]);
+      f=fopen(fname,"r");
+      fscanf(f,"%[^\n]",buff);
+      trim(buff);
+      sprintf(newM+1+32*(i+1),"%22.22s |%3d.mdl ",buff,all[i]); 
+      fclose(f);               
+    }
+    menu1(5,12,"Choose a model",newM,NULL,&pscr,&nmdl);
+    if(nmdl==0){len=0; continue;} 
+    else for(xmdl=0;xmdl<len;xmdl++) if(nmdl==1 || nmdl-2==xmdl)
+    { int n;
+      sscanf(newM+1+newM[0]*(xmdl+1), "%22c |%d",buff,&n);
       buff[22]=0;
       trim(buff);
       if(nmdl!=1){correctStr(5,16,"Correct name ",buff,22,1);trim(buff);}
-      k++;
-      if(k+maxmodel > MAX_MODEL_NUM) { messanykey(10,10,"Too many models"); break;}
+      if(1+xmdl+maxmodel > MAX_MODEL_NUM) { messanykey(10,10,"Too many models"); break;}
       for(i=0;i<5;i++)
       {  int s; char ch[1000];
          sprintf(fname,"%s/%s%d.mdl",dirName,mdFls[i],n);
          f=fopen(fname,"r");
-         sprintf(fname,"models/%s%d.mdl",mdFls[i],maxmodel+k);
+         sprintf(fname,"models/%s%d.mdl",mdFls[i],maxmodel+1);
          g=fopen(fname,"w"); fprintf(g,"%s\n",buff);
          if(f==NULL && i==4)
          { fprintf(g,"Libraries\n");
@@ -163,6 +172,7 @@ int  makenewmodel(void)
          }  
          fclose(g);  
       }
+      maxmodel++;
     }
     fillModelMenu();
     if(nmdl==1) { messanykey(10,16,"All models are added");  put_text(&pscr);  return 0;}
@@ -171,8 +181,6 @@ int  makenewmodel(void)
   }
   return 0;
 }
-
-
 
 int  continuetest(void)
 {shortstr  txt;

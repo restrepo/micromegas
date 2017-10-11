@@ -7,7 +7,7 @@
 
 
 
-extern int   subproc_f, subproc_sq;
+extern int  subproc_f, subproc_sq;
 
 extern char  modelmenu[STRSIZ];
 extern int  maxmodel;

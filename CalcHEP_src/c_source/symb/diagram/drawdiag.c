@@ -526,7 +526,7 @@ static void   draw(void)
 
    if ((tpc == 2) && (kl == 4) && (kk == 1))  { yyl = y[6]; yl = y[5]; } 
 
-   if (tpc == 2) 
+   if ((tpc == 2)) 
       if (((tpc == 2) && (kl == 4) && (kk == 1)) || 
           ((kn[0].e2 < 0) && (kn[0].e3 < 0)) ) 
          { 

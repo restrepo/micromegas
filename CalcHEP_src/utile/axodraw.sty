@@ -1,4 +1,3 @@
-%==============================axodraw.sty===========================%
 %
 %   Style file for the drawing of Feynman diagrams with LaTeX.
 %   It assumes that the dvips that is used is by Radical Eye Software
@@ -17,11 +16,29 @@
 %   All coordinates should be in terms of pt (but the pt must be omitted).
 %   One may also use the figure environment.
 %
+%	This version has been enhanced to help in drawing sudoku puzzles.
+%
 \input{epsf.sty}
+\openin5=colordvi.sty
+\ifeof5
+    \closein5
+    \def\axocolor{ }
+    \def\SetColor#1{ }
+    \def\Color#1#2{#2}
+	\def\IfColor#1#2{#2 }
+\else
+    \closein5
+    \input{colordvi.sty}
+    \background{White}
+    \textBlack
+    \def\axocolor{Black }
+    \def\SetColor#1{\def\axocolor{#1 }}
+	\def\IfColor#1#2{#1}
+\fi
 %		#[ inventory :
 %
 %   The variables in are:
-%   mtrx,num,ampi,x1,y1,x2,y2,dx,dy,dr,speed
+%   mtrx,num,ampi,x1,y1,x2,y2,x3,y3,dx,dy,dr,speed
 %   step,phi,arcend,arcstart,radius
 %   theindex,thechar,darc,const,amp1 amp2 amp3
 %   gcolor,xx,name,name1,name2,xx1,xx2
@@ -30,9 +47,19 @@
 %   (LaTeX sneaks \par commands in and the postscript goes boink)
 %
 \special{! /ed{exch def}def /gs{gsave dup scale}def
-/gsw{gs /width ed width setlinewidth}def /p1{/y1 ed /x1 ed}def
-/p2{/y2 ed /x2 ed}def /abox{newpath x1 y1 moveto x1 y2 lineto
-x2 y2 lineto x2 y1 lineto closepath}def }
+/gsw{gs /width ed width setlinewidth}def
+/p1{/y1 ed /x1 ed}def
+/p2{/y2 ed /x2 ed}def
+/p3{/y3 ed /x3 ed}def
+/abox{newpath x1 y1 moveto x1 y2 lineto x2 y2 lineto x2 y1 lineto closepath}def
+/atriangle{newpath x1 y1 moveto x2 y2 lineto x3 y3 lineto closepath}def
+%
+%	Color definitions that are not in the standard setup
+%
+/LightYellow{0 0 0.7 0 setcmykcolor}def
+/LightRed{0 0.75 0.7 0 setcmykcolor}def
+/LightBlue{0.7 0.5 0 0 setcmykcolor}def
+}
 %
 %		#] inventory :
 %		#[ arrowdown :
@@ -236,10 +263,20 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 %
     gsw /num ed /ampi ed /arcend ed /arcstart ed /radius ed
 %
+%	When arcend comes before arcstart we have a problem. The solution is
+%	to flip the order and change the sign on ampi
+%
+	arcend arcstart lt {
+		/ampi ampi -1 mul def
+		/arcstart arcend /arcend arcstart def def
+	} if
+%
     translate                               % move to center of circle
     arcstart rotate                         % segment starts at zero
     /darc arcend arcstart sub def           % argsegment
+%
     /dr darc 180 div 3.141592 mul radius mul def  % length of segment.
+%
     /const darc dr div def                  % conversion constant
 %
     /num num 0.5 sub round def
@@ -588,11 +625,31 @@ x2 y2 lineto x2 y1 lineto closepath}def }
     translate
     newpath
         0 0 dotsize 0 360 arc
-    0 setgray fill stroke
+    fill stroke
     grestore
 } def }
 %
 %		#] vertex :
+%		#[ cross :
+%
+\special{! /cross{
+%
+%   Draws a cross under 45 degrees: x,y,size,width,scale
+%
+    gsw /csize ed p1
+%
+    newpath
+      x1 csize add y1 csize add moveto
+      x1 csize sub y1 csize sub lineto
+    stroke
+    newpath
+      x1 csize add y1 csize sub moveto
+      x1 csize sub y1 csize add lineto
+    stroke
+    grestore
+} def }
+%
+%		#] cross :
 %		#[ bcirc :
 %
 \special{! /bcirc{
@@ -604,9 +661,10 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 %
     translate                               % x and y are still on stack
 %
+    gsave
     1 setgray
     newpath 0 0 radius 0 360 arc fill
-    0 setgray
+    grestore
     newpath 0 0 radius 0 360 arc stroke
     grestore
 } def }
@@ -633,6 +691,40 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 } def }
 %
 %		#] gcirc :
+%		#[ ccirc1 :
+%
+\special{! /ccirc1{
+%
+%   Draws an anti-clockwise circle :
+%   x_center, y_center, radius
+%   Part 1: the contents in background color
+%
+    gsw /radius ed
+%
+    translate                               % x and y are still on stack
+%
+    newpath 0 0 radius 0 360 arc fill
+    grestore
+} def }
+%
+%		#] ccirc1 :
+%		#[ ccirc2 :
+%
+\special{! /ccirc2{
+%
+%   Draws an anti-clockwise circle :
+%   x_center, y_center, radius
+%   Part 1: the contents in background color
+%
+    gsw /radius ed
+%
+    translate                               % x and y are still on stack
+%
+    newpath 0 0 radius 0 360 arc stroke
+    grestore
+} def }
+%
+%		#] ccirc2 :
 %		#[ box :
 %
 \special{! /box{
@@ -652,8 +744,10 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 %   Draws a blanked out box x1,y1,x2,y2
 %
     gsw p2 p1
+    gsave
     1 setgray abox fill
-    0 setgray abox stroke
+    grestore
+    abox stroke
     grestore
 } def }
 %
@@ -672,6 +766,119 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 } def }
 %
 %		#] gbox :
+%		#[ cbox1 :
+%
+\special{! /cbox1{
+%
+%   Draws a blanked out colored box x1,y1,x2,y2
+%   Part 1: the background
+%
+    gsw p2 p1
+    abox fill
+    grestore
+} def }
+%
+%		#] cbox1 :
+%		#[ cbox2 :
+%
+\special{! /cbox2{
+%
+%   Draws a blanked out colored box x1,y1,x2,y2
+%   Part 1: the box
+%
+    gsw p2 p1
+    abox stroke
+    grestore
+} def }
+%
+%		#] cbox2 :
+%		#[ cbox3 :
+%
+%	Draws a square colored box of which the center and half the size are given
+%
+\special{! /cbox3{
+%
+%   Draws an anti-clockwise circle :
+%   x_center, y_center, radius
+%   Part 1: the contents in background color
+%
+    gsw /radius ed
+%
+    translate                               % x and y are still on stack
+%
+	newpath radius neg radius neg moveto radius radius neg lineto
+	radius radius lineto radius neg radius lineto closepath fill
+    grestore
+} def }
+%
+%		#] cbox3 :
+%		#[ triangle :
+%
+\special{! /triangle{
+%
+%   Draws a triangle x1,y1,x2,y2,x3,y3
+%
+    gsw p3 p2 p1
+    atriangle stroke
+    grestore
+} def }
+%
+%		#] triangle :
+%		#[ btriangle :
+%
+\special{! /btriangle{
+%
+%   Draws a blanked out triangle x1,y1,x2,y2,x3,y3
+%
+    gsw p3 p2 p1
+    gsave
+    1 setgray atriangle fill
+    grestore
+    atriangle stroke
+    grestore
+} def }
+%
+%		#] btriangle :
+%		#[ gtriangle :
+%
+\special{! /gtriangle{
+%
+%   Draws a blanked out gray triangle x1,y1,x2,y2,x3,y3,color
+%
+    gsw /gcolor ed p3 p2 p1
+    1 setgray      atriangle fill
+    gcolor setgray atriangle fill
+    0 setgray      atriangle stroke
+    grestore
+} def }
+%
+%		#] gtriangle :
+%		#[ ctriangle1 :
+%
+\special{! /ctriangle1{
+%
+%   Draws a blanked out colored triangle x1,y1,x2,y2,x3,y3
+%   Part 1: the background
+%
+    gsw p3 p2 p1
+    atriangle fill
+    grestore
+} def }
+%
+%		#] ctriangle1 :
+%		#[ ctriangle2 :
+%
+\special{! /ctriangle2{
+%
+%   Draws a blanked out colored triangle x1,y1,x2,y2,x3,y3
+%   Part 1: the triangle
+%
+    gsw p3 p2 p1
+    atriangle stroke
+    grestore
+} def }
+%
+%		#] ctriangle2 :
 %		#[ btext :
 %
 \special{! /btext{
@@ -686,7 +893,8 @@ x2 y2 lineto x2 y1 lineto closepath}def }
     /x1 hsize fsize add 2 div neg def
     /y1 fsize 2 mul 3 div neg def
     /x2 x1 neg def /y2 y1 neg def
-    1 setgray abox fill 0 setgray abox stroke
+    gsave 1 setgray abox fill grestore
+    abox stroke
     hsize 2 div neg fsize 3 div neg moveto thetext show
     grestore    
 } def }
@@ -708,7 +916,8 @@ x2 y2 lineto x2 y1 lineto closepath}def }
     /x1 hsize fsize add 2 div neg def
     /y1 fsize neg 7 mul 6 div def
     /x2 x1 neg def /y2 y1 neg def
-    1 setgray abox fill 0 setgray abox stroke
+    gsave 1 setgray abox fill grestore
+    abox stroke
     hsize1 2 div neg fsize 6 div moveto text1 show
     hsize2 2 div neg fsize 5 mul 6 div neg moveto text2 show
     grestore    
@@ -735,6 +944,47 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 } def }
 %
 %		#] gtext :
+%		#[ ctext1 :
+%
+\special{! /ctext1{
+%
+%       Makes a colored box that has the text centered in it
+%       The center of the box is at x,y and the box is just large enough
+%       for the text.
+%       x,y,text,fontsize,linewidth,scale
+%       Part 1: the background
+%
+    gsw /fsize ed /thetext ed translate
+    /hsize thetext stringwidth pop def
+    /x1 hsize fsize add 2 div neg def
+    /y1 fsize 2 mul 3 div neg def
+    /x2 x1 neg def /y2 y1 neg def
+    abox fill
+    grestore    
+} def }
+%
+%		#] ctext1 :
+%		#[ ctext2 :
+%
+\special{! /ctext2{
+%
+%       Makes a colored box that has the text centered in it
+%       The center of the box is at x,y and the box is just large enough
+%       for the text.
+%       x,y,text,fontsize,linewidth,scale
+%       Part 2: the box and the text
+%
+    gsw /fsize ed /thetext ed translate
+    /hsize thetext stringwidth pop def
+    /x1 hsize fsize add 2 div neg def
+    /y1 fsize 2 mul 3 div neg def
+    /x2 x1 neg def /y2 y1 neg def
+    abox stroke
+    hsize 2 div neg fsize 3 div neg moveto thetext show
+    grestore    
+} def }
+%
+%		#] ctext2 :
 %		#[ g2text :
 %
 \special{! /g2text{
@@ -758,6 +1008,52 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 } def }
 %
 %		#] g2text :
+%		#[ c2text1 :
+%
+\special{! /c2text1{
+%
+%       Makes a colored box that has two lines of text centered in it
+%       The center of the box is at x,y and the box is just large enough
+%       for the text.
+%       x,y,text1,text2,fontsize,linewidth,scale
+%       Part 1: the background
+%
+    gsw /fsize ed /text2 ed /text1 ed translate
+    /hsize1 text1 stringwidth pop def
+    /hsize2 text2 stringwidth pop def
+    hsize1 hsize2 lt { /hsize hsize2 def } { /hsize hsize1 def } ifelse
+    /x1 hsize fsize add 2 div neg def
+    /y1 fsize neg 7 mul 6 div def
+    /x2 x1 neg def /y2 y1 neg def
+    abox fill
+    grestore    
+} def }
+%
+%		#] c2text1 :
+%		#[ c2text2 :
+%
+\special{! /c2text2{
+%
+%       Makes a colored box that has two lines of text centered in it
+%       The center of the box is at x,y and the box is just large enough
+%       for the text.
+%       x,y,text1,text2,fontsize,linewidth,scale
+%       Part 2, box and text
+%
+    gsw /fsize ed /text2 ed /text1 ed translate
+    /hsize1 text1 stringwidth pop def
+    /hsize2 text2 stringwidth pop def
+    hsize1 hsize2 lt { /hsize hsize2 def } { /hsize hsize1 def } ifelse
+    /x1 hsize fsize add 2 div neg def
+    /y1 fsize neg 7 mul 6 div def
+    /x2 x1 neg def /y2 y1 neg def
+    abox stroke
+    hsize1 2 div neg fsize 6 div moveto text1 show
+    hsize2 2 div neg fsize 5 mul 6 div neg moveto text2 show
+    grestore    
+} def }
+%
+%		#] c2text2 :
 %		#[ ptext :
 %
 \special{! /ptext{
@@ -806,6 +1102,40 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 } def }
 %
 %		#] goval :
+%		#[ coval1 :
+%
+\special{! /coval1{
+%
+%   Draws a oval that overwrites whatever was there.
+%   x_center y_center height width rotation linewidth scale
+%
+    gsw /x1 ed /x2 ed /radius ed
+%
+    translate                               % x and y are still on stack
+    x1 rotate
+    x2 radius div 1.0 scale
+    newpath 0 0 radius 0 360 arc fill
+    grestore
+} def }
+%
+%		#] coval1 :
+%		#[ coval2 :
+%
+\special{! /coval2{
+%
+%   Draws a oval that overwrites whatever was there.
+%   x_center y_center height width rotation linewidth scale
+%
+    gsw /x1 ed /x2 ed /radius ed
+%
+    translate                               % x and y are still on stack
+    x1 rotate
+    x2 radius div 1.0 scale
+    newpath 0 0 radius 0 360 arc stroke
+    grestore
+} def }
+%
+%		#] coval2 :
 %		#[ oval :
 %
 \special{! /oval{
@@ -819,7 +1149,7 @@ x2 y2 lineto x2 y1 lineto closepath}def }
     x1 rotate
     x2 radius div 1.0 scale
 %
-    0 setgray   newpath 0 0 radius 0 360 arc stroke
+    newpath 0 0 radius 0 360 arc stroke
     grestore
 } def }
 %
@@ -1052,7 +1382,7 @@ x2 y2 lineto x2 y1 lineto closepath}def }
     stroke
     width 0.6 mul setlinewidth
     newpath
-    offset  x1 div cvi  1 numdec perdec mul offset x1 div cvi add {
+    offset cvi 1 numdec perdec mul offset add {
         x1 mul offset sub
         dup 0 ge {
             dup rr le {
@@ -1066,6 +1396,7 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 } def }
 %
 %		#] linaxis :
+%		#[ LaTeX :
 %
 \def\axowidth{0.5 }
 \def\axoscale{1.0 }
@@ -1073,13 +1404,14 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 \def\axoyoff{0 }
 \def\axoxo{0 }
 \def\axoyo{0 }
+\def\sudocellsize{20 }
 \def\firstcall{1}
 %
 \def\Gluon(#1,#2)(#3,#4)#5#6{
 %
 %   Draws a gluon from (x1,y1) to (x2,y2) with amplitude and number of windings
 %
-\put(\axoxoff,\axoyoff){\special{"#1 \axoxo add #2 \axoyo add #3
+\put(\axoxoff,\axoyoff){\special{"\axocolor #1 \axoxo add #2 \axoyo add #3
  \axoxo add #4 \axoyo add #5 #6 \axowidth \axoscale gluon showpage}}
 }
 %
@@ -1087,7 +1419,7 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 %
 %   Draws a photon from (x1,y1) to (x2,y2) with amplitude and number of windings
 %
-\put(\axoxoff,\axoyoff){\special{"#1 \axoxo add #2 \axoyo add #3
+\put(\axoxoff,\axoyoff){\special{"\axocolor #1 \axoxo add #2 \axoyo add #3
  \axoxo add #4 \axoyo add #5 #6 \axowidth \axoscale photon showpage}}
 }
 %
@@ -1095,7 +1427,7 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 %
 %   Draws a zigzag from (x1,y1) to (x2,y2) with amplitude and number of zigzags
 %
-\put(\axoxoff,\axoyoff){\special{"#1 \axoxo add #2 \axoyo add #3
+\put(\axoxoff,\axoyoff){\special{"\axocolor #1 \axoxo add #2 \axoyo add #3
  \axoxo add #4 \axoyo add #5 #6 \axowidth \axoscale zigzag showpage}}
 }
 %
@@ -1105,7 +1437,7 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 %   The radius, start angle and target angle are (#3,#4,#5), 6 is the
 %   amplitude of the gluon, and 7 is the number of wiggles.
 %
-\put(\axoxoff,\axoyoff){\special{"#1 \axoxo add #2 \axoyo add #3
+\put(\axoxoff,\axoyoff){\special{"\axocolor #1 \axoxo add #2 \axoyo add #3
  #4 #5 #6 #7 \axowidth \axoscale photonarc showpage}}
 }
 %
@@ -1115,7 +1447,7 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 %   The radius, start angle and target angle are (#3,#4,#5), 6 is the
 %   amplitude of the gluon, and 7 is the number of windings.
 %
-\put(\axoxoff,\axoyoff){\special{"#1 \axoxo add #2 \axoyo add #3
+\put(\axoxoff,\axoyoff){\special{"\axocolor #1 \axoxo add #2 \axoyo add #3
  #4 #5 #6 #7 \axowidth \axoscale gluearc showpage}}
 }
 %
@@ -1126,7 +1458,7 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 %   The radius, start angle and target angle are (#3,#4,#5).
 %   The arc segment runs anticlockwise
 %
-\put(\axoxoff,\axoyoff){\special{"#1 \axoxo add #2 \axoyo add #3
+\put(\axoxoff,\axoyoff){\special{"\axocolor #1 \axoxo add #2 \axoyo add #3
  #4 #5 \axowidth \axoscale arrowarc showpage}}
 }
 %
@@ -1137,7 +1469,7 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 %   The radius, start angle and target angle are (#3,#4,#5).
 %   The arc segment runs anticlockwise
 %
-\put(\axoxoff,\axoyoff){\special{"#1 \axoxo add #2 \axoyo add #3
+\put(\axoxoff,\axoyoff){\special{"\axocolor #1 \axoxo add #2 \axoyo add #3
  #4 #5 \axowidth \axoscale longarrowarc showpage}}
 }
 %
@@ -1148,7 +1480,7 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 %   The radius, start angle and target angle are (#3,#4,#5).
 %   The arc segment runs anticlockwise
 %
-\put(\axoxoff,\axoyoff){\special{"#1 \axoxo add #2 \axoyo add #3
+\put(\axoxoff,\axoyoff){\special{"\axocolor #1 \axoxo add #2 \axoyo add #3
  #4 #5 #6 \axowidth \axoscale dasharrowarc showpage}}
 }
 %
@@ -1159,7 +1491,7 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 %   The radius, start angle and target angle are (#3,#4,#5).
 %   The arc segment runs clockwise
 %
-\put(\axoxoff,\axoyoff){\special{"#1 \axoxo add #2 \axoyo add #3
+\put(\axoxoff,\axoyoff){\special{"\axocolor #1 \axoxo add #2 \axoyo add #3
  #4 #5 \axowidth \axoscale arrowarcn showpage}}
 }
 %
@@ -1170,7 +1502,7 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 %   The radius, start angle and target angle are (#3,#4,#5).
 %   The arc segment runs clockwise
 %
-\put(\axoxoff,\axoyoff){\special{"#1 \axoxo add #2 \axoyo add #3
+\put(\axoxoff,\axoyoff){\special{"\axocolor #1 \axoxo add #2 \axoyo add #3
  #4 #5 \axowidth \axoscale longarrowarcn showpage}}
 }
 %
@@ -1181,7 +1513,7 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 %   The radius, start angle and target angle are (#3,#4,#5).
 %   The arc segment runs clockwise
 %
-\put(\axoxoff,\axoyoff){\special{"#1 \axoxo add #2 \axoyo add #3
+\put(\axoxoff,\axoyoff){\special{"\axocolor #1 \axoxo add #2 \axoyo add #3
  #4 #5 #6 \axowidth \axoscale dasharrowarcn showpage}}
 }
 %
@@ -1189,15 +1521,23 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 %
 %   Draws a line with an arrow in it from (x1,y1) to (x2,y2)
 %
-\put(\axoxoff,\axoyoff){\special{"#1 \axoxo add #2 \axoyo add #3
+\put(\axoxoff,\axoyoff){\special{"\axocolor #1 \axoxo add #2 \axoyo add #3
  \axoxo add #4 \axoyo add \axowidth \axoscale arrowline showpage}}
+}
+%
+\def\Cross(#1,#2)#3#4{
+%
+%   Draws a 45 degree cross at (x,y) {size} {width}
+%
+\put(\axoxoff,\axoyoff){\special{"\axocolor #1 \axoxo add #2 \axoyo add #3
+ #4 \axoscale cross showpage}}
 }
 %
 \def\LongArrow(#1,#2)(#3,#4){
 %
 %   Draws a line with an arrow at the end from (x1,y1) to (x2,y2)
 %
-\put(\axoxoff,\axoyoff){\special{"#1 \axoxo add #2 \axoyo add #3
+\put(\axoxoff,\axoyoff){\special{"\axocolor #1 \axoxo add #2 \axoyo add #3
  \axoxo add #4 \axoyo add \axowidth \axoscale longarrow showpage}}
 }
 %
@@ -1206,7 +1546,7 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 %   Draws a dashed line with an arrow in it from (x1,y1) to (x2,y2)
 %   The size of the dashes is given by the fifth argument.
 %
-\put(\axoxoff,\axoyoff){\special{"#1 \axoxo add #2 \axoyo add #3
+\put(\axoxoff,\axoyoff){\special{"\axocolor #1 \axoxo add #2 \axoyo add #3
  \axoxo add #4 \axoyo add #5 \axowidth \axoscale dasharrowline showpage}}
 }
 %
@@ -1214,7 +1554,7 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 %
 %   Draws a line from (x1,y1) to (x2,y2)
 %
-\put(\axoxoff,\axoyoff){\special{"#1 \axoxo add #2 \axoyo add #3
+\put(\axoxoff,\axoyoff){\special{"\axocolor #1 \axoxo add #2 \axoyo add #3
  \axoxo add #4 \axoyo add \axowidth \axoscale line showpage}}
 }
 %
@@ -1223,7 +1563,7 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 %   Draws a line from (x1,y1) to (x2,y2) with a dash pattern of which the
 %   alternating black and white pieces are approximately {5} points long
 %
-\put(\axoxoff,\axoyoff){\special{"#1 \axoxo add #2 \axoyo add #3
+\put(\axoxoff,\axoyoff){\special{"\axocolor #1 \axoxo add #2 \axoyo add #3
  \axoxo add #4 \axoyo add #5 \axowidth \axoscale dashline showpage}}
 }
 %
@@ -1234,7 +1574,7 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 %   The radius, start angle and target angle are (#3,#4,#5).
 %   The arc segment runs anticlockwise
 %
-\put(\axoxoff,\axoyoff){\special{"#1 \axoxo add #2 \axoyo add #3
+\put(\axoxoff,\axoyoff){\special{"\axocolor #1 \axoxo add #2 \axoyo add #3
  #4 #5 \axowidth \axoscale carc showpage}}
 }
 %
@@ -1247,7 +1587,7 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 %   dsize (6) is the dashsize. this is rounded to make things come
 %   out right.
 %
-\put(\axoxoff,\axoyoff){\special{"#1 \axoxo add #2 \axoyo add #3
+\put(\axoxoff,\axoyoff){\special{"\axocolor #1 \axoxo add #2 \axoyo add #3
  #4 #5 #6 \axowidth \axoscale dashcarc showpage}}
 }
 %
@@ -1255,7 +1595,7 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 %
 %   Draws a fat dot at (1,2). The radius of the dot is given by 3.
 %
-\put(\axoxoff,\axoyoff){\special{"#1 \axoxo add #2 \axoyo add #3
+\put(\axoxoff,\axoyoff){\special{"\axocolor #1 \axoxo add #2 \axoyo add #3
  \axoscale vertex showpage}}
 }
 %
@@ -1279,7 +1619,7 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 %
 %   Draws a circle at (1,2) and radius 3 that is blanked out.
 %
-\put(\axoxoff,\axoyoff){\special{"#1 \axoxo add #2 \axoyo add #3
+\put(\axoxoff,\axoyoff){\special{"\axocolor #1 \axoxo add #2 \axoyo add #3
  \axowidth \axoscale bcirc showpage}}
 }
 %
@@ -1292,12 +1632,23 @@ x2 y2 lineto x2 y1 lineto closepath}def }
  #4 \axowidth \axoscale gcirc showpage}}
 }
 %
+\def\CCirc(#1,#2)#3#4#5{
+%
+%   Draws a circle at (1,2) and radius 3 that is blanked out.
+%   #4 is the color of the circle, #5 the color of the contents
+%
+\put(\axoxoff,\axoyoff){\special{"#5 #1 \axoxo add #2 \axoyo add #3
+ \axowidth \axoscale ccirc1 showpage}}
+\put(\axoxoff,\axoyoff){\special{"#4 #1 \axoxo add #2 \axoyo add #3
+ \axowidth \axoscale ccirc2 showpage}}
+}
+%
 \def\EBox(#1,#2)(#3,#4){
 %
 %   Draws a box with the left bottom at (x1,y1) and the right top
 %   at (x2,y2).
 %
-\put(\axoxoff,\axoyoff){\special{"#1 \axoxo add #2 \axoyo add #3
+\put(\axoxoff,\axoyoff){\special{"\axocolor #1 \axoxo add #2 \axoyo add #3
  \axoxo add #4 \axoyo add \axowidth \axoscale box showpage}}
 }
 %
@@ -1306,7 +1657,7 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 %   Draws a box with the left bottom at (x1,y1) and the right top
 %   at (x2,y2). The box is blanked out.
 %
-\put(\axoxoff,\axoyoff){\special{"#1 \axoxo add #2 \axoyo add #3
+\put(\axoxoff,\axoyoff){\special{"\axocolor #1 \axoxo add #2 \axoyo add #3
  \axoxo add #4 \axoyo add \axowidth \axoscale bbox showpage}}
 }
 %
@@ -1320,12 +1671,23 @@ x2 y2 lineto x2 y1 lineto closepath}def }
  \axoxo add #4 \axoyo add #5 \axowidth \axoscale gbox showpage}}
 }
 %
+\def\CBox(#1,#2)(#3,#4)#5#6{
+%
+%   Draws a box with the left bottom at (x1,y1) and the right top
+%   at (x2,y2). The color of the box is #5, the background is #6
+%
+\put(\axoxoff,\axoyoff){\special{"#6 #1 \axoxo add #2 \axoyo add #3
+ \axoxo add #4 \axoyo add \axowidth \axoscale cbox1 showpage}}
+\put(\axoxoff,\axoyoff){\special{"#5 #1 \axoxo add #2 \axoyo add #3
+ \axoxo add #4 \axoyo add \axowidth \axoscale cbox2 showpage}}
+}
+%
 \def\Boxc(#1,#2)(#3,#4){
 %
 %   Draws a box with the center at (x1,y1).
 %   The width and height are (3,4).
 %
-\put(\axoxoff,\axoyoff){\special{"#1 \axoxo add #3 2 div sub #2 \axoyo add
+\put(\axoxoff,\axoyoff){\special{"\axocolor #1 \axoxo add #3 2 div sub #2 \axoyo add
  #4 2 div sub #1 \axoxo add #3 2 div add #2 \axoyo add #4 2 div add
  \axowidth \axoscale box showpage}}
 }
@@ -1335,7 +1697,7 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 %   Draws a box with the center at (x1,y1).
 %   The width and height are (3,4). The contents are blanked out
 %
-\put(\axoxoff,\axoyoff){\special{"#1 \axoxo add #3 2 div sub #2 \axoyo add
+\put(\axoxoff,\axoyoff){\special{"\axocolor #1 \axoxo add #3 2 div sub #2 \axoyo add
  #4 2 div sub #1 \axoxo add #3 2 div add #2 \axoyo add #4 2 div add
  \axowidth \axoscale bbox showpage}}
 }
@@ -1348,13 +1710,71 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 %
 \put(\axoxoff,\axoyoff){\special{"#1 \axoxo add #3 2 div sub #2 \axoyo add
  #4 2 div sub #1 \axoxo add #3 2 div add #2 \axoyo add #4 2 div add
- \axowidth \axoscale gbox showpage}}
+ #5 \axowidth \axoscale gbox showpage}}
+}
+%
+\def\CBoxc(#1,#2)(#3,#4)#5#6{
+%
+%   Draws a box with the center at (x1,y1).
+%   The width and height are (3,4). The contents are blanked out
+%   The color of the box is #5, the background is #6
+%
+\put(\axoxoff,\axoyoff){\special{"#6 #1 \axoxo add #3 2 div sub #2 \axoyo add
+ #4 2 div sub #1 \axoxo add #3 2 div add #2 \axoyo add #4 2 div add
+ \axowidth \axoscale cbox1 showpage}}
+\put(\axoxoff,\axoyoff){\special{"#5 #1 \axoxo add #3 2 div sub #2 \axoyo add
+ #4 2 div sub #1 \axoxo add #3 2 div add #2 \axoyo add #4 2 div add
+ \axowidth \axoscale cbox2 showpage}}
+}
+%
+\def\ETri(#1,#2)(#3,#4)(#5,#6){
+%
+%   Draws a triangle with the corners (x1,y1), (x2,y2), (x3,y3)
+%
+\put(\axoxoff,\axoyoff){\special{"\axocolor #1 \axoxo add #2 \axoyo add #3
+ \axoxo add #4 \axoyo add #5 \axoxo add #6 \axoyo add
+ \axowidth \axoscale triangle showpage}}
+}
+%
+\def\BTri(#1,#2)(#3,#4)(#5,#6){
+%
+%   Draws a triangle with the corners (x1,y1), (x2,y2), (x3,y3)
+%   The triangle is blanked out.
+%
+\put(\axoxoff,\axoyoff){\special{"\axocolor #1 \axoxo add #2 \axoyo add #3
+ \axoxo add #4 \axoyo add #5 \axoxo add #6 \axoyo add
+ \axowidth \axoscale btriangle showpage}}
+}
+%
+\def\GTri(#1,#2)(#3,#4)(#5,#6)#7{
+%
+%   Draws a triangle with the corners (x1,y1), (x2,y2), (x3,y3)
+%   The triangle is blanked out and then filled with gray 7
+%   (0 is black, 1 is white)
+%
+\put(\axoxoff,\axoyoff){\special{"#1 \axoxo add #2 \axoyo add #3
+ \axoxo add #4 \axoyo add #5 \axoxo add #6 \axoyo add #7
+ \axowidth \axoscale gtriangle showpage}}
+}
+%
+\def\CTri(#1,#2)(#3,#4)(#5,#6)#7#8{
+%
+%   Draws a triangle with the corners (x1,y1), (x2,y2), (x3,y3)
+%   The color of the box is #7, the background is #8
+%
+\put(\axoxoff,\axoyoff){\special{"#8 #1 \axoxo add #2 \axoyo add #3
+ \axoxo add #4 \axoyo add #5 \axoxo add #6 \axoyo add
+ \axowidth \axoscale ctriangle1 showpage}}
+\put(\axoxoff,\axoyoff){\special{"#7 #1 \axoxo add #2 \axoyo add #3
+ \axoxo add #4 \axoyo add #5 \axoxo add #6 \axoyo add
+ \axowidth \axoscale ctriangle2 showpage}}
 }
 %
 \def\SetWidth#1{\def\axowidth{#1 }}
 \def\SetScale#1{\def\axoscale{#1 }}
-\def\SetOffset(#1,#2){\def\axoxoff{#1 } \def\axoyoff{#2 }}
+\def\SetOffset(#1,#2){\global\def\axoxoff{#1 } \global\def\axoyoff{#2 }}
 \def\SetScaledOffset(#1,#2){\def\axoxo{#1 } \def\axoyo{#2 }}
+\def\SetCellSize#1{\global\def\sudocellsize{#1 }}
 %
 \def\pfont{Times-Roman }
 \def\fsize{10 }
@@ -1367,10 +1787,10 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 \def\fmode{4 }
 \def\@l@{l} \def\@r@{r} \def\@t@{t} \def\@b@{b}
 \def\mymodetest#1{\ifx#1\end \let\next=\relax \else {
-\if#1\@r@\global\def\fmodeh{-3 }\fi
-\if#1\@l@\global\def\fmodeh{3 }\fi
-\if#1\@b@\global\def\fmodev{-1 }\fi
-\if#1\@t@\global\def\fmodev{1 }\fi
+\if#1\@r@\global\def\fmodeh{1 }\fi
+\if#1\@l@\global\def\fmodeh{-1 }\fi
+\if#1\@b@\global\def\fmodev{3 }\fi
+\if#1\@t@\global\def\fmodev{-3 }\fi
 } \let\next=\mymodetest\fi \next}
 \makeatother
 %
@@ -1384,7 +1804,7 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 \def\fmodeh{0 }
 \mymodetest#4\end
 \put(\axoxoff,\axoyoff){\makebox(0,0)[]{\special{"/\pfont findfont \fsize
- scalefont setfont #1 \axoxo add #2 \axoyo add #3
+ scalefont setfont \axocolor #1 \axoxo add #2 \axoyo add #3
 \fmode \fmodev add \fmodeh add \fsize (#5) \axoscale ptext }}}
 }
 %
@@ -1397,19 +1817,30 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 \axowidth \axoscale goval showpage}}
 }
 %
+\def\COval(#1,#2)(#3,#4)(#5)#6#7{
+%
+%   Draws a colored oval that overwrites whatever was there.
+%   Oval(x_center,y_center)(height,width)(rotation){color1}{color2}
+%
+\put(\axoxoff,\axoyoff){\special{"#7 #1 \axoxo add #2 \axoyo add #3 #4 #5
+\axowidth \axoscale coval1 showpage}}
+\put(\axoxoff,\axoyoff){\special{"#6 #1 \axoxo add #2 \axoyo add #3 #4 #5
+\axowidth \axoscale coval2 showpage}}
+}
+%
 \def\Oval(#1,#2)(#3,#4)(#5){
 %
 %   Draws an oval that does not overwrite whatever was there.
 %   Oval(x_center,y_center)(height,width)(rotation)
 %
-\put(\axoxoff,\axoyoff){\special{"#1 \axoxo add #2 \axoyo add #3 #4 #5
+\put(\axoxoff,\axoyoff){\special{"\axocolor #1 \axoxo add #2 \axoyo add #3 #4 #5
 \axowidth \axoscale oval showpage}}
 }
 %
 \let\eind=]
-\def\DashCurve#1#2{\put(\axoxoff,\axoyoff){\special{" [ \kromme#1] #2
+\def\DashCurve#1#2{\put(\axoxoff,\axoyoff){\special{"\axocolor  [ \kromme#1] #2
 \axowidth \axoscale makedashcurve showpage}}}
-\def\Curve#1{\put(\axoxoff,\axoyoff){\special{" [ \kromme#1] \axowidth
+\def\Curve#1{\put(\axoxoff,\axoyoff){\special{"\axocolor [ \kromme#1] \axowidth
 \axoscale makecurve showpage}}}
 \def\kromme(#1,#2)#3{#1 \axoxo add #2 \axoyo add \ifx #3\eind\else
 \expandafter\kromme\fi#3}
@@ -1424,7 +1855,7 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 %   at which one starts at (x1,y1) (like if offset=2 we start at 2)
 %   When offset is 0 we start at 1. Width is the linewidth.
 %
-\put(\axoxoff,\axoyoff){\special{"#1 \axoxo add #2 \axoyo add #3
+\put(\axoxoff,\axoyoff){\special{"\axocolor #1 \axoxo add #2 \axoyo add #3
  \axoxo add #4 \axoyo add #5 #6 #7 #8 \axoscale logaxis showpage}}
 }
 %
@@ -1439,7 +1870,7 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 %   at which one starts at (x1,y1) (like if offset=2 we start at the second
 %   small mark) Width is the linewidth.
 %
-\put(\axoxoff,\axoyoff){\special{"#1 \axoxo add #2 \axoyo add #3
+\put(\axoxoff,\axoyoff){\special{"\axocolor #1 \axoxo add #2 \axoyo add #3
  \axoxo add #4 \axoyo add #5 #6 #7 #8 #9 \axoscale linaxis showpage}}
 }
 %
@@ -1471,7 +1902,7 @@ x2 y2 lineto x2 y1 lineto closepath}def }
 %   Draws a box with the center at (x1,y1) and postscript text in it.
 %
 \put(\axoxoff,\axoyoff){\special{"/\pfont findfont \fsize
- scalefont setfont #1 \axoxo add #2 \axoyo add (#3)
+ scalefont setfont \axocolor #1 \axoxo add #2 \axoyo add (#3)
  \fsize \axowidth \axoscale btext showpage}}
 }
 %
@@ -1485,13 +1916,27 @@ x2 y2 lineto x2 y1 lineto closepath}def }
  \fsize \axowidth \axoscale gtext showpage}}
 }
 %
+\def\CText(#1,#2)#3#4#5{
+%
+%   Draws a box with the center at (x1,y1) and postscript(#5) text in it.
+%   The color of box and text is in #3
+%   The color of the background is in #4
+%
+\put(\axoxoff,\axoyoff){\special{"/\pfont findfont \fsize
+ scalefont setfont #4 #1 \axoxo add #2 \axoyo add (#5)
+ \fsize \axowidth \axoscale ctext1 showpage}}
+\put(\axoxoff,\axoyoff){\special{"/\pfont findfont \fsize
+ scalefont setfont #3 #1 \axoxo add #2 \axoyo add (#5)
+ \fsize \axowidth \axoscale ctext2 showpage}}
+}
+%
 \def\B2Text(#1,#2)#3#4{
 %
 %   Draws a box with the center at (x1,y1) and two lines of postscript
 %   text in it.
 %
 \put(\axoxoff,\axoyoff){\special{"/\pfont findfont \fsize
- scalefont setfont #1 \axoxo add #2 \axoyo add (#3) (#4)
+ scalefont setfont \axocolor #1 \axoxo add #2 \axoyo add (#3) (#4)
  \fsize \axowidth \axoscale b2text showpage}}
 }
 %
@@ -1505,4 +1950,233 @@ x2 y2 lineto x2 y1 lineto closepath}def }
  scalefont setfont #1 \axoxo add #2 \axoyo add #3 (#4) (#5)
  \fsize \axowidth \axoscale g2text showpage}}
 }
+%
+\def\C2Text(#1,#2)#3#4#5#6{
+%
+%   Draws a box with the center at (x1,y1) and two lines of postscript
+%   text (#5 and #6) in it.
+%   The color of the box and the text is given by #3
+%   The background color is given by #4
+%
+\put(\axoxoff,\axoyoff){\special{"/\pfont findfont \fsize
+ scalefont setfont #4 #1 \axoxo add #2 \axoyo add (#5) (#6)
+ \fsize \axowidth \axoscale c2text1 showpage}}
+\put(\axoxoff,\axoyoff){\special{"/\pfont findfont \fsize
+ scalefont setfont #3 #1 \axoxo add #2 \axoyo add (#5) (#6)
+ \fsize \axowidth \axoscale c2text2 showpage}}
+}
+%
+%	Below follow some primitives for creating sudoku outputs
+%	1: MakeBoard(x_left_under,y_left_under,cellsize)
+%	2: PutCell(i,j,number)   Note: i=1,...,9; 1 is at the top
+%	3: PutAllow(i,j,number)  Puts a small number in cell i,j in the proper position
+%	4: PutScratch(i,j,number)Same as PutAllow but crosses it out.
+%
+\def\MakeBoard(#1,#2,#3){
+%
+%	Draws a sudoku board with cellsize #3 at origin (#1,#2).
+%	Defines the cellsize for later use
+%	Sets the origin of the board at 0,0 via the offset mechanism!!!
+%
+{\def\sudocellsize{#3}}
+%\SetOffset(#1,#2)
+\global\def\axoxoff{#1 }
+\global\def\axoyoff{#2 }
+{\def\pfont{Helvetica }}
+{\def\fsize{#3 }}
+\put(\axoxoff,\axoyoff){\special{"\axocolor 0 \axoxo add 0 \axoyo add #3 9 mul
+ \axoxo add #3 9 mul \axoyo add \axowidth 3 mul \axoscale box showpage}}
+%
+\put(\axoxoff,\axoyoff){\special{"\axocolor 0 \axoxo add #3 \axoyo add #3 9 mul
+ \axoxo add #3 \axoyo add \axowidth \axoscale line showpage}}
+\put(\axoxoff,\axoyoff){\special{"\axocolor 0 \axoxo add #3 2 mul \axoyo add #3 9 mul
+ \axoxo add #3 2 mul \axoyo add \axowidth \axoscale line showpage}}
+\put(\axoxoff,\axoyoff){\special{"\axocolor 0 \axoxo add #3 3 mul \axoyo add #3 9 mul
+ \axoxo add #3 3 mul \axoyo add \axowidth 3 mul \axoscale line showpage}}
+\put(\axoxoff,\axoyoff){\special{"\axocolor 0 \axoxo add #3 4 mul \axoyo add #3 9 mul
+ \axoxo add #3 4 mul \axoyo add \axowidth \axoscale line showpage}}
+\put(\axoxoff,\axoyoff){\special{"\axocolor 0 \axoxo add #3 5 mul \axoyo add #3 9 mul
+ \axoxo add #3 5 mul \axoyo add \axowidth \axoscale line showpage}}
+\put(\axoxoff,\axoyoff){\special{"\axocolor 0 \axoxo add #3 6 mul \axoyo add #3 9 mul
+ \axoxo add #3 6 mul \axoyo add \axowidth 3 mul \axoscale line showpage}}
+\put(\axoxoff,\axoyoff){\special{"\axocolor 0 \axoxo add #3 7 mul \axoyo add #3 9 mul
+ \axoxo add #3 7 mul \axoyo add \axowidth \axoscale line showpage}}
+\put(\axoxoff,\axoyoff){\special{"\axocolor 0 \axoxo add #3 8 mul \axoyo add #3 9 mul
+ \axoxo add #3 8 mul \axoyo add \axowidth \axoscale line showpage}}
+%
+\put(\axoxoff,\axoyoff){\special{"\axocolor #3 \axoxo add 0 \axoyo add #3
+ \axoxo add #3 9 mul \axoyo add \axowidth \axoscale line showpage}}
+\put(\axoxoff,\axoyoff){\special{"\axocolor #3 2 mul \axoxo add 0 \axoyo add #3 2 mul
+ \axoxo add #3 9 mul \axoyo add \axowidth \axoscale line showpage}}
+\put(\axoxoff,\axoyoff){\special{"\axocolor #3 3 mul \axoxo add 0 \axoyo add #3 3 mul
+ \axoxo add #3 9 mul \axoyo add \axowidth 3 mul \axoscale line showpage}}
+\put(\axoxoff,\axoyoff){\special{"\axocolor #3 4 mul \axoxo add 0 \axoyo add #3 4 mul
+ \axoxo add #3 9 mul \axoyo add \axowidth \axoscale line showpage}}
+\put(\axoxoff,\axoyoff){\special{"\axocolor #3 5 mul \axoxo add 0 \axoyo add #3 5 mul
+ \axoxo add #3 9 mul \axoyo add \axowidth \axoscale line showpage}}
+\put(\axoxoff,\axoyoff){\special{"\axocolor #3 6 mul \axoxo add 0 \axoyo add #3 6 mul
+ \axoxo add #3 9 mul \axoyo add \axowidth 3 mul \axoscale line showpage}}
+\put(\axoxoff,\axoyoff){\special{"\axocolor #3 7 mul \axoxo add 0 \axoyo add #3 7 mul
+ \axoxo add #3 9 mul \axoyo add \axowidth \axoscale line showpage}}
+\put(\axoxoff,\axoyoff){\special{"\axocolor #3 8 mul \axoxo add 0 \axoyo add #3 8 mul
+ \axoxo add #3 9 mul \axoyo add \axowidth \axoscale line showpage}}
+}
+%
+\def\SetCoordinates{
+\def\fmodev{0 }
+\def\fmodeh{0 }
+\put(\axoxoff,\axoyoff){\makebox(0,0)[]{\special{"/\pfont findfont
+ \sudocellsize 0.5 mul scalefont setfont
+	\axocolor -0.5 \sudocellsize mul \axoxo add 0.58 \sudocellsize mul \axoyo add
+		0 \fmode \fmodev add \fmodeh add \sudocellsize 0.5 mul (9) \axoscale ptext
+	\axocolor -0.5 \sudocellsize mul \axoxo add 1.58 \sudocellsize mul \axoyo add
+		0 \fmode \fmodev add \fmodeh add \sudocellsize 0.5 mul (8) \axoscale ptext
+	\axocolor -0.5 \sudocellsize mul \axoxo add 2.58 \sudocellsize mul \axoyo add
+		0 \fmode \fmodev add \fmodeh add \sudocellsize 0.5 mul (7) \axoscale ptext
+	\axocolor -0.5 \sudocellsize mul \axoxo add 3.58 \sudocellsize mul \axoyo add
+		0 \fmode \fmodev add \fmodeh add \sudocellsize 0.5 mul (6) \axoscale ptext
+	\axocolor -0.5 \sudocellsize mul \axoxo add 4.58 \sudocellsize mul \axoyo add
+		0 \fmode \fmodev add \fmodeh add \sudocellsize 0.5 mul (5) \axoscale ptext
+	\axocolor -0.5 \sudocellsize mul \axoxo add 5.58 \sudocellsize mul \axoyo add
+		0 \fmode \fmodev add \fmodeh add \sudocellsize 0.5 mul (4) \axoscale ptext
+	\axocolor -0.5 \sudocellsize mul \axoxo add 6.58 \sudocellsize mul \axoyo add
+		0 \fmode \fmodev add \fmodeh add \sudocellsize 0.5 mul (3) \axoscale ptext
+	\axocolor -0.5 \sudocellsize mul \axoxo add 7.58 \sudocellsize mul \axoyo add
+		0 \fmode \fmodev add \fmodeh add \sudocellsize 0.5 mul (2) \axoscale ptext
+	\axocolor -0.5 \sudocellsize mul \axoxo add 8.58 \sudocellsize mul \axoyo add
+		0 \fmode \fmodev add \fmodeh add \sudocellsize 0.5 mul (1) \axoscale ptext
+	\axocolor  0.5 \sudocellsize mul \axoxo add 9.50 \sudocellsize mul \axoyo add
+		0 \fmode \fmodev add \fmodeh add \sudocellsize 0.5 mul (A) \axoscale ptext
+	\axocolor  1.5 \sudocellsize mul \axoxo add 9.50 \sudocellsize mul \axoyo add
+		0 \fmode \fmodev add \fmodeh add \sudocellsize 0.5 mul (B) \axoscale ptext
+	\axocolor  2.5 \sudocellsize mul \axoxo add 9.50 \sudocellsize mul \axoyo add
+		0 \fmode \fmodev add \fmodeh add \sudocellsize 0.5 mul (C) \axoscale ptext
+	\axocolor  3.5 \sudocellsize mul \axoxo add 9.50 \sudocellsize mul \axoyo add
+		0 \fmode \fmodev add \fmodeh add \sudocellsize 0.5 mul (D) \axoscale ptext
+	\axocolor  4.5 \sudocellsize mul \axoxo add 9.50 \sudocellsize mul \axoyo add
+		0 \fmode \fmodev add \fmodeh add \sudocellsize 0.5 mul (E) \axoscale ptext
+	\axocolor  5.5 \sudocellsize mul \axoxo add 9.50 \sudocellsize mul \axoyo add
+		0 \fmode \fmodev add \fmodeh add \sudocellsize 0.5 mul (F) \axoscale ptext
+	\axocolor  6.5 \sudocellsize mul \axoxo add 9.50 \sudocellsize mul \axoyo add
+		0 \fmode \fmodev add \fmodeh add \sudocellsize 0.5 mul (G) \axoscale ptext
+	\axocolor  7.5 \sudocellsize mul \axoxo add 9.50 \sudocellsize mul \axoyo add
+		0 \fmode \fmodev add \fmodeh add \sudocellsize 0.5 mul (H) \axoscale ptext
+	\axocolor  8.5 \sudocellsize mul \axoxo add 9.50 \sudocellsize mul \axoyo add
+		0 \fmode \fmodev add \fmodeh add \sudocellsize 0.5 mul (I) \axoscale ptext
+}}}
+}
+
+%
+\def\ColorCell(#1,#2)#3{
+%
+%	Colors the background of a cell in color #3
+%
+\def\fmodev{0 }
+\def\fmodeh{0 }
+\put(\axoxoff,\axoyoff){\makebox(0,0)[]{\special{"#3
+	#2 1 sub \sudocellsize mul \axoxo add
+	9 #1 sub \sudocellsize mul \axoyo add
+	#2 \sudocellsize mul \axoxo add
+	10 #1 sub \sudocellsize mul \axoyo add
+	\axowidth \axoscale cbox1 showpage}}}
+}
+\def\PutCell(#1,#2,#3){
+%
+%	Puts a number in a cell i,j. Note: i,j count 1,...,9. i=1 is at the top.
+%
+\def\fmodev{0 }
+\def\fmodeh{0 }
+\put(\axoxoff,\axoyoff){\makebox(0,0)[]{\special{"/\pfont findfont
+ \sudocellsize 0.8 mul scalefont setfont \axocolor
+ #2 0.5 sub \sudocellsize mul \axoxo add
+ 9.65 #1 sub \sudocellsize mul \axoyo add
+ 0 \fmode \fmodev add \fmodeh add \sudocellsize 0.8 mul (#3) \axoscale ptext }}}
+}
+%
+\def\PutAllow(#1,#2,#3){
+%
+%	For a registration of allowed numbers. Puts a small number in cell i,j
+%	The number is in a fixed position depending on its value:
+%		1 2 3
+%		4 5 6
+%		7 8 9
+%
+\def\fmodev{0 }
+\def\fmodeh{0 }
+\put(\axoxoff,\axoyoff){\makebox(0,0)[]{\special{"/\pfont findfont
+ \sudocellsize 0.3 mul scalefont setfont \axocolor
+ #2 1 sub #3 1 sub #3 2 sub 3.0 div round 3 mul sub 0.5 add 3.0 div add \sudocellsize mul \axoxo add
+ 9.05 #1 sub 8 #3 sub 3.0 div round 0.5 add 3.0 div add \sudocellsize mul \axoyo add
+ 0 \fmode \fmodev add \fmodeh add \sudocellsize 0.3 mul (#3) \axoscale ptext }}}
+}
+%
+\def\PutScratch(#1,#2,#3){
+%
+%	For a registration of allowed numbers. Puts a small number in cell i,j
+%	The number is in a fixed position depending on its value:
+%		1 2 3
+%		4 5 6
+%		7 8 9
+%	The number given is however crossed out. This is to guide the eye in
+%	seeing which numbers vanished.
+%
+\def\fmodev{0 }
+\def\fmodeh{0 }
+\put(\axoxoff,\axoyoff){\makebox(0,0)[]{\special{"/\pfont findfont
+ \sudocellsize 0.3 mul scalefont setfont \axocolor
+ #2 1 sub #3 1 sub #3 2 sub 3.0 div round 3 mul sub 0.5 add 3.0 div add \sudocellsize mul \axoxo add
+ 9.05 #1 sub 8 #3 sub 3.0 div round 0.5 add 3.0 div add \sudocellsize mul \axoyo add
+ 0 \fmode \fmodev add \fmodeh add \sudocellsize 0.3 mul (#3) \axoscale ptext}}}
+\put(\axoxoff,\axoyoff){\special{"\axocolor
+ #2 1 sub #3 1 sub #3 2 sub 3.0 div round 3 mul sub 0.5 add 3.0 div add \sudocellsize mul \axoxo add
+ 9. #1 sub 8 #3 sub 3.0 div round 0.5 add 3.0 div add \sudocellsize mul \axoyo add
+	\sudocellsize 8 div \axowidth 0.7 mul \axoscale cross showpage}}
+}
+%
+\def\PutSudoCirc(#1,#2,#3){
+%
+%	For a registration of allowed numbers. Puts a small number in cell i,j
+%	The number is in a fixed position depending on its value:
+%		1 2 3
+%		4 5 6
+%		7 8 9
+%	Around the number is however a little circle. This is to guide the eye in
+%	seeing which numbers vanished.
+%
+\def\fmodev{0 }
+\def\fmodeh{0 }
+\put(\axoxoff,\axoyoff){\makebox(0,0)[]{\special{"/\pfont findfont
+ \sudocellsize 0.3 mul scalefont setfont \axocolor
+ #2 1 sub #3 1 sub #3 2 sub 3.0 div round 3 mul sub 0.5 add 3.0 div add \sudocellsize mul \axoxo add
+ 9.05 #1 sub 8 #3 sub 3.0 div round 0.5 add 3.0 div add \sudocellsize mul \axoyo add
+ 0 \fmode \fmodev add \fmodeh add \sudocellsize 0.3 mul (#3) \axoscale ptext}}}
+\put(\axoxoff,\axoyoff){\special{"\axocolor
+ #2 1 sub #3 1 sub #3 2 sub 3.0 div round 3 mul sub 0.5 add 3.0 div add \sudocellsize mul \axoxo add
+ 9. #1 sub 8 #3 sub 3.0 div round 0.5 add 3.0 div add \sudocellsize mul \axoyo add
+	\sudocellsize 6 div \axowidth \axoscale ccirc2 showpage}}
+}
+%
+\def\PutSudoColor(#1,#2,#3)#4{
+%
+%	For a registration of allowed numbers. Puts a small number in cell i,j
+%	The number is in a fixed position depending on its value:
+%		1 2 3
+%		4 5 6
+%		7 8 9
+%	The number is in a colored little square
+%
+\def\fmodev{0 }
+\def\fmodeh{0 }
+\put(\axoxoff,\axoyoff){\special{"#4
+ #2 1 sub #3 1 sub #3 2 sub 3.0 div round 3 mul sub 0.5 add 3.0 div add \sudocellsize mul \axoxo add
+ 9. #1 sub 8 #3 sub 3.0 div round 0.5 add 3.0 div add \sudocellsize mul \axoyo add
+	\sudocellsize 6 div \axowidth \axoscale cbox3 showpage}}
+\put(\axoxoff,\axoyoff){\makebox(0,0)[]{\special{"/\pfont findfont
+ \sudocellsize 0.3 mul scalefont setfont \axocolor
+ #2 1 sub #3 1 sub #3 2 sub 3.0 div round 3 mul sub 0.5 add 3.0 div add \sudocellsize mul \axoxo add
+ 9.05 #1 sub 8 #3 sub 3.0 div round 0.5 add 3.0 div add \sudocellsize mul \axoyo add
+ 0 \fmode \fmodev add \fmodeh add \sudocellsize 0.3 mul (#3) \axoscale ptext}}}
+}
+%
+%		#] LaTeX :
 

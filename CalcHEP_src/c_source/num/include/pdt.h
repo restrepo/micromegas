@@ -77,4 +77,6 @@ extern double interAlpha(double q, pdtStr * W );
                      
 extern int checkPartons( int * pNum, pdtList * L);                     
 
+
+extern double int_cteq6(double x, double q, pdtStr * W);
 #endif

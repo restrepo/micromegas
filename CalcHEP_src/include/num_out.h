@@ -7,6 +7,8 @@
 
 #include"nType.h"
 
+#define maxNp 20
+
 extern  int    FError;
 
 extern const int nin_ext;
@@ -19,7 +21,7 @@ extern char * pinf_ext(int nsub,int nprtcl,REAL* pmass,int*num);
 extern int   pinfAux_ext(int nsub, int nprtcl,int *spin2, int* color,int*neutral);
 extern char * varName_ext[];
 
-extern double sqme_ext(int nsub,double GG, REAL * momenta, int * err);
+extern double sqme_ext(int nsub,double GG, REAL * momenta, REAL*cb_coeff,int * err);
 extern int calcFunc_ext(void);
 extern double BWrange_ext;
 extern int twidth_ext, gtwidth_ext, gswidth_ext;
@@ -27,12 +29,12 @@ extern double (*aWidth_ext)(char *);
 extern REAL va_ext[];
 
 extern  char * den_info_ext(int nsub, int n, int * mass, int * width);
-extern void build_cb_ext(int nsub); 
-extern void destroy_cb_ext(void);    
-extern int cb_pow_ext;   
-extern int cb_nc_ext; 
-extern int * cb_chains_ext;
-extern REAL * cb_coeff_ext;
+
+
+typedef  struct  { int pow; int nC; int * chains;} colorBasis;
+
+extern colorBasis cb_ext[];  
+
 extern double (*aWidth_ext)(char *);
 
 #ifndef  __CALCHEP_INTERFACE__
@@ -61,16 +63,10 @@ typedef struct CalcHEP_interface
   int *   gswidth;
   double (**aWidth)(char *);
 
-  double (*sqme)(int,double,REAL*,int*);
+  double (*sqme)(int,double,REAL*,REAL*,int*);
 
   char * (*den_info)(int, int, int *, int*);
-  void (*build_cb)(int);
-
-  int *cb_pow;
-  int *cb_nc;
-  int **cb_chains;
-  REAL ** cb_coeff;
-  void (*destroy_cb)(void);  
+  colorBasis *cb;  
 } CalcHEP_interface;
 
 extern int    jobInit(CalcHEP_interface * interface);

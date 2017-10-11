@@ -76,7 +76,7 @@ static double qSplineCteq6(double x,double *xa, double *ya)
   return res;
 }
 
-static double int_cteq6(double x, double q, pdtStr * W)
+double int_cteq6(double x, double q, pdtStr * W)
 {
   double x3=pow(x,0.3);
   double loglogQ=log(log(q/W->Q0_cteq));
@@ -278,7 +278,7 @@ double interAlpha(double q, pdtStr * W )
 
 
 void freePdtData( pdtStr * data)
-{
+{ if(!data)return;
   if(data->x_grid)     {free(data->x_grid);      data->x_grid=NULL;     }
   if(data->q_grid)     {free(data->q_grid);      data->q_grid=NULL;     }
   if(data->alpha)      {free(data->alpha);       data->alpha =NULL;     }
@@ -297,7 +297,7 @@ int getPdtData(char * file, int n_parton, pdtStr * data )
   int  nx=0,nq=1;  
   FILE *f=fopen(file,"r"); 
   int errNo=0;
-  
+
   if(!f) return -1;
   
   data->nq=0;

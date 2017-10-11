@@ -1,0 +1,239 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>tools.asciiGraph &mdash; SModelS 1.0.3 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="SModelS 1.0.3 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SModelS 1.0.3 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for tools.asciiGraph</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: tools.asciiGraph</span>
+<span class="sd">   :synopsis: Contains a simple routine to draw ASCII-art Feynman-like graphs.</span>
+
+<span class="sd">.. moduleauthor:: Wolfgang Waltenberger &lt;wolfgang.waltenberger@gmail.com&gt;</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">types</span>
+<span class="kn">from</span> <span class="nn">smodels</span> <span class="kn">import</span> <span class="n">installation</span>
+<span class="kn">from</span> <span class="nn">smodels.theory</span> <span class="kn">import</span> <span class="n">lheReader</span>
+<span class="kn">from</span> <span class="nn">smodels.theory</span> <span class="kn">import</span> <span class="n">lheDecomposer</span>
+<span class="kn">from</span> <span class="nn">smodels.theory</span> <span class="kn">import</span> <span class="n">crossSection</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_printParticle</span><span class="p">(</span><span class="n">label</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Rename particles for the asciidraw routine.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="s">&quot;jet&quot;</span><span class="p">:</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="s">&quot;q&quot;</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="n">label</span> <span class="o">+</span> <span class="s">&quot;     &quot;</span>
+    <span class="k">return</span> <span class="n">label</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">_drawBranch</span><span class="p">(</span><span class="n">branch</span><span class="p">,</span> <span class="n">upwards</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">htmlFormat</span><span class="p">,</span> <span class="n">border</span><span class="p">,</span> <span class="n">l</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Draw a single branch.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ret</span><span class="o">=</span><span class="s">&quot;&quot;</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;   &quot;</span><span class="p">,</span> <span class="s">&quot;----&quot;</span><span class="p">]</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="s">&quot;   &quot;</span>
+    <span class="k">if</span> <span class="n">border</span> <span class="ow">and</span> <span class="n">upwards</span><span class="p">:</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot; |    &quot;</span><span class="p">,</span> <span class="s">&quot; | ----&quot;</span><span class="p">]</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="s">&quot; |    &quot;</span>
+    <span class="k">if</span> <span class="n">border</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">upwards</span><span class="p">:</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot; |    &quot;</span><span class="p">,</span> <span class="s">&quot; | ----&quot;</span><span class="p">]</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="s">&quot; |    &quot;</span>
+
+    <span class="k">for</span> <span class="n">insertions</span> <span class="ow">in</span> <span class="n">branch</span><span class="o">.</span><span class="n">particles</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">insertions</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="s">&quot; &quot;</span>
+            <span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="s">&quot;*&quot;</span>
+            <span class="k">continue</span>
+        <span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="s">&quot;*----&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">insertions</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">labels</span> <span class="o">+=</span> <span class="s">&quot; &quot;</span> <span class="o">+</span> <span class="n">_printParticle</span><span class="p">(</span><span class="n">insertions</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="s">&quot;  &quot;</span>
+            <span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="s">&quot; |   &quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">insertions</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">labels</span> <span class="o">+=</span> <span class="n">_printParticle</span><span class="p">(</span><span class="n">insertions</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="s">&quot; &quot;</span> <span class="o">+</span> \
+                    <span class="n">_printParticle</span><span class="p">(</span><span class="n">insertions</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">upwards</span><span class="p">:</span>
+                <span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="se">\\</span><span class="s"> /  &quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="s">&quot;/ </span><span class="se">\\</span><span class="s">  &quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">insertions</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;n &gt; 3 for n-body decay not yet implemented.&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">order</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">upwards</span><span class="p">:</span>
+        <span class="n">order</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">html</span> <span class="o">=</span> <span class="s">&quot;&lt;br&gt;&quot;</span>
+    <span class="n">lengthdiff</span> <span class="o">=</span> <span class="n">l</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mi">5</span>
+    <span class="k">if</span> <span class="n">border</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">l</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="s">&quot; &quot;</span>
+            <span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="s">&quot; &quot;</span>
+            <span class="n">labels</span> <span class="o">+=</span> <span class="s">&quot; &quot;</span>
+        <span class="n">labels</span> <span class="o">+=</span> <span class="s">&quot; &quot;</span> <span class="o">+</span> <span class="s">&quot; &quot;</span><span class="o">*</span><span class="p">(</span><span class="mi">5</span> <span class="o">*</span> <span class="n">lengthdiff</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot; |&quot;</span>
+        <span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="s">&quot; &quot;</span><span class="o">*</span><span class="p">(</span><span class="mi">5</span> <span class="o">*</span> <span class="n">lengthdiff</span> <span class="o">+</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;  |&quot;</span>
+        <span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="s">&quot; &quot;</span><span class="o">*</span><span class="p">(</span><span class="mi">5</span> <span class="o">*</span> <span class="n">lengthdiff</span> <span class="o">+</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot; |&quot;</span>
+    <span class="k">if</span> <span class="n">border</span> <span class="ow">and</span> <span class="n">upwards</span><span class="p">:</span>
+        <span class="n">ret</span><span class="o">+=</span><span class="s">&quot; /&quot;</span> <span class="o">+</span> <span class="s">&quot;-&quot;</span><span class="o">*</span><span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">l</span> <span class="o">+</span> <span class="mi">4</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;</span><span class="se">\\\n</span><span class="s">&quot;</span>
+    <span class="k">if</span> <span class="n">htmlFormat</span><span class="p">:</span>
+        <span class="n">ret</span><span class="o">+=</span><span class="n">html</span><span class="o">+</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+    <span class="k">if</span> <span class="n">upwards</span> <span class="ow">and</span> <span class="n">labels</span><span class="p">:</span>
+        <span class="n">ret</span><span class="o">+=</span><span class="n">labels</span><span class="o">+</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+    <span class="k">if</span> <span class="n">htmlFormat</span><span class="p">:</span>
+        <span class="n">ret</span><span class="o">+=</span><span class="n">html</span><span class="o">+</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">order</span><span class="p">:</span>
+        <span class="n">ret</span><span class="o">+=</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+    <span class="k">if</span> <span class="n">htmlFormat</span><span class="p">:</span>
+        <span class="n">ret</span><span class="o">+=</span><span class="n">html</span><span class="o">+</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">upwards</span> <span class="ow">and</span> <span class="n">labels</span><span class="p">:</span>
+        <span class="n">ret</span><span class="o">+=</span><span class="n">labels</span><span class="o">+</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+    <span class="k">if</span> <span class="n">htmlFormat</span><span class="p">:</span>
+        <span class="n">ret</span><span class="o">+=</span><span class="n">html</span><span class="o">+</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+    <span class="k">if</span> <span class="n">border</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">upwards</span><span class="p">:</span>
+        <span class="n">ret</span><span class="o">+=</span><span class="s">&quot; </span><span class="se">\\</span><span class="s">&quot;</span> <span class="o">+</span> <span class="s">&quot;-&quot;</span><span class="o">*</span><span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">l</span> <span class="o">+</span> <span class="mi">4</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;/</span><span class="se">\n</span><span class="s">&quot;</span>
+    <span class="k">return</span> <span class="n">ret</span>
+
+
+<div class="viewcode-block" id="asciidraw"><a class="viewcode-back" href="../../tools.html#tools.asciiGraph.asciidraw">[docs]</a><span class="k">def</span> <span class="nf">asciidraw</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">html</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">border</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Draw a simple ASCII graph on the screen.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ret</span><span class="o">=</span><span class="s">&quot;&quot;</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">ct</span><span class="p">,</span> <span class="n">branch</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">branches</span><span class="p">):</span>
+        <span class="n">l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">branch</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&quot;[&quot;</span><span class="p">)))</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">ct</span><span class="p">,</span> <span class="n">branch</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">branches</span><span class="p">):</span>
+        <span class="n">ret</span><span class="o">+=</span><span class="n">_drawBranch</span><span class="p">(</span><span class="n">branch</span><span class="p">,</span> <span class="n">upwards</span><span class="o">=</span><span class="p">(</span><span class="n">ct</span> <span class="o">==</span> <span class="mi">0</span><span class="p">),</span> <span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span> <span class="n">htmlFormat</span><span class="o">=</span><span class="n">html</span><span class="p">,</span>
+                    <span class="n">border</span><span class="o">=</span><span class="n">border</span><span class="p">,</span> <span class="n">l</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">l</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">ret</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">argparser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&quot;simple tool that is &quot;</span>
+                                        <span class="s">&quot;meant to draw lessagraphs, as an &quot;</span>
+                                        <span class="s">&quot;ascii plot&quot;</span><span class="p">)</span>
+    <span class="n">argparser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">&#39;-T&#39;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s">&#39;?&#39;</span><span class="p">,</span>
+                           <span class="n">help</span><span class="o">=</span><span class="s">&quot;Tx name, will look up lhe file in &quot;</span>
+                           <span class="s">&quot;../regression/Tx_1.lhe. Will be overriden by the &quot;</span>
+                           <span class="s">&quot;&#39;--lhe&#39; argument&quot;</span><span class="p">,</span>
+                           <span class="nb">type</span><span class="o">=</span><span class="n">types</span><span class="o">.</span><span class="n">StringType</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;T1&#39;</span><span class="p">)</span>
+    <span class="n">argparser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">&#39;-l&#39;</span><span class="p">,</span> <span class="s">&#39;--lhe&#39;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s">&#39;?&#39;</span><span class="p">,</span>
+                           <span class="n">help</span><span class="o">=</span><span class="s">&quot;LHE file name, supplied directly. Takes &quot;</span>
+                           <span class="s">&quot;precedence over &#39;-T&#39; argument.&quot;</span><span class="p">,</span>
+                           <span class="nb">type</span><span class="o">=</span><span class="n">types</span><span class="o">.</span><span class="n">StringType</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">argparser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">&#39;-b&#39;</span><span class="p">,</span> <span class="s">&#39;--border&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s">&#39;store_true&#39;</span><span class="p">,</span>
+                           <span class="n">help</span><span class="o">=</span><span class="s">&quot;draw a border around the graph&quot;</span><span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">argparser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">installation</span><span class="o">.</span><span class="n">installDirectory</span><span class="p">(),</span> <span class="s">&quot;inputFiles/lhe/&quot;</span><span class="p">)</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="s">&quot;_1.lhe&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">lhe</span> <span class="o">!=</span> <span class="s">&quot;&quot;</span><span class="p">:</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">lhe</span>
+
+    <span class="n">reader</span> <span class="o">=</span> <span class="n">lheReader</span><span class="o">.</span><span class="n">LheReader</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="n">event</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+    <span class="n">element</span> <span class="o">=</span> <span class="n">lheDecomposer</span><span class="o">.</span><span class="n">elementFromEvent</span><span class="p">(</span><span class="n">event</span><span class="p">,</span>
+                                             <span class="n">crossSection</span><span class="o">.</span><span class="n">XSectionList</span><span class="p">())</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">asciidraw</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">border</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">border</span><span class="p">)</span> <span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SModelS 1.0.3 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Sabine Kraml, Suchita Kulkarni, Ursula Laa, Andre Lessa, Veronika Magerl, Wolfgang Magerl, Doris Proschofsky, Michael Traub, Wolfgang Waltenberger.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

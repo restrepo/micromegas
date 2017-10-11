@@ -94,8 +94,7 @@ int scandir_( char * dirname, int len)
       Finfo=initEventFile(fullName);
       if(!Finfo) continue;
       if(Finfo->Nin==2) 
-      { double lum=Finfo->nEvents/Finfo->cs;
-
+      {
         if(All)
         { for(i=0;i<2;i++) 
           if( All->inMom[i]!=Finfo->inMom[i] ||
@@ -286,7 +285,7 @@ static int momImproveS(int NP, double*p, int * stat,int*mothers,double m1, int i
 {
   int i,k,err;
   double q[3]={0,0,0},n0[3]={0,0,0},n1[3]={0,0,0};
-  double pp,pcm,pcm_,sh_x2,M,E,E1,E2,m2,shY0;
+  double pp,pcm,pcm_,sh_x2,M,E,E2,m2,shY0;
   int inv[MAXNUP];
   
   if(mothers[2*i1]<3 || mothers[2*i1+1]<3) for(i=0;i<NP;i++) inv[i]=1; else 
@@ -413,10 +412,11 @@ static int upEvent0(void)
   return 0;
 }
 
+static int sgn(int x) { if(x<0) return 0; else if(x>0) return 1; else return 0;}
 
 static int upEvent1(void)
 {
-   int i,I,j,N, CC,Nmom,w, clr1[10],clr2[10];
+   int i,I,j,N, CC=500,Nmom,w, ch_clr[100];
    double cs, mom[32], Q,alphaQCD;
    eventfile_info * Finfo;
 
@@ -434,9 +434,9 @@ static int upEvent1(void)
       E_.IDUP[I] =Finfo->PIDs[I];
       E_.SPINUP[I]=9;
       E_.VTIMUP[I]=0;
-      for(j=0;j<2;j++) E_.ICOLUP[I][j]=0;
    }
-   if(readEvent(Finfo,&Nmom, mom, clr1, clr2, &Q,&alphaQCD, &w)){ E_.NUP=0; return 0 ;}
+   if(readEvent(Finfo,&Nmom, mom, ch_clr, &Q,&alphaQCD, &w)){ E_.NUP=0; return 0 ;}
+   
    E_.SCALUP=Q;
    E_.AQCDUP=alphaQCD;
    for(I=0;I<2;I++)
@@ -453,11 +453,7 @@ static int upEvent1(void)
 
    for(I=0;I<N;I++) E_.PUP[I][3]=Ep(E_.PUP[I]);
 
-   for(i=0,CC=500;clr1[i];i++,CC++)
-   { int k1=clr1[i]-1,k2=clr2[i]-1; 
-     if(k1<2) E_.ICOLUP[k1][0]=CC; else E_.ICOLUP[k1][1]=CC;
-     if(k2<2) E_.ICOLUP[k2][1]=CC; else E_.ICOLUP[k2][0]=CC;
-   }
+   ch2pythColors(&CC,Finfo->Nin,Finfo->Nout, ch_clr,&(E_.ICOLUP[0][0]));
    
    for(I=2;I<E_.NUP;I++) if(E_.ISTUP[I]==1)
    { decay_info *D;
@@ -468,6 +464,7 @@ static int upEvent1(void)
        int k,err;
        int shift=E_.NUP-1;
        double MYPUP[MAXNUP-1][5];
+       int buff[100];
 
      
        width=D->totWidth*drandBuff();
@@ -482,7 +479,7 @@ static int upEvent1(void)
          width-=Finfo->cs;   
          if(Finfo->next) Finfo=Finfo->next;
        }
-       readEvent(Finfo,&Nmom, mom, clr1, clr2, &Q,&alphaQCD, &w);
+       readEvent(Finfo,&Nmom, mom, ch_clr, &Q,&alphaQCD, &w);
        E_.VTIMUP[I]=-1.973E-13/(D->totWidth)*log(drand48());
        
        for(i=0; i< E_.NUP;i++) for(j=0;j<5;j++) MYPUP[i][j]=E_.PUP[i][j];
@@ -528,17 +525,51 @@ static int upEvent1(void)
               
        for(k=1;k<=Finfo->Nout;k++) boost(E_.PUP[shift+k],shY,b);
        
-      
-       for(i=0;clr1[i];i++)
-       { int k1=clr1[i]-1, k2=clr2[i]-1;
-         if(k1 && k2) 
-         { E_.ICOLUP[k1+shift][1]=++CC;
-           E_.ICOLUP[k2+shift][0]=CC;
-         } else if(k1)  E_.ICOLUP[k1+shift][1]=E_.ICOLUP[I][1];
-         else   if(k2)  E_.ICOLUP[k2+shift][0]=E_.ICOLUP[I][0];                      
-                      
-       }
+       ch2pythColors(&CC,Finfo->Nin,Finfo->Nout, ch_clr,buff);
        
+       for(i=0;i<2;i++) if(buff[i])
+       { int k,j,m;
+         int l[2],r[2];
+         if(abs(buff[i])%4==0) /* no right  333 vert */
+         {  for(k=2;k<2*(1+Finfo->Nout);k++) if(abs(buff[k])== abs(buff[i])) 
+             buff[k]=abs(E_.ICOLUP[I][i])*sgn(buff[k]);
+         } else  if(abs(E_.ICOLUP[I][i])%4==0) /* no left  333 vert */
+         {  m=abs(E_.ICOLUP[I][i]);
+            for(k=0;k<E_.NUP;k++) for(j=0;j<2;j++) if(abs(E_.ICOLUP[k][j])==m) 
+               E_.ICOLUP[k][j]=abs(buff[i])*sgn(E_.ICOLUP[k][j]);
+         }
+#ifdef DEL            
+         else  /* remove both 333 */
+         {  int l[2],r[2];
+            for(m=0,j=1;m<2;m++,j++)
+            { l[m]= 4*(abs(E_.ICOLUP[I][i])/4)+j;
+              if(l[m]== abs(E_.ICOLUP[I][i])){j++; l[m]++;} 
+            } 
+            for(m=0,j=1;m<2;m++,j++)
+            { r[m]= 4*(abs(buff[i])/4)+j;
+              if(r[m]== abs(buff[i])) {j++; r[m]++;} 
+            }
+            if(drand48()>0.5) { int c=r[0];r[0]=r[1];r[1]=c;}
+            
+            for(m=0; m<2; m++,CC+=4)
+            { 
+              int c=abs(E_.ICOLUP[I][i]);
+              for(k=0;k<E_.NUP;k++) for(j=0;j<2;j++) 
+              { if(abs(E_.ICOLUP[k][j])==l[m])
+                             E_.ICOLUP[k][j]=CC*sgn(E_.ICOLUP[k][j]);
+                if(m==0 && abs(E_.ICOLUP[k][j])==c) 
+                             E_.ICOLUP[k][j]=CC*sgn(E_.ICOLUP[k][j]);
+              }                
+              for(k=2;k<2*(1+Finfo->Nout);k++) if(abs(buff[k])== r[m])
+                           buff[k]=CC*sgn(buff[k]);              
+            } 
+            
+         }
+#endif                
+       }  
+                 
+       for(i=1;i<=Finfo->Nout;i++)for(j=0;j<2;j++) E_.ICOLUP[i+shift][j]=buff[2*i+j]; 
+              
        E_.NUP+=Finfo->Nout;
        
        break;

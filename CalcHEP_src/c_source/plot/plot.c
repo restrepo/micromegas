@@ -77,21 +77,21 @@ static long  chpround(double  x)
    return (long)x;
 }
 
-static void  gminmax(double *f ,double * df,int dim)
+static void  gminmax(double *f ,double * df,int dim, double *ymin,double*ymax)
 {
    int i;
    if (dim==0) return;
 
-   grafminmax.ymin=f[0];
-   grafminmax.ymax=f[0];
-   if(df) { grafminmax.ymax += df[0]; grafminmax.ymin -= df[0];}
+   *ymin=f[0];
+   *ymax=f[0];
+   if(df) { *ymax += df[0]; *ymin -= df[0];}
  
    if(df) for(i=1;i<dim;i++)
-   { grafminmax.ymin=MIN(grafminmax.ymin, f[i]-df[i]); 
-     grafminmax.ymax=MAX(grafminmax.ymax, f[i]+df[i]);
+   { *ymin=MIN(*ymin, f[i]-df[i]); 
+     *ymax=MAX(*ymax, f[i]+df[i]);
    } else for(i=1;i<dim;i++)
-   { grafminmax.ymin=MIN(grafminmax.ymin, f[i]); 
-     grafminmax.ymax=MAX(grafminmax.ymax, f[i]);
+   { *ymin=MIN(*ymin, f[i]); 
+     *ymax=MAX(*ymax, f[i]);
    } 
 }
 
@@ -159,10 +159,17 @@ static void doubleToStr(double x,double step,char * s)
    }   
 }    
 
+static int colList[]={Black,Blue, Green,Cyan,Red, Magenta,Brown,LightGray,
+                 DarkGray, LightBlue, LightGreen,LightCyan,
+                 LightRed, LightMagenta, Yellow, White}; 
+static char*colListTxt[]={"Black","Blue", "Green","Cyan","Red", "Magenta","Brown","LightGray",
+                 "DarkGray", "LightBlue", "LightGreen","LightCyan",
+                                  "LightRed", "LightMagenta", "Yellow", "White"};
 
-static void  gaxes(char* upstr, char* xstr, char* ystr)
+
+static void  gaxes(char* upstr, char* xstr, int N, char**Y)
 {double  xmax,xmin,ymax,ymin,aa,step; 
- int     m,naxis,islog,n_sub;
+ int     m,naxis,islog,n_sub,i;
 
  int th = tg_textheight("0");
  int tw = tg_textwidth("0");
@@ -280,14 +287,32 @@ static void  gaxes(char* upstr, char* xstr, char* ystr)
      {  tg_settextjustify(RightText,TopText); 
         tg_outtextxy(X2,Y1 + hash + th ,xstr);
      }else
-     if(texflag)
+/*     if(texflag)
      {
-       f_printf(out_tex,"\\rText(%.1lf,%.1lf)[tr][l]{%s}\n",
-       texX(X1-len-3*hash/2) ,texY(Y2),ystr); 
+         
+        f_printf(out_tex,"\\rText(%.1lf,%.1lf)[tr][l]{%s}\n",
+        texX(X1-len-3*hash/2) ,texY(Y2),Y[0]); 
      
-     }else     
+     }else
+*/          
      {  tg_settextjustify(LeftText,CenterText);
-        tg_outtextxy(X1,2*th ,ystr);     
+        goto_xy(10,2);
+        for(i=0;i<N;i++) 
+        {  if(texflag) 
+           { fprintf(out_tex,"\\SetColor{%s}\n",colListTxt[i]);
+             f_printf(out_tex,"\\Text(%.1lf,%.1lf)[rb]{%s}\n",
+             texX(X1) ,texY(Y2-i*hash),Y[i]);
+             fprintf(out_tex,"\\Line(%.1lf,%.1lf)(%.1lf,%.1lf)\n",
+             texX(X1+hash ),
+             texY(Y2-i*hash),   texX(X1 +6*hash), texY(Y2-i*hash));
+              
+           }  
+            else  
+          {  scrcolor(colList[i],bkcolor);
+             print("%s; ",Y[i]);
+          } 
+        }      
+//        tg_outtextxy(X1,2*th ,ystr);  
      }
    }
    if(texflag) f_printf(out_tex,"%% ============== end of axis ============\n");  
@@ -298,14 +323,14 @@ static void  gaxes(char* upstr, char* xstr, char* ystr)
 static void plot_curve(double xMin,double xMax,int dim, double *f)
 {  double   x,y,xx,yy;
    int i;
-   double step=(xMax-xMin)/(dim-1);
+   double step=(xMax-xMin)/dim;
    double ymax = dscy(grafminmax.ymin);
    double ymin = dscy(grafminmax.ymax);
           
    for(i=1;i<dim;i++)
    {
-      x =dscx(xMin+ (i-1)*step);
-      xx=dscx(xMin+i*step); 
+      x =dscx(xMin+(i-0.5)*step);
+      xx=dscx(xMin+(i+0.5)*step); 
       y =dscy(f[i-1]);
       yy=dscy(f[i]);
       
@@ -339,7 +364,6 @@ static void plot_hist(double xMin,double xMax,int dim, double *f,double *df)
      y =dscy(f[i]);
      if(y<ymax && y>ymin) tg_line((int)dscx(xMin+i*step),  (int)y,
                                     (int)dscx(xMin+(i+1)*step),(int)y);
-        
      y =MIN(dscy(f[i]-df[i]),ymax);
      yy=MAX(dscy(f[i]+df[i]),ymin);
      x=(dscx(xMin+i*step)+dscx(xMin+(i+1)*step))/2;
@@ -349,72 +373,135 @@ static void plot_hist(double xMin,double xMax,int dim, double *f,double *df)
 
 
 
-static void  writetable1(double xMin, double xMax, int dim, double * f, 
-double *df, char*  upstr,  char*  x_str, char*  y_str)
+static void  writetable1(double xMin,double xMax,int dim,char*x_str,char*upstr, 
+ int N, double**f,double**df,char**Y)  
 {  char       filename[100], buff[STRSIZ],command[100];
    FILE *     outfile;
-   int        i;
+   int        i,k;
    int ID;
+   
+   double dx=xMax-xMin;
+   double x1=xMin+0.35*dx, x2=xMin+0.43*dx, x3=xMin+0.45*dx;
+   double ymin=grafminmax.ymin, ymax=grafminmax.ymax, dy=ymax-ymin, yl;
+   int ilab=0;
+   double step=(xMax-xMin)/dim;
    nextFileName(filename,"plot_",".txt");
-   for(i=strlen(filename)-1; i>0 && filename[i]!='_' ;i--);
-   if(i==0 || 1!=sscanf(filename+i+1,"%d",&ID)) ID=0;   
-//printf("filename=%s ID=%d\n", filename,ID);   
+   for(i=strlen(filename); filename[i]!='_';i--) continue;
+   
+   sscanf(filename+i+1,"%d",&ID);  
    outfile=fopen(filename,"w");
-   if(df) fprintf(outfile,"#type 1  %%1d-histogram\n");
-   else   fprintf(outfile,"#type 0  %%curve\n");
    fprintf(outfile,"#title %s\n",upstr);
+   fprintf(outfile,"#yName ");
+   for(k=0;k<N;k++)
+   {  fprintf(outfile,"%s",Y[k]);
+      if(df[k])  fprintf(outfile,"{h}"); else fprintf(outfile,"{c} ");
+   } 
+   fprintf(outfile,"\n");
    fprintf(outfile,"#xName %s\n",x_str);
    fprintf(outfile,"#xMin %E\n",xMin);
    fprintf(outfile,"#xMax %E\n",xMax);
    fprintf(outfile,"#xDim %d\n",dim);
-   fprintf(outfile,"#yName %s\n",y_str);
 
    fprintf(outfile,"#--- GNUPLOT section ---\n");
-   fprintf(outfile,"#GNUPLOT set key off\n");
+//   fprintf(outfile,"#GNUPLOT set key off\n");
    fprintf(outfile,"#GNUPLOT set title  '%s'\n",upstr);
    fprintf(outfile,"#GNUPLOT set xlabel '%s'\n",x_str);
-   fprintf(outfile,"#GNUPLOT set ylabel '%s'\n",y_str);
+   fprintf(outfile,"#GNUPLOT plot[%G:%G] ",xMin,xMax);
    
-   if(df==NULL)fprintf(outfile,"#GNUPLOT "
-       "plot[%G:%G] '%s' using (%G +$0*%G):1 w l\n",
-                 xMin,xMax,filename,xMin,(xMax-xMin)/(dim-1));
-   else        fprintf(outfile,"#GNUPLOT "
-       "plot[%G:%G] '%s' using (%G +$0*%G):1:2  w error\n",
-         xMin,xMax,filename,xMin,(xMax-xMin)/dim);
+   for(i=1,k=0;k<N;k++,i++)
+   { 
+   if(df[k]==NULL)fprintf(outfile,
+       "'%s' using (%G +$0*%G):%d w l ti '%s'",
+                 filename,xMin+0.5*step,step,i,Y[k]);
+   else {        fprintf(outfile,
+       "'%s' using (%G +$0*%G):%d:%d  w error ti '%s'",
+                 filename,xMin,step,i,i+1,Y[k]);
+         i++;
+        }         
+   if(k<N-1) fprintf(outfile,", ");else fprintf(outfile,"\n");               
+   }      
+         
    fprintf(outfile,"#--- PAW section ---\n");
-   if(df==NULL)
-   { fprintf(outfile,"#PAW  TITLE '%s'\n",upstr);
-     fprintf(outfile,"#PAW  vector/Create X%d(%d)  \n",ID,dim);
-     fprintf(outfile,"#PAW  sigma X%d=ARRAY(%d,%G#%G)\n",ID,dim,xMin,xMax);
-     fprintf(outfile,"#PAW  vector/Create Y%d(%d)\n",ID,dim);
-     fprintf(outfile,"#PAW  vector/Read Y%d '%s' ' ' 'OC' '-/#/'\n",ID,filename);
-     fprintf(outfile,"#PAW  GRAPH %d X%d Y%d\n",dim,ID,ID);
-   }else 
-   {
-    fprintf(outfile,"#PAW   histogram/create/1dhisto %d '%s' %d %G %G\n",
-                         ID,upstr,dim,xMin,xMax);
-    fprintf(outfile,"#PAW  vector/Create  Y%d(%d)\n",ID,dim);
-    fprintf(outfile,"#PAW  vector/Create dY%d(%d)\n",ID,dim);
-    fprintf(outfile,"#PAW  vector/Read Y%d,dY%d '%s' ' ' 'OC' '-/#/' \n",ID,ID,filename);                      
-    fprintf(outfile,"#PAW  histogram/put/contents %d Y%d\n",ID,ID);
-    fprintf(outfile,"#PAW  histogram/put/errors   %d dY%d\n",ID,ID);   
-    fprintf(outfile,"#PAW  histogram/plot %d\n",ID);
-    fprintf(outfile,"#PAW  atitle  '%s' '%s' \n",x_str,y_str);
-   }
-   fprintf(outfile,"#---   starting of data ---\n");
-   
-   if(df)
-   { fprintf(outfile,"#--- F ---    --- dF ---\n");
-     for(i=0;i<dim;i++) fprintf(outfile,"%-12E  %-12E\n",f[i],df[i]); 
-   }  
-   else 
-   { fprintf(outfile,"#--- F ---\n");
-     for(i=0;i<dim;i++) fprintf(outfile,"%-12E\n",f[i]);
+   fprintf(outfile,"#PAW  TITLE '%s'\n",upstr);
+   fprintf(outfile,"#PAW  vector/Create XX(%d)  \n",dim);
+   fprintf(outfile,"#PAW  sigma XX=ARRAY(%d,%G#%G)\n",dim,xMin+0.5*step,xMax-0.5*step);
+   sprintf(buff,"");
+
+   for(k=0;k<N;k++)
+   {  
+     fprintf(outfile,"#PAW  vector/Create Y%d(%d)\n",k+1,dim);
+     if(df[k])fprintf(outfile,"#PAW  vector/Create dY%d(%d)\n",k+1,dim);  
    }
 
+   fprintf(outfile,"#PAW vector/Read ");
+   for(k=0;k<N;k++)
+   { if(k) fprintf(outfile,",");
+     fprintf(outfile,"Y%d",k+1);   
+     if(df[k]) fprintf(outfile,",dY%d",k+1);  
+   }   
+   fprintf(outfile," '%s' ' ' 'OC' '-/#/' \n",filename); 
+   fprintf(outfile,"#PAW 1d 10 ! 1 %G %G;  min 10 %G; max 10 %G\n",
+              xMin,xMax,grafminmax.ymin*0.9,grafminmax.ymax*1.1);
+   fprintf(outfile,"#PAW his/plo 10\n"); 
+   
+   fprintf(outfile,"#PAW set chhe 0.3; set lwidt 5; set hwidt 5 10\n"); 
+  
+   for(k=0;k<N;k++)
+     {  
+     fprintf(outfile,"#PAW * %s\n",Y[k]);
+     fprintf(outfile,"#PAW  set dmod %d\n",k+1);   
+
+     ilab=ilab+1;
+     fprintf(outfile,"#PAW  set plci %i ; set txci %i  \n",ilab,ilab);
+     
+     yl=ymax*1.1-0.05*ilab*dy;
+     
+     fprintf(outfile,"#PAW  dline %G %G %G %G ; itx %G %G '%s' \n",
+     x1,x2, yl, yl, x3, yl, Y[k]);
+ 
+     if(df[k]==NULL)
+     { 
+        fprintf(outfile,"#PAW  GRAPH %d XX Y%d l \n",dim,k+1);
+     }else 
+     {
+       fprintf(outfile,"#PAW   histogram/create/1dhisto %d '%s' %d %G %G\n",
+                         k+1,upstr,dim,xMin,xMax);                
+       fprintf(outfile,"#PAW  histogram/put/contents %d Y%d\n",k+1,k+1);
+       fprintf(outfile,"#PAW  histogram/put/errors   %d dY%d\n",k+1,k+1);   
+       fprintf(outfile,"#PAW  histogram/plot %d  s\n",k+1);
+
+
+//       fprintf(outfile,"#PAW  atitle  '%s' '%s' \n",x_str,y_str);
+     }
+   }       
+       fprintf(outfile,"#PAW  set txci 1 \n" );
+       fprintf(outfile,"#PAW  atitle  '%s'\n",x_str);
+        
+       
+   fprintf(outfile,"#---   starting of data ---\n#");
+   for(k=0;k<N;k++) 
+   {  fprintf(outfile,"  %-12.12s",Y[k]);
+      if(df[k])
+      { char txt[100];
+        sprintf(txt,"d(%s)",Y[k]);
+        fprintf(outfile,"  %-12.12s",txt);
+      }
+   }
+   
+   fprintf(outfile,"\n");        
+   for(i=0;i<dim;i++)
+   { for(k=0;k<N;k++)  
+     { fprintf(outfile,"%-12E  ",f[k][i]);
+       if(df[k]) fprintf(outfile,"  %-12E",df[k][i]);
+     } 
+     fprintf(outfile,"\n");
+   }
    fclose(outfile);
    sprintf(buff," You can find results in the file\n%s",filename);
    messanykey(10,12,buff);
+
+//printf("    ID=%d\n", ID);
+   
    sprintf(command,"grep \\#PAW plot_%d.txt |sed s/#PAW// > plot_%d.kumac",ID,ID);
    system(command);
    sprintf(command,"grep \\#GNUPLOT plot_%d.txt |sed s/#GNUPLOT// > plot_%d.gnu",ID,ID);
@@ -614,28 +701,28 @@ double * f, double *df, char*  upstr,  char*  x_str, char*  y_str)
 }
 
 
-void  plot_1( double xMin, double xMax, 
-             int dim, double *f, double *ff,
-               char*  upstr, char*  xstr, char*   ystr)
-{ int         k,nCol0,nRow0,key;
-  char        f_name[STRSIZ], menustr[STRSIZ], buff[STRSIZ];
+   
+void  plot_Nar( char*  title, double xMin, double xMax, char*xName,  int dim, 
+               int N, double **f,double**ff,char**Y)
+{   
+  void *     prtscr;  
+  int i,k,nCol0,nRow0,key;
   double      ymin, ymax;
-  void *     prtscr;
-
+  char        f_name[STRSIZ], menustr[STRSIZ], buff[STRSIZ];
 
 #define MESS "Esc - exit; Mouse - function value; Other keys - menu"
    get_text(1,1,maxCol(),maxRow(),&prtscr);
-   gminmax(f,ff,dim);
 
    grafminmax.xmax=xMax;
    grafminmax.xmin=xMin;
-   
-   if (  1.e-4 * (fabs(grafminmax.xmax) + fabs(grafminmax.xmin)) 
-       >= fabs(grafminmax.xmax - grafminmax.xmin))
-   {  messanykey(10,10, "Too short interval in X axis !");
-      return;
-   }   
 
+   
+   gminmax(f[0],ff[0],dim,&grafminmax.ymin,&grafminmax.ymax);
+   for(i=1;i<N;i++)
+   { gminmax(f[i],ff[i],dim, &ymin,&ymax);
+     if(grafminmax.ymin>ymin) grafminmax.ymin=ymin;
+     if(grafminmax.ymax<ymax) grafminmax.ymax=ymax;   
+   }
    ymin=grafminmax.ymin;
    ymax=grafminmax.ymax;
    
@@ -646,11 +733,14 @@ REDRAW:
    nRow0=maxRow();
    clr_scr(fgcolor,bkcolor);
    
-   gaxes(upstr,xstr,ystr);
+   gaxes(title,xName,N,Y);
 
-   if(ff)  plot_hist(xMin,xMax,dim,f,ff); 
-     else  plot_curve(xMin,xMax,dim,f);
-
+   for(i=0;i<N;i++)
+   {   fColor=colList[i];
+       if(texflag) fprintf(out_tex,"\\SetColor{%s}\n", colListTxt[i]);
+       if(ff[i]) plot_hist(xMin,xMax,dim,f[i],ff[i]); 
+          else   plot_curve(xMin,xMax,dim,f[i]);
+   }                    
    if (texflag)
    {  f_printf(out_tex,"\\end{picture}\n");
       texFinish();
@@ -670,21 +760,26 @@ REDRAW:
      x=xPhys();
 
      if(x<=xMin||x>=xMax) continue;
-     if(ff)
+     if(ff[0])
      { 
         i= (x-xMin)/((xMax-xMin)/dim);
         goto_xy(1,maxRow()-1); scrcolor(Red,bkcolor); print("Mouse Info:"); 
         scrcolor(Black,bkcolor);
-        print(" X=%.3E  F=%.2E+/-%.1E  ",x,f[i],ff[i]);
+        print(" X=%.3E  F=%.2E+/-%.1E  ",x,f[0][i],ff[0][i]);
      } else
      { double al;
        i= (x-xMin)/((xMax-xMin)/(dim-1));
        al=(x-xMin)/((xMax-xMin)/(dim-1))-i;
        goto_xy(1,maxRow()-1); scrcolor(Red,bkcolor); print("Mouse Info:"); 
        scrcolor(Black,bkcolor);
-       print(" X=%.3E  F=%.2E  ",x,f[i]*(1-al)+f[i+1]*al);
-     }
-     
+       print(" X=%.3E ",x);
+       for(k=0;k<N;k++) 
+       {  scrcolor(colList[k],bkcolor);
+          print("%s",Y[k]);
+          scrcolor(fgcolor,bkcolor);
+          print("=%.2E ",f[k][i]*(1-al)+f[k][i+1]*al);
+       }
+     }  
    }
    if( nCol0 != maxCol() && nRow0 != maxRow() ) goto REDRAW; 
    scrcolor(bkcolor,bkcolor);
@@ -714,7 +809,7 @@ contin:
              correctDouble(33,11,"Y-min = ",&grafminmax.ymin,1 );
              break;
            case 3:  logScale=!logScale; break;
-           case 4:  writetable1(xMin,xMax,dim,f,ff,upstr,xstr,ystr); 
+           case 4:  writetable1(xMin,xMax,dim,xName,title,N, f,ff,Y); 
              break;
            case 0:
            case 6:  
@@ -735,14 +830,14 @@ contin:
              { 
                if( !texmenu(&pictureX,&pictureY,letterSize)) break;
                nextFileName(f_name,"plot_",".tex"); 
-               texStart(f_name,upstr,letterSize);
+               texStart(f_name,title,letterSize);
                texPicture(0,0,tg_getmaxx(),tg_getmaxy()-tg_textheight("0"),
                                                   pictureX,pictureY);
                f_printf(out_tex,"\\begin{picture}(%d,%d)(0,0)\n",pictureX,pictureY);  
                del_text(&pscr);
              }      
              goto REDRAW;
-           case 5: writeMath1(xMin,xMax,dim,f,ff,upstr,xstr,ystr); 
+           case 5: writeMath1(xMin,xMax,dim,f[0],ff[0],title,xName,Y[0]); 
       }   
       if( nCol0 != maxCol() && nRow0 != maxRow() ) goto REDRAW;
    }  while (1); 
@@ -752,7 +847,40 @@ exi:
    put_text(&prtscr);
 }
 
-void plot_2(double hMin1,double hMax1,int nBin1,double hMin2,double hMax2,int nBin2,
+void  plot_N(char*title, double xMin, double xMax,  char*  xName,   int dim, int N,...)
+{ int         k,i;
+                                                               
+  double **f; double**ff; char**Y;
+  va_list ap;
+
+   if (  1.e-4 * (fabs(xMax) + fabs(xMin)) >= fabs(xMax - xMin))
+   {  messanykey(10,10, "Too short interval in X axis !");
+      return;
+   }   
+     
+   f= malloc(N*sizeof(double*));
+   ff=malloc(N*sizeof(double*));
+   Y= malloc(N*sizeof(char*));
+   va_start(ap,N);
+   
+   for(i=0;i<N;i++) 
+   { f[i]=va_arg(ap,double*);
+     ff[i]=va_arg(ap,double*);
+     Y[i]=va_arg(ap,char*);
+   }  
+   va_end(ap);
+
+   plot_Nar(title,xMin,xMax,xName,dim,N,f,ff,Y);
+
+   free(f);free(ff);free(Y);
+}
+
+void   plot_1(double xMin, double xMax, int dim,
+                    double *f, double *ff,char* title, char* xstr, char* ystr)
+{ plot_Nar(title,xMin, xMax,xstr,dim, 1,&f,&ff, &ystr); } 
+                    
+
+void plot_2D(double hMin1,double hMax1,int nBin1,double hMin2,double hMax2,int nBin2,
             double * f,double *df,char *upstr,char* xstr,char * ystr) 
 {
   int        k,nCol0,nRow0,key,i,j;
@@ -786,7 +914,7 @@ REDRAW:
    nRow0=maxRow();
    clr_scr(fgcolor,bkcolor);
 
-   gaxes(upstr,xstr,ystr);
+   gaxes(upstr,xstr,1,&ystr);
  
    { int i,j;
      for(i=0;i<nBin1;i++) for(j=0;j<nBin2;j++)

@@ -76,7 +76,6 @@ int fillCutArray(void)
       case '%': aux=0; break;
       default : goto errorExit;
     }  
-                                      
 /*================ MIN bound ============*/
     strcpy(fieldName,"Wrong field 'Min. bound'");
     minOn= strlen(minStr);
@@ -93,7 +92,7 @@ int fillCutArray(void)
 
 /* =========== fill array ==========*/
 
-    if(minOn||maxOn)
+    if((minOn||maxOn)&&aux!=0)
     {  k=addcut(aux,cutStr,minOn,maxOn,min_,max_);
        switch(k)
        { case 2: strcpy(fieldName,"Too many cuts ");         goto errorExit;

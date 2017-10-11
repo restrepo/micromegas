@@ -4,15 +4,16 @@
 #include<sys/stat.h>
 #include<sys/types.h>
 
+
 #include <dlfcn.h>
 #include <sys/wait.h> 
              
-
+#include"crt_util.h"
 #include"num_in.h"
 #include"num_out.h"
 #include"VandP.h"
 #include"dynamic_cs.h"
-#include"rootDir.h"
+#include"rootDir.h" 
 
 static void * VandP=NULL;
 
@@ -39,7 +40,7 @@ int getDynamicVP(void)
                      "$CALCHEP/bin/make_VandP models 1 6\n"
                      " . $CALCHEP/FlagsForSh;"
                      " . ./EXTLIBsh;"
-                     "$CC $CFLAGS $SHARED -o so_generated/VandP.so VandP.c $CALCHEP/include/VandPgate.c $CALCHEP/lib/dummy.a $EXTLIB $CALCHEP/lib/libSLHAplus.a -lm"
+                     "$CC $CFLAGS $SHARED -o so_generated/VandP.so VandP.c $CALCHEP/include/VandPgate.c $EXTLIB $CALCHEP/lib/dummy.a  $CALCHEP/lib/libSLHAplus.a -lm"
                     ,rootDir,compDir);
      err=system(command);
      free(command);
@@ -112,7 +113,7 @@ int setModel(char * modelDisp , int nModel )
    else 
    { if(checkWorkPlace())
      { char*command=malloc(strlen(libDir)+20);
-       sprintf(command,"rm -f %s/*.so",libDir);
+       sprintf(command,"rm  -f %s/*.so",libDir);
        system(command);
        free(command);
      }  

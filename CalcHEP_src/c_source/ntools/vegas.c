@@ -2,14 +2,14 @@
 #include <stdio.h>
 #include <math.h>
 #include <limits.h>
-#include "vegas.h"
-#include "crt_util.h"
-#include "drandXX.h"
-#include "syst.h"
-#define MAX_DIM   15
-#define MAX_NDMX  50
+#include <string.h>
+#include <unistd.h>
+#include <pthread.h>
 
-long EventGrid=10000;
+#include "vegas.h"
+#include "drandXX.h"
+
+const pthread_mutex_t keyInit=PTHREAD_MUTEX_INITIALIZER;
 
 static void drand_arr(int dim, double * x)
 { int i;
@@ -32,171 +32,64 @@ static void drand_arr(int dim, double * x)
   }
 }
 
-
-static double amotry(double *p, double *y, int ndim,
-	     double (*f)(double *,void*), int ilo, double fac,void*Aux)
-{
-   int i,j;
-   double  ytry, fac1=(1.0-fac)/ndim;
-   double * p_buff=p+(ndim+1)*ndim;
-   double * p_ilo =p+ilo*ndim;
-   
-   for(j=0;j<ndim;j++) p_buff[j]=p_ilo[j]*fac;
-   for(i=0;i<=ndim;i++)  if(i!=ilo) 
-     {double *p_i=p+i*ndim;  for(j=0;j<ndim;j++) p_buff[j] +=p_i[j]*fac1;} 
-   ytry=(*f)(p_buff,Aux);
-   
-   if (ytry > y[ilo]) 
-   {  for(j=0;j<ndim;j++) p_ilo[j]=p_buff[j];
-      y[ilo]=ytry;
-   }
-/*printf("amotry returns fac=%f %E\n",fac,  ytry);   */
-   return ytry;
-}
-
-static double amoeba(double*p,double*y,int ndim,double (*f)(double *,void*), double eps, int *nCalls,void*Aux)
-{
-   int i,ilo,ihi,inlo,j;
-   double ysave,ytry;
-
-   for (;;) 
-   {
-      ihi=0;									     
-      ilo = y[0]<y[1] ? (inlo=1,0) : (inlo=0,1);				     
-      for (i=0;i<=ndim;i++)							     
-      {										     
-     	 if (y[i] >= y[ihi]) ihi=i;
-     	 if (y[i] < y[ilo]) { inlo=ilo; ilo=i; } 
-     	 else if (y[i] < y[inlo] && i != ilo) inlo=i;
-      }										     
-
-      if((*nCalls)<=0) break;
-      { double d=0;
-        for(i=0;i<ndim;i++) d+=(p[i+ihi*ndim]-p[i+ilo*ndim])*(p[i+ihi*ndim]-p[i+ilo*ndim]);
-        d=sqrt(d);
-        if(y[ihi]-y[ilo] < eps*d) break;
-      }
-       										     
-      
-//      if((*nCalls)<=0||2*(y[ihi]-y[ilo])/(fabs(y[ilo])+fabs(y[ihi]))<eps)break;
-     										     
-      ytry=amotry(p,y,ndim,f,ilo,-1.0,Aux); (*nCalls)--;				     
-      if (ytry >= y[ihi]) {ytry=amotry(p,y,ndim,f,ilo,2.,Aux); (*nCalls)--;}	     
-      else if (ytry <= y[inlo])							     
-      {										     
-         ysave=y[ilo];								     
-     	 ytry=amotry(p,y,ndim,f,ilo,0.5,Aux);  (*nCalls)--;
-     	 if (ytry <= ysave)
-     	 {  
-     	    for (i=0;i<=ndim;i++)
-     	    {  double * p_ihi=p+ihi*ndim;
-               if (i != ihi)
-     	       {  double * p_i=p+i*ndim;
-     		  for(j=0;j<ndim;j++) p_i[j]=0.5*(p_i[j]+p_ihi[j]);
-     		  y[i]=(*f)(p_i,Aux);
-     	       }
-            }
-/*printf("srink\n");            */
-     	    (*nCalls) -= ndim;
-         }									     
-      }										     
-   }
-   return y[ihi];
-}
-/*========================== end of amoeba ================*/
-
-
-static int Ng[MAX_DIM];
-static int Ndim;
-static double (*f_)(double*, double,double*);
-static int Ndmx;
-static double *Xgrid;
-static double *Cgrid;
-
-#define XG(j,i) Xgrid[(i)+(j)*(Ndmx)]
-
-
-static int nroot(long N, int n)
-{  int i,r;
-   long N_;
-   if(n==1) return N;
-   r=pow(N,1./n);
-   
-   for(i=1,N_=r; i<n; i++) N_*=r; 
-   
-/*   printf("N_0=%d\n",N_);*/
-
-   for(; N_<N; ) { r++; for(i=1,N_=r; i<n; i++) N_*=r;}
-   for(; N_>N; ) { r--; for(i=1,N_=r; i<n; i++) N_*=r;} 
-   return r;   
-}
-static void  generateVegasCubes(vegasGrid * vegPtr,long * nCubes) 
+static void  generateVegasCubes(int dim, long*nCubes, int*size) 
 {  int i;
-   double nCubes_=*nCubes;
-
-   Ndim=vegPtr->ndim;
-   Ndmx = vegPtr->ndmx+1;
-   Xgrid= vegPtr->x_grid;
-   Cgrid= vegPtr->c_grid;
-   *nCubes=1;
-   for(i=0;i<Ndim;i++)
-   {
-      Ng[i]   =nroot(nCubes_,Ndim -i);
-      nCubes_ /= Ng[i];
-      *nCubes *= Ng[i];
+   long nC1=1,nCmem=*nCubes;
+   double nCd=nCmem+0.001;
+   for(i=0;i<dim;i++)
+   {  int sz   =pow(nCd,1./(dim -i));
+      nCd /= sz;
+      nC1 *= sz;
+      if(size) size[i]=sz;
    }
+   if(nC1!=nCmem)  *nCubes=nC1;
+}
+
+void setEventCubes(vegasGrid*vegPtr, long nCubes)
+{ 
+  generateVegasCubes(vegPtr->dim,&nCubes, vegPtr->NgE);
+  vegPtr->evnCubes=nCubes;
+  free(vegPtr->fMax); 
+  vegPtr->fMax=NULL;
 }
 
 
-
-static void Local2Global(int*Kg,double*XLOC,double*XGLOB,double*JACOB,int*GRID_LOC)
+static void Local2Global(vegasGrid *vegPtr, int*Kg,int*Ng, double*XLOC,double*XGLOB,double*JACOB,int*GRID_LOC)
 { int j,n;
-  double xlj,xn,xn_;                               
-  *JACOB=1;          
-  for (j = 0; j < Ndim; ++j)                       
-  {  xlj = (Kg[j ] + XLOC[j])/Ng[j];               
-     n=(int)(xlj*(Ndmx-1));                              
-     if (n) xn_= XG(j,n);else  xn_=0;               
-     xn = XG(j,n+1);
-     XGLOB[j] = xn_ +(xn-xn_)*(xlj*(Ndmx-1)-n);          
-     *JACOB *= (xn-xn_)*(Ndmx-1);                         
+  double xlj,xn,xn_;
+  double dim=vegPtr->dim;
+  int nd=vegPtr->ndmx, nd1=nd+1;
+                                 
+  *JACOB=1;     
+  for (j = 0; j < dim; ++j)                       
+  {  xlj = (Kg[j ] + XLOC[j])/Ng[j];
+     n=(int)(xlj*nd);
+     if (n) xn_=  vegPtr->x_grid[j][n]   ;else  xn_=0;               
+            xn =  vegPtr->x_grid[j][n+1];
+     XGLOB[j] = xn_ +(xn-xn_)*(xlj*nd-n);          
+     *JACOB *= (xn-xn_)*nd;   
      if(GRID_LOC) GRID_LOC[j] = n;                 
   }
 }
 
 
-vegasGrid *  vegas_init(int dim,int nd)
+vegasGrid *  vegas_init(int dim, double(*fun)(double *,double), int nd)
 { 
    vegasGrid * vegPtr;
-
+   
    if((dim>MAX_DIM)||(nd>MAX_NDMX)) return NULL;
    vegPtr=(vegasGrid * )malloc(sizeof(vegasGrid));
    if(vegPtr)
-   { 
+   {  int i,j;
       vegPtr->ndmx=nd;
-      vegPtr->ndim = dim;
-      vegPtr->x_grid=malloc(dim*(nd+1)*sizeof(double));
-      vegPtr->c_grid=malloc(dim*(nd+1)*sizeof(double));
-      
-      Xgrid=vegPtr->x_grid;
-      Ndmx = vegPtr->ndmx+1;
-      if(vegPtr->x_grid && vegPtr->c_grid)
-      { int i, j;
-        double * x_=vegPtr->x_grid;
-        double * c_=vegPtr->c_grid;
-        for(j=0;j<dim;j++) for(i=0;i<=nd;i++,x_++,c_++) 
-        {  *x_=i/(double)nd;
-           *c_=1./nd;
-        }
-      }else 
-      { 
-        if(vegPtr->x_grid) free(vegPtr->x_grid);
-        if(vegPtr->c_grid) free(vegPtr->c_grid); 
-        free(vegPtr); 
-        return NULL;
-      }
-      vegPtr->nCubes=0;
+      vegPtr->dim = dim;
+      vegPtr->fxn=fun;
+      for(j=0;j<dim;j++) for(i=0;i<=nd;i++)  vegPtr->x_grid[j][i]=i/(double)nd;         
+      vegPtr->evnCubes=0;
+      vegPtr->intCubes=0;
+      for(i=0;i<dim;i++) { vegPtr->NgI[i]=vegPtr->NgE[i]=0;}
       vegPtr->fMax=NULL;
+      vegPtr->key=keyInit;
    }
    return vegPtr;
 }
@@ -204,11 +97,9 @@ vegasGrid *  vegas_init(int dim,int nd)
 
 void vegas_finish(vegasGrid * vegPtr) 
 {   if(vegPtr)
-    {  free(vegPtr->x_grid); 
-       free(vegPtr->c_grid); 
+    { 
        if(vegPtr->fMax) free(vegPtr->fMax);
        free(vegPtr); 
-       vegPtr=NULL;
     }
 }
 
@@ -218,415 +109,439 @@ void vegas_finish(vegasGrid * vegPtr)
       - ALGORITHM DESCRIBED IN J COMP PHYS 27,192(1978) 
 */
 
-int vegas_int(vegasGrid * vegPtr, long ncall0, double alph, 
- double (*fxn)( double *,double), double *ti, double *tsi)
-{
-   int dim= vegPtr->ndim;
+typedef struct { vegasGrid *vegPtr;
+                 int npg; 
+                 int * Kg;
+                 int end;
+                 int nCore;
+                 pthread_mutex_t key;
+               } cycle_str;   
 
-   double *d=malloc((vegPtr->ndmx+1)*dim*sizeof(double));
-#define DD(j,i) d[(i)+(j)*Ndmx]
+typedef struct { double  ti;   
+                 double  t2i;  
+                 double dd[MAX_DIM][MAX_NDMX];
+               } int_cycle_out; 
 
-   double x[MAX_DIM];
-   double xlocal[MAX_DIM];
-   int    ia[MAX_DIM];
-   int Kg[MAX_DIM],kg[MAX_DIM],ng[MAX_DIM];
-   int i,j,first;
-   double  f2,fb,f2b;
-   int  npg=2;
-   long nCubes=ncall0/npg;
-   long cCube,l;
-   int ret_code=0;
-   float *pmax=NULL;
-      
-   if(alph==0)
+static void* vegas_cycle(void * par_)
+{ 
+  int i,j,l,k;
+  double f,f2,fb,f2b;
+  double x[MAX_DIM], xlocal[MAX_DIM];
+  int    ia[MAX_DIM],kg[MAX_DIM],Kg_[MAX_DIM];
+  int * ng,*Ng;
+
+  cycle_str * par= (cycle_str *)par_; 
+  
+  int dim=par->vegPtr->dim;
+  int Ndmx=par->vegPtr->ndmx;
+  int npg=par->npg;
+  int nCore=par->nCore;
+  float*fMax=par->vegPtr->fMax; 
+  int_cycle_out*result=malloc(sizeof(int_cycle_out));
+  
+  Ng=par->vegPtr->NgI;
+  if(fMax) ng=par->vegPtr->NgE;
+
+  for(i=0; i<dim; i++) for(j=0;j<Ndmx;j++)  result->dd[i][j]=0;  
+  result->ti=0;
+  result->t2i=0;
+  
+   for( ;  ;) 
    {
-     double nCubes_=EventGrid;
-     l=1;
-     for(i=0;i<dim;i++)
-     {
-       ng[i]   =nroot(nCubes_,dim -i);
-       nCubes_ /= ng[i];
-       l *= ng[i];
-     }   
-     if(vegPtr->fMax && l!=vegPtr->nCubes) 
-     { printf("remove old grid (it is a mistake!)\n");
-       free(vegPtr->fMax); vegPtr->fMax=NULL;vegPtr->nCubes=0;
-     }  
-     if(vegPtr->fMax) 
-     {
-        pmax=vegPtr->fMax; 
-        l=vegPtr->nCubes;
-     } else 
-     { 
-       vegPtr->fMax=pmax=malloc(l*sizeof(float));
-       vegPtr->nCubes=l;
-       for(cCube=0;cCube<l;cCube++) pmax[cCube]=0;
-     } 
-   } else  if(vegPtr->fMax){free(vegPtr->fMax);vegPtr->fMax=NULL;vegPtr->nCubes=0;}
-   
-   generateVegasCubes(vegPtr,&nCubes);
-
-   npg=ncall0/nCubes;
-    
-   *ti  = 0;
-   *tsi = 0;
-   for (j = 0; j < dim; ++j) { for (i = 0; i < Ndmx-1; ++i)  DD(j,i) = 0;}
-
-/*    - MAIN INTEGRATION LOOP */
-   for(i=0;i<dim;i++) Kg[i]=0;
-   for(cCube=0; cCube<nCubes; cCube++) 
-   {  
-      if(informline(cCube,nCubes))  { ret_code=1; goto exi;}
+     if(nCore)pthread_mutex_lock(&(par->key)); 
+       if(par->end) { if(nCore)pthread_mutex_unlock(&(par->key)); return result ;}
+       for(i=0;i<dim;i++) Kg_[i]=par->Kg[i];
+       for(i=dim-1; i>=0; i--){ if(++(par->Kg[i])< Ng[i]) break; else par->Kg[i]=0;}
+       if(i<0) par->end=1;       
+     if(nCore)pthread_mutex_unlock(&(par->key));                          
+     
       fb  = 0;
       f2b = 0;
       for(i = 0; i<npg; i++) 
-      {   double f;
-          drand_arr(dim,xlocal);
-          Local2Global(Kg,xlocal,x, &f, ia);
-          f *= (*fxn)(x,f);
+      {   double w;
+          if(nCore)pthread_mutex_lock(&drandXX_key);  
+            for(k=0;k<dim;k++)  xlocal[k]= drandXX();    
+          if(nCore)pthread_mutex_unlock(&drandXX_key);            
+          Local2Global(par->vegPtr ,Kg_, Ng, xlocal,x, &w, ia);
+          f = par->vegPtr->fxn(x,w)*w;
+
+          if(!isfinite(f)) 
+          { if(nCore)pthread_mutex_lock(&(par->key));
+            par->end=-1;
+            if(nCore)pthread_mutex_unlock(&(par->key));
+            return result;
+          } 
+
           fb += f;
           f2= f*f;
           f2b += f2;
-          for (j = 0;j<dim;++j) DD(j,ia[j]) += f2;
-
-          if(pmax)
+          for(j=0;j<dim;j++) result->dd[j][ia[j]] += f2;
+          if(fMax)
           { 
-            for(j=0;j<dim;j++) { double xj= (Kg[j]+xlocal[j])/(double)Ng[j];    kg[j]=xj*ng[j];}
+            for(j=0;j<dim;j++) { double xj= (Kg_[j]+xlocal[j])/Ng[j];    kg[j]=xj*ng[j];}
             for(j=1, l=kg[0];j<dim;j++) l=l*ng[j]+kg[j];
             f=fabs(f);
-            if( pmax[l]<f ) pmax[l]=f;
+            if(nCore)pthread_mutex_lock(&(par->vegPtr->key));
+               if( fMax[l]<f ) fMax[l]=f;
+            if(nCore)pthread_mutex_unlock(&(par->vegPtr->key)); 
           }  
       }
-       
       f2b = sqrt(f2b/npg);
-      fb /=npg;
-       
-      f2b = (f2b - fb) * (f2b + fb)/(npg-1);             
-       
-      *ti  += fb/nCubes;
-      *tsi += f2b/((double)nCubes * (double)nCubes);   
-    
-      for(i=dim-1; i>=0; i--){if(++Kg[i]<Ng[i]) break; else Kg[i]=0;}
+      fb /=npg; 
+      f2b = (f2b - fb) * (f2b + fb)/(npg-1); 
+      result->ti  += fb;
+      result->t2i += f2b;   
     }
-    
-    *tsi = sqrt(fabs(*tsi));
+}
 
-    if(*tsi < 1.E-6*fabs(*ti)) *tsi=1.E-6*fabs(*ti);
+int (*vegas_control)(double x)=NULL;
 
-    if(alph>0)  /* REFINE GRID */
-    { 
-        double r[MAX_NDMX]; 					       
-        double dt[MAX_DIM];
-        double xin[MAX_NDMX];
-        
-        double  xn, xo,dr;
-        int k,ndm= Ndmx - 2;
-        
-        for (j = 0; j < dim ; ++j)
-        {
-            xo = DD(j,0);
-            xn = DD(j,1);
-            DD(j,0) = (xo + xn) / 2;
-            dt[j] = DD(j,0);
-            for (i = 1; i < ndm; ++i)
-            {
-                DD(j,i) = xo + xn;
-                xo = xn;
-                xn = DD(j,i+1);
-                DD(j,i) = (DD(j,i) + xn) / 3;
-                dt[j] += DD(j,i);
-            }
-            DD(j,ndm) = (xn + xo) / 2;
-            dt[j] += DD(j,ndm);
-        }
-        for (j = 0; j < dim; ++j)
-        {  double rc = 0;
-    	   for (i = 0; i <= ndm; ++i)
-    	   {
-    	      r[i] = 0;
-    	      if (DD(j,i) > 0)
-    	      {  double xoln = log(dt[j]/DD(j,i));
-    	         if (xoln <= 70.f)  r[i] = pow( (1 - exp(-xoln))/xoln, alph);
-    	         else               r[i] = pow(  1/xoln,               alph);
-    	      }
-    	      rc += r[i];  
-    	   }
+static void* int_control(void * par_)
+{  
+  cycle_str * par=(cycle_str *)par_;
+  int dim=par->vegPtr->dim;
+  int nCore=par->nCore;
+  if(!vegas_control) return NULL;
+  vegas_control(0.);
+  for(;;)
+  {
+   // usleep(2000);
+    usleep(2000);
+   if(nCore)pthread_mutex_lock(&(par->key));
+    if(par->end) { if(nCore)pthread_mutex_unlock(&(par->key));return NULL;}
+    {
+      int i;
+       double x=par->Kg[0];
+        for(i=1;i<dim;i++) x=par->Kg[i]+par->vegPtr->NgI[i]*x;  
+      x/=par->vegPtr->intCubes;
+      if(vegas_control(x)) { par->end=2;if(nCore)pthread_mutex_unlock(&(par->key));return NULL;}
+    }
+   if(nCore)pthread_mutex_unlock(&(par->key));
+  }   
+}
 
-    	   rc /= (Ndmx-1);
-           if(rc)
-	   { 
-             for(i=0,k=0,xn=0,dr=0;i<ndm;) 
-       	     {
-                do
-                {  dr += r[k];
-    	           xo = xn;
-    	           xn = XG(j,k+1);
-    	           k++;
-    	         } while (rc > dr);
-    	         do
-    	         {  dr -= rc;
-    	            xin[i] = xn-(xn-xo)*dr/r[k-1];
-                    i++;
-                 } while (rc<=dr);
-    	      }
-    	      for (i=0;i<ndm;++i)  XG(j,i+1) = xin[i];
-    	      XG(j,ndm+1) = 1;
-    	      XG(j,0)=0;
-           }
-        }
+
+long vegas_int(vegasGrid * vegPtr, long ncall0, double alph, int nCore,  double *ti, double *tsi)
+{
+   int dim= vegPtr->dim;
+   int Ndmx=vegPtr->ndmx;
+   double dd[MAX_DIM][MAX_NDMX];
+
+   double x[MAX_DIM];
+   int    Kg[MAX_DIM];
+   int i,j,k;
+   double  f2,fb,f2b;
+   long l;
+   cycle_str par;
+   
+   if(alph==0)
+   { 
+     if(vegPtr->evnCubes && !vegPtr->fMax)
+     { long cC;
+       vegPtr->fMax=malloc(vegPtr->evnCubes*sizeof(float));
+       for(cC=0;cC<vegPtr->evnCubes;cC++) vegPtr->fMax[cC]=0;
+       
      }
-exi:  free(d); return ret_code;
-#undef DD
-} 
-/*
-#define INCUB(x)   ((x)>0   ? (0.5+(x))/((x)+1.) : 0.5/(1.-(x)))
-#define OUTCUB(x)  ((x)>0.5 ? (0.5-(x))/((x)-1.) : 1-0.5/x)
-*/
-
-#define OUTCUB(x) (x)
-
-static double INCUB(double x) { while(x> 2)x-=2; if(x>1) x=2-x; 
-                         while(x<-1)x+=2; if(x<0) x=-x;
-                         return x;}
-
-
-static double f_max(double* x,void *Kg)
-{
-  int i;
-  double f;
-  double xg[MAX_DIM];
-  double xl[MAX_DIM];
-  double tmp;
-
-  for(i=0;i<Ndim;i++) xl[i]=INCUB(x[i]);
-  Local2Global((int*)Kg,xl,xg, &f,NULL);
-
-  tmp=f_(xg,f,NULL);
-  f*=tmp;
-  
-  if(f<0) return -f; else return f;
-}
-
-
-static double run_amoeba(int ndim, int*Kg,double *xx, double *y, double step, double eps, int nCalls)
-{
-   int i,j;
-   for (i=1; i<=ndim;++i)
-   { double * x_i=xx+i*ndim; 
-     for(j=0;j<ndim;++j) x_i[j]=xx[j];
-     if(x_i[i-1] >0.5)x_i[i-1] -= step; else x_i[i-1] += step; 
-     for(j=0;j<ndim;j++) x_i[j]=OUTCUB(x_i[j]);
-     y[i]=f_max(x_i,Kg);
-   }
-
-   for(j=0;j<ndim;j++) xx[j]=OUTCUB(xx[j]);
-
-/*printf(" test y[0]: %E %E \n",y[0], f_max(xx));*/
-
-   {
-      double r=amoeba(xx,y,ndim,f_max,eps,&nCalls,Kg);
-      for(j=0;j<ndim*(ndim+1);j++) xx[j]=INCUB(xx[j]);
-      return r; 
-   }
-}
-
-
-int vegas_max(vegasGrid * vegPtr, long  nCubes, long nRandom, long nSimplex, double milk,
- double (*fxn)(double *,double,double*), double * eff)
-{
-   int dim= vegPtr->ndim;
+   } else  if(vegPtr->fMax){free(vegPtr->fMax);vegPtr->fMax=NULL;}
    
-   double x[MAX_DIM], xlocal[MAX_DIM], xx[(MAX_DIM+2)*MAX_DIM],y[(MAX_DIM+2)];
-   double average =0,sum=0;
-   float *fmax;
-   int Kg[MAX_DIM];
-   long  cCube;
-   int i,ret_code=0;
+   vegPtr->intCubes=ncall0/2;
+   generateVegasCubes(vegPtr->dim,&(vegPtr->intCubes),vegPtr->NgI);
+   par.nCore=nCore; 
+   par.vegPtr=vegPtr;
+   par.npg     = ncall0/vegPtr->intCubes;
+   par.Kg      = Kg;
+   par.end     = 0;
+   par.key     =keyInit;
+ 
 
-   if(nRandom<=0) nRandom=2; 
-   generateVegasCubes(vegPtr,&nCubes);
-   if(vegPtr->fMax && vegPtr->nCubes !=nCubes)
-   { free(vegPtr->fMax); vegPtr->fMax=NULL;}
-   if(vegPtr->fMax) fmax=vegPtr->fMax; else 
-   { vegPtr->nCubes=nCubes;    
-     vegPtr->fMax=malloc(nCubes*sizeof(float));
-     fmax=vegPtr->fMax;
-     for(i=0;i<nCubes;i++) fmax[i]=0;
-   } 
-   f_=fxn;   // for  amoeba 
+   for(i=0; i<dim;i++){ Kg[i]=0;}
+/*    - MAIN INTEGRATION LOOP */
+   {  
+      int_cycle_out*result; 
+      if(nCore)
+      { pthread_t *threads = malloc(nCore*sizeof(pthread_t));
+        pthread_t control;
+        int_cycle_out*result; 
+      
+        for (k=0;k<nCore;k++) pthread_create(threads+k,NULL,vegas_cycle, &par);
 
-//   for(i=0;i<dim;i++) Kg[i]=0;
-   for(cCube=0; cCube<nCubes; cCube++) 
-   {  double cMax=fmax[cCube]; 
-      long k,L0; 
-      double f;
+        if(vegas_control) int_control(&par);
 
-      xx[0]=-1;
-      if(informline(cCube,nCubes)) 
-      { free(vegPtr->fMax);
-        vegPtr->fMax=NULL;  
-        return 1;
-      }
-      L0=cCube; for (i =dim-1;i>=0; i--) {Kg[i]=L0%Ng[i]; L0=L0/Ng[i];}      
-
-      for(k = 0; k<nRandom ; k++) 
+        for(i=0; i<dim;i++) for(j=0;j<Ndmx; j++) dd[i][j]=0;
+       *ti=0; *tsi=0;
+     
+        for (k=0;k<nCore;k++) 
+        {  pthread_join(threads[k],(void**) &result);
+           for(i=0; i<dim;i++) for(j=0;j<Ndmx; j++) dd[i][j]+=result->dd[i][j];
+           *ti+=result->ti;
+           *tsi+=result->t2i;
+           free(result);
+        }          
+        free(threads);
+      } else
       {  
-         drand_arr(dim,xlocal);
-         Local2Global(Kg,xlocal,x, &f, NULL);f *=(*fxn)(x,f,NULL); if(f<0) f=-f;
-         average+=f;
-         if(f>cMax){cMax=f;  for(i=0;i<dim;i++)xx[i]=xlocal[i]; y[0]=cMax; }
-      }
-      if(cMax && nSimplex && xx[0]>=0) cMax=run_amoeba(dim, Kg,xx, y, 0.1 , 0.5, nSimplex); 
-      fmax[cCube]=cMax;
-//      for(i=dim-1; i>=0; i--){if(++Kg[i]<Ng[i]) break; else Kg[i]=0;}
+         result=vegas_cycle(&par);
+         for(i=0; i<dim;i++) for(j=0;j<Ndmx; j++) dd[i][j]=result->dd[i][j];
+         *ti=result->ti;
+         *tsi=result->t2i;
+         free(result);
+      }        
    }
-   
-   for(sum=0,cCube=0; cCube<nCubes; cCube++) sum+=fmax[cCube];
-   if(sum==0)
-   { free(vegPtr->fMax);
-     vegPtr->fMax=NULL; 
-     *eff=0;
-   } else *eff=(average/nRandom)/sum;
-
-/*
-   if(milk)
-   {   double minFmax=sum*milk/nCubes;
-       for(cCube=0; cCube<nCubes; cCube++)
-       if(fmax[cCube]<minFmax) fmax[cCube]=minFmax;
-       *eff/=1+milk;  
+   if(par.end <0) return -1; else if(par.end >1) return 0; 
+   { long nCubes=vegPtr->intCubes; 
+     *ti/=nCubes;
+     *tsi=sqrt( fabs(*tsi/(nCubes*nCubes)));
    }
-*/
+    if(alph>0)  for(j=0; j<dim; j++)     /* REFINE GRID */
+    {  double r[MAX_NDMX], rc = 0, dt=dd[j][0];
+           
+       for(i=1; i<Ndmx; i++) dt += dd[j][i];
+       for(i=0; i<Ndmx; i++)
+       {
+           r[i] = 0;
+           if( dd[j][i]  > 0)
+           {  double xoln = log(dt/dd[j][i]);
+              if(xoln<0.01)         r[i]=1;
+              else if (xoln <= 70)  r[i] = pow( (1 - exp(-xoln))/xoln, alph);
+              else                  r[i] = pow(  1/xoln,               alph);
+           }
+           rc += r[i];  
+       }
+       rc /= Ndmx;
+       if(rc)
+       {  double x[MAX_NDMX],dr=0,xo=0,xn=0;
+          int k=0;
+          for(i=1;i<Ndmx;) 
+          {  for(;dr<rc;k++) dr+=r[k];
+             xo=vegPtr->x_grid[j][k-1];
+             xn=vegPtr->x_grid[j][k];
+             for(;dr>=rc; i++) {dr-=rc; x[i] = xn-(xn-xo)*dr/r[k-1];}
+          }
+    	  for(i=1;i<Ndmx;i++) vegPtr->x_grid[j][i]=x[i];    
+          vegPtr->x_grid[j][Ndmx] = 1;
+       }
+   }
+   return  par.npg*vegPtr->intCubes;
+} 
 
-//   printf("average=%E smax=%E eff=%e milk=%e \n",average,sum,*eff,milk);
-exi:    
-   return ret_code;
-}
 
+typedef struct { vegasGrid *vegPtr;
+                 long  nEvents;
+                 double gmax;
+                 int recalc;
+                 void(*out)( double *,int); 
+                 long  Ntry;
+                 long  cEvent;
+                 int    end;
+                 int   nCore;
+                 pthread_mutex_t key;
+               } event_str;   
 
-long vegas_events(vegasGrid * vegPtr,  long  nEvents, double gmax,
-double (*fxn)( double *,double,double*), 
-   void (*out)(long,int,char*,double*),int recalc,
-   double * eff, int * nmax, int * mult, int * neg)
+static void* event_cycle(void * par_)
 {
-   int dim= vegPtr->ndim;
-   double x[MAX_DIM], xlocal[MAX_DIM],xx[MAX_DIM*(MAX_DIM+2)],y[MAX_DIM+2];
-   long  cEvent,cCube,L0,L1,Ntry=0, nCubes=vegPtr->nCubes;
-   double rc,sum=0;
-   float * smax;
-   double pvect[40]; 
-
-   struct  { double pvect[40]; double f; double sgn; }  *events=NULL;
-   int i,nRecT=0;
-
-
-   if(!(vegPtr->fMax)) return -1;
-   smax=vegPtr->fMax;
-
-   f_=fxn;
+   event_str*par=(event_str*)par_;
+   int nCore=par->nCore;
+   int dim=par->vegPtr->dim;
+   int Ndmx=par->vegPtr->ndmx;
+   long nCubes=par->vegPtr->evnCubes;
+   double (*fxn)(double*,double)=par->vegPtr->fxn;
+   double gmax=par->gmax;
+   float*smax=par->vegPtr->fMax;
+      
+   double rc1,rc2;
+   long L0,L1;
+   int  Ng[MAX_DIM];
+   double xlocal[MAX_DIM],x[MAX_DIM];
+   double f,oldMax,newMax;
+   int i,k,sgn;
+   long Ntry;
+   struct  { double x[MAX_DIM]; double f; double rnd; int sgn; }  *events=NULL;
+   int nRecT=0,nmax=0;
+   event_stat * stat=malloc(sizeof(event_stat));
    
-   generateVegasCubes(vegPtr,&nCubes);
-   
-   *eff=*nmax=*mult=*neg=0;
-   
-   for(cCube=1; cCube<nCubes; cCube++) smax[cCube]+=smax[cCube-1];
-   sum=smax[nCubes-1];
-   
-   if(sum==0) 
-   { messanykey(10,10,"Integrand is zero for all scanned points"); 
-     if(blind) sortie(140); else return -1;
-   }
-   
-   Ntry=0;
-   for(cEvent=0; cEvent<nEvents; ) 
+   stat->neg=0;
+   stat->nexc=0;
+   stat->lmax=1;
+   stat->rmax=1;
+   stat->nan=0;       
+   generateVegasCubes(dim, &nCubes,Ng);
+  
+   for(;; ) 
    {  long L;
-      double f,ds;
-      int n,sgn=0;
-      char *drandXXstate ;      
+      double f,ds,w,sum;
+      int n,sgn;      
       double oldMax,newMax;
       int Kg[MAX_DIM];
-
-      Ntry++;
-
-      rc=drandXX()*sum;
+      
+      if(nCore)pthread_mutex_lock(&(par->key));
+        if(par->end) { if(nCore)pthread_mutex_unlock(&(par->key)); free(events); return stat;}  
+        Ntry= ++(par->Ntry);
+      if(nCore)pthread_mutex_unlock(&(par->key));
+      if(nCore)pthread_mutex_lock(&drandXX_key);     
+        rc1=drandXX();
+        rc2=drandXX();
+        drand_arr(dim,xlocal);           
+      if(nCore)pthread_mutex_unlock(&drandXX_key);
+        
       L0=0;
       L1=nCubes-1;
-      while(L0+1 < L1)     
-      {  L=(L0+L1)/2;
-         if(smax[L]<=rc) L0=L;  else L1=L;  
-      }  
-      if(smax[L0]>rc) L=L0; else L=L1;
       
+      if(nCore)pthread_mutex_lock(&(par->vegPtr->key));
+        sum=smax[nCubes-1];
+        rc1*=sum;
+        while(L0+1 < L1)     
+        {  L=(L0+L1)/2;
+           if(smax[L]<=rc1) L0=L;  else L1=L;  
+        }   
+        if(smax[L0]>rc2) L=L0; else L=L1;
+        oldMax= L? smax[L]-smax[L-1] : smax[0];
+      if(nCore)pthread_mutex_unlock(&par->vegPtr->key);
  
-      if(informline(cEvent,nEvents))  break;
+//      if(informline(cEvent,nEvents))  break;
 
-      L0=L; for (i =dim-1;i>=0; i--) {Kg[i]=L0%Ng[i]; L0=L0/Ng[i];}
-/*
- printf("L=%d dim=%d Ng={%d %d %d}, Kg={%d %d %d}\n",
-        L,dim, Ng[0],Ng[1],Ng[2],Kg[0],Kg[1],Kg[2]);      
-*/
-      drandXXstate=seedXX(NULL);                                               
-      drand_arr(dim,xlocal); 
-      Local2Global(Kg,xlocal,x,&f,NULL);f*=(*fxn)(x,f,pvect);if(f<0){f=-f;sgn=-1;} else sgn=1;      
-      (*eff)++;
+      L0=L; for(i=dim-1;i>=0; i--) {Kg[i]=L0%Ng[i]; L0=L0/Ng[i];}
+      Local2Global(par->vegPtr,Kg,Ng, xlocal,x,&w,NULL);
+      f=(par->vegPtr->fxn)(x,w)*w; if(f<0){f=-f;sgn=-1;} else sgn=1;      
+      if(!isfinite(f)) {stat->nan++; continue;}
+      if(f<=oldMax*gmax*rc2) continue;
+      if(nCore)pthread_mutex_lock(&par->key);
+       if(par->end){ if(nCore)pthread_mutex_unlock(&par->key);  continue;}
+       par->cEvent++;
+       if(sgn<0) stat->neg++;      
+       if(par->cEvent>=par->nEvents) {par->end=1; if(nCore)pthread_mutex_unlock(&par->key); (par->out)(x,sgn); continue;}
+       (par->out)(x,sgn);   
+      if(nCore)pthread_mutex_unlock(&par->key);
       
-      oldMax= L? smax[L]-smax[L-1] :smax[0];
       newMax=f;
-      if(f<=oldMax*gmax && f>oldMax*gmax*drandXX())
-      { cEvent++; 
-        (*out)(L,sgn,drandXXstate,pvect);
-        if(sgn<0) *neg++;  
-      }  else  if(f>oldMax*gmax) 
-      {   
-           long dN=0;
-           int i,k;
-           int nRec=0;   
-           char state[100]; 
-           strcpy(state,drandXXstate); 
-           
-           if(!nRecT){ events=malloc(sizeof(*events));nRecT=1;}
-           events[0].f=f;
-           events[0].sgn=sgn;
-           for(i=0;i<40;i++) events[0].pvect[i]=pvect[i];
-           nRec=1;
-           
-           if(recalc)for(dN=1;dN < Ntry*newMax/sum/gmax;dN++)
-           {
-              drandXXstate=seedXX(NULL);                                               
-              drand_arr(dim,xlocal);
-              Local2Global(Kg,xlocal,x,&f,NULL);f*=(*fxn)(x,f,pvect);if(f<0){f=-f;sgn=-1;} else sgn=1;
-              (*eff)++;      
-           
+      if(newMax>oldMax*gmax && par->recalc) 
+      {
+         long dN=0;
+         int i,k,nRec=0;   
+         for(dN=1;dN < Ntry*newMax/sum/gmax;dN++)
+         { double rc;
+             if(nCore)pthread_mutex_lock(&drandXX_key);                                            
+              for(k=0;k<dim;k++) xlocal[k]=drandXX();
+              rc=drandXX();
+             if(nCore)pthread_mutex_unlock(&drandXX_key); 
+              Local2Global(par->vegPtr,Kg,Ng, xlocal,x,&w,NULL);
+              f=(*fxn)(x,w)*w; if(f<0){f=-f;sgn=-1;} else sgn=1;
+              
               if(f>oldMax*gmax)  
-              { 
-                 if(nRecT<=nRec){ nRecT++;  events=realloc(events, sizeof(*events)*(nRecT));} 
+              {  if(nRec >= nRecT) events=realloc(events, sizeof(*events)*(++nRecT)); 
                  events[nRec].f=f;
                  events[nRec].sgn=sgn;
-                 for(i=0;i<40;i++) events[nRec].pvect[i]=pvect[i];
+                 events[nRec].rnd=rc;
+                 for(i=0;i<dim;i++) events[nRec].x[i]=x[i];
                  nRec++;
                  if(f>newMax) newMax=f;
               }                 
-           }
-           
-           for(n=0,k=0;k<nRec&& cEvent < nEvents ;k++) if(events[k].f > newMax*drandXX())
-           {  n++;
-              (*out)(L,events[k].sgn,drandXXstate,events[k].pvect);
-              if(events[k].sgn<0) *neg++;
-              cEvent++;              
-           }
-           if(*nmax<n) *nmax=n;
-//           printf("nRec=%d cor=%8d  old=%E new=%E   L=%8d  %s N=%8d dN=%8d  \n", nRec, n, oldMax,newMax,L,state, (int)(Ntry*oldMax/sum) ,dN  );
-           if(n>1) *mult+=n-1;           
-           Ntry+=dN*(newMax-oldMax)/sum;
-           { ds=newMax-oldMax;
-             for(cCube=L;cCube<nCubes;cCube++) smax[cCube]+=ds;
-             sum+=ds;
-           }
-      }                                                                   
+         }
+         if(nCore)pthread_mutex_lock(&par->vegPtr->key);
+           oldMax= L? smax[L]-smax[L-1] : smax[0];
+         if(nCore)pthread_mutex_unlock(&par->vegPtr->key); 
+         if(nCore)pthread_mutex_lock(&par->key);
+           oldMax= L? smax[L]-smax[L-1] : smax[0];      
+           for(k=0;k<nRec ;k++) if(events[k].f>oldMax &&
+              events[k].f>newMax*events[k].rnd && par->cEvent<par->nEvents) par->cEvent++;  
+                                else events[k].sgn=0;
+           if(par->cEvent>=par->nEvents) par->end=1;            
+            (par->Ntry)+=dN;
+         if(nCore)pthread_mutex_unlock(&par->key);
+         for(n=0,k--;k>=0;k--) if(events[k].sgn)
+         { n++;
+           (par->out)(events[k].x,events[k].sgn);
+         } 
+         if(stat->lmax<n+1) stat->lmax=n+1; 
+      }
+      
+        if(newMax>oldMax*gmax)
+        {  ds=newMax-oldMax;
+          if(nCore)pthread_mutex_lock(&(par->vegPtr->key));
+           for(;L<nCubes;L++) smax[L]+=ds;
+          if(nCore)pthread_mutex_unlock(&(par->vegPtr->key));
+          stat->nexc++;
+          if(stat->rmax < newMax/oldMax) stat->rmax=newMax/oldMax;
+        }                                     
    }    
-   *eff=nEvents/(*eff);
+}
+
+static void* event_control(void * par_)
+{  
+  event_str * par=(event_str *)par_;
+  int nCore=par->nCore;
+  if(!vegas_control) return NULL;
+  vegas_control(0.);
+  for(;;)
+  {
+   sleep(1);
+   if(nCore)pthread_mutex_lock(&(par->key));
+    if(par->end) { if(nCore)pthread_mutex_unlock(&(par->key));return NULL;}
+    { double x=par->cEvent; x/=par->nEvents;
+      if(vegas_control(x)) { par->end=2;if(nCore)pthread_mutex_unlock(&(par->key));return NULL;}
+    }
+   if(nCore)pthread_mutex_unlock(&(par->key));
+  }   
+}
+
+
+long vegas_events(vegasGrid * vegPtr,  long  nEvents, double gmax, 
+   void (*out)(double*,int),int recalc,  int nCore, event_stat * stat)
+{
+   int i, dim= vegPtr->dim;
+   long cCube, nCubes=vegPtr->evnCubes;
+   event_str par;
+   event_stat*stat1;
+
+   float * smax=vegPtr->fMax;
+   
+   if(!smax) return -1;
+   for(cCube=1; cCube<nCubes; cCube++) smax[cCube]+=smax[cCube-1];
+   par.nCore=nCore;   
+   par.vegPtr=vegPtr;
+   par.nEvents=nEvents;
+   par.recalc=recalc;
+   par.gmax=gmax;
+   par.out=out;
+   par.Ntry=0;    
+   par.cEvent=0;
+   par.end=0;
+   par.key=keyInit;
+  
+   if(stat){ stat->neg=0; stat->lmax=0; stat->nexc=0; stat->rmax=1; stat->nan=0;} 
+   
+/*    - MAIN INTEGRATION LOOP */
+   if(nCore)
+   { pthread_t *threads = malloc(nCore*sizeof(pthread_t));
+     pthread_t control; 
+     for (i=0;i<nCore;i++) pthread_create(threads+i,NULL,event_cycle, &par);
+     event_control(&par);
+     for (i=0;i<nCore;i++) 
+     {  pthread_join(threads[i],(void**)&stat1);
+        if(stat)
+        { stat->neg+=stat1->neg;
+          stat->nan+=stat1->nan;
+          if(stat->lmax<stat1->lmax) stat->lmax=stat1->lmax;
+          if(stat->nexc<stat1->nexc) stat->nexc=stat1->nexc;
+          if(stat->rmax<stat1->rmax) stat->rmax=stat1->rmax;
+        }  
+        free(stat1); 
+     }         
+     free(threads);  
+   } else 
+   {  stat1=event_cycle(&par);
+      if(stat)
+      { stat->neg=stat1->neg;
+        stat->nan=stat1->nan;
+        stat->lmax=stat1->lmax;
+        stat->nexc=stat1->nexc;
+        stat->rmax=stat1->rmax;
+      }
+      free(stat1);  
+   }                                                   
+   
    { double mem=smax[0],mem_;
      for(cCube=1;cCube<nCubes;cCube++) { mem_=smax[cCube]; smax[cCube]-=mem; mem=mem_;} 
    } 
-   free(events);
-   return cEvent;
-} /* vegas_ */
+   if(stat) stat->eff=par.cEvent/(double)(par.Ntry);
+   return par.cEvent;
+}

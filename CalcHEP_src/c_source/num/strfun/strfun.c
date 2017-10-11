@@ -2,6 +2,7 @@
  Copyright (C) 1997, Alexander Pukhov 
 */
 #include <math.h>
+
 #include"interface.h"
 #include"sf_epa.h"
 #include"sf_isr.h"
@@ -23,7 +24,7 @@ double sf_mass[2]={0,0};
 double sf_be[2]={0,0};
 static int nnan[2]={0,0};
 
-static int* allInP(int i)
+static int* allInP(int i1)
 { static int * plist=NULL;
   int k,l;
   plist=realloc(plist,(nprc_int+1)*sizeof(int));
@@ -31,7 +32,7 @@ static int* allInP(int i)
   for(k=0;k<nprc_int;k++)
   { int N;
     int j;
-    pinf_int(k+1,i,NULL,&N);
+    pinf_int(k+1,i1,NULL,&N);
     for(j=0;j<l;j++) if(N==plist[j]) break;
     if(j==l) plist[l++]=N;
   } 
@@ -55,25 +56,63 @@ static struct
                      {p_lha  ,n_lha  ,r_lha  ,m_lha , mc_lha  ,init_lha  ,c_lha}
                    };
 
-int initStrFun(int mode )
-{
-  int l,i;
-  int returnCode=0;
+/*   
+Interface with   earch family of structure functions is presented by 7 auxiliary functions 
+included in struct strFun. 
+      
+Below 'i1' from  [1,2]  is  number of incoming particle.
+      'list'  is an integer array of PDG codes terminated by zero. It presents 
+       list of  PDG codes of incoming partiles for i1=1 and i1=2 separately.
+       Integer functions return 1 in case of success  and zero otherwize.
+~~~~      
+int myParticle(int*list) 
+   checks that  the family contains  structure functions   
+   which can work with  all particles of the list.
 
-  if(nin_int!=2) return returnCode;
+int readName(int i1, char*name)  reads 'name' of structure function set for incoming 
+   particle i1 and performs corresponding initialization if the name corresponds to member 
+   of family. 
+    
+int menu(int i1,int*list) allows initialization of structure function set by means 
+   of menu.  
+
+fullName(int i1, char*name) 
+   writes full name of  initialized structure function for i1-th particle. Thus name 
+   should be recognized by the 'readName' routine. 
+
+int init(int i1, &beta, &mass) perfoms final initialization for given parton.
+    mass - is mass of incoming physical particle. It actually is universal number for the 
+    set. The beta parameter characterizes singularity of distribution at x=1. Namely
+    the behavior (1-x)^(beta-1) is expected.    
+
+double val(int i1, double x, double Q) 
+     returns value of parton distribution corresponding to dx measure.
+
+int mc_code(int i1) writes PDG code for i1-th  incoming physical particle. It needs to 
+event file.
+
+*/
+
+
+int initStrFun(int i1)
+{
+  int l,i=i1-1;
+  
+  nnan[i]=0;
+  sf_be[i]=1;
+
+  if(nin_int!=2) return 0;
    
-  if(mode<=0||mode>2)
+  if(i1<=0|| i1>2)
   {
     sf_alpha=NULL;
-    if(initStrFun(1)||initStrFun(2)) returnCode=2; 
-    return returnCode;   
+    return  initStrFun(1)||initStrFun(2);
   }
 
-  i=mode-1;
+  i=i1-1;
   l=sf_num[i];  
   if(l)
-  {  int N;
-     pinf_int(Nsub,i+1,NULL,&N); 
+  {
      l--;
      if(!strFun[l].myParticle(allInP(i+1))
          ||!strFun[l].init(i+1,sf_be+i,sf_mass+i))
@@ -81,12 +120,12 @@ int initStrFun(int mode )
         sprintf(txt,"%d-th Stucture function is switched OFF",i+1);
         sf_num[i]=0;
         messanykey(10,15,txt); 
-        returnCode=2;
-      }
-  } else sf_be[i]=0;
-  nnan[i]=0;    
-  return returnCode;  
+        return 2;
+      } 
+  }
+  return 0;  
 }
+
 
 
 void strFunName(int i, char * mess)
@@ -95,7 +134,7 @@ void strFunName(int i, char * mess)
   else strcpy(mess,"OFF");
 }
 
-int sf_menu(int i)
+int sf_menu(int i1)
 {
     int  k;
     char name[STRSIZ];
@@ -108,39 +147,43 @@ int sf_menu(int i)
 
     strmen[0]=FUNLEN+1;
 
-    pinf_int(Nsub,i,NULL,&N);
+    pinf_int(Nsub,i1,NULL,&N);
     
     sprintf(strmen+1," %-*.*s",FUNLEN,FUNLEN,"OFF");
-
-    k = 0;          
-    for(l=0;l<MAXFUN;l++)
+        
+    for(k=0,l=0;l<MAXFUN;l++)
     {    
-       if ( strFun[l].myParticle(allInP(i))  ) 
+       if ( strFun[l].myParticle(allInP(i1))  ) 
        {  
           nfun[k++] = l;
-          strFun[l].fullName(i, name); 
+          strFun[l].fullName(i1, name); 
 	  sprintf(strmen+1+(FUNLEN+1)*k," %-*.*s",FUNLEN,FUNLEN,name);
        }
     }
+
     if(!k) 
     { messanykey(15,15,"Structure functions for this particle\n"
                        "are not known\n");
       return 0;
     }
-
+    
     menu1(77-FUNLEN,7,"",strmen, "n_strfun", &pscr, &mode);
     if (mode == 0) return 0;
     put_text(&pscr);
-    if (mode == 1) sf_num[i-1]=0;
+    if (mode == 1) sf_num[i1-1]=0;
     else
-    {  int ok=strFun[nfun[mode - 2]].menu(i,allInP(i));
-       if(ok) sf_num[i-1]=nfun[mode -2]+1; else{ sf_num[i-1]=0; return 0;}
+    {  int ok=strFun[nfun[mode - 2]].menu(i1,allInP(i1));
+       if(ok) sf_num[i1-1]=nfun[mode -2]+1; else{ sf_num[i1-1]=0; return 0;}
     }
     return 1;
 } /* sf_menu__ */
 
+
 double strfun_(int i, double x,double q)
-{ double ff=strFun[sf_num[i-1]-1].val(i,x,q);
+{ double ff;
+
+   ff=strFun[sf_num[i-1]-1].val(i,x,q);
+
   if( !isfinite(ff) ) 
   {
     if(nnan[i-1]==0) printf("Distribution function of %d^th particle returns NAN   at x=%E Q=%E\n",i,x,q);
@@ -151,7 +194,7 @@ double strfun_(int i, double x,double q)
   return ff;
 }
 
-int loadStrFun(char *  name1, char*name2)
+static int loadStrFun(char *  name1, char*name2)
 { 
   int l, i,err=0;
   char *sf_txt[2];
@@ -175,6 +218,7 @@ int loadStrFun(char *  name1, char*name2)
   if(err) 
   { printf("ERROR in strfun\n");
     if(blind) exit(2);
+    return 1;
   }  
   return 0;                                                                       
 }
@@ -194,12 +238,12 @@ int rd_sf__(FILE *mode)
   else trim(sf_txt2); 
   for(ch=0; ch!='\n';ch=fgetc(mode));   
   
-  if(err)
+  if(err || loadStrFun(sf_txt1,sf_txt2))
   {
      if(blind) { printf("File 'session.dat':Error in stucture function specification\n"); exit(2);} 
      else  messanykey(10,12,"File 'session.dat':Error in stucture function specification");
+     return 1;
   }  
-  loadStrFun(sf_txt1,sf_txt2);
   return 0;                                                                       
 }
 
@@ -209,11 +253,13 @@ int wrt_sf__(FILE *mode)
   int i;
 
   for(i=0;i<2;i++) 
-  { fprintf(mode,"  StrFun%d=",i+1);
+  { int i1=i+1;
+    fprintf(mode,"  StrFun%d=",i1);
     if(sf_num[i])
     { char sf_txt[500];
-      strFun[sf_num[i]-1].fullName(i+1,sf_txt);
-      fprintf(mode,"\"%s\" %d\n",sf_txt,strFun[sf_num[i]-1].mc_code(i+1));
+      int n=sf_num[i]-1;
+      strFun[n].fullName(i1,sf_txt);
+      fprintf(mode,"\"%s\" %d\n",sf_txt,strFun[n].mc_code(i1));
     }
     else fprintf(mode,"\"OFF\"\n");
   }  

@@ -195,7 +195,7 @@ int wrtkin_(FILE *nchan)
    {
      for(k=0;(c=kinmtc_1[i].lvin[k]);k++) fprintf(nchan,"%d",c);
      fprintf(nchan," -> ");
-     for(k=0;(c=kinmtc_1[i].lvout[0][k]);++k)  fprintf(nchan,"%d",c);
+     for(k=0;(c=kinmtc_1[i].lvout[0][k]);++k) fprintf(nchan,"%d",c);
      fprintf(nchan," , ");
      for(k=0;(c=kinmtc_1[i].lvout[1][k]);++k) fprintf(nchan,"%d",c);
      fprintf(nchan,"\n");

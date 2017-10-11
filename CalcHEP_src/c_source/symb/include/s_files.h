@@ -6,8 +6,8 @@
 
 typedef struct catrec
    {
-      int      nsub_, ndiagr_,nFile;
-      long      factpos, rnumpos, denompos;
+      int     status, nsub_, ndiagr_, ndiagr_abs,  nFile;
+      long    factpos, rnumpos, denompos;
    }      catrec;
 
     extern FILE *  menup;
@@ -38,6 +38,8 @@ extern int whichArchive(int nFile, int rw);
 #define  FREAD1(d,f)   fread(&(d),sizeof(d),1,f)
 #define  FWRITE1(d,f)  f_write(&(d),sizeof(d),1,f)
 #define  MAXARCHIVE 100000000L
+
+extern int pCompile(void);
 
 
 #endif

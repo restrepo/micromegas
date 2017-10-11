@@ -324,7 +324,9 @@ static int checkEnergy(void)
    {                                                         
      REAL  S,m1,m2;
      pinf_int(Nsub,1,&m1,NULL);
-     pinf_int(Nsub,2,&m2,NULL); 
+     pinf_int(Nsub,2,&m2,NULL);
+     if(sf_num[0] && sf_mass[0]>m1) m1= sf_mass[0];
+     if(sf_num[1] && sf_mass[1]>m2) m2= sf_mass[1];                      
      incomkin(m1,m2,inP1,inP2,&S,NULL,NULL);
      if(S <= ms) return 1;
    }
@@ -334,25 +336,28 @@ static int checkEnergy(void)
 
 
 static void infor(void)
-{
+{ static int first=1;
   scrcolor(FGmain,BGmain);  
   clrbox(1,1,53,4);
   goto_xy(4,3); scrcolor(Red,BGmain);    print("(sub)Process: ");
   scrcolor(FGmain,BGmain); print("%s",Process);
   goto_xy(4,4); scrcolor(Red,BGmain);    print("Monte Carlo session: ");
   scrcolor(Black,BGmain);  print("%d",nSess);
+  if(first) 
+  {
+     goto_xy(1,7); scrcolor(Blue, BGmain);
+     print(" #IT %s Error[%%]  nCall    Eff.  chi^2", nin_int == 2? "Cross section[pb]":"   Width[GeV]    ");
+  }
   if(integral.old) 
   { print("(continue)");     
-    if(integral.n_it>0)
+    if(integral.n_it>0 && first)
     {
-      goto_xy(1,7); scrcolor(Blue, BGmain);
-      print(" #IT %s Error[%%]  nCall    Eff.  chi^2", nin_int == 2? "Cross section[pb]":"   Width[GeV]    ");
       goto_xy(1,8);scrcolor(FGmain, BGmain);
       integral.In=integral.s1/integral.n_it;               
       integral.dI=sqrt(integral.s0)/integral.n_it;                        
       if(integral.n_it<=1 || integral.s0==0 ) integral.khi2=0; else           
       integral.khi2=(integral.s2-integral.s1*integral.s1/integral.n_it)*integral.n_it/(integral.n_it-1)/fabs(integral.s0);
-      print(" < >   %12.4E %10.2E %8d %8.8s %8.1G" ,
+      print(" < >   %12.4E %10.2E %8d %7.7s %-7.1G" ,
       integral.In, fabs(integral.In)? 100*integral.dI/(double)fabs(integral.In):0., integral.nCallTot, effInfo(),integral.khi2);
     }      
   }  
@@ -361,6 +366,7 @@ static void infor(void)
       scrcolor(FGmain,BGmain);                 
       clrbox(1,8,53,maxRow()-2);      
   }
+  first=0;
 }
 
 
@@ -400,7 +406,6 @@ int monte_carlo_menu(void)
    static int r=0;
    int mode=1;
    void * pscr=NULL;
-   void * pscr_mem=NULL;
    void (*quit)(int)=f3_key[7];
    char menutxt[]="\030"
                   " Subprocess             "
@@ -419,7 +424,6 @@ int monte_carlo_menu(void)
    if(nin_int==1)  improveStr(menutxt,"Easy", "Total width"); 
            else    improveStr(menutxt,"Easy", "1D integration");
  
-   get_text(1,10,80,24,&pscr_mem);
    wrtprc_();
    for(;;)
    {  
@@ -430,7 +434,7 @@ int monte_carlo_menu(void)
 
       switch (mode)
       { 
-        case  0: put_text(&pscr_mem); return 0;
+        case  0: return 0;
         case  1: r=r|3*sub_men__(); break;
         case  2: r=r|in_setting(); break;
         case  3: r=r|change_parameter(54,7,0);  break;
@@ -442,7 +446,7 @@ int monte_carlo_menu(void)
                      void * pscrC=NULL;
                      menu1(54,6,"",menuC,"n_constr_*",&pscrC, &modeC);
                      switch(modeC)
-                     { case 0: put_text(&pscr_mem); break;
+                     { case 0: break;
                        case 1: show_depend(54,7); break;
                        case 2: show_spectrum(54,9); break;
                      } 
@@ -485,6 +489,8 @@ int monte_carlo_menu(void)
                    { REAL m1,m2, Pcm;
                      pinf_int(Nsub,1,&m1,NULL); 
                      pinf_int(Nsub,2,&m2,NULL);  
+                     if(sf_num[0] && sf_mass[0]>m1) m1= sf_mass[0];
+                     if(sf_num[1] && sf_mass[1]>m2) m2= sf_mass[1];
                      incomkin(m1,m2,inP1,inP2,NULL,&Pcm,NULL); 
                      if(sf_num[0]||sf_num[1]||nCuts)
                       messanykey(10,10,"Structure functions and cuts are ignored\n");                                       

@@ -6,7 +6,6 @@ extern double strfun_(int i, double x, double q);
 
 extern int rd_sf__(FILE *mode);
 extern int wrt_sf__(FILE *mode);
-extern int loadStrFun(char *  name1, char*name2);
 
 extern int initStrFun(int mode);
 

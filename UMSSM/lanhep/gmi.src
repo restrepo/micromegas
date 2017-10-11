@@ -1,0 +1,102 @@
+
+% Higgs gauge interaction (higgsino-gauge terms are in susy_ggi.mdl file)
+
+lterm - (EE*taupm*W/(SW*2)+Yl*EE*B0/(CW*2)+Y1p*Bp*NCp*EE/CW)*( i*(S*deriv*s-deriv*S*s) )
+      + (i*Sqrt2*( (EE*taump*f_W/(SW*2) +Yl*EE*f_B0/(CW*2) +Y1p*f_Bp*NCp*EE/CW)*f*S
+                  -(EE*taump*f_Wb/(SW*2)+Yl*EE*f_B0b/(CW*2) +Y1p*f_Bpb*NCp*EE/CW)*F*s ))
+      + S*(EE*taupm*W/(SW*2)+Yl*EE*B0/(CW*2) +Y1p*Bp*NCp*EE/CW)**2*s
+
+   where
+	f=f_hd, F=f_hdb, s=s_hd, S=s_Hd, Yl=-1, Y1p=Q1;
+	f=f_hu, F=f_hub, s=s_hu, S=s_Hu, Yl= 1, Y1p=Q2.
+
+
+lterm - Y1p*Bp*NCp*EE/CW*i*(S*deriv*s-deriv*S*s)
+      + i*Sqrt2*( Y1p*f_Bp*NCp*EE/CW*f*S - Y1p*f_Bpb*NCp*EE/CW*F*s )
+      + S*(Y1p*Bp*NCp*EE/CW)**2*s
+
+   where
+	f=f_S, F=f_Sb, s=s_s, S=s_S, Y1p=Qs.
+
+
+
+% Left leptons gauge interaction
+
+lterm  - (EE*taupm*W/(SW*2)-EE*B0/(CW*2)+QL*Bp*NCp*EE/CW)*(F*sigma*f+i*(S*deriv*s-deriv*S*s))
+       + (i*Sqrt2*( (EE*taump*f_W/(SW*2) -EE*f_B0/(CW*2) +QL*f_Bp*NCp*EE/CW)*f*S
+                   -(EE*taump*f_Wb/(SW*2)-EE*f_B0b/(CW*2)+QL*f_Bpb*NCp*EE/CW)*F*s ) )
+       + S*(EE*taupm*W/(SW*2)-EE*B0/(CW*2)+QL*Bp*NCp*EE/CW)**2*s
+
+   where
+
+	f=f_l1, F=f_l1b, s=s_l1, S=s_L1;
+	f=f_l2, F=f_l2b, s=s_l2, S=s_L2;
+	f=f_l3, F=f_l3b, s=s_l3, S=s_L3.
+
+
+
+% Right lepton gauge interaction
+
+lterm  - ( EE*B0/CW+Qe*Bp*NCp*EE/CW)*( F*sigma*f + i*(S*deriv*s-deriv*S*s))
+       + i*Sqrt2*( (EE*f_B0/CW+Qe*f_Bp*NCp*EE/CW)*f*S - (EE*f_B0b/CW+Qe*f_Bpb*NCp*EE/CW)*F*s )
+       + S*( EE*B0/CW+Qe*Bp*NCp*EE/CW)**2*s
+
+   where
+
+	f=f_r1, F=f_r1b, s=s_r1, S=s_R1;
+	f=f_r2, F=f_r2b, s=s_r2, S=s_R2;
+	f=f_r3, F=f_r3b, s=s_r3, S=s_R3.
+
+
+lterm  - Qn*Bp*NCp*EE/CW*( F*sigma*f + i*(S*deriv*s-deriv*S*s))
+       + i*Sqrt2*( Qn*f_Bp*f*S*NCp*EE/CW - Qn*f_Bpb*F*s*NCp*EE/CW )
+       + S*(Qn*Bp*NCp*EE/CW)**2*s
+
+   where
+
+	f=f_n1, F=f_n1b, s=s_n1, S=s_N1;
+	f=f_n2, F=f_n2b, s=s_n2, S=s_N2;
+	f=f_n3, F=f_n3b, s=s_n3, S=s_N3.
+
+
+
+% Left (s)quarks gauge interaction
+
+lterm  - (-SC*lambda*G+EE*taupm*W/(2*SW)+EE*B0/(6*CW)+QQ*Bp*NCp*EE/CW)*( F*sigma*f+i*(S*deriv*s-deriv*S*s)  )
+       + i*Sqrt2*( ( SC*lambda*f_G + EE*taump*f_W/(2*SW) +EE*f_B0/(6*CW) +QQ*f_Bp*NCp*EE/CW)*f*S
+                  -( SC*lambda*f_Gb+ EE*taump*f_Wb/(2*SW)+EE*f_B0b/(6*CW)+QQ*f_Bpb*NCp*EE/CW)*F*s )
+       + S*(EE*taupm*W/(2*SW)+EE*B0/(6*CW)+QQ*Bp*NCp*EE/CW-SC*lambda*G)**2*s
+   where
+
+	f=f_q1, F=f_q1b, s=s_q1, S=s_Q1;
+	f=f_q2, F=f_q2b, s=s_q2, S=s_Q2;
+	f=f_q3, F=f_q3b, s=s_q3, S=s_Q3.
+
+
+% Right up (s)q
+
+lterm  - ( SC*lambda*G-2*EE*B0/(3*CW)+Qu*Bp*NCp*EE/CW)*( F*sigma*f + i*(S*deriv*s-deriv*S*s) )
+       + i*Sqrt2*( (-SC*lambda*f_G - 2*EE*f_B0/(3*CW) +Qu*f_Bp*NCp*EE/CW)*f*S
+                  -(-SC*lambda*f_Gb- 2*EE*f_B0b/(3*CW)+Qu*f_Bpb*NCp*EE/CW)*F*s )
+       + S*(-2*EE*B0/(3*CW)+SC*lambda*G+Qu*Bp*NCp*EE/CW)**2*s
+
+   where
+
+	f=f_u1, F=f_u1b, s=s_u1, S=s_U1;
+	f=f_u2, F=f_u2b, s=s_u2, S=s_U2;
+	f=f_u3, F=f_u3b, s=s_u3, S=s_U3.
+
+
+% Right down (s)q
+
+lterm  - ( SC*lambda*G + EE*B0/(3*CW) + Qd*Bp*NCp*EE/CW)*( F*sigma*f + i*(S*deriv*s-deriv*S*s) )
+       + i*Sqrt2*( (-SC*lambda*f_G + EE*f_B0/(3*CW) +Qd*f_Bp*NCp*EE/CW)*f*S
+                  -(-SC*lambda*f_Gb+ EE*f_B0b/(3*CW)+Qd*f_Bpb*NCp*EE/CW)*F*s )
+       + S*( EE*B0/(3*CW)+SC*lambda*G+Qd*Bp*NCp*EE/CW)**2*s
+
+   where
+
+	f=f_d1, F=f_d1b, s=s_d1, S=s_D1;
+	f=f_d2, F=f_d2b, s=s_d2, S=s_D2;
+	f=f_d3, F=f_d3b, s=s_d3, S=s_D3.
+

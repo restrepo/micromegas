@@ -318,7 +318,10 @@ Parallelization method:      local
 #Walltime:                    0.15
 #Memory:                      1
 #email:                       name@address
-Max number of cpus:          2
+#Max number of cpus:          2
+Max number of nodes:   8
+Max number of processes per node: 1
+
 sleep time:                  3
 nice level :                 19
 

@@ -1,0 +1,54 @@
+UMSSM_CW
+ Variables 
+ Name  | Value       |>  Comment                                   <|
+alfSMZ |0.1172       |alpha_QCD(MZ)
+Mtp    |171.4        |top quark pole mass
+MbMb   |4.23         |Mb(Mb) running mass
+McMc   |1.275        |Mc(Mc) running mass
+Q      |100          |QCD scale
+alfEMZ |127.944      |alphaEM(MZ)-1
+MZ1    |91.1876      |Z1 mass
+MZ2    |6000         |Z2 mass
+aZZ    |8e-05        |Z1-Z2 mixing angle
+SW     |0.48079      |sin of the Weinberg angle
+Alda   |40           |trilinear coupling
+mu     |1170         |mu
+MG1    |1000         |Bino mass
+MG2    |2000         |Wino mass
+MG3    |6000         |Gluino mass
+MK     |0            |Mixing Bino-Bino p mass
+M1p    |1000         |Bino p mass
+Ml     |1.777        |mass of tau-lepton
+Mb     |2.77         |b-quark mass
+MdSM   |0.0048       |d-quark mass
+Ms2GeV |0.095        |
+Muq    |0.0023       |u-quark mass
+Me     |0.000511     |electron mass
+Mm     |0.10566      |muon mass
+Ml2    |1000         |ML2
+Ml3    |1000         |ML3
+Mr2    |1000         |MR2
+Mr3    |1000         |MR3
+Mn2    |1000         |Mn2
+Mnlr   |50           |tau-sneutrino-right mass
+Au     |0            |
+Ad     |0            |
+Am     |0            |
+Ae     |0            |
+At     |1000         | 
+Ab     |0            | 
+Al     |0            | 
+Ac     |0            | 
+As     |0            |
+An     |0            |
+dMb    |0            |
+dMs    |0            |
+dMd    |0            |
+Mq2    |200          |
+Mq3    |200          |
+Mu2    |200          |
+Mu3    |200          |
+Md2    |200          |
+Md3    |200          |
+tE6    |1.5708       |E6 angle
+Maux   |1            |mass of aux particles

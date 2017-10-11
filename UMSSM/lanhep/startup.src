@@ -1,0 +1,45 @@
+
+/*   Gauge fixing  ('unitary' or 'Feynman') */ 
+keys gauge_fixing=Feynman.                                                     
+
+% Same soft masses for 1 and 2 sfermion generation (to avoid FCNC) on/off
+keys ms1eq2=on.
+
+%  1,2 generation sfermion mixing (off->left/right, on->mass states)
+keys sel1_mix=off, sel2_mix=off, sq1_mix=off, usq2_mix=off, dsq2_mix=off.
+
+/*  Dimension of sfermion mixing matrices (one of 0, 2, 6) */
+keys sel_mix=2, usq_mix=2, dsq_mix=2.
+
+/*  Mixing in the odd part of Higgs sector for the definition of Z.f and Zp.f :
+either approximation with mixing Z1.f/Z2.f (off)
+or full mixing Z1.f/Z2.f/ha (on)*/
+keys  odd_full_mix=off.
+
+/*  Mass & mixing matrices calculated from initial parameters */
+keys AutoNeuMass=on, AutoChMass=on, AutoSlq12Mass=on, AutoSlq3Mass=on.
+
+
+% =============== Model name and number setup.
+
+model 'UMSSM'/1.
+
+option chepCFWidth=43.
+option chepLPWidth=72.
+option chepPDWidth=841.
+let g5=gamma5.
+let eps2 = {{0,1},{-1,0}}.
+special sigma:(spinor2, spinor2, vector).
+
+read 'var.src'.         % Definition of free parameters
+read 'func.src'.        % Vevs, mass of sparticles, higgses, ...
+read 'prtcls.src'.      % UMSSM particles
+read 'Let.src'.         % Gauge eigenstates definition
+read 'latex.src'.       % Latex translation
+read 'ggi.src'.         % Gauge fields interactions
+read 'gmi.src'.         % Gauge-matter interactions
+read 'DD.src'.          % DD terms
+read 'W.src'.           % Terms going from super-potential (FF & Yukawa)
+read 'softsbt.src'.     % Soft SUSY-breaking terms
+read 'fgauge.src'.      % Faddeev-Popov ghosts
+read 'end.src'.         % Higgs radiative corrections, check of the model

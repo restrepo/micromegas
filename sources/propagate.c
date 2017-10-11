@@ -311,7 +311,7 @@ static double green_v(double Kt, double zS)
 
 static double azimuthInt(double k)
 {
-/* return 1/pi*int_0^pi exp(- k sin^2(fi/2)) dfi == exp(-k/2)*bessi0(k/2)  */    
+/* return 1/pi*int_0^pi exp(- k sin^2(fi/2)) dfi == exp(-k/2)*bessI0(k/2)  */    
 
 double X[18]={0.000000E+00,3.125000E-02,6.250000E-02,1.250000E-01,1.875000E-01,
  2.500000E-01,2.812500E-01,3.125000E-01,3.750000E-01,4.062500E-01,4.375000E-01,
@@ -624,7 +624,7 @@ static double pbar_PropagatorInfiniteR(double rSrc, double zSrc, double ek)
 //          lastK=n; 
       }         
       cn= 1. - sin(2.*knL)/(2.*knL);
-      dPropagator=bessk0(sqrt(SQR(knL/L_dif)+SQR(kv))*rSrc);
+      dPropagator=bessK0(sqrt(SQR(knL/L_dif)+SQR(kv))*rSrc);
       propagator+=dPropagator*sin(knL*(L_dif-zSrc)/L_dif)*sin(knL)/cn;
       if(fabs(dPropagator) <= 0.1*Eps*fabs(propagator)) break; 
    }

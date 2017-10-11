@@ -1,0 +1,134 @@
+prtcformat fullname: 'Full   Name     ',
+           name:' P ', aname:' aP', pdg:'  number  ',
+           spin2,mass,width, color, aux, texname: ' LaTeX(A)           ',
+           atexname:'  LateX(A+)              '.
+
+% Choice of gauge fixing: default is t'Hooft-Feynman.
+
+do_if gauge_fixing==Feynman.
+vector
+	A/A: (photon,pdg 22,gauge),
+	Z1/Z1:('Z1 boson', pdg 23,mass MZ1 , width wZ1=auto, gauge),
+	Z2/Z2:('Z2 boson', pdg 3000051, mass MZ2 ,width wZ2=auto, gauge),
+	'W+'/'W-': ('W boson',pdg 24, mass MW, width wW=auto, gauge).
+
+do_else_if gauge_fixing==unitary.
+vector
+	A/A: (photon,pdg 22,gauge),
+	Z1/Z1:('Z1 boson', pdg 23,mass MZ1 , width wZ1=auto),
+	Z2/Z2:('Z2 boson', pdg 3000051, mass MZ2 ,width wZ2=auto),
+	'W+'/'W-': ('W boson', pdg 24, mass MW, width wW=auto).
+
+let     'Z1.c'=0, 'Z1.C'=0, 'Z2.c'=0, 'Z2.C'=0, 'W+.c'=0, 'W+.C'=0, 'W-.c'=0, 'W-.C'=0,
+	'W+.f'=0, 'W-.f'=0, 'Z1.f'=0,'Z2.f'=0.
+
+do_else.
+
+write('Error: gauge_fixing must be either Feynman or unitary').
+quit.
+end_if.
+
+
+vector  G/G:(gluon, pdg 21, color c8, gauge).
+
+spinor 	ne/Ne:(neutrino,pdg 12, left), 	       e:(electron,     pdg 11, mass Me),
+	nm/Nm:('mu-neutrino-L',pdg 14,left),   m:(muon,         pdg 13, mass Mm),
+	nl/Nl:('tau-neutrino-L',pdg 16, left), l:('tau-lepton', pdg 15, mass Ml).
+	
+spinor  ner/Ner:('neutrino-R',pdg 3000054, right),
+	nmr/Nmr:('mu-neutrino-R',pdg 3000055, right),
+	nlr/Nlr:('tau-neutrino-R',pdg 3000056, right).
+
+spinor	u:('u-quark',pdg 2, color c3, mass Muq),
+	d:('d-quark',pdg 1, color c3, mass MdSM),
+	c:('c-quark',pdg 4, color c3, mass Mc),
+	s:('s-quark',pdg 3, color c3, mass MsSM ),
+	t:('t-quark',pdg 6, color c3, mass Mt, width wt=auto),
+	b:('b-quark',pdg 5, color c3, mass MbSM ).
+
+
+scalar  h1/h1:('CP-even Higgs 1',   pdg 25, mass Mh1,  width wh1=auto),
+	h2/h2:('CP-even Higgs 2',   pdg 35, mass Mh2, width wh2=auto),
+	h3/h3:('CP-even Higgs 3',   pdg 45, mass Mh3, width wh3=auto),
+	ha/ha:('CP-odd Higgs',      pdg 36, mass Mha, width wha=auto),
+	'H+'/'H-':('Charged Higgs', pdg 37, mass MHc, width wHc=auto).
+
+
+spinor  '~1+'/'~1-':('chargino 1', pdg 1000024,mass MC1,  width wC1=auto),
+	'~2+'/'~2-':('chargino 2', pdg 1000037,mass MC2, width wC2=auto).
+
+spinor  ~o1 / ~o1:('neutralino 1', pdg 1000022,mass MNE1, width wNE1=auto),
+	~o2 / ~o2:('neutralino 2', pdg 1000023,mass MNE2, width wNE2=auto),
+	~o3 / ~o3:('neutralino 3', pdg 1000025,mass MNE3, width wNE3=auto),
+	~o4 / ~o4:('neutralino 4', pdg 1000035,mass MNE4, width wNE4=auto),
+	~o5 / ~o5:('neutralino 5', pdg 3000052,mass MNE5, width wNE5=auto),
+	~o6 / ~o6:('neutralino 6', pdg 3000053,mass MNE6, width wNE6=auto).
+
+spinor  ~g / ~g:(gluino, pdg 1000021, color c8, mass MSG, width wSG=auto).
+
+do_if sel1_mix==on.
+scalar  ~e1 / ~E1:('selectron 1', pdg  1000011 , mass MSe1, width wSeL=auto),
+	~e2 / ~E2:('selectron 2', pdg  2000011 , mass MSe2, width wSeR=auto).
+do_else.
+scalar  ~eL / ~EL:('L-selectron',   pdg  1000011 , mass MSeL, width wSeL=auto),
+	~eR / ~ER:('R-selectron',   pdg  2000011 , mass MSeR, width wSeR=auto).
+let '~e1' = '~eL', '~E1'=anti('~e1'), '~e2'='~eR', '~E2'=anti('~e2').
+end_if.
+
+do_if sel2_mix==on.
+scalar  ~m1 / ~M1:('smuon 1', pdg  1000013 , mass MSm1, width wSmL=auto),
+	~m2 / ~M2:('smuon 2', pdg  2000013 , mass MSm2, width wSmR=auto).
+do_else.
+scalar  ~mL / ~ML:('left smuon',    pdg  1000013 , mass MSmL, width wSmL=auto),
+	~mR / ~MR:('right smuon',   pdg  2000013 , mass MSmR, width wSmR=auto).
+let '~m1' = '~mL', '~M1'=anti('~m1'), '~m2'='~mR', '~M2'=anti('~m2').
+end_if.
+
+scalar  ~l1 / ~L1:('1st stau',      pdg  1000015 , mass MSl1, width wSl1=auto),
+	~l2 / ~L2:('2nd stau',      pdg  2000015 , mass MSl2, width wSl2=auto),
+	~ne / ~Ne:('e-sneutrino-L',   pdg  1000012 , mass MSne, width wSne=auto),
+	~nm / ~Nm:('mu-sneutrino-L',   pdg  1000014 , mass MSnm, width wSnm=auto),
+ 	~nl / ~Nl:('tau-sneutrino-L',   pdg  1000016 , mass MSnl, width wSnl=auto).
+
+scalar  ~nE / ~NE:('e-sneutrino-R',   pdg  3000057 , mass Mner, width Sner=auto),
+	~nM / ~NM:('mu-sneutrino-R',   pdg  3000058 , mass Mnmr, width Snmr=auto),
+	~nL / ~NL:('tau-sneutrino-R',   pdg  3000059 , mass Mnlr, width Snlr=auto).
+
+
+do_if sq1_mix==off.
+scalar  ~uL / ~UL : ('u-squark L', color c3, pdg 1000002  , mass MSuL, width wSuL=auto),
+	~uR / ~UR : ('u-squark R', color c3, pdg 2000002  , mass MSuR, width wSuR=auto).
+let '~u1' = '~uL', '~U1'=anti('~u1'), '~u2'='~uR', '~U2'=anti('~u2').
+scalar  ~dL / ~DL : ('d-squark L', color c3, pdg 1000001  , mass MSdL, width wSdL=auto),
+	~dR / ~DR : ('d-squark R', color c3, pdg 2000001  , mass MSdR, width wSdR=auto).
+let '~d1' = '~dL', '~D1'=anti('~d1'), '~d2'='~dR', '~D2'=anti('~d2').
+do_else.
+scalar  ~u1 / ~U1 : ('u-squark 1', color c3, pdg 1000002  , mass MSu1, width wSuL=auto),
+	~u2 / ~U2 : ('u-squark 2', color c3, pdg 2000002  , mass MSu2, width wSuR=auto).
+scalar  ~d1 / ~D1 : ('d-squark 1', color c3, pdg 1000001  , mass MSd1, width wSdL=auto),
+	~d2 / ~D2 : ('d-squark 2', color c3, pdg 2000001  , mass MSd2, width wSdR=auto).
+end_if.
+
+do_if usq2_mix==on.
+scalar  ~c1 / ~C1 : ('c-squark 1', color c3, pdg 1000004  , mass MSc1, width wScL=auto),
+	~c2 / ~C2 : ('c-squark 2', color c3, pdg 2000004  , mass MSc2, width wScR=auto).
+do_else.
+scalar  ~cL / ~CL : ('c-squark L', color c3, pdg 1000004  , mass MScL, width wScL=auto),
+	~cR / ~CR : ('c-squark R', color c3, pdg 2000004  , mass MScR, width wScR=auto).
+let '~c1' = '~cL', '~C1'=anti('~c1'), '~c2'='~cR', '~C2'=anti('~c2').
+end_if.
+
+do_if dsq2_mix==off.
+scalar  ~sL / ~SL : ('s-squark L', color c3, pdg 1000003  , mass MSsL, width wSsL=auto),
+	~sR / ~SR : ('s-squark R', color c3, pdg 2000003  , mass MSsR, width wSsR=auto).
+let '~s1' = '~sL', '~S1'=anti('~s1'), '~s2'='~sR', '~S2'=anti('~s2').
+do_else.
+scalar  ~s1 / ~S1 : ('s-squark 1', color c3, pdg 1000003  , mass MSs1, width wSsL=auto),
+	~s2 / ~S2 : ('s-squark 2', color c3, pdg 2000003  , mass MSs2, width wSsR=auto).
+end_if.
+
+
+scalar  ~t1 / ~T1 : ('t-squark 1', color c3, pdg 1000006  , mass MSt1, width wSt1=auto),
+	~t2 / ~T2 : ('t-squark 2', color c3, pdg 2000006  , mass MSt2, width wSt2=auto),
+	~b1 / ~B1 : ('b-squark 1', color c3, pdg 1000005  , mass MSb1, width wSb1=auto),
+	~b2 / ~B2 : ('b-squark 2', color c3, pdg 2000005  , mass MSb2, width wSb2=auto).

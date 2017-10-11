@@ -241,7 +241,7 @@ L10:{  char strmen[]="\030"
           && nPoints>3&& nPoints<=150)
 	  {
 	    for(i=0;i<nPoints;i++)
-	    { double z=(double)i/(double)(nPoints-1);
+	    { double z=(i+0.5)/(double)(nPoints);
 	      double q=pow(qMin,1-z)*pow(qMax,z);
 	      f[i]=alpha_2(q);
 	    }

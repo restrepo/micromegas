@@ -1,0 +1,273 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>tools.externalNllFast &mdash; SModelS 1.0.3 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="SModelS 1.0.3 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SModelS 1.0.3 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for tools.externalNllFast</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: tools.externalNllFast</span>
+<span class="sd">   :synopsis: Wrapper for all nllfast versions.</span>
+
+<span class="sd">.. moduleauthor:: Wolfgang Waltenberger &lt;wolfgang.waltenberger@gmail.com&gt;</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">smodels.tools.externalTool</span> <span class="kn">import</span> <span class="n">ExternalTool</span>
+<span class="kn">import</span> <span class="nn">commands</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ExternalNllFast"><a class="viewcode-back" href="../../tools.html#tools.externalNllFast.ExternalNllFast">[docs]</a><span class="k">class</span> <span class="nc">ExternalNllFast</span><span class="p">(</span><span class="n">ExternalTool</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An instance of this class represents the installation of nllfast.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sqrts</span><span class="p">,</span> <span class="n">nllfastVersion</span><span class="p">,</span> <span class="n">testParams</span><span class="p">,</span> <span class="n">testCondition</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param sqrts: sqrt of s, in TeV, as an integer,</span>
+<span class="sd">        :param nllfastVersion: version of the nllfast tool</span>
+<span class="sd">        :param testParams: what are the test params we need to run things with?</span>
+<span class="sd">        :param testCondition: the line that should be the last output line when</span>
+<span class="sd">        running executable</span>
+<span class="sd">        :srcPath: the path of the source code, for compilation</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ExternalTool</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sqrts</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sqrts</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&quot;nllfast</span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">sqrts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nllfastVersion</span> <span class="o">=</span> <span class="n">nllfastVersion</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="s">&quot;&lt;install&gt;/lib/nllfast/nllfast-&quot;</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="n">path</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">nllfastVersion</span> <span class="o">+</span> <span class="s">&quot;/&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cdPath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">absPath</span><span class="p">(</span><span class="n">location</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">executablePath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cdPath</span> <span class="o">+</span> <span class="s">&quot;/nllfast_</span><span class="si">%d</span><span class="s">TeV&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">sqrts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">testParams</span> <span class="o">=</span> <span class="n">testParams</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">testCondition</span> <span class="o">=</span> <span class="n">testCondition</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">srcPath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cdPath</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">executable</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="ExternalNllFast.compile"><a class="viewcode-back" href="../../tools.html#tools.externalNllFast.ExternalNllFast.compile">[docs]</a>    <span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Try to compile nllfast.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Trying to compile </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="s">&quot;cd </span><span class="si">%s</span><span class="s">; make&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">srcPath</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">commands</span><span class="o">.</span><span class="n">getoutput</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">True</span>
+
+</div>
+<div class="viewcode-block" id="ExternalNllFast.fetch"><a class="viewcode-back" href="../../tools.html#tools.externalNllFast.ExternalNllFast.fetch">[docs]</a>    <span class="k">def</span> <span class="nf">fetch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fetch and unpack tarball.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">urllib</span><span class="o">,</span> <span class="nn">tarfile</span>
+        <span class="n">tempfile</span> <span class="o">=</span> <span class="s">&quot;/tmp/nllfast7.tar.gz&quot;</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">tempfile</span><span class="p">,</span> <span class="s">&quot;w&quot;</span><span class="p">)</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s">&quot;http://smodels.hephy.at/externaltools/nllfast</span><span class="si">%d</span><span class="s">.tar.gz&quot;</span> \
+                <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">sqrts</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;fetching tarball from &quot;</span> <span class="o">+</span> <span class="n">url</span><span class="p">)</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">l</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">l</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">R</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">tar</span> <span class="o">=</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">tempfile</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">tar</span><span class="p">:</span>
+            <span class="n">tar</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">srcPath</span> <span class="o">+</span> <span class="s">&quot;/&quot;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="ExternalNllFast.unlink"><a class="viewcode-back" href="../../tools.html#tools.externalNllFast.ExternalNllFast.unlink">[docs]</a>    <span class="k">def</span> <span class="nf">unlink</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputFile</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Remove inputFile.out </span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span>
+        <span class="c"># fname = &quot;%s/%s.out&quot; % (self.cdPath, inputFile)</span>
+        <span class="c"># if os.path.exists(fname):</span>
+        <span class="c">#     os.unlink(fname)</span>
+
+</div>
+<div class="viewcode-block" id="ExternalNllFast.run_"><a class="viewcode-back" href="../../tools.html#tools.externalNllFast.ExternalNllFast.run_">[docs]</a>    <span class="k">def</span> <span class="nf">run_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Execute nllfast7.</span>
+<span class="sd">        </span>
+<span class="sd">        :params params: parameters used (e.g. gg cteq5 .... )</span>
+<span class="sd">        :returns: stdout and stderr, or error message</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="s">&quot;cd </span><span class="si">%s</span><span class="s">; </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cdPath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">executablePath</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">commands</span><span class="o">.</span><span class="n">getoutput</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span>
+
+</div>
+<div class="viewcode-block" id="ExternalNllFast.run"><a class="viewcode-back" href="../../tools.html#tools.externalNllFast.ExternalNllFast.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">process</span><span class="p">,</span> <span class="n">pdf</span><span class="p">,</span> <span class="n">squarkmass</span><span class="p">,</span> <span class="n">gluinomass</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Execute nllfast.</span>
+<span class="sd">        </span>
+<span class="sd">        :params process: which process: st, sb, gg, gdcpl, sdcpl, ss, sg, tot</span>
+<span class="sd">        :params pdf: cteq=cteq6, mstw2008 </span>
+<span class="sd">        :params squarkmass: squarkmass, None if squark decoupled</span>
+<span class="sd">        :params gluinomass: gluinomass, None if gluino decoupled</span>
+<span class="sd">        :returns: stdout and stderr, or error message</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">processes</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;st&quot;</span><span class="p">,</span> <span class="s">&quot;sb&quot;</span><span class="p">,</span> <span class="s">&quot;gg&quot;</span><span class="p">,</span> <span class="s">&quot;gdcpl&quot;</span><span class="p">,</span> <span class="s">&quot;sdcpl&quot;</span><span class="p">,</span> <span class="s">&quot;ss&quot;</span><span class="p">,</span> <span class="s">&quot;sg&quot;</span><span class="p">,</span> <span class="s">&quot;tot&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">process</span> <span class="ow">in</span> <span class="n">processes</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">pdf</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;cteq&quot;</span><span class="p">,</span> <span class="s">&quot;cteq6&quot;</span><span class="p">,</span> <span class="s">&quot;mstw&quot;</span><span class="p">,</span> <span class="s">&quot;mstw2008&quot;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">squarkmass</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">process</span><span class="p">,</span> <span class="n">pdf</span><span class="p">,</span> <span class="n">gluinomass</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">gluinomass</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">process</span><span class="p">,</span> <span class="n">pdf</span><span class="p">,</span> <span class="n">squarkmass</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">)</span> <span class="o">%</span> \
+                <span class="p">(</span><span class="n">process</span><span class="p">,</span> <span class="n">pdf</span><span class="p">,</span> <span class="n">squarkmass</span><span class="p">,</span> <span class="n">gluinomass</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="ExternalNllFast.checkInstallation"><a class="viewcode-back" href="../../tools.html#tools.externalNllFast.ExternalNllFast.checkInstallation">[docs]</a>    <span class="k">def</span> <span class="nf">checkInstallation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks if installation of tool is valid by looking for executable and</span>
+<span class="sd">        executing it.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">executablePath</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Executable &#39;</span><span class="si">%s</span><span class="s">&#39; not found -- try compiling tool in smodels/lib!&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">executablePath</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">access</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">executablePath</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">X_OK</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s"> is not executable&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">executable</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">testParams</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">testCondition</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Setup invalid: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">out</span><span class="p">))</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="s">&quot;gg&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">True</span>
+
+</div></div>
+<div class="viewcode-block" id="ExternalNllFast7"><a class="viewcode-back" href="../../tools.html#tools.externalNllFast.ExternalNllFast7">[docs]</a><span class="k">class</span> <span class="nc">ExternalNllFast7</span><span class="p">(</span><span class="n">ExternalNllFast</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An instance of this class represents the installation of nllfast 7.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ExternalNllFast</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="s">&quot;1.2&quot;</span><span class="p">,</span>
+                                 <span class="n">testParams</span><span class="o">=</span><span class="s">&quot;gg cteq 500 600&quot;</span><span class="p">,</span>
+                                 <span class="n">testCondition</span><span class="o">=</span><span class="s">&quot;500.     600.    0.193E+00  &quot;</span>
+                                 <span class="s">&quot;0.450E+00  0.497E+00&quot;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="ExternalNllFast8"><a class="viewcode-back" href="../../tools.html#tools.externalNllFast.ExternalNllFast8">[docs]</a><span class="k">class</span> <span class="nc">ExternalNllFast8</span><span class="p">(</span><span class="n">ExternalNllFast</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An instance of this class represents the installation of nllfast 8.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ExternalNllFast</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="s">&quot;2.1&quot;</span><span class="p">,</span>
+                                 <span class="n">testParams</span><span class="o">=</span><span class="s">&quot;gg cteq 500 600&quot;</span><span class="p">,</span>
+                                 <span class="n">testCondition</span><span class="o">=</span><span class="s">&quot;500.     600.    0.406E+00  &quot;</span>
+                                 <span class="s">&quot;0.873E+00  0.953E+00&quot;</span><span class="p">)</span>
+</div>
+<span class="n">nllFastTools</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">7</span> <span class="p">:</span> <span class="n">ExternalNllFast7</span><span class="p">(),</span>
+                 <span class="mi">8</span> <span class="p">:</span> <span class="n">ExternalNllFast8</span><span class="p">()</span> <span class="p">}</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">sqrts</span><span class="p">,</span> <span class="n">tool</span><span class="p">)</span> <span class="ow">in</span> <span class="n">nllFastTools</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">: installed in </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tool</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">tool</span><span class="o">.</span><span class="n">installDirectory</span><span class="p">()))</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">SModelS 1.0.3 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Sabine Kraml, Suchita Kulkarni, Ursula Laa, Andre Lessa, Veronika Magerl, Wolfgang Magerl, Doris Proschofsky, Michael Traub, Wolfgang Waltenberger.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

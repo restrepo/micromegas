@@ -1,2 +1,2 @@
-#define VERSION  "3.4.3"
+#define VERSION  "3.6.25"
 #define VERSION_ "CalcHEP  " VERSION

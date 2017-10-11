@@ -173,9 +173,9 @@ int slhadecayprint_(char * pname,int*dVirt,int *Nch,int len)
   return res;
 }
 
-double vsigma_(double*T,double*Beps,int*Fast,double*alpha)
+double vsigma_(double*T,double*Beps,int*Fast)
 {
-  return vSigma(*T,*Beps,*Fast,alpha);
+  return vSigma(*T,*Beps,*Fast);
 }
 
 
@@ -229,10 +229,10 @@ void muonupward_(double*nu, double*Nu, double*mu) { muonUpward(nu, Nu, mu);}
 void muoncontained_(double*nu,double*Nu,double *rho, double*mu) { muonContained(nu,Nu,*rho, mu);}
 
 
-double captureaux_(double(*fDv)(double*),int*forSun, double*csIp,double*csIn,double*csDp, double*csDn)
+double captureaux_(double(*fDv)(double*),int*forSun, double *Mass, double*csIp,double*csIn,double*csDp, double*csDn)
 {
   _fDv=fDv; 
-  return captureAux(fDv_, *forSun,*csIp, *csIn,*csDp,*csDn);
+  return captureAux(fDv_, *forSun,*Mass, *csIp, *csIn,*csDp,*csDn);
 }
 
 

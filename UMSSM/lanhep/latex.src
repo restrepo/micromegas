@@ -1,0 +1,87 @@
+
+SetTexName([EE=e, SC='g_s', SW='s_w', CW='c_w', MZ2='M_{Z_1}', MZ2='M_{Z_2}', MW='M_W',
+			lda='\\lambda', vs='v_S', Alda='A_{\\lambda}', At='A_t', Ab='A_b', Atq='A_t^{Q_{SUSY}}', Abq='A_b^{Q_{SUSY}}',
+			Al='A_\\tau', NCp='\\sqrt{\\frac{5}{3}}',
+			la1='\\lambda_1', la2='\\lambda_2', la3='\\lambda_3', la4='\\lambda_4', la5='\\lambda_5',
+			la6='\\lambda_6', la7='\\lambda_7', aa5='\\lambda_s', la1s='\\lambda_{1s}', la2s='\\lambda_{2s}']).
+
+SetTexName([Me='M_e',Mm='M_\\mu',Ml='M_\\tau',MsSM='M_s',Mc='M_c',MbSM=M_b,Mt=M_t,MbMM='M_b^{Q_{SUSY}}',MtMM='M_t^{Q_{SUSY}}']).
+
+SetTexName([Zv11='Z^v_{11}',Zv12='Z^v_{12}',Zv21='Z^v_{21}',Zv22='Z^v_{22}']).
+SetTexName([Zu11='Z^u_{11}',Zu12='Z^u_{12}',Zu21='Z^u_{21}',Zu22='Z^u_{22}']).
+
+
+SetTexName([ Zn11='Z^n_{11}',Zn21='Z^n_{21}',Zn31='Z^n_{31}',Zn41='Z^n_{41}',Zn51='Z^n_{51}',Zn61='Z^n_{61}',
+			Zn12='Z^n_{12}',Zn22='Z^n_{22}',Zn32='Z^n_{32}',Zn42='Z^n_{42}',Zn52='Z^n_{52}',Zn62='Z^n_{62}',
+			Zn13='Z^n_{13}',Zn23='Z^n_{23}',Zn33='Z^n_{33}',Zn43='Z^n_{43}',Zn53='Z^n_{53}',Zn63='Z^n_{63}',
+			Zn14='Z^n_{14}',Zn24='Z^n_{24}',Zn34='Z^n_{34}',Zn44='Z^n_{44}',Zn54='Z^n_{54}',Zn64='Z^n_{64}',
+			Zn15='Z^n_{15}',Zn25='Z^n_{25}',Zn35='Z^n_{35}',Zn45='Z^n_{45}',Zn55='Z^n_{55}',Zn65='Z^n_{65}',
+			Zn16='Z^n_{16}',Zn26='Z^n_{26}',Zn36='Z^n_{36}',Zn46='Z^n_{46}',Zn56='Z^n_{56}',Zn66='Z^n_{66}']).
+
+SetTexName([Zh11='Z^h_{11}',Zh12='Z^h_{12}',Zh13='Z^h_{13}',
+			Zh21='Z^h_{21}',Zh22='Z^h_{22}',Zh23='Z^h_{23}',
+			Zh31='Z^h_{31}',Zh32='Z^h_{32}',Zh33='Z^h_{33}']).
+
+SetTexName([ZA11='Z^A_{11}',ZA12='Z^A_{12}',ZA13='Z^A_{13}',
+			ZA21='Z^A_{21}',ZA22='Z^A_{22}',ZA23='Z^A_{23}',
+			ZA31='Z^A_{31}',ZA32='Z^A_{32}',ZA33='Z^A_{33}']).
+
+SetTexName([Zt11='Z^t_{11}',Zt21='Z^t_{21}',Zt12='Z^t_{12}',Zt22='Z^t_{22}']).
+SetTexName([Zb11='Z^b_{11}',Zb21='Z^b_{21}',Zb12='Z^b_{12}',Zb22='Z^b_{22}']).
+SetTexName([Zl11='Z^l_{11}',Zl21='Z^l_{21}',Zl12='Z^l_{12}',Zl22='Z^l_{22}']).
+
+
+SetTexName([u=u,U='\\bar{u}','u.c'='\\bar{u^c}','U.c'='u^c']).
+SetTexName([d=d,D='\\bar{d}','d.c'='\\bar{d^c}','D.c'='d^c']).
+SetTexName([s=s,S='\\bar{s}','s.c'='\\bar{s^c}','S.c'='s^c']).
+SetTexName([b=b,B='\\bar{b}','b.c'='\\bar{b^c}','B.c'='b^c']).
+SetTexName([c=c,C='\\bar{c}','c.c'='\\bar{c^c}','C.c'='c^c']).
+SetTexName([t=t,T='\\bar{t}','t.c'='\\bar{t^c}','T.c'='t^c']).
+SetTexName([e=e,E='\\bar{e}','e.c'='\\bar{e^c}','E.c'='e^c']).
+SetTexName([ne='^e\\nu_L', Ne='^e\\bar{\\nu}_L','ne.c'='^e\\bar{\\nu^c}_L','Ne.c'='^e\\nu^c_L']).
+SetTexName([ner='^e\\nu_R', Ner='^e\\bar{\\nu}_R','ner.c'='^e\\bar{\\nu^c}_R','Ner.c'='^e\\nu^c_R']).
+SetTexName([m='\\mu',M='\\bar{\\mu}','m.c'='\\bar{\\mu^c}','M.c'='\\mu^c']).
+SetTexName([nm='^\\mu\\nu_L', Nm='^\\mu\\bar{\\nu}_L','nm.c'='^\\mu\\bar{\\nu^c}_L','Nm.c'='^\\mu\\nu^c_L']).
+SetTexName([nmr='^\\mu\\nu_R', Nmr='^\\mu\\bar{\\nu}_R','nmr.c'='^\\mu\\bar{\\nu^c}_R','Nmr.c'='^\\mu\\nu^c_R']).
+SetTexName([l='\\tau',L='\\bar{\\tau}','l.c'='\\bar{\\tau^c}','L.c'='\\tau^c']).
+SetTexName([nl='^\\tau\\nu_L', Nl='^\\tau\\bar{\\nu}_L','nl.c'='^\\tau\\bar{\\nu^c}_L','Nl.c'='^\\tau\\nu^c_L']).
+SetTexName([nlr='^\\tau\\nu_R', Nlr='^\\tau\\bar{\\nu}_R','nlr.c'='^\\tau\\bar{\\nu^c}_R','Nlr.c'='^\\tau\\nu^c_R']).
+SetTexName([~eL='\\tilde{e}_L', ~mL='\\tilde{\\mu}_L', ~l1='\\tilde{\\tau}_1',
+			~eR='\\tilde{e}_R', ~mR='\\tilde{\\mu}_R', ~l2='\\tilde{\\tau}_2',
+			~EL='\\tilde{e}_L^{*}', ~ML='\\tilde{\\mu}_L^{*}', ~L1='\\tilde{\\tau}_1^{*}',
+			~ER='\\tilde{e}_R^{*}', ~MR='\\tilde{\\mu}_R^{*}', ~L2='\\tilde{\\tau}_2^{*}']).
+
+SetTexName([ h1='h_1', h2='h_2', h3='h_3', ha='h_a', 'H+'='H^+', 'H-'='H^-' ]).
+
+
+SetTexName([~ne='^e\\tilde{\\nu}_{L}', ~Ne='^e\\tilde{\\nu}_{L}^{*}',
+			~nm='^\\mu\\tilde{\\nu}_{L}', ~Nm='^\\mu\\tilde{\\nu}_{L}^{*}',
+			~nl='^\\tau\\tilde{\\nu}_{L}', ~Nl='^\\tau\\tilde{\\nu}_{L}^{*}']).
+SetTexName([~nE='^e\\tilde{\\nu}_{R}', ~NE='^e\\tilde{\\nu}_{R}^{*}',
+			~nM='^\\mu\\tilde{\\nu}_{R}', ~NM='^\\mu\\tilde{\\nu}_{R}^{*}',
+			~nL='^\\tau\\tilde{\\nu}_{R}', ~NL='^\\tau\\tilde{\\nu}_{R}^{*}']).
+SetTexName([~g='\\tilde{g}']).
+
+SetTexName([~uL='\\tilde{u}_L', ~UL='\\tilde{u}_L^{*}', ~uR='\\tilde{u}_R', ~UR='\\tilde{u}_R^{*}',
+			~dL='\\tilde{d}_L', ~DL='\\tilde{d}_L^{*}', ~dR='\\tilde{d}_R', ~DR='\\tilde{d}_R^{*}',
+			~sL='\\tilde{s}_L', ~SL='\\tilde{s}_L^{*}', ~sR='\\tilde{s}_R', ~SR='\\tilde{s}_R^{*}',
+			~cL='\\tilde{c}_L', ~CL='\\tilde{c}_L^{*}', ~cR='\\tilde{c}_R', ~CR='\\tilde{c}_R^{*}']).
+
+SetTexName([~b1='\\tilde{b}_1',~B1='\\tilde{b}_1^{*}', ~t1='\\tilde{t}_1',~T1='\\tilde{t}_1^{*}', 
+			~b2='\\tilde{b}_2',~B2='\\tilde{b}_2^{*}',~t2='\\tilde{t}_2',~T2='\\tilde{t}_2^{*}' ]).
+
+SetTexName([ ~o1='\\chi_1^0', '~o1.c'='\\chi_1^{0 c}', ~o2='\\chi_2^0', '~o2.c'='\\chi_2^{0 c}', ~o3='\\chi_3^0', '~o3.c'='\\chi_3^{0 c}']).
+SetTexName([ ~o4='\\chi_4^0', '~o4.c'='\\chi_4^{0 c}', ~o5='\\chi_5^0', '~o5.c'='\\chi_5^{0 c}', ~o6='\\chi_6^0', '~o6.c'='\\chi_6^{0 c}']).
+
+SetTexName([ '~1+'='\\chi_1^+', '~1+.c'='\\chi_1^{+ c}', '~1-'='\\chi_1^-', '~1-.c'='\\chi_1^{- c}']).
+SetTexName([ '~2+'='\\chi_2^+', '~2+.c'='\\chi_2^{+ c}', '~2-'='\\chi_2^-', '~2-.c'='\\chi_2^{- c}']).
+
+
+SetTexName(['W+'='W^+', 'W+.c'='C^{W^+}', 'W+.C'='\\bar{C}^{W^+}', 'W+.f'='G_{W^+}']).
+SetTexName(['W-'='W^-', 'W-.c'='C^{W^-}', 'W-.C'='\\bar{C}^{W^-}', 'W-.f'='G_{W^-}']).
+
+SetTexName([ Z1='Z_1', Z2='Z_2', 'Z1.c'='C^{Z_1}', 'Z1.C'='\\bar{C}^{Z_1}', 'Z2.c'='C^{Z_2}', 'Z2.C'='\\bar{C}^{Z_2}',
+			'Z1.f'='G_{Z_1}', 'A.c'='C^\\gamma', 'A.C'='\\bar{C}^\\gamma', 'Z2.f'='G_{Z_2}','G.c'='C^G','G.C'='\\bar{C}^G']).
+
+SetTexName([ Q1='Q^{\\prime}_{H_d}', Q2='Q^{\\prime}_{H_u}', Qs='Q^{\\prime}_{S}', QQ='Q^{\\prime}_{Q}', Qu='Q^{\\prime}_{u}',
+			Qd='Q^{\\prime}_{d}', QL='Q^{\\prime}_{L}', Qe='Q^{\\prime}_{e}', Qn='Q^{\\prime}_{n}' ]).

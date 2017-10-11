@@ -124,6 +124,8 @@ int correctHistList(void)
    {
       sscanf(ln->line,"%[^|]%*c%[^|]%*c%[^|]%*c%[^|]%*c%[^|]%*c%[^\n]",
               histStr[0],minStr[0],maxStr[0],histStr[1],minStr[1],maxStr[1]);            
+      trim(histStr[0]);
+      if(histStr[0][0]=='%') continue;
 
       for(i=0;i<2;i++)
       {
@@ -606,6 +608,15 @@ void xUnit(char key, char * units)
    } 
 } 
 
+static void skipComm(linelist* ln)
+{ 
+   while(*ln)
+   { char *c=(*ln)->line;
+     for(c=(*ln)->line ;*c==' ';c++);
+     if(*c!='%') return;
+     *ln=(*ln)->next;   
+   }  
+}
 
 void showHist(int X, int Y,char *title)
 {
@@ -617,22 +628,19 @@ void showHist(int X, int Y,char *title)
    int npos=0;
    int width,width1,width2;
    int i,j;
-   
-   while(ln)
-   {  npos++;
-      ln=ln->next;     
-   }
-   if(!npos) return; 
 
    for(ln=histTab.strings,width1=0,width2=0; ln; ln=ln->next,npos++)
    { sscanf(ln->line,"%[^|]|%*[^|]|%*[^|]|%[^|]",histStr1,histStr2);
      trim(histStr1);
+     if(histStr1[0]=='%') continue;
      trim(histStr2);
      { int l1=strlen(histStr1), l2=strlen(histStr2);
        if(width1<l1) width1=l1;
        if(width2<l2) width2=l2;
-     }  
+     } 
+     npos++; 
    }
+   if(!npos) return;
 
    width=width1+width2+3;
    if(width<12) {width1=12-width2-3; width=width1+width2+3;}
@@ -644,6 +652,7 @@ void showHist(int X, int Y,char *title)
    {  
       sscanf(ln->line,"%[^|]|%*[^|]|%*[^|]|%[^|]",histStr1,histStr2);
       trim(histStr1);
+      if(histStr1[0]=='%') continue;
       trim(histStr2);
       if(width2) sprintf(menutxt+strlen(menutxt)," %-*.*s| %-*.*s",
                    width1,width1,histStr1,width2,width2,histStr2);
@@ -662,7 +671,12 @@ void showHist(int X, int Y,char *title)
       {  histRec * hist=histPtr;
          int nBin1,nBin2;
          ln=histTab.strings;
-         for(npos=1;npos<mode;npos++) ln=ln->next; 
+         skipComm(&ln);
+         for(npos=1;npos<mode;npos++)
+         {
+           ln=ln->next;
+           skipComm(&ln); 
+         } 
          for( ;hist && hist->mother!= ln;hist=hist->next){;}
          if(hist)
          {  
@@ -720,7 +734,7 @@ void showHist(int X, int Y,char *title)
                xUnit(hist->key[1][0],units);
                if(units[0])sprintf(yname+strlen(yname),"[%s]",units);
                                                                                     
-               plot_2(hist->hMin[0],hist->hMax[0],nBin1,
+               plot_2D(hist->hMin[0],hist->hMax[0],nBin1,
                       hist->hMin[1],hist->hMax[1],nBin2,
                        f,df,title,xname,yname);       
             }                                                                                  

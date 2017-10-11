@@ -4,6 +4,10 @@
 #include"micromegas_aux.h"
 #include"ic22.h"
 
+//#define NOCHAN
+
+//#define DS
+
 double IC22nuAr_(double E)
 { if(E<=36) return 0;
   else if(E<72.7108)  return  4.403e-06 *1E-6;
@@ -27,8 +31,9 @@ double IC22nuAr(double E)
 }
 
 
+
 double IC22sigma(double E)
-{ double  lnE_[8]= {  4.099, 4.474, 4.848, 5.223, 5.597, 5.972, 6.346, 6.720};
+{  double  lnE_[8]= {  4.099, 4.474, 4.848, 5.223, 5.597, 5.972, 6.346, 6.720};
    double  fiTab[8]={  3.69,  3.20,  2.96 ,  2.67, 2.47,  2.32,  2.24,  2.05}; 
 //    double  fiTab[8]={  4.5,  3.9,  3.5 ,  3.2, 3.0, 2.8,  2.7,  2.5};
   return  (M_PI/180)*polint3(log(E),8,lnE_,fiTab);
@@ -46,6 +51,9 @@ double IC22nuBarAr_(double E)
   else /*if(E<1000 ) */return 0.06991*1E-6; 
 }
 
+
+
+
 double IC22nuBarAr(double E)
 { 
    double lnE_[8]={  4.099, 4.474, 4.848, 5.223, 5.597, 5.972, 6.346, 6.720};
@@ -54,6 +62,8 @@ double IC22nuBarAr(double E)
    if(E>1E4)E=1.E4;
    return exp(polint3(log(E),8,lnE_,lnAr))*1E-6;      
 }
+
+
 
 double IC22BGdCos(double cs)
 {
@@ -68,8 +78,44 @@ double IC22BGdCos(double cs)
   for(i=0;i<25;i++) fi_bg[i]/=cos(i*M_PI/180)-cos((i+1)*M_PI/180.);
   double cs_arr[25];
   for(i=0;i<25;i++) cs_arr[i]=cos((i+0.5)*M_PI/180.);
-  return  polint2(cs,25,cs_arr,fi_bg);
+  return  polint1(cs,25,cs_arr,fi_bg);
 }
+
+static double *nuStat,*nuBarStat;
+static double cs_stat;
+
+static double E_integ(double E)
+{  double res=0,s;
+   if(nuStat)   res+=SpectdNdE(E,nuStat)*IC22nuAr(E);
+   if(nuBarStat)res+=SpectdNdE(E,nuBarStat)*IC22nuBarAr(E);
+   s=IC22sigma(E);
+      
+   s*=s;   
+   return res*exp((cs_stat-1)/s)/s;
+}
+
+static double cs_tab[40];
+static double dNsigTab[40];
+
+void  getdNSdCos( double *nu,double *nu_)
+{
+   double M=0;
+   int i;
+   if(nu) M=nu[0];
+   if(nu_ && nu_[0]>M) M=nu_[0];
+
+   nuStat=nu;
+   nuBarStat=nu_;
+
+
+   for(i=0;i<40;i++) 
+   { cs_stat=1-i*(1-cos(10./180.*M_PI))/40.;
+     cs_tab[i]=cs_stat;
+     dNsigTab[i]=simpson(E_integ,1,M,1.E-3); 
+   }  
+}
+
+double dNSdCos(double cs) {return 104./365.*polint3(cs,40,cs_tab,dNsigTab);} 
 
 
 IC22chanStr*IC22chan=NULL;
@@ -92,13 +138,19 @@ int IC22histRead(void)
          
    for(i=0;2==fscanf(F," %*s %lf %lf",&E1,&E2); i++)
    {  int j; 
+      double s;
       IC22chan[i].E1=pow(10,E1);  IC22chan[i].E2=pow(10,E2);
-      for(j=0;j<17;j++) fscanf(F," %lf", IC22chan[i].prob+j);
+      for(j=0,s=0;j<17;j++) {fscanf(F," %lf", IC22chan[i].prob+j); s+=IC22chan[i].prob[j];}
+//      printf("sum(prob)=%E\n",s);      
    }   
    fclose(F);                                                    
 }
 
 static   double pp(double cs,  int n, double a)
+#ifdef NOCHAN
+   { return IC22BGdCos(cs) +a*dNSdCos(cs)/1.2;}
+
+#else
    { double s= IC22BGdCos(cs)*IC22chan[0].prob[n];
      int i;
      for(i=1;i<=20;i++) if(IC22chan[i].n>0)
@@ -107,7 +159,7 @@ static   double pp(double cs,  int n, double a)
      } 
      return s;  
    }
-                 
+#endif                 
 static   double L[21];
 
 static    double P(double x)
@@ -123,7 +175,17 @@ static    double P(double x)
       typedef struct{double cs; int n;} eventStr;
       static  eventStr*  events=NULL;
       static int Nev;
-      double fiMax=8;   
+      double fiMax=8; 
+
+#ifdef NOCHAN 
+      getdNSdCos(nu,NU);
+#endif   
+
+#ifdef DS
+      getdNSdCos(nu,NU);
+#endif
+      
+
       if(fiMax>10) { printf("Maximum angel reset 10 degrees\n"); fiMax=10;}
       if(!events)
       {  char fname[300];
@@ -142,6 +204,7 @@ static    double P(double x)
          fclose(F);
          IC22histRead();  
       }
+
       cs_=cos(fiMax/180*M_PI);
 
       double  nu_[NZ], NU_[NZ];
@@ -167,7 +230,42 @@ static    double P(double x)
       }
       double Nbg=simpson(IC22BGdCos,cs_,1,1E-3);
       double Ns=0;
+#ifdef NOCHAN
+      Ns=simpson(dNSdCos,cs_,1,1.E-3)/1.2;
+//printf("Ns(noChan=%E ",Ns);      
+#else   
+      Ns=0;           
       for(i=1;i<20;i++) if(IC22chan[i].n>0) Ns+=IC22chan[i].n*(1-exp((cs_-1)/IC22chan[i].s2));
+//      printf("Ns(with Ch)=%E\n",Ns);
+#endif
+
+#ifdef DS 
+   {  double rate=0,Ns,Nbg,cs_=-1,c,s;
+      int nData=0;      
+      for(cs=1;cs>0.99;cs-=0.0001)       
+      { 
+         Ns= simpson(dNSdCos,cs,1,1.E-3)/1.2;
+         Nbg=simpson(IC22BGdCos,cs,1,1E-3);
+        if(rate<Ns/sqrt(Nbg)) {rate=Ns/sqrt(Nbg); cs_=cs;}   
+      } 
+      Ns= simpson(dNSdCos,cs_,1,1.E-3)/1.2;
+      Nbg=simpson(IC22BGdCos,cs_,1,1E-3);   
+      for(i=0;i<Nev;i++) if(events[i].cs>cs_) nData++;
+
+printf("nData=%d Ns=%E Nbg=%E fi=%E\n",nData,Ns,Nbg,180/M_PI*acos(cs_));      
+      
+      return 1-exp(-Ns)*pow(1+Ns/Nbg,nData);
+      c=exp(-Ns-Nbg);
+      for(i=0,s=0;i<nData;i++)
+      { 
+        s+=c;
+        c*=(Ns+Nbg)/(i+1);
+      }
+printf("s=%E\n",s);   
+//exit(0);   
+      return 1-s;
+   }      
+#endif      
       double nData=0;
       for(i=0;i<Nev;i++) if(events[i].cs>cs_) nData++;
       int k;
@@ -192,7 +290,7 @@ static int prn=0;
 static  eventStr*  events=NULL;
 static int Nev;
 
-#define TEST_ANOMALY   
+//#define TEST_ANOMALY   
 #ifdef TEST_ANOMALY   
    static double exLevIC22_random(double * nu, double*NU,int rand)
    {  int i;
@@ -205,7 +303,7 @@ static int Nev;
       {  char fname[300];
          double dfi;
          int nch;
-         
+          
          events=malloc(1000*sizeof(eventStr));
          sprintf(fname, "%s/sources/data_nu/IC22_events_25.dat",micrO); 
          FILE*F=fopen(fname,"r");
@@ -249,7 +347,7 @@ if(rand)
       xx[k]+=1;
    }
    for(i=0;i<Nev;i++) ex[i]=sqrt(xx[i]);
-   displayPlot("", cs_, 1, "cs",10,1,xx,ex,"dN/dcos");
+   displayPlot("", cs_, 1, "cs",10,0,1,xx,ex,"dN/dcos");
 */                               
 } 
 
@@ -274,6 +372,7 @@ if(rand)
          } else {IC22chan[i].n=0; IC22chan[i].s2=0;} 
          IC22chan[i].n*=104/365./1.2; 
       }
+      
       double Nbg=simpson(IC22BGdCos,cs_,1,1E-3);
       double Ns=0;
       for(i=1;i<20;i++) if(IC22chan[i].n>0) Ns+=IC22chan[i].n*(1-exp((cs_-1)/IC22chan[i].s2));      
@@ -286,6 +385,7 @@ if(rand)
         L[k]=nData*log(Nbg+a*Ns)-Nbg-a*Ns;
         for(i=0;i<Nev;i++)if(events[i].cs>cs_) L[k]+=log(pp(events[i].cs,events[i].n-10,a)/(Nbg+a*Ns)); 
       }
+      
       for(k=1;k<21;k++) L[k]-=L[0];
       L[0]=0;     
       if(L[20]>=L[15]) return 0;
@@ -388,7 +488,7 @@ double  fluxFactorIC22(double cl,double *NU,double*NUbar)
 
 }
 
-
+#ifdef TEST_ANOMALY 
 double  fluxFactorIC22_random(double cl,double *NU,double*NUbar)
 { 
   double nu[NZ],nu_[NZ];
@@ -427,6 +527,58 @@ double  fluxFactorIC22_random(double cl,double *NU,double*NUbar)
   }   
   return 0.5*(fmin+fmax);
 }
+
+#endif
+
+double fluxFactIC22_FC(double cl,double * nu, double*NU)
+{  int i;
+   double cs,cs_;
+   typedef struct{double cs; int n;} eventStr;
+   static  eventStr*  events=NULL;
+   static int Nev;
+   double fiMax=8; 
+
+   getdNSdCos(nu,NU);
+
+   if(fiMax>10) { printf("Maximum angel reset 10 degrees\n"); fiMax=10;}
+   if(!events)
+   {  char fname[300];
+      double dfi;
+      int nch;
+      events=malloc(180*sizeof(eventStr));
+      sprintf(fname, "%s/sources/data_nu/IC22_events_25.dat",micrO); 
+      FILE*F=fopen(fname,"r");
+      cs_=cos(10./180.*M_PI);    
+      for(Nev=0; fscanf(F," %lf %lf %d",&cs,&dfi, &nch)==3; ) if(cs>=cs_)
+      { if(Nev==180) break;
+         events[Nev].cs=cs;
+         events[Nev].n=nch;
+         Nev++; 
+      }
+      fclose(F);
+      IC22histRead();  
+   }
+
+   getdNSdCos(nu,NU);
+   {  double rate=0,Ns,Nbg,cs_=-1;
+      int nData=0;      
+      for(cs=1;cs>0.99;cs-=0.0001)       
+      { 
+         Ns= simpson(dNSdCos,cs,1,1.E-3)/1.2;
+         Nbg=simpson(IC22BGdCos,cs,1,1E-3);
+        if(rate<Ns/sqrt(Nbg)) {rate=Ns/sqrt(Nbg); cs_=cs;}   
+      } 
+      Ns= simpson(dNSdCos,cs_,1,1.E-3)/1.2;
+      Nbg=simpson(IC22BGdCos,cs_,1,1E-3);   
+      for(i=0;i<Nev;i++) if(events[i].cs>cs_) nData++;
+//      printf("cs_=%E nData=%d, Nbg=%E,cl=%E\n",cs_,nData,Nbg, cl);
+      return  FeldmanCousins(nData, Nbg, cl)/Ns;
+   }      
+}
+      
+
+
+
 
 double ic22nuar_(double* E)  { return IC22nuAr(*E);  }
 double ic22nubarar_(double*E){ return IC22nuBarAr(*E);}

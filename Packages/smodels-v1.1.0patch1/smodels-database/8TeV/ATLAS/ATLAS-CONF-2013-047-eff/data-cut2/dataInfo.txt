@@ -1,0 +1,7 @@
+dataType: efficiencyMap
+dataId: B Medium
+observedN: 29
+expectedBG: 33.0
+bgError: 7.0
+upperLimit: 0.73*fb
+expectedUpperLimit: 0.935*fb

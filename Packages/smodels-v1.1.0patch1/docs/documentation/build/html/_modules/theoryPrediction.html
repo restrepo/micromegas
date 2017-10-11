@@ -1,0 +1,613 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>theoryPrediction &mdash; SModelS 1.1.0patch1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="SModelS 1.1.0patch1 documentation" href="../index.html"/>
+        <link rel="up" title="Module code" href="index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> SModelS
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.1.0patch1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../theory.html">theory package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../experiment.html">experiment package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tools.html">tools package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">SModelS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">Module code</a> &raquo;</li>
+      
+    <li>theoryPrediction</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for theoryPrediction</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: theoryPrediction</span>
+<span class="sd">   :synopsis: Provides a class to encapsulate the results of the computation of</span>
+<span class="sd">              reference cross sections and related functions.</span>
+<span class="sd">        </span>
+<span class="sd">.. moduleauthor:: Andre Lessa &lt;lessa.a.p@gmail.com&gt;</span>
+<span class="sd">.. autofunction:: _getElementsFrom    </span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">smodels.theory</span> <span class="kn">import</span> <span class="n">clusterTools</span><span class="p">,</span> <span class="n">crossSection</span><span class="p">,</span> <span class="n">element</span>
+<span class="kn">from</span> <span class="nn">smodels.theory.particleNames</span> <span class="kn">import</span> <span class="n">elementsInStr</span>
+<span class="kn">from</span> <span class="nn">smodels.theory.auxiliaryFunctions</span> <span class="kn">import</span> <span class="n">cSim</span><span class="p">,</span> <span class="n">cGtr</span>  <span class="c1">#DO NOT REMOVE</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">smodels.tools.physicsUnits</span> <span class="kn">import</span> <span class="n">TeV</span><span class="p">,</span><span class="n">fb</span>
+<span class="kn">from</span> <span class="nn">smodels.theory.exceptions</span> <span class="kn">import</span> <span class="n">SModelSTheoryError</span> <span class="k">as</span> <span class="n">SModelSError</span>
+
+<span class="kn">from</span> <span class="nn">smodels.tools.smodelsLogging</span> <span class="kn">import</span> <span class="n">logger</span>
+
+<span class="k">class</span> <span class="nc">TheoryPrediction</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An instance of this class represents the results of the theory prediction</span>
+<span class="sd">    for an analysis.</span>
+<span class="sd">    </span>
+<span class="sd">    :ivar analysis: holds the analysis (ULanalysis or EManalysis object)</span>
+<span class="sd">                    to which the prediction refers</span>
+<span class="sd">    :ivar xsection: xsection of the theory prediction </span>
+<span class="sd">                (relevant cross section to be compared with the experimental limits).</span>
+<span class="sd">                It is a XSection object.</span>
+<span class="sd">    :ivar conditions: list of values for the analysis conditions</span>
+<span class="sd">                      (only for upper limit-type analysis, e.g. analysis=ULanalysis)</span>
+<span class="sd">    :ivar mass: mass of the cluster to which the theory prediction refers</span>
+<span class="sd">                (only for upper limit-type analysis, e.g. analysis=ULanalysis)   </span>
+<span class="sd">                 </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">analysis</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xsection</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conditions</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mass</span> <span class="o">=</span> <span class="bp">None</span>        
+
+    <span class="k">def</span> <span class="nf">computeStatistics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the likelihood, chi-square and expected upper limit for this theory prediction.</span>
+<span class="sd">        The resulting values are stored as the likelihood, chi2 and expectedUL attributes.        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;dataset&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">dataInfo</span><span class="o">.</span><span class="n">dataType</span> <span class="o">==</span> <span class="s1">&#39;upperLimit&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">likelihood</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">chi2</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expectedUL</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="k">return</span>
+        
+        <span class="n">lumi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">globalInfo</span><span class="o">.</span><span class="n">lumi</span>  
+        <span class="n">nsig</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xsection</span><span class="o">.</span><span class="n">value</span><span class="o">*</span><span class="n">lumi</span><span class="p">)</span><span class="o">.</span><span class="n">asNumber</span><span class="p">()</span>
+        <span class="n">llhd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">likelihood</span><span class="p">(</span><span class="n">nsig</span><span class="p">)</span>
+        <span class="n">chi2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">chi2</span><span class="p">(</span><span class="n">nsig</span><span class="p">)</span>
+        <span class="n">expectedUL</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">getSRUpperLimit</span><span class="p">(</span><span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">expected</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">likelihood</span> <span class="o">=</span>  <span class="n">llhd</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chi2</span> <span class="o">=</span>  <span class="n">chi2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expectedUL</span> <span class="o">=</span> <span class="n">expectedUL</span>
+        
+    <span class="k">def</span> <span class="nf">getmaxCondition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the maximum xsection from the list conditions</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: maximum condition xsection (float)        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">conditions</span><span class="p">:</span> <span class="k">return</span> <span class="mf">0.</span>        
+        <span class="n">maxcond</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">conditions</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;N/A&#39;</span><span class="p">:</span> <span class="k">return</span> <span class="n">value</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="k">continue</span>
+            <span class="n">maxcond</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">maxcond</span><span class="p">,</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">maxcond</span>
+    
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">:</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">analysis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xsection</span> <span class="p">)</span>
+
+
+
+<span class="k">class</span> <span class="nc">TheoryPredictionList</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An instance of this class represents a collection of theory prediction</span>
+<span class="sd">    objects.</span>
+<span class="sd">    </span>
+<span class="sd">    :ivar _theoryPredictions: list of TheoryPrediction objects     </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theoryPredictions</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the list.</span>
+<span class="sd">        </span>
+<span class="sd">        :parameter theoryPredictions: list of TheoryPrediction objects</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_theoryPredictions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">theoryPredictions</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">theoryPredictions</span><span class="p">,</span><span class="nb">list</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_theoryPredictions</span> <span class="o">=</span> <span class="n">theoryPredictions</span>
+
+
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>      
+        <span class="k">for</span> <span class="n">theoryPrediction</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_theoryPredictions</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">theoryPrediction</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_theoryPredictions</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_theoryPredictions</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">theoPredList</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">theoPredList</span><span class="p">,</span><span class="n">TheoryPredictionList</span><span class="p">):</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">TheoryPredictionList</span><span class="p">()</span>
+            <span class="n">res</span><span class="o">.</span><span class="n">_theoryPredictions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_theoryPredictions</span> <span class="o">+</span> <span class="n">theoPredList</span><span class="o">.</span><span class="n">_theoryPredictions</span>
+            <span class="k">return</span> <span class="n">res</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        
+    <span class="k">def</span> <span class="nf">__radd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theoPredList</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">theoPredList</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__add__</span><span class="p">(</span><span class="n">theoPredList</span><span class="p">)</span>        
+
+<span class="k">def</span> <span class="nf">theoryPredictionsFor</span><span class="p">(</span><span class="n">expResult</span><span class="p">,</span> <span class="n">smsTopList</span><span class="p">,</span> <span class="n">maxMassDist</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">useBestDataset</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute theory predictions for the given experimental result, using the list of elements</span>
+<span class="sd">    in smsTopList.</span>
+<span class="sd">    For each Txname appearing in expResult, it collects the elements and efficiencies, </span>
+<span class="sd">    combine the masses (if needed) and compute the conditions (if existing).</span>
+<span class="sd">    </span>
+<span class="sd">    :parameter expResult: expResult to be considered (ExpResult object)</span>
+<span class="sd">    :parameter smsTopList: list of topologies containing elements (TopologyList object)</span>
+<span class="sd">    :parameter maxMassDist: maximum mass distance for clustering elements (float)</span>
+<span class="sd">    :parameter useBestDataset: If True, uses only the best dataset (signal region).</span>
+<span class="sd">               If False, returns predictions for all datasets.</span>
+<span class="sd">    :returns:  a TheoryPredictionList object containing a list of TheoryPrediction objects    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">dataSetResults</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1">#Compute predictions for each data set (for UL analyses there is one single set)</span>
+    <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="n">expResult</span><span class="o">.</span><span class="n">datasets</span><span class="p">:</span>
+        <span class="n">predList</span> <span class="o">=</span> <span class="n">_getDataSetPredictions</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span><span class="n">smsTopList</span><span class="p">,</span><span class="n">maxMassDist</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">predList</span><span class="p">:</span> <span class="n">dataSetResults</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">predList</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">dataSetResults</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+    
+    <span class="c1">#For results with more than one dataset, select the best data set </span>
+    <span class="c1">#according to the expect upper limit</span>
+    <span class="k">if</span> <span class="n">useBestDataset</span><span class="p">:</span>
+        <span class="n">bestResults</span> <span class="o">=</span> <span class="n">_getBestResults</span><span class="p">(</span><span class="n">dataSetResults</span><span class="p">)</span>
+        <span class="n">bestResults</span><span class="o">.</span><span class="n">expResult</span> <span class="o">=</span> <span class="n">expResult</span>
+        <span class="k">for</span> <span class="n">theoPred</span> <span class="ow">in</span> <span class="n">bestResults</span><span class="p">:</span>
+            <span class="n">theoPred</span><span class="o">.</span><span class="n">expResult</span> <span class="o">=</span> <span class="n">expResult</span>    
+        <span class="k">return</span> <span class="n">bestResults</span>
+    <span class="k">else</span><span class="p">:</span>        
+        <span class="n">allResults</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">dataSetResults</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">theoPred</span> <span class="ow">in</span> <span class="n">allResults</span><span class="p">:</span> <span class="n">theoPred</span><span class="o">.</span><span class="n">expResult</span> <span class="o">=</span> <span class="n">expResult</span>
+        <span class="k">return</span> <span class="n">allResults</span>
+
+<span class="k">def</span> <span class="nf">_getBestResults</span><span class="p">(</span><span class="n">dataSetResults</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the best result according to the expected upper limit</span>
+<span class="sd">    </span>
+<span class="sd">    :param dataSetResults: list of TheoryPredictionList objects</span>
+<span class="sd">    :return: best result (TheoryPredictionList object)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+        
+    <span class="c1">#In the case of UL analyses or efficiency-maps with a single signal region</span>
+    <span class="c1">#return the single result:        </span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataSetResults</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">dataSetResults</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    
+    <span class="c1">#For efficiency-map analyses with multipler signal regions,</span>
+    <span class="c1">#select the best one according to the expected upper limit:</span>
+    <span class="n">bestExpectedR</span> <span class="o">=</span> <span class="mf">0.</span>
+    <span class="n">bestXsec</span> <span class="o">=</span> <span class="mf">0.</span><span class="o">*</span><span class="n">fb</span>
+    <span class="k">for</span> <span class="n">predList</span> <span class="ow">in</span> <span class="n">dataSetResults</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">predList</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Multiple clusters should only exist for upper limit results!&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+        <span class="n">dataset</span> <span class="o">=</span> <span class="n">predList</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dataset</span>
+        <span class="k">if</span> <span class="n">dataset</span><span class="o">.</span><span class="n">dataInfo</span><span class="o">.</span><span class="n">dataType</span> <span class="o">!=</span> <span class="s1">&#39;efficiencyMap&#39;</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Multiple data sets should only exist for efficiency map results!&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>                    
+        <span class="n">pred</span> <span class="o">=</span> <span class="n">predList</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">xsec</span> <span class="o">=</span> <span class="n">pred</span><span class="o">.</span><span class="n">xsection</span>        
+        <span class="n">expectedR</span> <span class="o">=</span> <span class="p">(</span> <span class="n">xsec</span><span class="o">.</span><span class="n">value</span><span class="o">/</span><span class="n">dataset</span><span class="o">.</span><span class="n">getSRUpperLimit</span><span class="p">(</span><span class="mf">0.05</span><span class="p">,</span><span class="bp">True</span><span class="p">,</span><span class="bp">False</span><span class="p">)</span> <span class="p">)</span><span class="o">.</span><span class="n">asNumber</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">expectedR</span> <span class="o">&gt;</span> <span class="n">bestExpectedR</span> <span class="ow">or</span> <span class="p">(</span><span class="n">expectedR</span> <span class="o">==</span> <span class="n">bestExpectedR</span> <span class="ow">and</span> <span class="n">xsec</span><span class="o">.</span><span class="n">value</span> <span class="o">&gt;</span> <span class="n">bestXsec</span><span class="p">):</span>
+            <span class="n">bestExpectedR</span> <span class="o">=</span> <span class="n">expectedR</span>
+            <span class="n">bestPredList</span> <span class="o">=</span> <span class="n">predList</span>
+            <span class="n">bestXsec</span> <span class="o">=</span> <span class="n">xsec</span><span class="o">.</span><span class="n">value</span>
+    
+    <span class="k">return</span> <span class="n">bestPredList</span>
+
+<span class="k">def</span> <span class="nf">_getDataSetPredictions</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span><span class="n">smsTopList</span><span class="p">,</span><span class="n">maxMassDist</span><span class="p">):</span>   
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute theory predictions for a given data set.</span>
+<span class="sd">    For upper-limit results returns the list of theory predictions for the experimental result.</span>
+<span class="sd">    For efficiency-map results returns the list of theory predictions for the signal region.</span>
+<span class="sd">    Uses the list of elements in smsTopList.</span>
+<span class="sd">    For each Txname appearing in dataset, it collects the elements and efficiencies, </span>
+<span class="sd">    combine the masses (if needed) and compute the conditions (if existing).</span>
+<span class="sd">    </span>
+<span class="sd">    :parameter dataset: Data Set to be considered (DataSet object)</span>
+<span class="sd">    :parameter smsTopList: list of topologies containing elements (TopologyList object)</span>
+<span class="sd">    :parameter maxMassDist: maximum mass distance for clustering elements (float)</span>
+<span class="sd">    :returns:  a TheoryPredictionList object containing a list of TheoryPrediction objects</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">predictionList</span> <span class="o">=</span> <span class="n">TheoryPredictionList</span><span class="p">()</span>
+    <span class="c1"># Select elements belonging to expResult and apply efficiencies</span>
+    <span class="n">elements</span> <span class="o">=</span> <span class="n">_getElementsFrom</span><span class="p">(</span><span class="n">smsTopList</span><span class="p">,</span> <span class="n">dataset</span><span class="p">)</span>
+    
+    <span class="c1">#Check dataset sqrts format:</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">globalInfo</span><span class="o">.</span><span class="n">sqrts</span><span class="o">/</span><span class="n">TeV</span><span class="p">)</span><span class="o">.</span><span class="n">normalize</span><span class="p">()</span><span class="o">.</span><span class="n">_unit</span><span class="p">:</span>
+            <span class="n">ID</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">globalInfo</span><span class="o">.</span><span class="n">id</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Sqrts defined with wrong units for </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span> <span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+            
+    <span class="c1">#Remove unwanted cross sections</span>
+    <span class="n">newelements</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+        <span class="n">el</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="n">el</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">getXsecsFor</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">globalInfo</span><span class="o">.</span><span class="n">sqrts</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">el</span><span class="o">.</span><span class="n">weight</span><span class="p">:</span> <span class="k">continue</span>
+        <span class="n">newelements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+    <span class="n">elements</span> <span class="o">=</span> <span class="n">newelements</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">elements</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+
+    <span class="c1"># Combine elements according to their respective constraints and masses</span>
+    <span class="c1"># (For efficiencyMap analysis group all elements)</span>
+    <span class="n">clusters</span> <span class="o">=</span> <span class="n">_combineElements</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">maxDist</span><span class="o">=</span><span class="n">maxMassDist</span><span class="p">)</span>
+    
+    <span class="c1"># Collect results and evaluate conditions    </span>
+    <span class="k">for</span> <span class="n">cluster</span> <span class="ow">in</span> <span class="n">clusters</span><span class="p">:</span>
+        <span class="n">theoryPrediction</span> <span class="o">=</span> <span class="n">TheoryPrediction</span><span class="p">()</span>
+        <span class="n">theoryPrediction</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span>
+        <span class="n">theoryPrediction</span><span class="o">.</span><span class="n">txnames</span> <span class="o">=</span> <span class="n">cluster</span><span class="o">.</span><span class="n">txnames</span>  
+        <span class="n">theoryPrediction</span><span class="o">.</span><span class="n">xsection</span> <span class="o">=</span> <span class="n">_evalConstraint</span><span class="p">(</span><span class="n">cluster</span><span class="p">)</span>
+        <span class="n">theoryPrediction</span><span class="o">.</span><span class="n">conditions</span> <span class="o">=</span> <span class="n">_evalConditions</span><span class="p">(</span><span class="n">cluster</span><span class="p">)</span>
+        <span class="n">theoryPrediction</span><span class="o">.</span><span class="n">cluster</span> <span class="o">=</span> <span class="n">cluster</span>
+        <span class="n">theoryPrediction</span><span class="o">.</span><span class="n">mass</span> <span class="o">=</span> <span class="n">cluster</span><span class="o">.</span><span class="n">getAvgMass</span><span class="p">()</span>
+        <span class="n">theoryPrediction</span><span class="o">.</span><span class="n">PIDs</span> <span class="o">=</span> <span class="n">cluster</span><span class="o">.</span><span class="n">getPIDs</span><span class="p">()</span>
+        <span class="n">theoryPrediction</span><span class="o">.</span><span class="n">IDs</span> <span class="o">=</span> <span class="n">cluster</span><span class="o">.</span><span class="n">getIDs</span><span class="p">()</span>
+        <span class="n">predictionList</span><span class="o">.</span><span class="n">_theoryPredictions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">theoryPrediction</span><span class="p">)</span>
+        
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">predictionList</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="n">predictionList</span>
+
+<div class="viewcode-block" id="_getElementsFrom"><a class="viewcode-back" href="../theory.html#theoryPrediction._getElementsFrom">[docs]</a><span class="k">def</span> <span class="nf">_getElementsFrom</span><span class="p">(</span><span class="n">smsTopList</span><span class="p">,</span> <span class="n">dataset</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get elements that belong to any of the TxNames in dataset </span>
+<span class="sd">    (appear in any of constraints in the result).    </span>
+<span class="sd">    Loop over all elements in smsTopList and returns a copy of the elements belonging</span>
+<span class="sd">    to any of the constraints (i.e. have efficiency != 0). The copied elements</span>
+<span class="sd">    have their weights multiplied by their respective efficiencies.</span>
+<span class="sd">    </span>
+<span class="sd">    :parameter dataset:  Data Set to be considered (DataSet object)</span>
+<span class="sd">    :parameter smsTopList: list of topologies containing elements (TopologyList object)</span>
+<span class="sd">    :returns: list of elements (Element objects)    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">elements</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">txname</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">txnameList</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">top</span> <span class="ow">in</span> <span class="n">smsTopList</span><span class="p">:</span>
+            <span class="n">itop</span> <span class="o">=</span> <span class="n">txname</span><span class="o">.</span><span class="n">_topologyList</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">top</span><span class="p">)</span>  <span class="c1">#Check if the topology appear in txname</span>
+            <span class="k">if</span> <span class="n">itop</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="k">continue</span>   
+            <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">top</span><span class="o">.</span><span class="n">getElements</span><span class="p">():</span>
+                <span class="n">newEl</span> <span class="o">=</span> <span class="n">txname</span><span class="o">.</span><span class="n">hasElementAs</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>  <span class="c1">#Check if element appears in txname</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">newEl</span><span class="p">:</span> <span class="k">continue</span>
+                <span class="n">el</span><span class="o">.</span><span class="n">covered</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="n">eff</span> <span class="o">=</span> <span class="n">txname</span><span class="o">.</span><span class="n">getEfficiencyFor</span><span class="p">(</span><span class="n">newEl</span><span class="o">.</span><span class="n">getMasses</span><span class="p">())</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">eff</span><span class="p">:</span> <span class="k">continue</span>
+                <span class="n">el</span><span class="o">.</span><span class="n">tested</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="n">newEl</span><span class="o">.</span><span class="n">eff</span> <span class="o">=</span> <span class="n">eff</span>
+                <span class="n">newEl</span><span class="o">.</span><span class="n">weight</span> <span class="o">*=</span> <span class="n">eff</span>
+                <span class="n">newEl</span><span class="o">.</span><span class="n">txname</span> <span class="o">=</span> <span class="n">txname</span>
+                <span class="n">elements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newEl</span><span class="p">)</span> <span class="c1">#Save element with correct branch ordering</span>
+
+    <span class="k">return</span> <span class="n">elements</span></div>
+
+
+<span class="k">def</span> <span class="nf">_combineElements</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">maxDist</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Combine elements according to the data set type.    </span>
+<span class="sd">    If expResult == upper limit type, first group elements with different TxNames</span>
+<span class="sd">    and then into mass clusters.</span>
+<span class="sd">    If expResult == efficiency map type, group all elements into a single cluster.</span>
+<span class="sd">    </span>
+<span class="sd">    :parameter elements: list of elements (Element objects)</span>
+<span class="sd">    :parameter expResult: Data Set to be considered (DataSet object)</span>
+<span class="sd">    :returns: list of element clusters (ElementCluster objects)    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">clusters</span> <span class="o">=</span> <span class="p">[]</span>   
+    
+    <span class="k">if</span> <span class="n">dataset</span><span class="o">.</span><span class="n">dataInfo</span><span class="o">.</span><span class="n">dataType</span> <span class="o">==</span> <span class="s1">&#39;efficiencyMap&#39;</span><span class="p">:</span>        
+        <span class="n">cluster</span> <span class="o">=</span> <span class="n">clusterTools</span><span class="o">.</span><span class="n">groupAll</span><span class="p">(</span><span class="n">elements</span><span class="p">)</span>  
+        <span class="n">clusters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cluster</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">dataset</span><span class="o">.</span><span class="n">dataInfo</span><span class="o">.</span><span class="n">dataType</span> <span class="o">==</span> <span class="s1">&#39;upperLimit&#39;</span><span class="p">:</span>
+        <span class="n">txnames</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">el</span><span class="o">.</span><span class="n">txname</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">]))</span>        
+        <span class="k">for</span> <span class="n">txname</span> <span class="ow">in</span> <span class="n">txnames</span><span class="p">:</span>
+            <span class="n">txnameEls</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">element</span><span class="o">.</span><span class="n">txname</span> <span class="o">==</span> <span class="n">txname</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">else</span><span class="p">:</span> <span class="n">txnameEls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+            <span class="n">txnameClusters</span> <span class="o">=</span> <span class="n">clusterTools</span><span class="o">.</span><span class="n">clusterElements</span><span class="p">(</span><span class="n">txnameEls</span><span class="p">,</span> <span class="n">maxDist</span><span class="p">)</span>         
+            <span class="n">clusters</span> <span class="o">+=</span> <span class="n">txnameClusters</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Unkown data type: </span><span class="si">%s</span><span class="s2">. Data will be ignored.&quot;</span> 
+                       <span class="o">%</span> <span class="n">dataset</span><span class="o">.</span><span class="n">dataInfo</span><span class="o">.</span><span class="n">dataType</span><span class="p">)</span>
+                
+    <span class="k">return</span> <span class="n">clusters</span>
+
+
+<span class="k">def</span> <span class="nf">_evalConstraint</span><span class="p">(</span><span class="n">cluster</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Evaluate the constraint inside an element cluster.      </span>
+<span class="sd">    If the cluster refers to a specific TxName, sum all the elements&#39; weights</span>
+<span class="sd">    according to the analysis constraint.</span>
+<span class="sd">    For efficiency map results, sum all the elements&#39; weights.</span>
+<span class="sd">    </span>
+<span class="sd">    :parameter cluster: cluster of elements (ElementCluster object)</span>
+<span class="sd">    :returns: cluster cross section</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">cluster</span><span class="o">.</span><span class="n">getDataType</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;efficiencyMap&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">cluster</span><span class="o">.</span><span class="n">getTotalXSec</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">cluster</span><span class="o">.</span><span class="n">getDataType</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;upperLimit&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cluster</span><span class="o">.</span><span class="n">txnames</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;An upper limit cluster should never contain more than one TxName&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+        <span class="n">txname</span> <span class="o">=</span> <span class="n">cluster</span><span class="o">.</span><span class="n">txnames</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">txname</span><span class="o">.</span><span class="n">constraint</span> <span class="ow">or</span> <span class="n">txname</span><span class="o">.</span><span class="n">constraint</span> <span class="o">==</span> <span class="s2">&quot;not yet assigned&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">txname</span><span class="o">.</span><span class="n">constraint</span>
+        <span class="n">exprvalue</span> <span class="o">=</span> <span class="n">_evalExpression</span><span class="p">(</span><span class="n">txname</span><span class="o">.</span><span class="n">constraint</span><span class="p">,</span><span class="n">cluster</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">exprvalue</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unknown data type </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">cluster</span><span class="o">.</span><span class="n">getDataType</span><span class="p">())))</span>
+        <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+    
+
+<span class="k">def</span> <span class="nf">_evalConditions</span><span class="p">(</span><span class="n">cluster</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Evaluate the conditions (if any) inside an element cluster.</span>
+<span class="sd">    </span>
+<span class="sd">    :parameter cluster: cluster of elements (ElementCluster object)    </span>
+<span class="sd">    :returns: list of condition values (floats) if analysis type == upper limit. None, otherwise.    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">conditionVals</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">txname</span> <span class="ow">in</span> <span class="n">cluster</span><span class="o">.</span><span class="n">txnames</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">txname</span><span class="o">.</span><span class="n">condition</span> <span class="ow">or</span> <span class="n">txname</span><span class="o">.</span><span class="n">condition</span> <span class="o">==</span> <span class="s2">&quot;not yet assigned&quot;</span><span class="p">:</span>
+            <span class="k">continue</span>        
+        <span class="c1">#Make sure conditions is always a list</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">txname</span><span class="o">.</span><span class="n">condition</span><span class="p">,</span><span class="nb">str</span><span class="p">):</span>
+            <span class="n">conditions</span> <span class="o">=</span>  <span class="p">[</span><span class="n">txname</span><span class="o">.</span><span class="n">condition</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">txname</span><span class="o">.</span><span class="n">condition</span><span class="p">,</span><span class="nb">list</span><span class="p">):</span>
+            <span class="n">conditions</span> <span class="o">=</span> <span class="n">txname</span><span class="o">.</span><span class="n">condition</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Conditions should be a list or a string&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+            
+        <span class="c1"># Loop over conditions</span>
+        <span class="k">for</span> <span class="n">cond</span> <span class="ow">in</span> <span class="n">conditions</span><span class="p">:</span>
+            <span class="n">exprvalue</span> <span class="o">=</span> <span class="n">_evalExpression</span><span class="p">(</span><span class="n">cond</span><span class="p">,</span><span class="n">cluster</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">exprvalue</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">crossSection</span><span class="o">.</span><span class="n">XSection</span><span class="p">()):</span>
+                <span class="n">conditionVals</span><span class="p">[</span><span class="n">cond</span><span class="p">]</span> <span class="o">=</span> <span class="n">exprvalue</span><span class="o">.</span><span class="n">value</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">conditions</span><span class="p">[</span><span class="n">cond</span><span class="p">]</span> <span class="o">=</span> <span class="n">exprvalue</span>
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">conditionVals</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">else</span><span class="p">:</span>            
+        <span class="k">return</span> <span class="n">conditionVals</span>    
+        
+        
+<span class="k">def</span> <span class="nf">_evalExpression</span><span class="p">(</span><span class="n">stringExpr</span><span class="p">,</span><span class="n">cluster</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Auxiliary method to evaluate a string expression using the weights of the elements in the cluster.</span>
+<span class="sd">    Replaces the elements in stringExpr (in bracket notation) by their weights and evaluate the </span>
+<span class="sd">    expression.</span>
+<span class="sd">    e.g. computes the total weight of string expressions such as &quot;[[[e^+]],[[e^-]]]+[[[mu^+]],[[mu^-]]]&quot;</span>
+<span class="sd">    or ratios of weights of string expressions such as &quot;[[[e^+]],[[e^-]]]/[[[mu^+]],[[mu^-]]]&quot;</span>
+<span class="sd">    and so on...    </span>
+<span class="sd">    </span>
+<span class="sd">    :parameter stringExpr: string containing the expression to be evaluated</span>
+<span class="sd">    :parameter cluster: cluster of elements (ElementCluster object)</span>
+<span class="sd">    :returns: xsection for the expression. Can be a XSection object, a float or not numerical (None,string,...)</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<span class="c1">#Get cross section info from cluster (to generate zero cross section values):</span>
+    <span class="n">infoList</span> <span class="o">=</span> <span class="n">cluster</span><span class="o">.</span><span class="n">elements</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">getInfo</span><span class="p">()</span>    
+<span class="c1">#Generate elements appearing in the string expression with zero cross sections:</span>
+    <span class="n">elements</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">elStr</span> <span class="ow">in</span> <span class="n">elementsInStr</span><span class="p">(</span><span class="n">stringExpr</span><span class="p">):</span>
+        <span class="n">el</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="n">elStr</span><span class="p">)</span>
+        <span class="n">el</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="n">crossSection</span><span class="o">.</span><span class="n">XSectionList</span><span class="p">(</span><span class="n">infoList</span><span class="p">)</span>
+        <span class="n">elements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+
+<span class="c1">#Replace elements in strings by their weights and add weights from cluster to the elements list:</span>
+    <span class="n">expr</span> <span class="o">=</span> <span class="n">stringExpr</span><span class="p">[:]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">iel</span><span class="p">,</span> <span class="n">el</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">elements</span><span class="p">):</span>        
+        <span class="n">expr</span> <span class="o">=</span> <span class="n">expr</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">el</span><span class="p">),</span> <span class="s2">&quot;elements[&quot;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">iel</span><span class="p">)</span> <span class="o">+</span><span class="s2">&quot;].weight&quot;</span><span class="p">)</span>        
+        <span class="k">for</span> <span class="n">el1</span> <span class="ow">in</span> <span class="n">cluster</span><span class="o">.</span><span class="n">elements</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">el1</span><span class="o">.</span><span class="n">particlesMatch</span><span class="p">(</span><span class="n">el</span><span class="p">):</span>
+                <span class="n">el</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">combineWith</span><span class="p">(</span><span class="n">el1</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span>
+                <span class="n">el</span><span class="o">.</span><span class="n">combineMotherElements</span><span class="p">(</span><span class="n">el1</span><span class="p">)</span> <span class="c1">## keep track of all mothers</span>
+
+    <span class="k">if</span> <span class="n">expr</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;Cgtr&quot;</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">expr</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;Csim&quot;</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">expr</span> <span class="o">=</span> <span class="n">expr</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;Cgtr&quot;</span><span class="p">,</span> <span class="s2">&quot;cGtr&quot;</span><span class="p">)</span>
+        <span class="n">expr</span> <span class="o">=</span> <span class="n">expr</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;Csim&quot;</span><span class="p">,</span> <span class="s2">&quot;cSim&quot;</span><span class="p">)</span>
+    <span class="n">exprvalue</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">exprvalue</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">crossSection</span><span class="o">.</span><span class="n">XSectionList</span><span class="p">()):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">exprvalue</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Evaluation of expression &quot;</span><span class="o">+</span><span class="n">expr</span><span class="o">+</span><span class="s2">&quot; returned multiple values.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">exprvalue</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="c1">#Return XSection object</span>
+    <span class="k">return</span> <span class="n">exprvalue</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, &lt;function authors at 0x7f73f74eb500&gt;.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'1.1.0patch1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

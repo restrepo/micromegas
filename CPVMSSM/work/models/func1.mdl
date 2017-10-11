@@ -150,7 +150,7 @@ MSsR     |sqrt(Md2^2+MW^2/CW^2*(-1/3*SW^2)*c2b)
 Mt       |MtEff(Q)
 Mb       |MbEff(Q)
 Mc       |McEff(Q)
-Mbp      |MbMb*(1+4/3*alphaQCD(MbMb)/PI)
+Mbp      |bPoleMass()
 Mcp      |McMc*(1+4/3*alphaQCD(McMc)/PI)
 Quq      |4/9
 Qdq      |1/9

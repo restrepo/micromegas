@@ -1,0 +1,369 @@
+####################### ATLAS #######################
+## Aad:2015gba,Aad:2014eha,Aad:2015ona,Aad:2014eva,
+## Aad:2015vsa,Aad:2015iha,Aad:2015gra,Aad:2014xzb,
+## Aad:2014xva,ATLAS-CONF-2015-004,Aad:2014iia
+#####################################################
+
+@article{Aad:2015gba,
+      author         = "Aad, Georges and others",
+      title          = "{Measurements of the Higgs boson production and decay
+                        rates and coupling strengths using $pp$ collision data at
+                        $\sqrt{s}=7$ and $8$ TeV in the ATLAS experiment}",
+      collaboration  = "ATLAS",
+      year           = "2015",
+      eprint         = "1507.04548",
+      archivePrefix  = "arXiv",
+      primaryClass   = "hep-ex",
+      reportNumber   = "CERN-PH-EP-2015-125",
+      SLACcitation   = "%%CITATION = ARXIV:1507.04548;%%"
+}
+
+@article{Aad:2014eha,
+      author         = "Aad, Georges and others",
+      title          = "{Measurement of Higgs boson production in the diphoton
+                        decay channel in $pp$ collisions at center-of-mass
+                        energies of 7 and 8 TeV with the ATLAS detector}",
+      collaboration  = "ATLAS",
+      year           = "2014",
+      eprint         = "1408.7084",
+      archivePrefix  = "arXiv",
+      primaryClass   = "hep-ex",
+      reportNumber   = "CERN-PH-EP-2014-198",
+      SLACcitation   = "%%CITATION = ARXIV:1408.7084;%%",
+}
+
+@article{Aad:2015ona,
+      author         = "Aad, Georges and others",
+      title          = "{Study of $(W/Z)H$ production and Higgs boson couplings
+                        using $H \rightarrow WW^{\ast}$ decays with the ATLAS
+                        detector}",
+      collaboration  = "ATLAS",
+      year           = "2015",
+      eprint         = "1506.06641",
+      archivePrefix  = "arXiv",
+      primaryClass   = "hep-ex",
+      reportNumber   = "CERN-PH-EP-2015-104",
+      SLACcitation   = "%%CITATION = ARXIV:1506.06641;%%"
+}
+
+@article{Aad:2014eva,
+      author         = "Aad, Georges and others",
+      title          = "{Measurements of Higgs boson production and couplings in
+                        the four-lepton channel in pp collisions at center-of-mass
+                        energies of 7 and 8 TeV with the ATLAS detector}",
+      collaboration  = "ATLAS",
+      year           = "2014",
+      eprint         = "1408.5191",
+      archivePrefix  = "arXiv",
+      primaryClass   = "hep-ex",
+      reportNumber   = "CERN-PH-EP-2014-170",
+      SLACcitation   = "%%CITATION = ARXIV:1408.5191;%%",
+}
+
+@article{Aad:2015vsa,
+      author         = "Aad, Georges and others",
+      title          = "{Evidence for the Higgs-boson Yukawa coupling to tau
+                        leptons with the ATLAS detector}",
+      collaboration  = "ATLAS",
+      journal        = "JHEP",
+      volume         = "1504",
+      pages          = "117",
+      doi            = "10.1007/JHEP04(2015)117",
+      year           = "2015",
+      eprint         = "1501.04943",
+      archivePrefix  = "arXiv",
+      primaryClass   = "hep-ex",
+      reportNumber   = "CERN-PH-EP-2014-262",
+      SLACcitation   = "%%CITATION = ARXIV:1501.04943;%%",
+}
+
+@article{Aad:2015iha,
+      author         = "Aad, Georges and others",
+      title          = "{Search for the associated production of the Higgs boson
+                        with a top quark pair in multilepton final states with the
+                        ATLAS detector}",
+      collaboration  = "ATLAS",
+      year           = "2015",
+      eprint         = "1506.05988",
+      archivePrefix  = "arXiv",
+      primaryClass   = "hep-ex",
+      reportNumber   = "CERN-PH-EP-2015-109",
+      SLACcitation   = "%%CITATION = ARXIV:1506.05988;%%"
+}
+
+@article{Aad:2015gra,
+      author         = "Aad, Georges and others",
+      title          = "{Search for the Standard Model Higgs boson produced in
+                        association with top quarks and decaying into $b\bar{b}$
+                        in pp collisions at $\sqrt{s}$ = 8 TeV with the ATLAS
+                        detector}",
+      collaboration  = "ATLAS",
+      journal        = "Eur. Phys. J.",
+      volume         = "C75",
+      year           = "2015",
+      number         = "7",
+      pages          = "349",
+      doi            = "10.1140/epjc/s10052-015-3543-1",
+      eprint         = "1503.05066",
+      archivePrefix  = "arXiv",
+      primaryClass   = "hep-ex",
+      reportNumber   = "CERN-PH-EP-2015-047",
+      SLACcitation   = "%%CITATION = ARXIV:1503.05066;%%"
+}
+
+@article{Aad:2014xzb,
+      author         = "Aad, Georges and others",
+      title          = "{Search for the $b\bar{b}$ decay of the Standard Model
+                        Higgs boson in associated $(W/Z)H$ production with the
+                        ATLAS detector}",
+      collaboration  = "ATLAS",
+      journal        = "JHEP",
+      volume         = "1501",
+      pages          = "069",
+      doi            = "10.1007/JHEP01(2015)069",
+      year           = "2015",
+      eprint         = "1409.6212",
+      archivePrefix  = "arXiv",
+      primaryClass   = "hep-ex",
+      reportNumber   = "CERN-PH-EP-2014-214",
+      SLACcitation   = "%%CITATION = ARXIV:1409.6212;%%",
+}
+
+@article{Aad:2014xva,
+      author         = "Aad, Georges and others",
+      title          = "{Search for the Standard Model Higgs boson decay to
+                        $\mu^{+}\mu^{-}$ with the ATLAS detector}",
+      collaboration  = "ATLAS",
+      journal        = "Phys.Lett.",
+      volume         = "B738",
+      pages          = "68-86",
+      doi            = "10.1016/j.physletb.2014.09.008",
+      year           = "2014",
+      eprint         = "1406.7663",
+      archivePrefix  = "arXiv",
+      primaryClass   = "hep-ex",
+      reportNumber   = "CERN-PH-EP-2014-131",
+      SLACcitation   = "%%CITATION = ARXIV:1406.7663;%%",
+}
+
+@techreport{ATLAS-CONF-2015-004,
+      title         = "{Search for an Invisibly Decaying Higgs Boson Produced via
+                       Vector Boson Fusion in $pp$ Collisions at $\sqrt{s}=8$ TeV
+                       using the ATLAS Detector at the LHC}",
+      institution   = "CERN",
+      address       = "Geneva",
+      number        = "ATLAS-CONF-2015-004",
+      month         = "Mar",
+      year          = "2015",
+      reportNumber  = "ATLAS-CONF-2015-004",
+      url           = "http://cds.cern.ch/record/2002121",
+}
+
+@article{Aad:2014iia,
+      author         = "Aad, Georges and others",
+      title          = "{Search for Invisible Decays of a Higgs Boson Produced in
+                        Association with a Z Boson in ATLAS}",
+      collaboration  = "ATLAS",
+      journal        = "Phys.Rev.Lett.",
+      volume         = "112",
+      pages          = "201802",
+      doi            = "10.1103/PhysRevLett.112.201802",
+      year           = "2014",
+      eprint         = "1402.3244",
+      archivePrefix  = "arXiv",
+      primaryClass   = "hep-ex",
+      reportNumber   = "CERN-PH-EP-2013-210",
+      SLACcitation   = "%%CITATION = ARXIV:1402.3244;%%",
+}
+
+
+
+############################ CMS ############################
+## Khachatryan:2014jba,Khachatryan:2014ira,Chatrchyan:2013iaa,
+## Chatrchyan:2013mxa,Chatrchyan:2014nva,Chatrchyan:2013zna,
+## Khachatryan:2014qaa,Khachatryan:2015ilaKhachatryan:2015ila,
+## Khachatryan:2015bnx,Chatrchyan:2014tja
+#############################################################
+
+@article{Khachatryan:2014jba,
+      author         = "Khachatryan, Vardan and others",
+      title          = "{Precise determination of the mass of the Higgs boson and
+                        tests of compatibility of its couplings with the standard
+                        model predictions using proton collisions at 7 and 8 TeV}",
+      collaboration  = "CMS",
+      year           = "2014",
+      eprint         = "1412.8662",
+      archivePrefix  = "arXiv",
+      primaryClass   = "hep-ex",
+      reportNumber   = "CMS-HIG-14-009, CERN-PH-EP-2014-288",
+      SLACcitation   = "%%CITATION = ARXIV:1412.8662;%%",
+}
+
+@article{Khachatryan:2014ira,
+      author         = "Khachatryan, Vardan and others",
+      title = "{Observation of the diphoton decay of the Higgs boson and measurement of its properties}",
+      collaboration  = "CMS",
+      year           = "2014",
+      eprint         = "1407.0558",
+      archivePrefix  = "arXiv",
+      primaryClass   = "hep-ex",
+      reportNumber   = "CMS-HIG-13-001, CERN-PH-EP-2014-117",
+      SLACcitation   = "%%CITATION = ARXIV:1407.0558;%%",
+}
+
+@article{Chatrchyan:2013iaa,
+      author         = "Chatrchyan, Serguei and others",
+      title          = "{Measurement of Higgs boson production and properties in
+                        the WW decay channel with leptonic final states}",
+      collaboration  = "CMS",
+      journal        = "JHEP",
+      volume         = "01",
+      year           = "2014",
+      pages          = "096",
+      doi            = "10.1007/JHEP01(2014)096",
+      eprint         = "1312.1129",
+      archivePrefix  = "arXiv",
+      primaryClass   = "hep-ex",
+      reportNumber   = "CMS-HIG-13-023, CERN-PH-EP-2013-221",
+      SLACcitation   = "%%CITATION = ARXIV:1312.1129;%%"
+}
+
+@article{Chatrchyan:2013mxa,
+      author         = "Chatrchyan, Serguei and others",
+      title          = "{Measurement of the properties of a Higgs boson in the
+                        four-lepton final state}",
+      collaboration  = "CMS",
+      journal        = "Phys.Rev.",
+      number         = "9",
+      volume         = "D89",
+      pages          = "092007",
+      doi            = "10.1103/PhysRevD.89.092007",
+      year           = "2014",
+      eprint         = "1312.5353",
+      archivePrefix  = "arXiv",
+      primaryClass   = "hep-ex",
+      reportNumber   = "CMS-HIG-13-002, CERN-PH-EP-2013-220",
+      SLACcitation   = "%%CITATION = ARXIV:1312.5353;%%",
+}
+
+@article{Chatrchyan:2014nva,
+      author         = "Chatrchyan, Serguei and others",
+      title          = "{Evidence for the 125 GeV Higgs boson decaying to a pair
+                        of $\tau$ leptons}",
+      collaboration  = "CMS",
+      journal        = "JHEP",
+      volume         = "1405",
+      pages          = "104",
+      doi            = "10.1007/JHEP05(2014)104",
+      year           = "2014",
+      eprint         = "1401.5041",
+      archivePrefix  = "arXiv",
+      primaryClass   = "hep-ex",
+      reportNumber   = "CMS-HIG-13-004, CERN-PH-EP-2014-001",
+      SLACcitation   = "%%CITATION = ARXIV:1401.5041;%%",
+}
+
+@article{Chatrchyan:2013zna,
+      author         = "Chatrchyan, Serguei and others",
+      title          = "{Search for the standard model Higgs boson produced in
+                        association with a W or a Z boson and decaying to bottom
+                        quarks}",
+      collaboration  = "CMS",
+      journal        = "Phys.Rev.",
+      number         = "1",
+      volume         = "D89",
+      pages          = "012003",
+      doi            = "10.1103/PhysRevD.89.012003",
+      year           = "2014",
+      eprint         = "1310.3687",
+      archivePrefix  = "arXiv",
+      primaryClass   = "hep-ex",
+      reportNumber   = "CMS-HIG-13-012, CERN-PH-EP-2013-188",
+      SLACcitation   = "%%CITATION = ARXIV:1310.3687;%%",
+}
+
+@article{Khachatryan:2014qaa,
+      author         = "Khachatryan, Vardan and others",
+      title          = "{Search for the associated production of the Higgs boson
+                        with a top-quark pair}",
+      collaboration  = "CMS",
+      year           = "2014",
+      eprint         = "1408.1682",
+      archivePrefix  = "arXiv",
+      primaryClass   = "hep-ex",
+      reportNumber   = "CMS-HIG-13-029, CERN-PH-EP-2014-189",
+      SLACcitation   = "%%CITATION = ARXIV:1408.1682;%%",
+}
+
+@article{Khachatryan:2015ila,
+      author         = "Khachatryan, Vardan and others",
+      title          = "{Search for a standard model Higgs boson produced in
+                        association with a top-quark pair and decaying to bottom
+                        quarks using a matrix element method}",
+      collaboration  = "CMS",
+      journal        = "Eur.Phys.J.",
+      number         = "6",
+      volume         = "C75",
+      pages          = "251",
+      doi            = "10.1140/epjc/s10052-015-3454-1",
+      year           = "2015",
+      eprint         = "1502.02485",
+      archivePrefix  = "arXiv",
+      primaryClass   = "hep-ex",
+      reportNumber   = "CMS-HIG-14-010, CERN-PH-EP-2015-016",
+      SLACcitation   = "%%CITATION = ARXIV:1502.02485;%%",
+}
+
+@article{Khachatryan:2015bnx,
+      author         = "Khachatryan, Vardan and others",
+      title          = "{Search for the standard model Higgs boson produced
+                        through vector boson fusion and decaying to
+                        $\mathrm{b\bar{b}}$}",
+      collaboration  = "CMS",
+      year           = "2015",
+      eprint         = "1506.01010",
+      archivePrefix  = "arXiv",
+      primaryClass   = "hep-ex",
+      reportNumber   = "CMS-14-004, CERN-PH-EP-2015-121, CMS-HIG-14-004",
+      SLACcitation   = "%%CITATION = ARXIV:1506.01010;%%"
+}
+
+@article{Chatrchyan:2014tja,
+      author         = "Chatrchyan, Serguei and others",
+      title          = "{Search for invisible decays of Higgs bosons in the
+                        vector boson fusion and associated ZH production modes}",
+      collaboration  = "CMS",
+      journal        = "Eur.Phys.J.",
+      volume         = "C74",
+      pages          = "2980",
+      doi            = "10.1140/epjc/s10052-014-2980-6",
+      year           = "2014",
+      eprint         = "1404.1344",
+      archivePrefix  = "arXiv",
+      primaryClass   = "hep-ex",
+      reportNumber   = "CMS-HIG-13-030, CERN-PH-EP-2014-051",
+      SLACcitation   = "%%CITATION = ARXIV:1404.1344;%%",
+}
+
+
+
+##################### CDF & D0 #####################
+## Aaltonen:2013xpo
+####################################################
+
+@article{Aaltonen:2013xpo,
+      author         = "Aaltonen, T. and others",
+      title          = "{Higgs Boson Studies at the Tevatron}",
+      collaboration  = "CDF, D0",
+      journal        = "Phys.Rev.",
+      number         = "5",
+      volume         = "D88",
+      pages          = "052014",
+      doi            = "10.1103/PhysRevD.88.052014",
+      year           = "2013",
+      eprint         = "1303.6346",
+      archivePrefix  = "arXiv",
+      primaryClass   = "hep-ex",
+      reportNumber   = "FERMILAB-PUB-13-081-E",
+      SLACcitation   = "%%CITATION = ARXIV:1303.6346;%%",
+}

@@ -19,6 +19,8 @@ keys  odd_full_mix=off.
 /*  Mass & mixing matrices calculated from initial parameters */
 keys AutoNeuMass=on, AutoChMass=on, AutoSlq12Mass=on, AutoSlq3Mass=on.
 
+/*  Include in func1.mdl the higgses-sfermions couplings (without running of vevs) for UMSSMTools */
+keys haHpmtosfer=off.
 
 % =============== Model name and number setup.
 
@@ -42,4 +44,4 @@ read 'DD.src'.          % DD terms
 read 'W.src'.           % Terms going from super-potential (FF & Yukawa)
 read 'softsbt.src'.     % Soft SUSY-breaking terms
 read 'fgauge.src'.      % Faddeev-Popov ghosts
-read 'end.src'.         % Higgs radiative corrections, check of the model
+read 'end.src'.         % Higgs radiative corrections and couplings for UMSSMTools, check of the model

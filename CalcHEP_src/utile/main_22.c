@@ -42,7 +42,7 @@ int main(void)
   if(err) { printf("Can not calculate constrained parameter %s\n",varNames[err]);return err;}
   
   printf("GF=%E\n",findValW("GF"));
-  slhaDecayPrint("W+", stdout);
+  slhaDecayPrint("W+", 0,stdout);
 
 // SQME code generation 
    cc= newProcess("e,E->m,M");

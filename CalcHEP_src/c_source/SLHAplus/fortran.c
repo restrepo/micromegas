@@ -366,6 +366,11 @@ double immixmatrixu_(int*id, int*i,int*j){return cimag(cMixMatrixU(*id,*i,*j));}
 
 double  initqcd_(double * alfsMZ, double * McMc, double * MbMb, double * Mtp)
 { return  initQCD(*alfsMZ,*McMc,*MbMb,*Mtp); }
+
+double  initqcd5_(double * alfsMZ, double * McMc, double * MbMb, double * Mtp)
+{ return  initQCD5(*alfsMZ,*McMc,*MbMb,*Mtp); }
+
+
 double alphaqcd_(double * q) { return alphaQCD(*q);}
 double mcrun_(double *q){ return McRun(*q);}
 double mbrun_(double *q){ return MbRun(*q);}

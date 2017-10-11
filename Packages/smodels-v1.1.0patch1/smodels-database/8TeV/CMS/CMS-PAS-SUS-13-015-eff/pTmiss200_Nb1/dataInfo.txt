@@ -1,0 +1,7 @@
+dataType: efficiencyMap
+dataId: pTmiss200_Nb1
+observedN: 254
+expectedBG: 254.3
+bgError: 35
+upperLimit: 3.8915109536*fb
+expectedUpperLimit: 3.89150416478*fb

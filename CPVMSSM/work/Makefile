@@ -15,6 +15,8 @@ work_aux.a: work_aux.a($(workOBJ))
 	rm -f $(workOBJ)
 
 VandP.c: models/vars1.mdl models/func1.mdl models/prtcls1.mdl
+	rm -f tmp/safe
+	../../CalcHEP_src/bin/s_calchep -blind "{[[{[[[[[[{}0"
 	../../CalcHEP_src/bin/make_VandP models 1 
 
 path.c:

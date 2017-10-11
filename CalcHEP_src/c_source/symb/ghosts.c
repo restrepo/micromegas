@@ -156,12 +156,12 @@ static void  makeSkelet(void)
    } 
 
    for (i = 0; i < vcs_stat.sizet; i++)   /*  mark subgraph vertex with '1'  */ 
-      for (j = 0; j < vcs_stat.valence[i]; j++) 
+      for (j = 0; j < vcs_stat.valence[i]; j++)
       { 
 /*       if(PLR_PRTCL&vcs_stat.vertlist[i][j].prop) continue;*/
          i1 = vcs_stat.vertlist[i][j].nextvert.vno - 1 ; 
          p = vcs_stat.vertlist[i][j].partcl; 
-         if (gaugep(p) && i < i1) 
+         if (gaugep(p) && i < i1 && !(PLR_PRTCL&vcs.vertlist[i][j].prop) ) 
          {   /*  check the  Ghost particles existence in vertex  */ 
             if ((prtclInVert(p + 1,i+1) && 
                  prtclInVert(prtclbase[p + 1-1].anti,i1+1)) || 

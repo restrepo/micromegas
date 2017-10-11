@@ -1,0 +1,543 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tools.modelTester &mdash; SModelS 1.1.0patch1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="SModelS 1.1.0patch1 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> SModelS
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.1.0patch1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../theory.html">theory package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../experiment.html">experiment package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tools.html">tools package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">SModelS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>tools.modelTester</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tools.modelTester</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: tools.modelTester</span>
+<span class="sd">   :synopsis: Functions to test (a set of) points, handling decomposition,</span>
+<span class="sd">              result and coverage checks, parallelisation.</span>
+
+<span class="sd">.. moduleauthor:: Ursula Laa &lt;ursula.laa@lpsc.in2p3.fr&gt;</span>
+<span class="sd">.. moduleauthor:: Wolfgang Waltenberger &lt;wolfgang.waltenberger@gmail.com&gt;</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">smodels.tools</span> <span class="kn">import</span> <span class="n">ioObjects</span>
+<span class="kn">from</span> <span class="nn">smodels.tools</span> <span class="kn">import</span> <span class="n">coverage</span><span class="p">,</span> <span class="n">runtime</span>
+<span class="kn">from</span> <span class="nn">smodels.theory</span> <span class="kn">import</span> <span class="n">slhaDecomposer</span>
+<span class="kn">from</span> <span class="nn">smodels.theory</span> <span class="kn">import</span> <span class="n">lheDecomposer</span>
+<span class="kn">from</span> <span class="nn">smodels.theory.theoryPrediction</span> <span class="kn">import</span> <span class="n">theoryPredictionsFor</span><span class="p">,</span> <span class="n">TheoryPredictionList</span>
+<span class="kn">from</span> <span class="nn">smodels.theory.exceptions</span> <span class="kn">import</span> <span class="n">SModelSTheoryError</span> <span class="k">as</span> <span class="n">SModelSError</span>
+<span class="kn">from</span> <span class="nn">smodels.tools</span> <span class="kn">import</span> <span class="n">crashReport</span><span class="p">,</span> <span class="n">timeOut</span>
+<span class="kn">from</span> <span class="nn">smodels.tools.printer</span> <span class="kn">import</span> <span class="n">MPrinter</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">ConfigParser</span> <span class="kn">import</span> <span class="n">SafeConfigParser</span>
+<span class="kn">from</span> <span class="nn">smodels.tools.physicsUnits</span> <span class="kn">import</span> <span class="n">GeV</span><span class="p">,</span> <span class="n">fb</span>
+<span class="kn">from</span> <span class="nn">smodels.experiment.exceptions</span> <span class="kn">import</span> <span class="n">DatabaseNotFoundException</span>
+<span class="kn">from</span> <span class="nn">smodels.experiment.databaseObj</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">ExpResultList</span>
+<span class="kn">from</span> <span class="nn">smodels.tools.smodelsLogging</span> <span class="kn">import</span> <span class="n">logger</span>
+
+<div class="viewcode-block" id="testPoint"><a class="viewcode-back" href="../../tools.html#tools.modelTester.testPoint">[docs]</a><span class="k">def</span> <span class="nf">testPoint</span><span class="p">(</span><span class="n">inputFile</span><span class="p">,</span> <span class="n">outputDir</span><span class="p">,</span> <span class="n">parser</span><span class="p">,</span> <span class="n">databaseVersion</span><span class="p">,</span> <span class="n">listOfExpRes</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Test model point defined in input file (running decomposition, check</span>
+<span class="sd">    results, test coverage)</span>
+
+<span class="sd">    :parameter inputFile: path to input file</span>
+<span class="sd">    :parameter outputDir: path to directory where output is be stored</span>
+<span class="sd">    :parameter parser: ConfigParser storing information from parameters file</span>
+<span class="sd">    :parameter databaseVersion: Database version (printed to output file)</span>
+<span class="sd">    :parameter listOfExpRes: list of ExpResult objects to be considered</span>
+<span class="sd">    :returns: output of printers</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="sd">&quot;&quot;&quot;Get run parameters and options from the parser&quot;&quot;&quot;</span>
+    <span class="n">sigmacut</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="s2">&quot;parameters&quot;</span><span class="p">,</span> <span class="s2">&quot;sigmacut&quot;</span><span class="p">)</span> <span class="o">*</span> <span class="n">fb</span>
+    <span class="n">minmassgap</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="s2">&quot;parameters&quot;</span><span class="p">,</span> <span class="s2">&quot;minmassgap&quot;</span><span class="p">)</span> <span class="o">*</span> <span class="n">GeV</span>
+    <span class="n">inputType</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;options&quot;</span><span class="p">,</span> <span class="s2">&quot;inputType&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+
+    <span class="sd">&quot;&quot;&quot;Setup output printers&quot;&quot;&quot;</span>
+    <span class="n">masterPrinter</span> <span class="o">=</span> <span class="n">MPrinter</span><span class="p">()</span>
+    <span class="n">masterPrinter</span><span class="o">.</span><span class="n">setPrinterOptions</span><span class="p">(</span><span class="n">parser</span><span class="p">)</span>
+    <span class="n">masterPrinter</span><span class="o">.</span><span class="n">setOutPutFiles</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outputDir</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">inputFile</span><span class="p">)))</span>  
+    
+    <span class="sd">&quot;&quot;&quot; Add list of analyses loaded to printer&quot;&quot;&quot;</span>
+    <span class="n">masterPrinter</span><span class="o">.</span><span class="n">addObj</span><span class="p">(</span><span class="n">ExpResultList</span><span class="p">(</span><span class="n">listOfExpRes</span><span class="p">))</span>
+
+    <span class="sd">&quot;&quot;&quot;Check input file for errors&quot;&quot;&quot;</span>
+    <span class="n">inputStatus</span> <span class="o">=</span> <span class="n">ioObjects</span><span class="o">.</span><span class="n">FileStatus</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">parser</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s2">&quot;options&quot;</span><span class="p">,</span> <span class="s2">&quot;checkInput&quot;</span><span class="p">):</span>
+        <span class="n">inputStatus</span><span class="o">.</span><span class="n">checkFile</span><span class="p">(</span><span class="n">inputType</span><span class="p">,</span> <span class="n">inputFile</span><span class="p">,</span> <span class="n">sigmacut</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;Initialize output status and exit if there were errors in the input&quot;&quot;&quot;</span>
+    <span class="n">outputStatus</span> <span class="o">=</span> <span class="n">ioObjects</span><span class="o">.</span><span class="n">OutputStatus</span><span class="p">(</span><span class="n">inputStatus</span><span class="o">.</span><span class="n">status</span><span class="p">,</span> <span class="n">inputFile</span><span class="p">,</span>
+            <span class="nb">dict</span><span class="p">(</span><span class="n">parser</span><span class="o">.</span><span class="n">items</span><span class="p">(</span><span class="s2">&quot;parameters&quot;</span><span class="p">)),</span> <span class="n">databaseVersion</span><span class="p">)</span>
+    <span class="n">masterPrinter</span><span class="o">.</span><span class="n">addObj</span><span class="p">(</span><span class="n">outputStatus</span><span class="p">)</span>              
+    <span class="k">if</span> <span class="n">outputStatus</span><span class="o">.</span><span class="n">status</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>          
+        <span class="k">return</span> <span class="n">masterPrinter</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+    
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decompose input file</span>
+<span class="sd">    ====================</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Decompose input SLHA file, store the output elements in smstoplist &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">inputType</span> <span class="o">==</span> <span class="s1">&#39;slha&#39;</span><span class="p">:</span>
+            <span class="n">smstoplist</span> <span class="o">=</span> <span class="n">slhaDecomposer</span><span class="o">.</span><span class="n">decompose</span><span class="p">(</span><span class="n">inputFile</span><span class="p">,</span> <span class="n">sigmacut</span><span class="p">,</span>
+                    <span class="n">doCompress</span><span class="o">=</span><span class="n">parser</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s2">&quot;options&quot;</span><span class="p">,</span> <span class="s2">&quot;doCompress&quot;</span><span class="p">),</span>
+                    <span class="n">doInvisible</span><span class="o">=</span><span class="n">parser</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s2">&quot;options&quot;</span><span class="p">,</span> <span class="s2">&quot;doInvisible&quot;</span><span class="p">),</span>
+                    <span class="n">minmassgap</span><span class="o">=</span><span class="n">minmassgap</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">smstoplist</span> <span class="o">=</span> <span class="n">lheDecomposer</span><span class="o">.</span><span class="n">decompose</span><span class="p">(</span><span class="n">inputFile</span><span class="p">,</span>
+                    <span class="n">doCompress</span><span class="o">=</span><span class="n">parser</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s2">&quot;options&quot;</span><span class="p">,</span> <span class="s2">&quot;doCompress&quot;</span><span class="p">),</span>
+                    <span class="n">doInvisible</span><span class="o">=</span><span class="n">parser</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s2">&quot;options&quot;</span><span class="p">,</span> <span class="s2">&quot;doInvisible&quot;</span><span class="p">),</span>
+                    <span class="n">minmassgap</span><span class="o">=</span><span class="n">minmassgap</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">SModelSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">print</span> <span class="p">(</span> <span class="s2">&quot;Exception </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">e</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="p">)</span> <span class="p">)</span>
+        <span class="sd">&quot;&quot;&quot; Update status to fail, print error message and exit &quot;&quot;&quot;</span>
+        <span class="n">outputStatus</span><span class="o">.</span><span class="n">updateStatus</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">masterPrinter</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+
+    <span class="sd">&quot;&quot;&quot; Print Decomposition output.</span>
+<span class="sd">        If no topologies with sigma &gt; sigmacut are found, update status, write</span>
+<span class="sd">        output file, stop running &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">smstoplist</span><span class="p">:</span>
+        <span class="n">outputStatus</span><span class="o">.</span><span class="n">updateStatus</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">masterPrinter</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+
+    <span class="n">masterPrinter</span><span class="o">.</span><span class="n">addObj</span><span class="p">(</span><span class="n">smstoplist</span><span class="p">)</span>
+    
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute theory predictions</span>
+<span class="sd">    ====================================================</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="sd">&quot;&quot;&quot; Get theory prediction for each analysis and print basic output &quot;&quot;&quot;</span>
+    <span class="n">allPredictions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">expResult</span> <span class="ow">in</span> <span class="n">listOfExpRes</span><span class="p">:</span>
+        <span class="n">theorypredictions</span> <span class="o">=</span> <span class="n">theoryPredictionsFor</span><span class="p">(</span><span class="n">expResult</span><span class="p">,</span> <span class="n">smstoplist</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">theorypredictions</span><span class="p">:</span> <span class="k">continue</span>
+        <span class="n">allPredictions</span> <span class="o">+=</span> <span class="n">theorypredictions</span><span class="o">.</span><span class="n">_theoryPredictions</span>
+    
+    <span class="sd">&quot;&quot;&quot;Compute chi-square and likelihood&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">parser</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s2">&quot;options&quot;</span><span class="p">,</span><span class="s2">&quot;computeStatistics&quot;</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">theoPred</span> <span class="ow">in</span> <span class="n">allPredictions</span><span class="p">:</span>
+            <span class="n">theoPred</span><span class="o">.</span><span class="n">computeStatistics</span><span class="p">()</span>
+
+    <span class="sd">&quot;&quot;&quot; Define result list that collects all theoryPrediction objects.&quot;&quot;&quot;</span>
+    <span class="n">maxcond</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="s2">&quot;parameters&quot;</span><span class="p">,</span> <span class="s2">&quot;maxcond&quot;</span><span class="p">)</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">ioObjects</span><span class="o">.</span><span class="n">ResultList</span><span class="p">(</span><span class="n">allPredictions</span><span class="p">,</span><span class="n">maxcond</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">results</span><span class="o">.</span><span class="n">isEmpty</span><span class="p">():</span>
+        <span class="n">outputStatus</span><span class="o">.</span><span class="n">updateStatus</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">masterPrinter</span><span class="o">.</span><span class="n">addObj</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">outputStatus</span><span class="o">.</span><span class="n">updateStatus</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># no results after enforcing maxcond</span>
+
+    <span class="k">if</span> <span class="n">parser</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s2">&quot;options&quot;</span><span class="p">,</span> <span class="s2">&quot;testCoverage&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Testing coverage of model point, add results to the output file &quot;&quot;&quot;</span>
+        <span class="n">uncovered</span> <span class="o">=</span> <span class="n">coverage</span><span class="o">.</span><span class="n">Uncovered</span><span class="p">(</span><span class="n">smstoplist</span><span class="p">)</span>
+        <span class="n">masterPrinter</span><span class="o">.</span><span class="n">addObj</span><span class="p">(</span><span class="n">uncovered</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">masterPrinter</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="runSingleFile"><a class="viewcode-back" href="../../tools.html#tools.modelTester.runSingleFile">[docs]</a><span class="k">def</span> <span class="nf">runSingleFile</span><span class="p">(</span><span class="n">inputFile</span><span class="p">,</span> <span class="n">outputDir</span><span class="p">,</span> <span class="n">parser</span><span class="p">,</span> <span class="n">databaseVersion</span><span class="p">,</span> <span class="n">listOfExpRes</span><span class="p">,</span>
+                    <span class="n">timeout</span><span class="p">,</span> <span class="n">development</span><span class="p">,</span> <span class="n">parameterFile</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Call testPoint on inputFile, write crash report in case of problems</span>
+
+<span class="sd">    :parameter inputFile: path to input file</span>
+<span class="sd">    :parameter outputDir: path to directory where output is be stored</span>
+<span class="sd">    :parameter parser: ConfigParser storing information from parameter.ini file</span>
+<span class="sd">    :parameter databaseVersion: Database version (printed to output file)</span>
+<span class="sd">    :parameter listOfExpRes: list of ExpResult objects to be considered</span>
+<span class="sd">    :parameter crashReport: if True, write crash report in case of problems</span>
+<span class="sd">    :param timeout: set a timeout for one model point (0 means no timeout)</span>
+<span class="sd">    :returns: output of printers</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">timeOut</span><span class="o">.</span><span class="n">Timeout</span><span class="p">(</span><span class="n">timeout</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">testPoint</span><span class="p">(</span><span class="n">inputFile</span><span class="p">,</span> <span class="n">outputDir</span><span class="p">,</span> <span class="n">parser</span><span class="p">,</span> <span class="n">databaseVersion</span><span class="p">,</span>
+                             <span class="n">listOfExpRes</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span><span class="n">e</span><span class="p">:</span>
+        <span class="n">crashReportFacility</span> <span class="o">=</span> <span class="n">crashReport</span><span class="o">.</span><span class="n">CrashReport</span><span class="p">()</span>
+         
+        <span class="k">if</span> <span class="n">development</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">crashReport</span><span class="o">.</span><span class="n">createStackTrace</span><span class="p">())</span>
+            <span class="k">raise</span> <span class="n">e</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">crashReport</span><span class="o">.</span><span class="n">createStackTrace</span><span class="p">())</span>
+            <span class="n">crashReportFacility</span><span class="o">.</span><span class="n">createCrashReportFile</span><span class="p">(</span> <span class="n">inputFile</span><span class="p">,</span> <span class="n">parameterFile</span> <span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">crashReportFacility</span><span class="o">.</span><span class="n">createUnknownErrorMessage</span><span class="p">())</span>
+    <span class="k">return</span> <span class="bp">None</span></div>
+
+<div class="viewcode-block" id="runSetOfFiles"><a class="viewcode-back" href="../../tools.html#tools.modelTester.runSetOfFiles">[docs]</a><span class="k">def</span> <span class="nf">runSetOfFiles</span><span class="p">(</span><span class="n">inputFiles</span><span class="p">,</span> <span class="n">outputDir</span><span class="p">,</span> <span class="n">parser</span><span class="p">,</span> <span class="n">databaseVersion</span><span class="p">,</span> <span class="n">listOfExpRes</span><span class="p">,</span>
+                    <span class="n">timeout</span><span class="p">,</span> <span class="n">development</span><span class="p">,</span> <span class="n">parameterFile</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Loop over all input files in inputFiles with testPoint</span>
+
+<span class="sd">    :parameter inputFiles: list of input files to be tested</span>
+<span class="sd">    :parameter outputDir: path to directory where output is be stored</span>
+<span class="sd">    :parameter parser: ConfigParser storing information from parameter.ini file</span>
+<span class="sd">    :parameter databaseVersion: Database version (printed to output file)</span>
+<span class="sd">    :parameter listOfExpRes: list of ExpResult objects to be considered</span>
+<span class="sd">    :parameter development: turn on development mode (e.g. no crash report)</span>
+<span class="sd">    :parameter parameterFile: parameter file, for crash reports</span>
+<span class="sd">    :returns: printers output</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">a</span><span class="o">=</span><span class="p">{}</span>
+    <span class="k">for</span> <span class="n">inputFile</span> <span class="ow">in</span> <span class="n">inputFiles</span><span class="p">:</span>
+        <span class="n">a</span><span class="p">[</span><span class="n">inputFile</span><span class="p">]</span> <span class="o">=</span> <span class="n">runSingleFile</span><span class="p">(</span><span class="n">inputFile</span><span class="p">,</span> <span class="n">outputDir</span><span class="p">,</span> <span class="n">parser</span><span class="p">,</span> <span class="n">databaseVersion</span><span class="p">,</span>
+                                  <span class="n">listOfExpRes</span><span class="p">,</span> <span class="n">timeout</span><span class="p">,</span> <span class="n">development</span><span class="p">,</span> <span class="n">parameterFile</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">a</span></div>
+
+<div class="viewcode-block" id="testPoints"><a class="viewcode-back" href="../../tools.html#tools.modelTester.testPoints">[docs]</a><span class="k">def</span> <span class="nf">testPoints</span><span class="p">(</span><span class="n">fileList</span><span class="p">,</span> <span class="n">inDir</span><span class="p">,</span> <span class="n">outputDir</span><span class="p">,</span> <span class="n">parser</span><span class="p">,</span> <span class="n">databaseVersion</span><span class="p">,</span>
+                 <span class="n">listOfExpRes</span><span class="p">,</span> <span class="n">timeout</span><span class="p">,</span> <span class="n">development</span><span class="p">,</span> <span class="n">parameterFile</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Loop over all input files in fileList with testPoint, using ncpus CPUs</span>
+<span class="sd">    defined in parser</span>
+
+<span class="sd">    :param fileList: list of input files to be tested</span>
+<span class="sd">    :param inDir: path to directory where input files are stored</span>
+<span class="sd">    :param outputDir: path to directory where output is stored</span>
+<span class="sd">    :param parser: ConfigParser storing information from parameter.ini file</span>
+<span class="sd">    :param databaseVersion: Database version (printed to output files)</span>
+<span class="sd">    :param listOfExpRes: list of ExpResult objects to be considered</span>
+<span class="sd">    :param timeout: set a timeout for one model point (0 means no timeout)</span>
+<span class="sd">    :param development: turn on development mode (e.g. no crash report)</span>
+<span class="sd">    :param parameterFile: parameter file, for crash reports</span>
+<span class="sd">    :returns: printer(s) output, if not run in parallel mode</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span> <span class="n">fileList</span> <span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span> <span class="p">(</span> <span class="s2">&quot;no files given.&quot;</span> <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fileList</span> <span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">runSingleFile</span> <span class="p">(</span> <span class="n">fileList</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">outputDir</span><span class="p">,</span> <span class="n">parser</span><span class="p">,</span> <span class="n">databaseVersion</span><span class="p">,</span>
+                               <span class="n">listOfExpRes</span><span class="p">,</span> <span class="n">timeout</span><span class="p">,</span> <span class="n">development</span><span class="p">,</span> <span class="n">parameterFile</span> <span class="p">)</span>
+
+    <span class="sd">&quot;&quot;&quot; loop over input files and run SModelS &quot;&quot;&quot;</span>
+    <span class="n">ncpusAll</span> <span class="o">=</span> <span class="n">runtime</span><span class="o">.</span><span class="n">nCPUs</span><span class="p">()</span>
+    <span class="n">ncpus</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s2">&quot;parameters&quot;</span><span class="p">,</span> <span class="s2">&quot;ncpus&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ncpus</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">ncpus</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span> <span class="p">(</span> <span class="s2">&quot;Weird number of ncpus given in ini file: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">ncpus</span> <span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">ncpus</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">or</span> <span class="n">ncpus</span> <span class="o">&gt;</span> <span class="n">ncpusAll</span><span class="p">:</span> <span class="n">ncpus</span> <span class="o">=</span> <span class="n">ncpusAll</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span> <span class="p">(</span><span class="s2">&quot;Running SModelS on </span><span class="si">%d</span><span class="s2"> cores&quot;</span> <span class="o">%</span> <span class="n">ncpus</span> <span class="p">)</span>
+
+    <span class="n">cleanedList</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fileList</span><span class="p">:</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">inDir</span><span class="p">,</span> <span class="n">f</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span> <span class="p">(</span> <span class="n">tmp</span> <span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span> <span class="p">(</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> does not exist or is not a file. Skipping it.&quot;</span> <span class="o">%</span> <span class="n">tmp</span> <span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="n">cleanedList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">tmp</span> <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ncpus</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">runSetOfFiles</span><span class="p">(</span> <span class="n">cleanedList</span><span class="p">,</span> <span class="n">outputDir</span><span class="p">,</span> <span class="n">parser</span><span class="p">,</span> <span class="n">databaseVersion</span><span class="p">,</span>
+                              <span class="n">listOfExpRes</span><span class="p">,</span> <span class="n">timeout</span><span class="p">,</span> <span class="n">development</span><span class="p">,</span> <span class="n">parameterFile</span> <span class="p">)</span>
+
+    <span class="c1">### now split up for every fork</span>
+    <span class="n">chunkedFiles</span> <span class="o">=</span> <span class="p">[</span><span class="n">cleanedList</span><span class="p">[</span><span class="n">x</span><span class="p">::</span><span class="n">ncpus</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ncpus</span><span class="p">)]</span>
+    <span class="n">children</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">chunk</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">chunkedFiles</span><span class="p">):</span>
+        <span class="n">pid</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">fork</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Forking: </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">i</span><span class="p">,</span><span class="n">pid</span><span class="p">,</span><span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">()</span> <span class="p">)</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="n">pid</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;chunk #</span><span class="si">%d</span><span class="s2">: pid </span><span class="si">%d</span><span class="s2"> (parent </span><span class="si">%d</span><span class="s2">).&quot;</span> <span class="o">%</span>
+                    <span class="p">(</span> <span class="n">i</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">(),</span> <span class="n">os</span><span class="o">.</span><span class="n">getppid</span><span class="p">()</span> <span class="p">)</span> <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span> <span class="s2">&quot; `-&gt; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span> <span class="p">(</span> <span class="n">chunk</span> <span class="p">)</span> <span class="p">)</span>
+            <span class="n">runSetOfFiles</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="n">outputDir</span><span class="p">,</span> <span class="n">parser</span><span class="p">,</span> <span class="n">databaseVersion</span><span class="p">,</span> 
+                            <span class="n">listOfExpRes</span><span class="p">,</span> <span class="n">timeout</span><span class="p">,</span> <span class="n">development</span><span class="p">,</span> <span class="n">parameterFile</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">_exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="c1">## not sys.exit(), return, nor continue</span>
+        <span class="k">if</span> <span class="n">pid</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span> <span class="p">(</span> <span class="s2">&quot;fork did not succeed! Pid=</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pid</span> <span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">pid</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">children</span><span class="o">.</span><span class="n">append</span> <span class="p">(</span> <span class="n">pid</span> <span class="p">)</span>
+    <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">children</span><span class="p">:</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">waitpid</span> <span class="p">(</span> <span class="n">child</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span> <span class="p">(</span> <span class="s2">&quot;child </span><span class="si">%d</span><span class="s2"> terminated: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">child</span><span class="p">,</span><span class="n">r</span><span class="p">)</span> <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span> <span class="p">(</span> <span class="s2">&quot;all children terminated&quot;</span> <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span> <span class="p">(</span> <span class="s2">&quot;returning no output, because we are in parallel mode&quot;</span> <span class="p">)</span>
+    <span class="k">return</span> <span class="bp">None</span></div>
+
+<div class="viewcode-block" id="loadDatabase"><a class="viewcode-back" href="../../tools.html#tools.modelTester.loadDatabase">[docs]</a><span class="k">def</span> <span class="nf">loadDatabase</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load database</span>
+<span class="sd">    </span>
+<span class="sd">    :parameter parser: ConfigParser with path to database</span>
+<span class="sd">    :parameter db: binary database object. If None, then database is loaded,</span>
+<span class="sd">                   according to databasePath. If True, then database is loaded,</span>
+<span class="sd">                   and text mode is forced.</span>
+<span class="sd">    :returns: database object, database version</span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">databasePath</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;path&quot;</span><span class="p">,</span> <span class="s2">&quot;databasePath&quot;</span><span class="p">)</span>
+        <span class="n">database</span> <span class="o">=</span> <span class="n">db</span>
+        <span class="k">if</span> <span class="n">database</span> <span class="ow">in</span> <span class="p">[</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">True</span> <span class="p">]:</span>
+            <span class="n">force_load</span><span class="o">=</span><span class="bp">None</span>
+            <span class="k">if</span> <span class="n">database</span> <span class="o">==</span> <span class="bp">True</span><span class="p">:</span> <span class="n">force_load</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span>
+            <span class="n">database</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span> <span class="n">databasePath</span><span class="p">,</span> <span class="n">force_load</span><span class="o">=</span><span class="n">force_load</span><span class="p">)</span>
+        <span class="n">databaseVersion</span> <span class="o">=</span> <span class="n">database</span><span class="o">.</span><span class="n">databaseVersion</span>
+    <span class="k">except</span> <span class="n">DatabaseNotFoundException</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Database not found in </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">databasePath</span><span class="p">))</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">database</span><span class="p">,</span> <span class="n">databaseVersion</span></div>
+
+<div class="viewcode-block" id="loadDatabaseResults"><a class="viewcode-back" href="../../tools.html#tools.modelTester.loadDatabaseResults">[docs]</a><span class="k">def</span> <span class="nf">loadDatabaseResults</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span> <span class="n">database</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load database entries specified in parser</span>
+<span class="sd">    </span>
+<span class="sd">    :parameter parser: ConfigParser, containing analysis and txnames selection</span>
+<span class="sd">    :parameter database: Database object</span>
+<span class="sd">    :returns: List of experimental results</span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot; In case that a list of analyses or txnames are given, retrieve list &quot;&quot;&quot;</span>
+    <span class="n">tmp</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;database&quot;</span><span class="p">,</span> <span class="s2">&quot;analyses&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+    <span class="n">analyses</span> <span class="o">=</span> <span class="p">[</span> <span class="n">x</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">tmp</span> <span class="p">]</span>
+    <span class="n">tmp_tx</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;database&quot;</span><span class="p">,</span> <span class="s2">&quot;txnames&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+    <span class="n">txnames</span> <span class="o">=</span> <span class="p">[</span> <span class="n">x</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">tmp_tx</span> <span class="p">]</span>
+    <span class="k">if</span> <span class="n">parser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;database&quot;</span><span class="p">,</span> <span class="s2">&quot;dataselector&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;efficiencyMap&quot;</span><span class="p">:</span>
+        <span class="n">dataTypes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;efficiencyMap&#39;</span><span class="p">]</span>
+        <span class="n">datasetIDs</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;all&#39;</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">parser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;database&quot;</span><span class="p">,</span> <span class="s2">&quot;dataselector&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;upperLimit&quot;</span><span class="p">:</span>
+        <span class="n">dataTypes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;upperLimit&#39;</span><span class="p">]</span>
+        <span class="n">datasetIDs</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;all&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">dataTypes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;all&#39;</span><span class="p">]</span>
+        <span class="n">tmp_dIDs</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;database&quot;</span><span class="p">,</span> <span class="s2">&quot;dataselector&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+        <span class="n">datasetIDs</span> <span class="o">=</span> <span class="p">[</span> <span class="n">x</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">tmp_dIDs</span> <span class="p">]</span>
+    
+    <span class="n">useSuperseded</span><span class="o">=</span><span class="bp">False</span>
+    <span class="n">useNonValidated</span><span class="o">=</span><span class="bp">False</span>
+    <span class="k">if</span> <span class="n">parser</span><span class="o">.</span><span class="n">has_option</span><span class="p">(</span><span class="s2">&quot;database&quot;</span><span class="p">,</span><span class="s2">&quot;useSuperseded&quot;</span><span class="p">):</span>
+        <span class="n">useSuperseded</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s2">&quot;database&quot;</span><span class="p">,</span> <span class="s2">&quot;usesuperseded&quot;</span><span class="p">)</span>        
+    <span class="k">if</span> <span class="n">parser</span><span class="o">.</span><span class="n">has_option</span><span class="p">(</span><span class="s2">&quot;database&quot;</span><span class="p">,</span><span class="s2">&quot;useNonValidated&quot;</span><span class="p">):</span>
+        <span class="n">useNonValidated</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s2">&quot;database&quot;</span><span class="p">,</span> <span class="s2">&quot;usenonvalidated&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">useSuperseded</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Including superseded results&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">useNonValidated</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Including non-validated results&#39;</span><span class="p">)</span>
+
+
+    <span class="sd">&quot;&quot;&quot; Load analyses &quot;&quot;&quot;</span>
+
+    <span class="n">ret</span> <span class="o">=</span> <span class="n">database</span><span class="o">.</span><span class="n">getExpResults</span><span class="p">(</span><span class="n">analysisIDs</span><span class="o">=</span><span class="n">analyses</span><span class="p">,</span> <span class="n">txnames</span><span class="o">=</span><span class="n">txnames</span><span class="p">,</span> 
+                                 <span class="n">datasetIDs</span><span class="o">=</span><span class="n">datasetIDs</span><span class="p">,</span> <span class="n">dataTypes</span><span class="o">=</span><span class="n">dataTypes</span><span class="p">,</span>
+                                 <span class="n">useSuperseded</span><span class="o">=</span><span class="n">useSuperseded</span><span class="p">,</span> <span class="n">useNonValidated</span><span class="o">=</span><span class="n">useNonValidated</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ret</span></div>
+
+<div class="viewcode-block" id="getParameters"><a class="viewcode-back" href="../../tools.html#tools.modelTester.getParameters">[docs]</a><span class="k">def</span> <span class="nf">getParameters</span><span class="p">(</span><span class="n">parameterFile</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read parameter file, exit in case of errors</span>
+<span class="sd">    </span>
+<span class="sd">    :parameter parameterFile: Path to parameter File</span>
+<span class="sd">    :returns: ConfigParser read from parameterFile</span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">SafeConfigParser</span><span class="p">()</span>
+    <span class="n">ret</span><span class="o">=</span><span class="n">parser</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">parameterFile</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ret</span> <span class="o">==</span> <span class="p">[]:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span> <span class="p">(</span> <span class="s2">&quot;No such file or directory: &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">parameterFile</span> <span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">parser</span></div>
+
+<div class="viewcode-block" id="getAllInputFiles"><a class="viewcode-back" href="../../tools.html#tools.modelTester.getAllInputFiles">[docs]</a><span class="k">def</span> <span class="nf">getAllInputFiles</span><span class="p">(</span><span class="n">inFile</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Given inFile, return list of all input files</span>
+<span class="sd">    </span>
+<span class="sd">    :parameter inFile: Path to input file or directory containing input files</span>
+<span class="sd">    :returns: List of all input files</span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">inFile</span><span class="p">):</span>
+        <span class="n">fileList</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">inFile</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span> <span class="n">fileList</span> <span class="o">=</span> <span class="p">[</span><span class="n">inFile</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">fileList</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, &lt;function authors at 0x7f73f74eb500&gt;.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.1.0patch1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

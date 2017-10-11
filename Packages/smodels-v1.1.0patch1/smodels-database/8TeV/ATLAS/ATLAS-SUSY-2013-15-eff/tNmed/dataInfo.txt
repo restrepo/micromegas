@@ -1,0 +1,7 @@
+dataType: efficiencyMap
+dataId: tNmed
+observedN: 12
+expectedBG: 13
+bgError: 2.2
+upperLimit: 0.446313001352*fb
+expectedUpperLimit: 0.484356689032*fb

@@ -18,7 +18,7 @@ typedef  struct vegasGrid
     long evnCubes;
     int NgI[MAX_DIM];
     int NgE[MAX_DIM];
-    float  * fMax;
+    double  * fMax;
     pthread_mutex_t key;
 } vegasGrid;
 
@@ -48,13 +48,15 @@ typedef struct
   int     lmax;    /* number of subsequent  events from one cube */
   int     neg;     /* number of negative events */
   int     nan;      /* number of points with NaN */
+  double  sumW;    /* sum of weights */
+  double  sumW2;   /* sum of weights^2 */ 
 } event_stat; 
 
 extern long vegas_events(
 vegasGrid * vegPtr, 
 long  nEvents,
 double gmax,  
-void (*out)(double* ,int),
+void (*out)(double* ,double),
 int recalc,    /* recalculate events in cube in case of new maximum */
 int nCore,     /* number of cores */ 
 event_stat * stat

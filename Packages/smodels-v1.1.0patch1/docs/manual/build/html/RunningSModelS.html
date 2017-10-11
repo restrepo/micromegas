@@ -1,0 +1,690 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Using SModelS &mdash; SModelS 1.1.0patch1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="SModelS 1.1.0patch1 documentation" href="index.html"/>
+        <link rel="next" title="SModelS Tools" href="Tools.html"/>
+        <link rel="prev" title="Installation and Deployment" href="Installation.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> SModelS
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.1.0patch1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="ReleaseUpdate.html">What&#8217;s New in Version 1.1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation and Deployment</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Using SModelS</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#runsmodels-py">runSModelS.py</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-parameters-file">The Parameters File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-output">The Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example-py">Example.py</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">SModelS Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="SModelsDocs.html">Detailed Guide to SModelS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">How To&#8217;s</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CodeDocs.html">SModelS Code Documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">SModelS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Using SModelS</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/RunningSModelS.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <span class="target" id="index-0"></span><div class="section" id="using-smodels">
+<span id="runningsmodels"></span><h1>Using SModelS<a class="headerlink" href="#using-smodels" title="Permalink to this headline">¶</a></h1>
+<p>SModelS can take SLHA or LHE files as input (see <a class="reference internal" href="BasicInput.html"><em>Basic Input</em></a>).
+It ships with a command-line tool <a class="reference internal" href="#runsmodels"><span>runSModelS.py</span></a>, which reports
+on the SMS <a class="reference internal" href="Decomposition.html"><em>decomposition</em></a> and <a class="reference internal" href="TheoryPredictions.html"><em>theory predictions</em></a> in several <a class="reference internal" href="#smodelsoutput"><span>output formats</span></a>.</p>
+<p>For users more familiar with Python and the SModelS basics, an example
+code <a class="reference internal" href="#examplecode"><span>Example.py</span></a> is provided showing how to access
+the main SModelS functionalities: <a class="reference internal" href="Decomposition.html#decomposition"><span>decomposition</span></a>, the <a class="reference internal" href="DatabaseDefinitions.html#database"><span>database</span></a>
+and <a class="reference internal" href="TheoryPredictions.html#theorypredictions"><span>computation of theory predictions</span></a>.</p>
+<p>The command-line tool (<a class="reference internal" href="#runsmodels"><span>runSModelS.py</span></a>) and the example Python
+code (<a class="reference internal" href="#examplecode"><span>Example.py</span></a>) are described below.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For For non-MSSM (incl. non-SUSY) input models the user needs to modify <em>particles.py</em>
+and specify which BSM particles are even or odd under the assumed
+Z<sub>2</sub> symmetry (see <a class="reference internal" href="BasicInput.html#newparticles"><span>adding new particles</span></a>).
+Finally, if the user wants to check the input files for possible issues using
+SModelS&#8217;  <a class="reference internal" href="Tools.html#filechecks"><span>SLHA and LHE file checkers</span></a>, it is
+also necessary to define the BSM particle quantum numbers in <em>particles.py</em> <a class="footnote-reference" href="#id2" id="id1">[1]</a>.</p>
+</div>
+<div class="section" id="runsmodels-py">
+<span id="runsmodels"></span><h2>runSModelS.py<a class="headerlink" href="#runsmodels-py" title="Permalink to this headline">¶</a></h2>
+<p><em>runSModelS.py</em> covers several different applications of the SModelS functionality,
+with the option of turning various features on or off, as well as
+setting the <a class="reference internal" href="#parameterfile"><span>basic parameters</span></a>.
+These functionalities include detailed checks of input SLHA files,
+running the <a class="reference internal" href="Decomposition.html"><em>decomposition</em></a>,
+evaluating the <a class="reference internal" href="TheoryPredictions.html"><em>theory predictions</em></a> and comparing them to the experimental
+limits available in the <a class="reference internal" href="DatabaseDefinitions.html#database"><span>database</span></a>,
+determining <a class="reference internal" href="Tools.html#topcoverage"><span>missing topologies</span></a> and printing the <a class="reference internal" href="#smodelsoutput"><span>output</span></a>
+in several available formats.</p>
+<p>Starting on v1.1, <em>runSModelS.py</em> is equipped with two additional
+functionalities. First, it can process a folder containing a set of SLHA or LHE
+file, second, it supports parallelization of this input folder.</p>
+<p><strong>The usage of runSModelS is:</strong></p>
+<blockquote>
+<div>runSModelS.py [-h] -f FILENAME [-p PARAMETERFILE] [-o OUTPUTDIR] [-d] [-t] [-V] [-c] [-v VERBOSE] [-T TIMEOUT]</div></blockquote>
+<dl class="docutils">
+<dt><em>arguments</em>:</dt>
+<dd><table class="first last docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd><span class="option">-h</span>, <span class="option">--help</span></kbd></td>
+<td>show this help message and exit</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-f <var>FILENAME</var></span>, <span class="option">--filename <var>FILENAME</var></span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>name of SLHA or LHE input file or a directory path
+(required argument). If a directory is given, loop
+over all files in the directory</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-p <var>PARAMETERFILE</var></span>, <span class="option">--parameterFile <var>PARAMETERFILE</var></span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>name of parameter file, where most options are defined
+(optional argument). If not set, use all parameters
+from etc/parameters_default.ini</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-o <var>OUTPUTDIR</var></span>, <span class="option">--outputDir <var>OUTPUTDIR</var></span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>name of output directory (optional argument). The
+default folder is: ./results/</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-d</span>, <span class="option">--development</span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>if set, SModelS will run in development mode and exit
+if any errors are found.</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-t</span>, <span class="option">--force_txt</span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>force loading the text database</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-V</span>, <span class="option">--version</span></kbd></td>
+<td>show program&#8217;s version number and exit</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-c</span>, <span class="option">--run-crashreport</span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>parse crash report file and use its contents for a
+SModelS run. Supply the crash file simply via &#8216;&#8211;
+filename myfile.crash&#8217;</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-v <var>VERBOSE</var></span>, <span class="option">--verbose <var>VERBOSE</var></span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>sets the verbosity level (debug, info, warning,
+error). Default value is info.</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-T <var>TIMEOUT</var></span>, <span class="option">--timeout <var>TIMEOUT</var></span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>define a limit on the running time (in secs).If not
+set, run without a time limit. If a directory is given
+as input, the timeout will be applied for each
+individual file.</td></tr>
+</tbody>
+</table>
+</dd>
+</dl>
+<p>A typical usage example is:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>runSModelS.py -f lightSquarks.slha -p parameters.ini -o ./ -v warning
+</pre></div>
+</div>
+<p>The resulting <a class="reference internal" href="#smodelsoutput"><span>output</span></a> will be generated in the current folder, according to the printer options set in the
+<a class="reference internal" href="#parameterfile"><span>parameters file</span></a>.</p>
+</div>
+<div class="section" id="the-parameters-file">
+<span id="parameterfile"></span><h2>The Parameters File<a class="headerlink" href="#the-parameters-file" title="Permalink to this headline">¶</a></h2>
+<p>The basic options and parameters used by <em>runSModelS.py</em> are defined in the parameters file.
+An example parameter file, including all available parameters together
+with a short description, is stored in <a class="reference download internal" href="_downloads/parameters.ini" download=""><code class="xref download docutils literal"><span class="pre">parameters.ini</span></code></a>.
+If no parameter file is specified, the default parameters stored in
+<a class="reference download internal" href="_downloads/parameters_default.ini" download=""><code class="xref download docutils literal"><span class="pre">/etc/parameters_default.ini</span></code></a> are used.
+Below we give more detailed information about each entry in the parameters file.</p>
+<ul class="simple">
+<li><em>path</em>: relevant folder paths<ul>
+<li><strong>databasePath</strong>: the absolute (or relative) path to the <a class="reference internal" href="DatabaseStructure.html#databasestruct"><span>database</span></a>. The user can supply either the directory name of the database, or the path to the <a class="reference internal" href="DatabaseStructure.html#databasepickle"><span>pickle file</span></a>.</li>
+</ul>
+</li>
+</ul>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<ul class="simple">
+<li><em>options</em>: main options for turning SModelS features on or off<ul>
+<li><strong>inputType</strong> (SLHA/LHE): determines the type of input file (see <a class="reference internal" href="BasicInput.html"><em>Basic Input</em></a>).
+Must be <em>SLHA</em> for SLHA input files or <em>LHE</em> for LHE input files.</li>
+<li><strong>checkInput</strong> (True/False): if True, <em>runSModelS.py</em> will run the <a class="reference internal" href="Tools.html#filechecks"><span>file check tool</span></a> on the input file and verify if the input contains all the necessary information.</li>
+<li><strong>doInvisible</strong> (True/False): turns <a class="reference internal" href="Decomposition.html#invcomp"><span>invisible compression</span></a> on or off during the <a class="reference internal" href="Decomposition.html"><em>decomposition</em></a>.</li>
+<li><strong>doCompress</strong> (True/False): turns <a class="reference internal" href="Decomposition.html#masscomp"><span>mass compression</span></a> on or off during the <a class="reference internal" href="Decomposition.html"><em>decomposition</em></a>.</li>
+<li><strong>computeStatistics</strong> (True/False): turns the likelihood and <span class="math">\(\chi^2\)</span> computation on or off
+(see <a class="reference internal" href="ConfrontPredictions.html#likelihoodcalc"><span>likelihood calculation</span></a>).
+If True, the likelihood and <span class="math">\(\chi^2\)</span> values are computed for the <a class="reference internal" href="DatabaseDefinitions.html#emtype"><span>EM-type results</span></a>.</li>
+<li><strong>testCoverage</strong> (True/False): set to True to run the <a class="reference internal" href="Tools.html#topcoverage"><span>coverage</span></a> tool.</li>
+</ul>
+</li>
+</ul>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<ul class="simple">
+<li><em>parameters</em>: basic parameter values for running SModelS<ul>
+<li><strong>sigmacut</strong> (float): minimum value for an <a class="reference internal" href="TheoryDefinitions.html#element"><span>element</span></a> weight (in fb). <a class="reference internal" href="TheoryDefinitions.html#element"><span>Elements</span></a>
+with a weight below sigmacut are neglected during the <a class="reference internal" href="Decomposition.html"><em>decomposition</em></a>
+of SLHA files (see <a class="reference internal" href="Decomposition.html#minweight"><span>Minimum Decomposition Weight</span></a>).
+The default value is 0.03 fb. Note that, depending on the input model, the running time may increase considerably if sigmacut is too low, while too large values might eliminate relevant <a class="reference internal" href="TheoryDefinitions.html#element"><span>elements</span></a>.</li>
+<li><strong>minmassgap</strong> (float): maximum value of the mass difference (in GeV) for
+perfoming <a class="reference internal" href="Decomposition.html#masscomp"><span>mass compression</span></a>. <em>Only used if doCompress = True</em></li>
+<li><strong>maxcond</strong> (float): maximum allowed value (in the [0,1] interval) for the violation of <a class="reference internal" href="DatabaseDefinitions.html#ulconditions"><span>upper limit conditions</span></a>. A zero value means the conditions are strictly enforced, while 1 means the conditions are never enforced.
+<em>Only relevant for printing the</em> <a class="reference internal" href="OutputDescription.html#fileout"><span>output summary</span></a>.</li>
+<li><strong>ncpus</strong> (int): number of CPUs. When processing multiple SLHA/LHE files,
+SModelS can run in a parallelized fashion, splitting up the input files in equal chunks.
+<em>ncpus = -1</em> uses the total number of CPU cores of the machine.</li>
+</ul>
+</li>
+</ul>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<ul class="simple">
+<li><em>database</em>: allows for selection of a subset of <a class="reference internal" href="DatabaseDefinitions.html#expresult"><span>experimental results</span></a> from the <a class="reference internal" href="DatabaseDefinitions.html#database"><span>database</span></a><ul>
+<li><strong>analyses</strong> (list of results): set to <em>all</em> to use all available results. If a list of <a class="reference internal" href="DatabaseDefinitions.html#expresult"><span>experimental analyses</span></a>
+is given, only these will be used. For instance, setting analyses = CMS-PAS-SUS-13-008,ATLAS-CONF-2013-024
+will only use the <a class="reference internal" href="DatabaseDefinitions.html#expresult"><span>experimental results</span></a> from <a class="reference external" href="https://twiki.cern.ch/twiki/bin/view/CMSPublic/PhysicsResultsSUS13008">CMS-PAS-SUS-13-008</a>
+and <a class="reference external" href="https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/CONFNOTES/ATLAS-CONF-2013-024/">ATLAS-CONF-2013-024</a>.</li>
+<li><strong>txnames</strong> (list of topologies): set to all to use all available simplified model <a class="reference internal" href="TheoryDefinitions.html#topology"><span>topologies</span></a>. The <a class="reference internal" href="TheoryDefinitions.html#topology"><span>topologies</span></a> are labeled according to the <a class="reference internal" href="DatabaseDefinitions.html#txname"><span>txname convention</span></a>.
+If a list of <a class="reference internal" href="DatabaseDefinitions.html#txname"><span>txnames</span></a> are given, only the corresponding <a class="reference internal" href="TheoryDefinitions.html#topology"><span>topologies</span></a> will be considered. For instance, setting txnames = T2 will
+only consider <a class="reference internal" href="DatabaseDefinitions.html#expresult"><span>experimental results</span></a> for <span class="math">\(pp \to \tilde{q} + \tilde{q} \to  (jet+\tilde{\chi}_1^0) + (jet+\tilde{\chi}_1^0)\)</span>
+and the <a class="reference internal" href="#smodelsoutput"><span>output</span></a> will only contain constraints for this topology.
+<em>A list of all</em> <a class="reference internal" href="TheoryDefinitions.html#topology"><span>topologies</span></a> <em>and their corresponding</em> <a class="reference internal" href="DatabaseDefinitions.html#txname"><span>txnames</span></a> <em>can be found</em> <a class="reference external" href="http://smodels.hephy.at/wiki/SmsDictionary">here</a></li>
+<li><strong>dataselector</strong> (list of datasets): set to all to use all available <a class="reference internal" href="DatabaseDefinitions.html#dataset"><span>data sets</span></a>. If dataselector = upperLimit (efficiencyMap), only <a class="reference internal" href="DatabaseDefinitions.html#ultype"><span>UL-type results</span></a> (<a class="reference internal" href="DatabaseDefinitions.html#emtype"><span>EM-type results</span></a>) will be used. Furthermore, if
+a list of signal regions (<a class="reference internal" href="DatabaseDefinitions.html#dataset"><span>data sets</span></a>) is given, only the <a class="reference internal" href="DatabaseDefinitions.html#expresult"><span>experimental results</span></a> containing these datasets will be used. For instance, if dataselector = SRA mCT150,SRA mCT200, only
+these signal regions will be used.</li>
+</ul>
+</li>
+</ul>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<ul class="simple">
+<li><em>printer</em>: main options for the <a class="reference internal" href="#smodelsoutput"><span>output</span></a> format<ul>
+<li><strong>outputType</strong> (list of outputs): use to list all the output formats to be generated.
+Available output formats are: summary, stdout, log, python, xml.</li>
+</ul>
+</li>
+</ul>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<ul class="simple">
+<li><em>stdout-printer</em>: options for the stdout or log printer<ul>
+<li><strong>printDatabase</strong> (True/False): set to True to print the list of selected <a class="reference internal" href="DatabaseDefinitions.html#expresult"><span>experimental results</span></a> to stdout.</li>
+<li><strong>addAnaInfo</strong>  (True/False): set to True to include detailed information about the <a class="reference internal" href="DatabaseDefinitions.html#txname"><span>txnames</span></a> tested by each <a class="reference internal" href="DatabaseDefinitions.html#expresult"><span>experimental result</span></a>. <em>Only used if printDatabase=True</em>.</li>
+<li><strong>printDecomp</strong> (True/False): set to True to print basic information from the <a class="reference internal" href="Decomposition.html"><em>decomposition</em></a> (<a class="reference internal" href="TheoryDefinitions.html#topology"><span>topologies</span></a>, total weights, ...).</li>
+<li><strong>addElementInfo</strong>  (True/False): set to True to include detailed information about the <a class="reference internal" href="TheoryDefinitions.html#element"><span>elements</span></a> generated by the <a class="reference internal" href="Decomposition.html"><em>decomposition</em></a>. <em>Only used if printDecomp=True</em>.</li>
+<li><strong>printExtendedResults</strong> (True/False): set to True to print extended information about the  <a class="reference internal" href="TheoryPredictions.html"><em>theory predictions</em></a>, including the PIDs of the particles
+contributing to the predicted cross section, their masses and the expected upper limit (if available).</li>
+<li><strong>addCoverageID</strong> (True/False): set to True to print the list of element IDs contributing to each missing topology (see <a class="reference internal" href="Tools.html#topcoverage"><span>coverage</span></a>).
+<em>Only used if testCoverage = True</em>. This option should be used along with <em>addElementInfo = True</em> so the user can precisely identify
+which elements were classified as missing.</li>
+</ul>
+</li>
+</ul>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<ul class="simple">
+<li><em>summary-printer</em>: options for the summary printer<ul>
+<li><strong>expandedSummary</strong> (True/False): set True to include in the summary output all applicable <a class="reference internal" href="DatabaseDefinitions.html#expresult"><span>experimental results</span></a>, False for only the strongest one.</li>
+</ul>
+</li>
+</ul>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<ul class="simple">
+<li><em>python-printer</em>: options for the Python printer<ul>
+<li><strong>addElementList</strong> (True/False): set True to include in the Python output all information about all <a class="reference internal" href="TheoryDefinitions.html#element"><span>elements</span></a> generated in the <a class="reference internal" href="Decomposition.html"><em>decomposition</em></a>. If set to True the
+output file can be quite large.</li>
+</ul>
+</li>
+</ul>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<ul class="simple">
+<li><em>xml-printer</em>: options for the xml printer<ul>
+<li><strong>addElementList</strong> (True/False): set True to include in the xml output all information about all <a class="reference internal" href="TheoryDefinitions.html#element"><span>elements</span></a> generated in the <a class="reference internal" href="Decomposition.html"><em>decomposition</em></a>. If set to True the
+output file can be quite large.</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="the-output">
+<span id="smodelsoutput"></span><h2>The Output<a class="headerlink" href="#the-output" title="Permalink to this headline">¶</a></h2>
+<p>The results of <a class="reference internal" href="#runsmodels"><span>runSModelS.py</span></a> are printed to the format(s) specified by the <strong>outputType</strong> in the <a class="reference internal" href="#parameterfile"><span>parameters file</span></a>.
+The following formats are available:</p>
+<blockquote>
+<div><ul class="simple">
+<li>a human-readable <a class="reference internal" href="OutputDescription.html#screenout"><span>screen output (stdout)</span></a> or <a class="reference internal" href="OutputDescription.html#logout"><span>log output</span></a>. These are intended to
+provide detailed information about the <a class="reference internal" href="DatabaseDefinitions.html#database"><span>database</span></a>, the <a class="reference internal" href="Decomposition.html"><em>decomposition</em></a>, the
+<a class="reference internal" href="TheoryPredictions.html"><em>theory predictions</em></a> and the <a class="reference internal" href="Tools.html#topcoverage"><span>missing topologies</span></a>. The
+output complexity can be controlled through several options in the <a class="reference internal" href="#parameterfile"><span>parameters file</span></a>. Due to its size, this output
+is not suitable for storing the results from a large scan, being more appropriate for a single file input.</li>
+<li>a human-readable text file output containing a <a class="reference internal" href="OutputDescription.html#fileout"><span>summary of the output</span></a>. This format
+contains the main SModelS results: the <a class="reference internal" href="TheoryPredictions.html"><em>theory predictions</em></a> and the <a class="reference internal" href="Tools.html#topcoverage"><span>missing topologies</span></a>.
+It can be used for a large scan, since the output can be made quite compact, using the options in the <a class="reference internal" href="#parameterfile"><span>parameters file</span></a>.</li>
+<li>a <a class="reference internal" href="OutputDescription.html#pyout"><span>python dictionary</span></a> printed to a file containing information about the <a class="reference internal" href="Decomposition.html"><em>decomposition</em></a>, the
+<a class="reference internal" href="TheoryPredictions.html"><em>theory predictions</em></a> and the <a class="reference internal" href="Tools.html#topcoverage"><span>missing topologies</span></a>. The output can be significantly long, if
+all options in the <a class="reference internal" href="#parameterfile"><span>parameters file</span></a> are set to True. However this output can be easily imported to a Python enviroment, making it
+easy to access the desired information. For users familiar with the Python language this is the recommended
+format.</li>
+<li>a <a class="reference internal" href="OutputDescription.html#pyout"><span>xml file</span></a> containing information about the <a class="reference internal" href="Decomposition.html"><em>decomposition</em></a>, the
+<a class="reference internal" href="TheoryPredictions.html"><em>theory predictions</em></a> and the <a class="reference internal" href="Tools.html#topcoverage"><span>missing topologies</span></a>. The output can be significantly long, if
+all options are set to True. Due to its broad usage, the xml output can be easily converted to the
+user&#8217;s preferred format.</li>
+</ul>
+</div></blockquote>
+<p>A detailed explanation of the information contained in each type of output is given
+in <a class="reference internal" href="OutputDescription.html#outputdescription"><span>SModels Output</span></a>.</p>
+</div>
+<div class="section" id="example-py">
+<span id="examplecode"></span><h2>Example.py<a class="headerlink" href="#example-py" title="Permalink to this headline">¶</a></h2>
+<p>Although <a class="reference internal" href="#runsmodels"><span>runSModelS.py</span></a> provides the main SModelS features with a command line interface,
+users more familiar with Python and the SModelS language may prefer to write their own main program.
+A simple example code for this purpose is provided in <a class="reference download internal" href="_downloads/Example.py" download=""><code class="xref download docutils literal"><span class="pre">examples/Example.py</span></code></a>.
+Below we go step-by-step through this example code:</p>
+<ul class="simple">
+<li><em>Import the SModelS methods</em>. If the example code file is not located in
+the smodels installation folder, simply add &#8220;sys.path.append(&lt;smodels installation path&gt;)&#8221; before importing smodels</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">smodels.theory</span> <span class="kn">import</span> <span class="n">slhaDecomposer</span>
+<span class="kn">from</span> <span class="nn">smodels.theory</span> <span class="kn">import</span> <span class="n">lheDecomposer</span>
+<span class="kn">from</span> <span class="nn">smodels.tools.physicsUnits</span> <span class="kn">import</span> <span class="n">fb</span><span class="p">,</span> <span class="n">GeV</span>
+<span class="kn">from</span> <span class="nn">smodels.theory.theoryPrediction</span> <span class="kn">import</span> <span class="n">theoryPredictionsFor</span>
+<span class="kn">from</span> <span class="nn">smodels.experiment.databaseObj</span> <span class="kn">import</span> <span class="n">Database</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><em>Set the path to the database folder</em>. Specify where the SModelS <a class="reference internal" href="DatabaseStructure.html#databasestruct"><span>database</span></a> has been installed and load the database.</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1"># Set the path to the database folder</span>
+<span class="n">database</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s2">&quot;./smodels-database/&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><em>Path to the input file</em>. Specify the location of the input file. It must be a
+SLHA or LHE file (see <a class="reference internal" href="BasicInput.html#basicinput"><span>Basic Input</span></a>).</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>    <span class="n">slhafile</span> <span class="o">=</span> <span class="s1">&#39;inputFiles/slha/lightEWinos.slha&#39;</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><em>Set main options for</em> <a class="reference internal" href="Decomposition.html"><em>decomposition</em></a>.
+Specify the values of <a class="reference internal" href="Decomposition.html#minweight"><span>sigmacut</span></a> and <a class="reference internal" href="Decomposition.html#masscomp"><span>minmassgap</span></a>:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>    <span class="n">sigmacut</span> <span class="o">=</span> <span class="mf">0.3</span> <span class="o">*</span> <span class="n">fb</span>
+    <span class="n">mingap</span> <span class="o">=</span> <span class="mf">5.</span> <span class="o">*</span> <span class="n">GeV</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><a class="reference internal" href="Decomposition.html"><em>Decompose</em></a> <em>model</em>. Depending on the type
+of input format, choose either
+the <a class="reference external" href="../../../documentation/build/html/theory.html#theory.slhaDecomposer.decompose">slhaDecomposer.decompose</a> or
+<a class="reference external" href="../../../documentation/build/html/theory.html#theory.slhaDecomposer.decompose">lheDecomposer.decompose</a> method. The <strong>doCompress</strong> and <strong>doInvisible</strong> options turn the <a class="reference internal" href="Decomposition.html#masscomp"><span>mass compression</span></a> and <a class="reference internal" href="Decomposition.html#invcomp"><span>invisible compression</span></a> on/off.</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>    <span class="n">toplist</span> <span class="o">=</span> <span class="n">slhaDecomposer</span><span class="o">.</span><span class="n">decompose</span><span class="p">(</span><span class="n">slhafile</span><span class="p">,</span> <span class="n">sigmacut</span><span class="p">,</span> <span class="n">doCompress</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">doInvisible</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">minmassgap</span><span class="o">=</span><span class="n">mingap</span><span class="p">)</span>
+    <span class="c1"># toplist = lheDecomposer.decompose(lhefile, doCompress=True,doInvisible=True, minmassgap=mingap)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><em>Access basic information</em> from decomposition, using the
+<a class="reference external" href="../../../documentation/build/html/theory.html#theory.topology.TopologyList">topology list</a>
+and <a class="reference external" href="../../../documentation/build/html/theory.html#theory.topology.Topology">topology</a> objects:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>    <span class="k">print</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> Decomposition Results: &quot;</span>
+    <span class="k">print</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">  Total number of topologies: </span><span class="si">%i</span><span class="s2"> &quot;</span> <span class="o">%</span><span class="nb">len</span><span class="p">(</span><span class="n">toplist</span><span class="p">)</span>
+    <span class="n">nel</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">top</span><span class="o">.</span><span class="n">elementList</span><span class="p">)</span> <span class="k">for</span> <span class="n">top</span> <span class="ow">in</span> <span class="n">toplist</span><span class="p">])</span>
+    <span class="k">print</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">  Total number of elements = </span><span class="si">%i</span><span class="s2"> &quot;</span> <span class="o">%</span><span class="n">nel</span>    
+    <span class="c1">#Print information about the m-th topology:</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">top</span> <span class="o">=</span> <span class="n">toplist</span><span class="p">[</span><span class="n">m</span><span class="p">]</span>
+    <span class="k">print</span> <span class="s2">&quot;</span><span class="se">\t\t</span><span class="s2"> </span><span class="si">%i</span><span class="s2">-th topology  = &quot;</span> <span class="o">%</span><span class="n">m</span><span class="p">,</span><span class="n">top</span><span class="p">,</span><span class="s2">&quot;with total cross section =&quot;</span><span class="p">,</span><span class="n">top</span><span class="o">.</span><span class="n">getTotalWeight</span><span class="p">()</span>
+    <span class="c1">#Print information about the n-th element in the m-th topology:</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">el</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">elementList</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>
+    <span class="k">print</span> <span class="s2">&quot;</span><span class="se">\t\t</span><span class="s2"> </span><span class="si">%i</span><span class="s2">-th element from </span><span class="si">%i</span><span class="s2">-th topology  = &quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">m</span><span class="p">),</span><span class="n">el</span><span class="p">,</span>
+    <span class="k">print</span> <span class="s2">&quot;</span><span class="se">\n\t\t\t</span><span class="s2">with cross section =&quot;</span><span class="p">,</span><span class="n">el</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span><span class="s2">&quot;</span><span class="se">\n\t\t\t</span><span class="s2">and masses = &quot;</span><span class="p">,</span><span class="n">el</span><span class="o">.</span><span class="n">getMasses</span><span class="p">()</span> 
+</pre></div>
+</div>
+<p><em>output:</em></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span> Decomposition Results: 
+	  Total number of topologies: 23 
+	  Total number of elements = 586 
+		 3-th topology  =  [1][1] with total cross-section = [&#39;8.00E+00 [TeV]:3.64E-04 [pb]&#39;]
+		 0-th element from 3-th topology  =  [[[W+]],[[Z]]] 
+			with cross-section = [&#39;8.00E+00 [TeV]:3.64E-04 [pb]&#39;] 
+			and masses =  [[2.93E+02 [GeV], 6.81E+01 [GeV]], [2.66E+02 [GeV], 6.81E+01 [GeV]]]
+</pre></div>
+</div>
+<ul class="simple">
+<li><em>Load the</em> <a class="reference internal" href="DatabaseDefinitions.html#expresult"><span>experimental results</span></a> to be used to constrain the input model.
+Here, all results are used:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>    <span class="n">listOfExpRes</span> <span class="o">=</span> <span class="n">database</span><span class="o">.</span><span class="n">getExpResults</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Alternatively, the <a class="reference external" href="../../../documentation/build/html/experiment.html#experiment.databaseObj.Database.getExpResults">getExpResults</a> method
+can take as arguments specific results to be loaded.</p>
+<ul class="simple">
+<li><em>Print basic information about the results loaded</em>.
+Below we show how to count the number of <a class="reference internal" href="DatabaseDefinitions.html#ultype"><span>UL-type results</span></a> and <a class="reference internal" href="DatabaseDefinitions.html#emtype"><span>EM-type results</span></a> loaded:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>    <span class="n">nUL</span><span class="p">,</span> <span class="n">nEM</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">exp</span> <span class="ow">in</span> <span class="n">listOfExpRes</span><span class="p">:</span>
+        <span class="n">expType</span> <span class="o">=</span> <span class="n">exp</span><span class="o">.</span><span class="n">getValuesFor</span><span class="p">(</span><span class="s1">&#39;dataType&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">expType</span> <span class="o">==</span> <span class="s1">&#39;upperLimit&#39;</span><span class="p">:</span>
+            <span class="n">nUL</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">elif</span>  <span class="n">expType</span> <span class="o">==</span> <span class="s1">&#39;efficiencyMap&#39;</span><span class="p">:</span>
+            <span class="n">nEM</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">print</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> Loaded Database with </span><span class="si">%i</span><span class="s2"> UL results and </span><span class="si">%i</span><span class="s2"> EM results &quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">nUL</span><span class="p">,</span><span class="n">nEM</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><em>output:</em></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span> Loaded Database with 34 UL results and 30 EM results 
+</pre></div>
+</div>
+<ul class="simple">
+<li><em>Compute the</em> <a class="reference internal" href="TheoryPredictions.html"><em>theory predictions</em></a> for each <a class="reference internal" href="DatabaseDefinitions.html#expresult"><span>experimental result</span></a>.
+The output is a list of
+<a class="reference external" href="../../../documentation/build/html/theory.html#theory.theoryPrediction.TheoryPrediction">theory prediction objects</a>
+(for each <a class="reference internal" href="DatabaseDefinitions.html#expresult"><span>experimental result</span></a>):</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>    <span class="k">for</span> <span class="n">expResult</span> <span class="ow">in</span> <span class="n">listOfExpRes</span><span class="p">:</span>
+        <span class="n">predictions</span> <span class="o">=</span> <span class="n">theoryPredictionsFor</span><span class="p">(</span><span class="n">expResult</span><span class="p">,</span> <span class="n">toplist</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><em>Print the results</em>. For each <a class="reference internal" href="DatabaseDefinitions.html#expresult"><span>experimental result</span></a>, loop over the corresponding <a class="reference internal" href="TheoryPredictions.html"><em>theory predictions</em></a>
+and print the relevant information:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>        <span class="k">for</span> <span class="n">theoryPrediction</span> <span class="ow">in</span> <span class="n">predictions</span><span class="p">:</span>
+            <span class="n">dataset</span> <span class="o">=</span> <span class="n">theoryPrediction</span><span class="o">.</span><span class="n">dataset</span>
+            <span class="n">datasetID</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">dataInfo</span><span class="o">.</span><span class="n">dataId</span>            
+            <span class="n">mass</span> <span class="o">=</span> <span class="n">theoryPrediction</span><span class="o">.</span><span class="n">mass</span>
+            <span class="n">txnames</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">txname</span><span class="p">)</span> <span class="k">for</span> <span class="n">txname</span> <span class="ow">in</span> <span class="n">theoryPrediction</span><span class="o">.</span><span class="n">txnames</span><span class="p">]</span>
+            <span class="n">PIDs</span> <span class="o">=</span>  <span class="n">theoryPrediction</span><span class="o">.</span><span class="n">PIDs</span>         
+            <span class="k">print</span> <span class="s2">&quot;------------------------&quot;</span>
+            <span class="k">print</span> <span class="s2">&quot;Dataset = &quot;</span><span class="p">,</span><span class="n">datasetID</span>   <span class="c1">#Analysis name</span>
+            <span class="k">print</span> <span class="s2">&quot;TxNames = &quot;</span><span class="p">,</span><span class="n">txnames</span>   
+            <span class="k">print</span> <span class="s2">&quot;Prediction Mass = &quot;</span><span class="p">,</span><span class="n">mass</span>    <span class="c1">#Value for average cluster mass (average mass of the elements in cluster)</span>
+            <span class="k">print</span> <span class="s2">&quot;Prediction PIDs = &quot;</span><span class="p">,</span><span class="n">PIDs</span>    <span class="c1">#Value for average cluster mass (average mass of the elements in cluster)</span>
+            <span class="k">print</span> <span class="s2">&quot;Theory Prediction = &quot;</span><span class="p">,</span><span class="n">theoryPrediction</span><span class="o">.</span><span class="n">xsection</span>   <span class="c1">#Signal cross section</span>
+            <span class="k">print</span> <span class="s2">&quot;Condition Violation = &quot;</span><span class="p">,</span><span class="n">theoryPrediction</span><span class="o">.</span><span class="n">conditions</span>  <span class="c1">#Condition violation values</span>
+</pre></div>
+</div>
+<p><em>output:</em></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span> ATLAS-CONF-2013-024 
+------------------------
+Dataset =  SR1: MET &gt; 200
+TxNames =  [&#39;T1bbbb&#39;, &#39;T1bbqq&#39;, &#39;T1bbtt&#39;, &#39;T1tttt&#39;]
+Prediction Mass =  [[5.77E+02 [GeV], 6.81E+01 [GeV]], [5.77E+02 [GeV], 6.81E+01 [GeV]]]
+Prediction PIDs =  [[[1000021, 1000022], [1000021, 1000022]]]
+Theory Prediction =  8.00E+00 [TeV]:1.32E-04 [pb]
+Condition Violation =  None
+</pre></div>
+</div>
+<ul class="simple">
+<li><em>Get the corresponding upper limit</em>. This value can
+be compared to the <a class="reference internal" href="TheoryPredictions.html"><em>theory prediction</em></a> to decide whether a model is excluded or not:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>            <span class="n">ul</span> <span class="o">=</span> <span class="n">expResult</span><span class="o">.</span><span class="n">getUpperLimitFor</span><span class="p">(</span><span class="n">txname</span><span class="o">=</span><span class="n">txnames</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">mass</span><span class="o">=</span><span class="n">mass</span><span class="p">,</span><span class="n">dataID</span><span class="o">=</span><span class="n">datasetID</span><span class="p">)</span>                     
+            <span class="k">print</span> <span class="s2">&quot;UL for theory prediction = &quot;</span><span class="p">,</span><span class="n">ul</span>
+</pre></div>
+</div>
+<p><em>output:</em></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>Theory Prediction UL =  4.90E-01 [fb]
+</pre></div>
+</div>
+<ul class="simple">
+<li><em>Compute the r-value</em>, i.e. the ratio <a class="reference internal" href="TheoryPredictions.html"><em>theory prediction</em></a>/upper limit.
+A value of <span class="math">\(r \geq 1\)</span> means that an experimental result excludes the input model.
+Also determine the most constraining result:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>            <span class="n">r</span> <span class="o">=</span> <span class="n">theoryPrediction</span><span class="o">.</span><span class="n">xsection</span><span class="o">.</span><span class="n">value</span><span class="o">/</span><span class="n">ul</span>
+            <span class="k">print</span> <span class="s2">&quot;r = &quot;</span><span class="p">,</span><span class="n">r</span>
+            <span class="k">if</span> <span class="n">r</span> <span class="o">&gt;</span> <span class="n">rmax</span><span class="p">:</span>
+                <span class="n">rmax</span> <span class="o">=</span> <span class="n">r</span>
+                <span class="n">bestResult</span> <span class="o">=</span> <span class="n">expResult</span><span class="o">.</span><span class="n">globalInfo</span><span class="o">.</span><span class="n">id</span>
+</pre></div>
+</div>
+<p><em>output:</em></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">r</span> <span class="o">=</span>  <span class="mf">2.69E-01</span> 
+</pre></div>
+</div>
+<ul class="simple">
+<li><em>Print the most constraining experimental result</em>. Using the largest <em>r</em>-value,
+determine if the model has been excluded or not by the selected <a class="reference internal" href="DatabaseDefinitions.html#expresult"><span>experimental results</span></a>:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>    <span class="k">print</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">The largest r-value (theory/upper limit ratio) is &quot;</span><span class="p">,</span><span class="n">rmax</span>
+    <span class="k">if</span> <span class="n">rmax</span> <span class="o">&gt;</span> <span class="mf">1.</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s2">&quot;(The input model is likely excluded by </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span><span class="n">bestResult</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s2">&quot;(The input model is not excluded by the simplified model results)&quot;</span>
+</pre></div>
+</div>
+<p><em>output:</em></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>The largest r-value (theory/upper limit ratio) is  1.20E+00 
+(The input model is likely excluded by CMS-SUS-13-006)
+</pre></div>
+</div>
+<p>It is worth noting that SModelS does not include any statistical treatment for
+the results, for instance, correction factors like the &#8220;look elsewhere effect&#8221;.
+Due to this, the results are claimed to be &#8220;likely excluded&#8221; in the output.</p>
+<dl class="docutils">
+<dt><strong>Notes:</strong></dt>
+<dd><ul class="first last simple">
+<li>For an SLHA <a class="reference internal" href="BasicInput.html#basicinput"><span>input file</span></a>, the decays of <a class="reference internal" href="TheoryDefinitions.html#final-states"><span>final states</span></a>
+(or Z<sub>2</sub>-even particles such as the Higgs, W,...) are always ignored during
+the decomposition. Furthermore, if there are two cross sections at different
+calculation order (say LO and NLO) for the same process, only the highest order is used.</li>
+<li>The list of <a class="reference internal" href="TheoryDefinitions.html#element"><span>elements</span></a> can be extremely long. Try setting <strong>addElementInfo</strong> = False
+and/or <strong>printDecomp</strong> = False to obtain a smaller output.</li>
+<li>A comment of caution is in order regarding naively using the highest <span class="math">\(r\)</span>-value
+reported by SModelS, as this does not necessarily come from the most sensitive analysis.
+For a rigorous statistical interpretation, one should use the  <span class="math">\(r\)</span>-value of
+the result with the highest <em>expected</em> <span class="math">\(r\)</span> (<span class="math">\(r_{exp}\)</span>).
+Unfortunately, for <a class="reference internal" href="DatabaseDefinitions.html#ultype"><span>UL-type results</span></a>, the expected limits are often not available;
+<span class="math">\(r_{exp}\)</span> is then reported as N/A in the SModelS output.</li>
+</ul>
+</dd>
+</dl>
+<table class="docutils footnote" frame="void" id="id2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>We note that SLHA files including decay tables and cross sections, together with the corresponding <em>particles.py</em>, can conveniently be generated via the SModelS-micrOMEGAS interface, see <a class="reference external" href="http://www.arXiv.org/abs/1606.03834">arXiv:1606.03834</a></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Tools.html" class="btn btn-neutral float-right" title="SModelS Tools" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Installation.html" class="btn btn-neutral" title="Installation and Deployment" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Federico Ambrogi, Sabine Kraml, Suchita Kulkarni, Ursula Laa, Andre Lessa, Veronika Magerl, Wolfgang Magerl, Doris Proschofsky, Michael Traub, Jory Sonneveld, Wolfgang Waltenberger.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.1.0patch1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -56,4 +56,4 @@ isajet_slha: isasugra_slha.F isajetLesH.c
 
 clean: 
 	rm -f *.o *.a  *.so *.dll *.exe *_path.h isajet_slha so_locations 
-	$(MAKE) -C nngg     clean
+	$(MAKE) -C nngg12     clean

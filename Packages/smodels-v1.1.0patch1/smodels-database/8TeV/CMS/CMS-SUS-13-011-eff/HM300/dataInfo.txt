@@ -1,0 +1,7 @@
+dataType: efficiencyMap
+dataId: HM300
+observedN: 2
+expectedBG: 4.7
+bgError: 1.4
+upperLimit: 0.225464739155*fb
+expectedUpperLimit: 0.312586858428*fb

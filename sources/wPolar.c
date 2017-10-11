@@ -14,7 +14,7 @@ int vPolar( int out1,int out2,int out3, double*left,double*right,double*lng)
   numout * cc;
   char *Wp=NULL,*el=NULL,*Ne=NULL,*o1=NULL,*O1=NULL;
   double r[3];
-  double GG=sqrt(4*M_PI*parton_alpha(2*Mcdm));
+  double GG=sqrt(4*M_PI*alphaQCD(2*Mcdm));
   
   for(i=0;i<nModelParticles;i++)
   { 
@@ -92,6 +92,7 @@ int vPolar( int out1,int out2,int out3, double*left,double*right,double*lng)
        pvect[4*in]=  chY*p0 + shY*p3;
        pvect[4*in+3]=shY*p0 + chY*p3;
      }
+     err_code=0;
      r[i]=(cc->interface->sqme)(1,GG,pvect,NULL,&err_code);
   }
 

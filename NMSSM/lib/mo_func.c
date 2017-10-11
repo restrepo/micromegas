@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include"../../sources/micromegas.h"
-#include"../../sources/micromegas_aux.h"
+#include"../../include/micromegas.h"
+#include"../../include/micromegas_aux.h"
 #include"pmodel.h"
 #include"pmodel_aux.h"
 
@@ -102,7 +102,7 @@ static void FillVal(int mode)
     assignValW("mXiS",pow(z,1./3.));
     z=slhaVal("NMSSMRUN",Q,1,9); 
     if(z>=0) assignValW("msP",sqrt(z)); else  assignValW("msP",-sqrt(-z));
-    z=slhaVal("NMSSMRUN",Q,1,12); 
+    if(slhaValExists("NMSSMRUN",1,12)) z=slhaVal("NMSSMRUN",Q,1,12); else z=0; 
     if(z>=0) assignValW("m3h",sqrt(z)); else  assignValW("m3h",-sqrt(-z)); 
   }
   
@@ -210,9 +210,9 @@ double  Lambda, double aLambda, double aKappa, double mXiF, double mXiS,
    return err;
 }
 
-int readSLHA(char * fname)
+int readSLHA(char * fname,int mode)
 {  double maxl;
-   int err=slhaRead(fname, 0);   
+   int err=slhaRead(fname, mode);   
    if(err) return err;
    FillVal(2);
 //   CharginoZM();

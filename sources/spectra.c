@@ -10,6 +10,8 @@
 
 #define V0 (Vrot/299792.*1.5957691)  /* 2*sqrt(2/PI).  10^(-6)*Mslp < Width */
 
+//#define V0 1E-3
+ 
 //#define DISPLAY_SPECTRA 
 /*#define ECTEST*/
 
@@ -28,6 +30,15 @@ static float phidiff[Nin][Nout][NEn][NZ];
 double Zi(int i) { return log(1.E-7)*pow((double)(i-1)/(double)(NZ),1.5) ;}
 static  int Iz(double z) { return NZ*pow(z/log(1.E-7),1./1.5)+1; }
 
+void  fillSpect(double (*dNdE)(double ), double Emax, double * SpectAr)
+{ int i;
+  SpectAr[0]=Emax;
+  for(i=1;i<NZ;i++) 
+  { double E=exp(Zi(i))*Emax;  
+    SpectAr[i]=dNdE(E)*E;
+  }
+}
+
 
 /* v*cs22 at v=0 */  
 double  vcs22(numout * cc,int nsub,int * err)
@@ -39,13 +50,14 @@ double  vcs22(numout * cc,int nsub,int * err)
 //printf("Mb4a=%E\n", findValW("Mb"));    
    for(i=1;i<=cc->interface->nvar;i++) if(cc->link[i]) cc->interface->va[i]=*(cc->link[i]);
 //printf("Mbb=%E Q=%E\n", findValW("Mb"),  findValW("Q")); 
-   if( cc->interface->calcFunc()>0 ) {*err=4; return 0;}
+   if( cc->interface->calcFunc()>0 ) {*err=4;  return 0;}
 //printf("Mbb_=%E Q=%E\n", findValW("Mb"),  findValW("Q"));
    *(cc->interface->gtwidth)=0;
    *(cc->interface->twidth)=0;
    *(cc->interface->gswidth)=0;
 //printf("Mb4c=%E\n", findValW("Mb"));    
-   for(i=0;i<4;i++) cc->interface->pinf(nsub,1+i,pmass+i,NULL);
+   for(i=0;i<4;i++) printf("%s ",  cc->interface->pinf(nsub,1+i,pmass+i,NULL));
+printf("\n");   
    *err=0;
    if(pmass[0]+pmass[1] <= pmass[2]+pmass[3]) return 0;
    for(i=0;i<16;i++) pvect[i]=0;
@@ -56,7 +68,6 @@ double  vcs22(numout * cc,int nsub,int * err)
    pvect[8+3]=pcm;
    pvect[12+3]=-pcm;
    r=cc->interface->sqme(nsub,GG,pvect,NULL,err);
-//printf("Mb4e=%E\n", findValW("Mb")); 
    return 3.8937966E8*r*pcm/(16*M_PI*pmass[0]*pmass[1]*(pmass[0]+pmass[1]));  
 }
  
@@ -122,7 +133,9 @@ static double dSigmadCos23(double csfi)
 */  
 err_code=0;
   r=(cc23->interface->sqme)(1,GG,pvect,NULL,&err_code)*pcm1*pcm2/(128*M*pmass[0]*pmass[0]*M_PI*M_PI*M_PI);
+if(r<0) r=0;
   if(err_code) return 0;
+//printf("csfi=%E r=%e\n", csfi,r);  
   return r*3.8937966E8;
 }
 
@@ -132,9 +145,15 @@ static double dSigmadFi23(double fi)
 static double dSigmadE(double E)
 { double r;
    Egamma=E;
+/*
    if(pmass[ix]>1.E-3*Mcdm0 && pmass[iX]>1.E-3*Mcdm0  ) 
                        r= simpson(dSigmadFi23,0,M_PI,1.E-4);
-   else                r= simpson(dSigmadCos23,-0.999,0.999,1.E-4);
+   else { printf("dSigmadCos23\n"); //displayFunc("dSigmadCos23",dSigmadCos23, -1 , 1,0,"dSigmadCos23");
+                 r= simpson(dSigmadCos23,-0.9,0.9,1.E-4); printf("ok\n");  
+*/
+//                   r= gauss(dSigmadCos23,-1,1,7); }
+   r= gauss(dSigmadCos23,-1,1,7);                 
+//   r= simpson(dSigmadFi23,0,M_PI,1.E-4);
    return r;
 }
 
@@ -617,7 +636,7 @@ static void getSpectrum(int wPol, double M, double m1,double m2,char*n1,char*n2,
   int i;
   int inP=-1;
   int N;
-  GG=sqrt(4*M_PI*parton_alpha(2*Mcdm0));
+  GG=sqrt(4*M_PI*alphaQCD(2*Mcdm0));
   if(M<=m1+m2) wPol=0;
   tab[0]=M/2;
   for(i=1;i<NZ;i++) tab[i]=0;
@@ -721,7 +740,7 @@ static void getSpectrum(int wPol, double M, double m1,double m2,char*n1,char*n2,
         numout * d2Proc;
         int l; 
         char* n[4];
-        double m[4];
+        REAL m[4];
         double Y;
         double tab_p[NZ];
         char process[40],plib[40];
@@ -880,9 +899,7 @@ static double calcSpectrum0(char *name1,char*name2, int key, double **Spectra, t
     { int i3W;  
       double  r,m1,v0=0.001;
       for(i3W=2;i3W<5;i3W++) if(strcmp(cc23->interface->pinf(1,i3W+1,NULL,NULL),N[l_])==0) break;
-//printf("cs23 ok!\n");
       r=v0*cs23(cc23,1,v0*Mcdm0/2,i3W)/br;
-       
       if(pdg[l_]==23 || abs(pdg[l_])==24)
       { double wV2;
         
@@ -894,13 +911,13 @@ static double calcSpectrum0(char *name1,char*name2, int key, double **Spectra, t
       vcsSum+=r;                     
     }
     else  if(m[2]+m[3]< m[0]+m[1])
-    { 
+    {  err=0;
 #ifdef V0    
       v_cs[k]=V0*cs22(libPtr,k+1,V0*m[0]*m[1]/(m[0]+m[1]),-1.,1.,&err); 
 #else 
       v_cs[k]= vcs22(libPtr,k+1,&err);
 #endif 
-      if(v_cs[k]<0) v_cs[k]=0; 
+     if(v_cs[k]<0) v_cs[k]=0; 
       vcsSum+=v_cs[k];
     } else v_cs[k]=-1;
   }
@@ -908,7 +925,7 @@ static double calcSpectrum0(char *name1,char*name2, int key, double **Spectra, t
    
   for(k=0;k<ntot ;k++) if(v_cs[k]>=0)
   { char * N[4];
-    double m[4];
+    REAL m[4];
     int l,charge3[2],spin2[2],pdg[2];
     int PlusAok=0;
 
@@ -1052,8 +1069,8 @@ double calcSpectrum(int key, double *Sg,double*Se, double*Sp, double*Sne,double*
      if(weight[i][j])
      { int ni=pTabPos(WINPS[i]);   
        int nj=pTabPos(WINPS[j]);
-       if(ModelPrtcls[ni-1].spin2==0 && ModelPrtcls[nj-1].spin2==0) checkGam[i][j]=1;
-       if( WINPS[ni]==WINPS[nj]  && ModelPrtcls[nj-1].spin2==1)    checkGam[i][j]=1;
+       if(ModelPrtcls[ni-1].spin2==0 && ModelPrtcls[nj-1].spin2==0) checkGam[i][j]=1;       
+       if( WINPS[i]==WINPS[j]  && ModelPrtcls[nj-1].spin2==1)    checkGam[i][j]=1;
      } 
   }
   
@@ -1184,7 +1201,7 @@ int displaySpectrum( char*mess,double Emin,double Emax,double*tab)
   int i;
   double f[100];
   for(i=0;i<100;i++) f[i]=SpectdNdE(Emin+(i+0.5)*(Emax-Emin)/100.,tab);
-  displayPlot(mess,Emin, Emax, "E[GeV]",100,1,f,NULL,"dN/dE");
+  displayPlot(mess,Emin, Emax, "E[GeV]",100,0,1,f,NULL,"dN/dE");
   return 0;     
 }
 
@@ -1210,7 +1227,7 @@ int displaySpectra(char * title, double Emin,double Emax, int N,...)
   }    
   va_end(ap); 
  
-  displayPlotN(title,Emin,Emax,"E[GeV]", dim,N, f,ff,Y); 
+  displayPlotN(title,Emin,Emax,"E[GeV]", dim,0,N, f,ff,Y); 
   
   for(i=0;i<N;i++) free(f[i]);
   free(nu); free(f); free(ff);free(Y);

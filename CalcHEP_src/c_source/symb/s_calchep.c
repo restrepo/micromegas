@@ -378,45 +378,70 @@ restart2:
 
             menulevel=4;
                         
-            if(!nPROCSS ) calcallproc(); else 
-            { int *pids=malloc(sizeof(int)*nPROCSS);
+            if(!nPROCSS || nin+nout<4 ) calcallproc(); else 
+            { int nPROCSS2=2*nPROCSS;
+              int *pids=malloc(sizeof(int)*nPROCSS);
+              int *pow=malloc(sizeof(int)*nPROCSS);
               int *pipes=malloc(2*sizeof(int)*nPROCSS);
-              int **qd=malloc(sizeof(int*)*nPROCSS);
-              int totD=sqDiagList(qd, nPROCSS);
-              int totC,nProc;
-              int k;
-              
-              fflush(NULL);
-              for(k=0;k<nPROCSS;k++) 
-              { int* kpipe=pipes+2*k;
-                pipe(kpipe);
-                pids[k]=fork();
-                if(pids[k]==0)
-                { 
-                  close(kpipe[0]);
-                  calcWithFork(k,qd[k],kpipe[1]);
-                  exit(0);
-                }
-              }
-              for(k=0;k<nPROCSS;k++) close(pipes[2*k+1]);
+              int **qd=malloc(sizeof(int*)*nPROCSS2);
+              int totD=sqDiagList(qd, nPROCSS2);
+              int totC=0,nProc=0;
+              int k,K2=0;
+              int abort=0;
+              int procActive;
+//printf("totD=%d\n", totD);
+              system("rm -f tmp/catalog.tp_*"); 
               infoLine(0.);
-              for(nProc=nPROCSS,totC=0;nProc;)
-              { int one;
-                int err;
-                nProc=0;
-                for(k=0;k<nPROCSS;k++) if(pids[k])
-                { if(waitpid(pids[k],NULL,WNOHANG)==0)
-                  {  nProc++; 
-                     if(read(pipes[2*k],&one,sizeof(int)))totC+=one;
-                  } else 
-                  { for(;read(pipes[2*k],&one,sizeof(int))>0;) totC+=one;
-                     pids[k]=0;
-                  }
-                }  
-                if(infoLine((double)totC/(double)totD)) for(k=0;k<nPROCSS;k++) if(pids[k]) kill(pids[k],SIGUSR1);   
-              }  
-              infoLine(2);
-              for(k=0;k<nPROCSS;k++)
+              for(k=0;k<nPROCSS;k++) pids[k]=0;
+              while( nProc< nPROCSS2)
+              {
+                for(k=0;k<nPROCSS;k++) if(pids[k]==0 && K2<nPROCSS2 && abort==0)
+                { int* kpipe=pipes+2*k;
+                  int i;
+                  while(K2<nPROCSS2 && qd[K2][0]<0 ) {K2++; nProc++;}
+                  if(K2==nPROCSS2) break;
+                  pow[k]=0;
+                  for(i=0;qd[K2][i]>=0;i++) pow[k]++;
+//printf("K2=%d pow=%d\n",K2,pow[k]);
+                  fflush(NULL);
+                  pipe(kpipe);
+                  pids[k]=fork();
+                  if(pids[k]==0)
+                  {
+                    close(kpipe[0]);
+                    if(blind<=0) {blind=1;finish();}
+                    calcWithFork(K2,qd[K2],kpipe[1]);
+                    exit(0);
+                  } else { close(kpipe[1]); K2++; }
+                }
+                
+                for(procActive=0,k=0;k<nPROCSS;k++) if(pids[k])                                                          
+                {                                                                                                        
+                  int one;                                                                                               
+                  if(waitpid(pids[k],NULL,WNOHANG)!=0) {nProc++; totC+=pow[k]; close(pipes[2*k]);  pids[k]=0; /*printf("End of %d\n",k);*/  }          
+                  else                                                                                                   
+                  {                                                                                                      
+                     procActive++;                                                                                       
+       //              if(blind<=0 && read(pipes[2*k],&one,sizeof(int))== sizeof(int)) { totC++; pow[k]-=1;}                           
+                  }                                                                                                      
+                }                                                                                                        
+
+                if(blind<=0)
+                { 
+//                printf(" %d %d\n", totC, totD);
+                 
+                  if(abort==0 && infoLine((double)totC/(double)totD))                                                         
+                  {                                                                                                        
+                     abort=1;                                                                                             
+                     for(k=0;k<nPROCSS;k++) if(pids[k])kill(pids[k],SIGUSR1);                                              
+                  }                                                                                                         
+                  if(abort&& procActive==0) break;
+                } //else sleep(2);                                                                           
+             
+              }
+            
+              infoLine(2);        
+              for(k=0;k<nPROCSS2;k++)
               { char ctlgName[100];
                 char command[200];
                 sprintf(ctlgName,"%s_%d",CATALOG_NAME,k);
@@ -427,15 +452,15 @@ restart2:
                 }
               }
               if(totC)  newCodes=1;  
-              updateMenuQ();
-              
-              for(k=0;k<nPROCSS;k++) close(pipes[2*k]);
+                          
+              free(pow);
               free(pids);   
               free(pipes);
-              for(k=0;k<nPROCSS;k++) free(qd[k]);
+              for(k=0;k<nPROCSS2;k++) free(qd[k]);
               free(qd);   
             }
-            
+
+            updateMenuQ(); 
             sq_diagramsinfo();
 
             if(!continuetest()) break; 

@@ -44,30 +44,36 @@ Composite: jet=u,U,d,D,s,S,c,C,b,B,G
 
 
 ##############################################
-#  PDF Info                                  #
-#  Choices are:                              #
-#    cteq6l (anti-proton)                    #
-#    cteq6l (proton)                         #
-#    mrst2002lo (anti-proton)                #
-#    mrst2002lo (proton)                     #
-#    cteq6m (anti-proton)                    #
-#    cteq6m (proton)                         #
-#    cteq5m (anti-proton)                    #
-#    cteq5m (proton)                         #
-#    mrst2002nlo (anti-proton)               #
-#    mrst2002nlo (proton)                    #
+#             PDF Info                       #
+# Proton-antiproton parton densities         #
+#
+# PDT(buint-in) family. Format:              #
+#  PDT:NAME(proton)  or PDT:NAME(antiproton) #
+#  for supprted distributions see directory  #
+#  CalcHEP/pdTables                          #
+#  CT10     NNPDF23_lo_as_0130.LHgrid        #
+#  cteq6l1  MRST2004qed_proton               #
+#           NNPDF23_lo_as_0130_qed           #
+#                                            #
+# LHAPDF. Format:                            #
+#  LHA:NAME:set:1   for proton               #
+#  LHA:NAME:set:-1  for antiprotons          #
+#  To work with LHAPDF one has to define     #
+#  global envinroment variable LHAPDFPATH    #
+#  which contains path to LHAPDF library     #
+#                                            #
 #    ISR                                     #
 #    ISR & Beamstrahlung                     #
 #    Equiv. Photon                           #
 #    Laser photons                           #
 #    Proton Photon                           #
-#    OFF                                    #
+#    OFF                                     #
 #                                            #
 #  ISR and Beamstrahlung are only available  #
 #    for electrons and positrons, while the  #
 #    others are available for protons and    #
 #    antiprotons.                            #
-#    Default pdf: OFF                       #
+#    Default pdf: OFF                        #
 #  Bunch x+y sizes (nm)                      #
 #    Ignored unless ISR & Beam chosen.       #
 #    Default: 560                            #
@@ -83,7 +89,7 @@ Composite: jet=u,U,d,D,s,S,c,C,b,B,G
 #  Equiv. Photon, Laser photons and          #
 #    Proton Photon are available for         #
 #    photons.                                #
-#    Default pdf: OFF                       #
+#    Default pdf: OFF                        #
 #  Photon particle                           #
 #    Ignored unless Equiv. Photon chosen.    #
 #    Choices are: mu^-,e^-,e^+,mu^+          #
@@ -105,8 +111,10 @@ Composite: jet=u,U,d,D,s,S,c,C,b,B,G
 #    Ignored unless Proton Photon chosen.    #
 #    Default: 0.1                            #
 ##############################################
-pdf1:      cteq6l (proton)
-pdf2:      cteq6l (proton)
+
+pdf1:      PDT:cteq6l1(proton)
+pdf2:      PDT:cteq6l1(proton)
+
 
 #Bunch x+y sizes (nm)      : 202500
 #Bunch length (mm)         : 10

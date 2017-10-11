@@ -3,7 +3,7 @@ MSSM(micro)
  Name  | Value       |>  Comment                                       <|
 Am     |0            |
 alfSMZ |0.1184       |alpha_QCD(MZ)
-MZ     |91.3         |Z-boson mass.  PDG value   91.1876 +/- 0.0021
+MZ     |91.187       |Z-boson mass.  PDG value   91.1876 +/- 0.0021
 MW     |80.2         |W-boson mass.  PDG valeu   80.385  +/- 0.015
 Mtp    |173.07       |top quark pole mass
 MbMb   |4.23         |Mb(Mb) running mass
@@ -40,4 +40,4 @@ At     |-1000        |
 Ab     |0            |
 Al     |0            |
 Maux   |1            |mass of aux particles
-=====================================================================
+=========================================================================

@@ -1,6 +1,8 @@
 
-#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/Packages/lhapdf-5.9.1/install/lib
-#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/Packages/LHAPDF-6.1.5/install/lib
+if(test -n "$LHAPDFPATH") then
+  export  LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$$LHAPDFPATH
+fi
+
 
 export CALCHEP
 
@@ -18,7 +20,7 @@ WORK=`pwd`
 export WORK
    
 
-trap "rm -f lock.batch"  0 1 2 3 9 
+trap "rm -f lock.batch"  0 1 2 3 9 15 20
 
 if(test $# -eq 0 ) then 
    echo ""

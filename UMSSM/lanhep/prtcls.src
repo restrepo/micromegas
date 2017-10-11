@@ -9,14 +9,14 @@ do_if gauge_fixing==Feynman.
 vector
 	A/A: (photon,pdg 22,gauge),
 	Z1/Z1:('Z1 boson', pdg 23,mass MZ1 , width wZ1=auto, gauge),
-	Z2/Z2:('Z2 boson', pdg 3000051, mass MZ2 ,width wZ2=auto, gauge),
+	Z2/Z2:('Z2 boson', pdg 32, mass MZ2 ,width wZ2=auto, gauge),
 	'W+'/'W-': ('W boson',pdg 24, mass MW, width wW=auto, gauge).
 
 do_else_if gauge_fixing==unitary.
 vector
 	A/A: (photon,pdg 22,gauge),
 	Z1/Z1:('Z1 boson', pdg 23,mass MZ1 , width wZ1=auto),
-	Z2/Z2:('Z2 boson', pdg 3000051, mass MZ2 ,width wZ2=auto),
+	Z2/Z2:('Z2 boson', pdg 32, mass MZ2 ,width wZ2=auto),
 	'W+'/'W-': ('W boson', pdg 24, mass MW, width wW=auto).
 
 let     'Z1.c'=0, 'Z1.C'=0, 'Z2.c'=0, 'Z2.C'=0, 'W+.c'=0, 'W+.C'=0, 'W-.c'=0, 'W-.C'=0,
@@ -35,9 +35,9 @@ spinor 	ne/Ne:(neutrino,pdg 12, left), 	       e:(electron,     pdg 11, mass Me)
 	nm/Nm:('mu-neutrino-L',pdg 14,left),   m:(muon,         pdg 13, mass Mm),
 	nl/Nl:('tau-neutrino-L',pdg 16, left), l:('tau-lepton', pdg 15, mass Ml).
 	
-spinor  ner/Ner:('neutrino-R',pdg 3000054, right),
-	nmr/Nmr:('mu-neutrino-R',pdg 3000055, right),
-	nlr/Nlr:('tau-neutrino-R',pdg 3000056, right).
+spinor  ner/Ner:('neutrino-R',pdg 9912, right),
+	nmr/Nmr:('mu-neutrino-R',pdg 9914, right),
+	nlr/Nlr:('tau-neutrino-R',pdg 9916, right).
 
 spinor	u:('u-quark',pdg 2, color c3, mass Muq),
 	d:('d-quark',pdg 1, color c3, mass MdSM),
@@ -61,8 +61,8 @@ spinor  ~o1 / ~o1:('neutralino 1', pdg 1000022,mass MNE1, width wNE1=auto),
 	~o2 / ~o2:('neutralino 2', pdg 1000023,mass MNE2, width wNE2=auto),
 	~o3 / ~o3:('neutralino 3', pdg 1000025,mass MNE3, width wNE3=auto),
 	~o4 / ~o4:('neutralino 4', pdg 1000035,mass MNE4, width wNE4=auto),
-	~o5 / ~o5:('neutralino 5', pdg 3000052,mass MNE5, width wNE5=auto),
-	~o6 / ~o6:('neutralino 6', pdg 3000053,mass MNE6, width wNE6=auto).
+	~o5 / ~o5:('neutralino 5', pdg 1000045,mass MNE5, width wNE5=auto),
+	~o6 / ~o6:('neutralino 6', pdg 1000032,mass MNE6, width wNE6=auto).
 
 spinor  ~g / ~g:(gluino, pdg 1000021, color c8, mass MSG, width wSG=auto).
 
@@ -90,9 +90,9 @@ scalar  ~l1 / ~L1:('1st stau',      pdg  1000015 , mass MSl1, width wSl1=auto),
 	~nm / ~Nm:('mu-sneutrino-L',   pdg  1000014 , mass MSnm, width wSnm=auto),
  	~nl / ~Nl:('tau-sneutrino-L',   pdg  1000016 , mass MSnl, width wSnl=auto).
 
-scalar  ~nE / ~NE:('e-sneutrino-R',   pdg  3000057 , mass Mner, width Sner=auto),
-	~nM / ~NM:('mu-sneutrino-R',   pdg  3000058 , mass Mnmr, width Snmr=auto),
-	~nL / ~NL:('tau-sneutrino-R',   pdg  3000059 , mass Mnlr, width Snlr=auto).
+scalar  ~nE / ~NE:('e-sneutrino-R',   pdg  2000012 , mass Mner, width Sner=auto),
+	~nM / ~NM:('mu-sneutrino-R',   pdg  2000014 , mass Mnmr, width Snmr=auto),
+	~nL / ~NL:('tau-sneutrino-R',   pdg  2000016 , mass Mnlr, width Snlr=auto).
 
 
 do_if sq1_mix==off.

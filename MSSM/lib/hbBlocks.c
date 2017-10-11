@@ -1,10 +1,12 @@
-#include"../../sources/micromegas.h"
-#include"../../sources/micromegas_aux.h"
+#include"../../include/micromegas.h"
+#include"../../include/micromegas_aux.h"
 #include "pmodel.h"
 
 #define SQR(x) (x)*(x)
-int  HBblocks(char * fname)
-{ FILE * f=fopen(fname,"a");
+int  hbBlocksMDL(char*fname,int *nHch)
+{ 
+  slhaWrite("HB.in");
+  FILE * f=fopen(fname,"a");
   double tb,sb,cb,alpha,sa,ca,ta,samb,camb,dMb,MbHl,MbSM,MbH,MbH3;
   double vev= 2*findValW("MW")*findValW("SW")/findValW("EE"),
   Mcp=findValW("Mcp"),Mbp=findValW("Mbp"),Mtp=findValW("Mtp"),
@@ -37,7 +39,7 @@ int  HBblocks(char * fname)
  
   fprintf(f,"Block HiggsBoundsInputHiggsCouplingsBosons\n");
   fprintf(f,"# Effective coupling normalised to SM one and squared\n");
-  fprintf(f,"# For (*) normalized on Sin(2*W)\n"); 
+  fprintf(f,"# For (*) normalized on MZ/vev \n"); 
   fprintf(f," %12.4E  3    25    24    24 # higgs-W-W \n",        SQR(samb)  );
   fprintf(f," %12.4E  3    25    23    23 # higgs-Z-Z \n",        SQR(samb)  );
   fprintf(f," %12.4E  3    25    25    23 # higgs-higgs-Z \n",    0.   );
@@ -65,8 +67,8 @@ int  HBblocks(char * fname)
   LGGSM=lGGhSM(MH3,alphaQCD(MH3)/M_PI, Mcp,Mbp,Mtp,vev);
   LAASM=lAAhSM(MH3,alphaQCD(MH3)/M_PI, Mcp,Mbp,Mtp,vev);
   
-  fprintf(f," %12.4E  3    36    21    21 # higgs-gluon-gluon\n",SQR(findValW("LGGH3")/2/LGGSM) );
-  fprintf(f," %12.4E  3    36    22    22 # higgs-gamma-gamma\n",SQR(findValW("LAAH3")/2/LAASM) );             
+  fprintf(f," %12.4E  3    36    21    21 # higgs-gluon-gluon\n",SQR(2*findValW("LGGH3")/LGGSM) );
+  fprintf(f," %12.4E  3    36    22    22 # higgs-gamma-gamma\n",SQR(2*findValW("LAAH3")/LAASM) );             
   
   fprintf(f," %12.4E  3    36    25    23 #*higgs-higgs-Z \n",    SQR(camb)  );
   fprintf(f," %12.4E  3    36    35    23 #*higgs-higgs-Z \n",    SQR(samb)  );
@@ -87,6 +89,6 @@ int  HBblocks(char * fname)
   fprintf(f," %12.4E   %12.4E   3    36    15   15 # higgs-tau-tau \n",0.,SQR(tb)            );
      
   fclose(f);
-   
-  return 0;
+  if(nHch) *nHch=1; 
+  return 3;
 }

@@ -1,0 +1,28 @@
+<!--
+parametrization of a 2D Gaussian fitted from the 68% CL contour
+in the plane mu(ggF, bb) vs. mu(VBF+VH, bb)
+at mH = 125.09 GeV, shown in ATLAS-CONF-2015-044; CMS-PAS-HIG-15-002
+http://cms-results.web.cern.ch/cms-results/public-results/preliminary-results/HIG-15-002/index.html
+ -->
+
+<expmu decay="bb" dim="2" type="n">
+  <experiment>ATLAS-CMS</experiment>
+  <source type="preliminary">ATLAS-CONF-2015-044; CMS-PAS-HIG-15-002</source>
+  <sqrts>7+8</sqrts>
+  <mass>125.09</mass>
+  <CL>68%</CL> <!-- optional -->
+  
+  <eff axis="x" prod="ttH">1</eff>
+  <eff axis="y" prod="VH">1</eff>
+  
+  <bestfit>
+    <x>1.122</x>
+    <y>0.662</y>
+  </bestfit>
+  
+  <param>
+    <a>1.068</a>
+    <b>-0.0102</b>
+    <c>11.264</c>
+  </param>
+</expmu>

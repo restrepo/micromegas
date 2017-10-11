@@ -1,4 +1,4 @@
 C to declare  types  of Fortran routines
 
-       integer hbBlocks
-       external  hbBlocks
+       integer hbBlocksmdl,lilithmdl
+       external  hbBlocksmdl,lilithmdl

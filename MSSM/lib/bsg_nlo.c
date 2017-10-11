@@ -19,7 +19,7 @@ The BSM corrections are from the papers:
 
 #include "pmodel.h"
 #include "pmodel_aux.h"
-#include "../../sources/micromegas.h"
+#include "../../include/micromegas.h"
 
 int dMQcorrections=1;
 

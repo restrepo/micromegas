@@ -132,7 +132,7 @@ static void * uact(char* ch,void * mm)
 {preres   m;
 
    m = (preres)mm;
-   if (strcmp(ch,"G") == 0 || strcmp(ch,"g") == 0)
+   if(strcmp(ch,"G") == 0)
    {
       if(m->tp!=vectortp && m->tp!=indextp)
       {

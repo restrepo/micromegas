@@ -1,0 +1,499 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>theory.branch &mdash; SModelS 1.1.0patch1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="SModelS 1.1.0patch1 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> SModelS
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.1.0patch1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../theory.html">theory package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../experiment.html">experiment package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tools.html">tools package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">SModelS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>theory.branch</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for theory.branch</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: branch</span>
+<span class="sd">   :synopsis: Module holding the branch class and methods.</span>
+<span class="sd">        </span>
+<span class="sd">.. moduleauthor:: Andre Lessa &lt;lessa.a.p@gmail.com&gt;</span>
+<span class="sd">        </span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">smodels.theory.particleNames</span> <span class="kn">import</span> <span class="n">simParticles</span><span class="p">,</span> <span class="n">elementsInStr</span>
+<span class="kn">from</span> <span class="nn">smodels.tools.physicsUnits</span> <span class="kn">import</span> <span class="n">fb</span><span class="p">,</span> <span class="n">MeV</span>
+<span class="kn">from</span> <span class="nn">smodels.particles</span> <span class="kn">import</span> <span class="n">rEven</span><span class="p">,</span> <span class="n">ptcDic</span>
+<span class="kn">from</span> <span class="nn">smodels.theory.exceptions</span> <span class="kn">import</span> <span class="n">SModelSTheoryError</span> <span class="k">as</span> <span class="n">SModelSError</span>
+<span class="kn">from</span> <span class="nn">smodels.tools.smodelsLogging</span> <span class="kn">import</span> <span class="n">logger</span>
+
+
+<div class="viewcode-block" id="Branch"><a class="viewcode-back" href="../../theory.html#theory.branch.Branch">[docs]</a><span class="k">class</span> <span class="nc">Branch</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An instance of this class represents a branch.    </span>
+<span class="sd">    A branch-element can be constructed from a string (e.g., (&#39;[b,b],[W]&#39;).</span>
+<span class="sd">    </span>
+<span class="sd">    :ivar masses: list of masses for the intermediate states</span>
+<span class="sd">    :ivar particles: list of particles (strings) for the final states</span>
+<span class="sd">    :ivar PIDs: a list of the pdg numbers of the intermediate states appearing in the branch.</span>
+<span class="sd">                If the branch represents more than one possible pdg list, PIDs will correspond</span>
+<span class="sd">                to a nested list (PIDs = [[pid1,pid2,...],[pidA,pidB,...])</span>
+<span class="sd">    :ivar maxWeight: weight of the branch (XSection object)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the branch. If info is defined, tries to generate</span>
+<span class="sd">        the branch using it.</span>
+<span class="sd">        </span>
+<span class="sd">        :parameter info: string describing the branch in bracket notation</span>
+<span class="sd">                         (e.g. [[e+],[jet]])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">masses</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">particles</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">PIDs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maxWeight</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vertnumb</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vertparts</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="nb">str</span><span class="p">()):</span>
+            <span class="n">branch</span> <span class="o">=</span> <span class="n">elementsInStr</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">branch</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">branch</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Wrong input string &quot;</span> <span class="o">+</span> <span class="n">info</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">branch</span> <span class="o">=</span> <span class="n">branch</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">vertices</span> <span class="o">=</span> <span class="n">elementsInStr</span><span class="p">(</span><span class="n">branch</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">for</span> <span class="n">vertex</span> <span class="ow">in</span> <span class="n">vertices</span><span class="p">:</span>
+                    <span class="n">ptcs</span> <span class="o">=</span> <span class="n">vertex</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+                    <span class="c1"># Syntax check:</span>
+                    <span class="k">for</span> <span class="n">ptc</span> <span class="ow">in</span> <span class="n">ptcs</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">ptc</span> <span class="ow">in</span> <span class="n">rEven</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> \
+                                <span class="ow">and</span> <span class="ow">not</span> <span class="n">ptc</span> <span class="ow">in</span> <span class="n">ptcDic</span><span class="p">:</span>
+                            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unknown particle. Add &quot;</span> <span class="o">+</span> <span class="n">ptc</span> <span class="o">+</span> <span class="s2">&quot; to smodels/particle.py&quot;</span><span class="p">)</span>
+                            <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">particles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ptcs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vertnumb</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">particles</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vertparts</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">particles</span><span class="p">]</span>
+
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create the branch bracket notation string, e.g. [[e+],[jet]].</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: string representation of the branch (in bracket notation)    </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">st</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">particles</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">st</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">st</span>
+
+    <span class="k">def</span> <span class="nf">__cmp__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compares the branch with other.        </span>
+<span class="sd">        The comparison is made based on .</span>
+<span class="sd">        OBS: The particles inside each vertex MUST BE sorted (see branch.sortParticles())         </span>
+<span class="sd">        :param other:  branch to be compared (Branch object)</span>
+<span class="sd">        :return: -1 if self &lt; other, 0 if self == other, +1, if self &gt; other.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">massesEqual</span> <span class="p">(</span> <span class="n">l1</span><span class="p">,</span> <span class="n">l2</span> <span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot; check if lists of masses are equal,</span>
+<span class="sd">                allowing for 10 MeV of mass differences &quot;&quot;&quot;</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">l1</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">l2</span><span class="p">):</span> <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">for</span> <span class="n">e1</span><span class="p">,</span><span class="n">e2</span> <span class="ow">in</span> <span class="nb">zip</span> <span class="p">(</span><span class="n">l1</span><span class="p">,</span><span class="n">l2</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">abs</span> <span class="p">(</span> <span class="p">(</span><span class="n">e1</span> <span class="o">-</span> <span class="n">e2</span><span class="p">)</span><span class="o">.</span><span class="n">asNumber</span><span class="p">(</span><span class="n">MeV</span><span class="p">)</span>  <span class="p">)</span> <span class="o">&gt;</span> <span class="mf">10.</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        
+        <span class="c1"># print ( type ( self.masses[0] ) )</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertnumb</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">vertnumb</span><span class="p">:</span>
+            <span class="n">comp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertnumb</span> <span class="o">&gt;</span> <span class="n">other</span><span class="o">.</span><span class="n">vertnumb</span>
+            <span class="k">if</span> <span class="n">comp</span><span class="p">:</span> <span class="k">return</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertparts</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">vertparts</span><span class="p">:</span>
+            <span class="n">comp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertparts</span> <span class="o">&gt;</span> <span class="n">other</span><span class="o">.</span><span class="n">vertparts</span>
+            <span class="k">if</span> <span class="n">comp</span><span class="p">:</span> <span class="k">return</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">particles</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">particles</span><span class="p">:</span>
+            <span class="n">comp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">particles</span> <span class="o">&gt;</span> <span class="n">other</span><span class="o">.</span><span class="n">particles</span>
+            <span class="k">if</span> <span class="n">comp</span><span class="p">:</span> <span class="k">return</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">massesEqual</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">masses</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">masses</span> <span class="p">):</span>
+            <span class="n">comp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">masses</span> <span class="o">&gt;</span> <span class="n">other</span><span class="o">.</span><span class="n">masses</span>
+            <span class="k">if</span> <span class="n">comp</span><span class="p">:</span> <span class="k">return</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>  <span class="c1">#Branches are equal</span>
+
+<div class="viewcode-block" id="Branch.sortParticles"><a class="viewcode-back" href="../../theory.html#theory.branch.Branch.sortParticles">[docs]</a>    <span class="k">def</span> <span class="nf">sortParticles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sort the particles inside each vertex</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">for</span> <span class="n">iv</span><span class="p">,</span><span class="n">vertex</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">particles</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">particles</span><span class="p">[</span><span class="n">iv</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">vertex</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Branch.setInfo"><a class="viewcode-back" href="../../theory.html#theory.branch.Branch.setInfo">[docs]</a>    <span class="k">def</span> <span class="nf">setInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Defines the number of vertices (vertnumb) and number of</span>
+<span class="sd">        particles in each vertex (vertpats) properties, if they have not</span>
+<span class="sd">        been defined yet.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">vertnumb</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">particles</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vertparts</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">particles</span><span class="p">]</span></div>
+
+    
+<div class="viewcode-block" id="Branch.particlesMatch"><a class="viewcode-back" href="../../theory.html#theory.branch.Branch.particlesMatch">[docs]</a>    <span class="k">def</span> <span class="nf">particlesMatch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compare two Branches for matching particles, </span>
+<span class="sd">        allow for inclusive particle labels (such as the ones defined in particles.py)</span>
+<span class="sd">        </span>
+<span class="sd">        :parameter other: branch to be compared (Branch object)</span>
+<span class="sd">        :returns: True if branches are equal (particles and masses match); False otherwise.              </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">if</span> <span class="nb">type</span> <span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        
+        <span class="c1">#Make sure number of vertices and particles have been defined</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setInfo</span><span class="p">()</span>
+        <span class="n">other</span><span class="o">.</span><span class="n">setInfo</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertnumb</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">vertnumb</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertparts</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">vertparts</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="k">for</span> <span class="n">iv</span><span class="p">,</span><span class="n">vertex</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">particles</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">simParticles</span><span class="p">(</span><span class="n">vertex</span><span class="p">,</span><span class="n">other</span><span class="o">.</span><span class="n">particles</span><span class="p">[</span><span class="n">iv</span><span class="p">]):</span>
+                <span class="k">return</span> <span class="bp">False</span>                        
+        <span class="k">return</span> <span class="bp">True</span></div>
+   
+
+<div class="viewcode-block" id="Branch.copy"><a class="viewcode-back" href="../../theory.html#theory.branch.Branch.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate an independent copy of self.        </span>
+<span class="sd">        Faster than deepcopy.</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: Branch object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">newbranch</span> <span class="o">=</span> <span class="n">Branch</span><span class="p">()</span>
+        <span class="n">newbranch</span><span class="o">.</span><span class="n">masses</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">masses</span><span class="p">[:]</span>
+        <span class="n">newbranch</span><span class="o">.</span><span class="n">particles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">particles</span><span class="p">[:]</span>
+        <span class="n">newbranch</span><span class="o">.</span><span class="n">PIDs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setInfo</span><span class="p">()</span>
+        <span class="n">newbranch</span><span class="o">.</span><span class="n">vertnumb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertnumb</span>
+        <span class="n">newbranch</span><span class="o">.</span><span class="n">vertparts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertparts</span><span class="p">[:]</span>
+        <span class="k">for</span> <span class="n">pidList</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">PIDs</span><span class="p">:</span>
+            <span class="n">newbranch</span><span class="o">.</span><span class="n">PIDs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pidList</span><span class="p">[:])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxWeight</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">newbranch</span><span class="o">.</span><span class="n">maxWeight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxWeight</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">newbranch</span></div>
+
+
+<div class="viewcode-block" id="Branch.getLength"><a class="viewcode-back" href="../../theory.html#theory.branch.Branch.getLength">[docs]</a>    <span class="k">def</span> <span class="nf">getLength</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the branch length (number of R-odd particles).</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: length of branch (number of R-odd particles)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">masses</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__lt__</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">b2</span> <span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cmp__</span> <span class="p">(</span> <span class="n">b2</span> <span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">b2</span> <span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cmp__</span> <span class="p">(</span> <span class="n">b2</span> <span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">_addDecay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">br</span><span class="p">,</span> <span class="n">massDictionary</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate a new branch adding a 1-step cascade decay        </span>
+<span class="sd">        This is described by the br object, with particle masses given by</span>
+<span class="sd">        massDictionary.</span>
+<span class="sd">        </span>
+<span class="sd">        :parameter br: branching ratio object (see pyslha). Contains information about the decay.</span>
+<span class="sd">        :parameter massDictionary: dictionary containing the masses for all intermediate states.</span>
+<span class="sd">        :returns: extended branch (Branch object). False if there was an error.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">newBranch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">newparticles</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">newmass</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">PIDs</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;During decay the branch should </span><span class="se">\</span>
+<span class="s2">                            not have multiple PID lists!&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>   
+
+        <span class="k">for</span> <span class="n">partID</span> <span class="ow">in</span> <span class="n">br</span><span class="o">.</span><span class="n">ids</span><span class="p">:</span>
+            <span class="c1"># Add R-even particles to final state</span>
+            <span class="k">if</span> <span class="n">partID</span> <span class="ow">in</span> <span class="n">rEven</span><span class="p">:</span>
+                <span class="n">newparticles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rEven</span><span class="p">[</span><span class="n">partID</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Add masses of non R-even particles to mass vector</span>
+                <span class="n">newmass</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">massDictionary</span><span class="p">[</span><span class="n">partID</span><span class="p">])</span>
+                <span class="n">newBranch</span><span class="o">.</span><span class="n">PIDs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">partID</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">newmass</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Multiple R-odd particles in the final state: &quot;</span> <span class="o">+</span>
+                           <span class="nb">str</span><span class="p">(</span><span class="n">br</span><span class="o">.</span><span class="n">ids</span><span class="p">))</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="k">if</span> <span class="n">newparticles</span><span class="p">:</span>
+            <span class="n">newBranch</span><span class="o">.</span><span class="n">particles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">newparticles</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">newmass</span><span class="p">:</span>
+            <span class="n">newBranch</span><span class="o">.</span><span class="n">masses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newmass</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxWeight</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">newBranch</span><span class="o">.</span><span class="n">maxWeight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxWeight</span> <span class="o">*</span> <span class="n">br</span><span class="o">.</span><span class="n">br</span>
+
+        <span class="k">return</span> <span class="n">newBranch</span>
+
+
+<div class="viewcode-block" id="Branch.decayDaughter"><a class="viewcode-back" href="../../theory.html#theory.branch.Branch.decayDaughter">[docs]</a>    <span class="k">def</span> <span class="nf">decayDaughter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">brDictionary</span><span class="p">,</span> <span class="n">massDictionary</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate a list of all new branches generated by the 1-step cascade</span>
+<span class="sd">        decay of the current branch daughter.</span>
+<span class="sd">        </span>
+<span class="sd">        :parameter brDictionary: dictionary with the decay information</span>
+<span class="sd">                                 for all intermediate states (values are br objects, see pyslha)</span>
+<span class="sd">        :parameter massDictionary: dictionary containing the masses for all intermediate states.</span>
+<span class="sd">        :returns: list of extended branches (Branch objects). Empty list if daughter is stable or</span>
+<span class="sd">                  if daughterID was not defined.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">PIDs</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Can not decay branch with multiple PID lists&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>                
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">PIDs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="c1"># Do nothing if there is no R-odd daughter (relevant for RPV decays</span>
+            <span class="c1"># of the LSP)</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="c1">#If decay table is not defined, assume daughter is stable:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">PIDs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">brDictionary</span><span class="p">:</span> <span class="k">return</span> <span class="p">[]</span>
+        <span class="c1"># List of possible decays (brs) for R-odd daughter in branch        </span>
+        <span class="n">brs</span> <span class="o">=</span> <span class="n">brDictionary</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">PIDs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">brs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># Daughter is stable, there are no new branches</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="n">newBranches</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">br</span> <span class="ow">in</span> <span class="n">brs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">br</span><span class="o">.</span><span class="n">br</span><span class="p">:</span> <span class="k">continue</span>  <span class="c1">#Skip zero BRs</span>
+            <span class="c1"># Generate a new branch for each possible decay</span>
+            <span class="n">newBranches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_addDecay</span><span class="p">(</span><span class="n">br</span><span class="p">,</span> <span class="n">massDictionary</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">newBranches</span></div></div>
+
+
+<div class="viewcode-block" id="decayBranches"><a class="viewcode-back" href="../../theory.html#theory.branch.decayBranches">[docs]</a><span class="k">def</span> <span class="nf">decayBranches</span><span class="p">(</span><span class="n">branchList</span><span class="p">,</span> <span class="n">brDictionary</span><span class="p">,</span> <span class="n">massDictionary</span><span class="p">,</span>
+                  <span class="n">sigcut</span><span class="o">=</span><span class="mf">0.</span> <span class="o">*</span><span class="n">fb</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decay all branches from branchList until all unstable intermediate states have decayed.</span>
+<span class="sd">    </span>
+<span class="sd">    :parameter branchList: list of Branch() objects containing the initial mothers</span>
+<span class="sd">    :parameter brDictionary: dictionary with the decay information</span>
+<span class="sd">                                 for all intermediate states (values are br objects, see pyslha)</span>
+<span class="sd">    :parameter massDictionary: dictionary containing the masses for all intermediate states.</span>
+<span class="sd">    :parameter sigcut: minimum sigma*BR to be generated, by default sigcut = 0.</span>
+<span class="sd">                   (all branches are kept)</span>
+<span class="sd">    :returns: list of branches (Branch objects)    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">finalBranchList</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">while</span> <span class="n">branchList</span><span class="p">:</span>
+        <span class="c1"># Store branches after adding one step cascade decay</span>
+        <span class="n">newBranchList</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">inbranch</span> <span class="ow">in</span> <span class="n">branchList</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">sigcut</span><span class="o">.</span><span class="n">asNumber</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mf">0.</span> <span class="ow">and</span> <span class="n">inbranch</span><span class="o">.</span><span class="n">maxWeight</span> <span class="o">&lt;</span> <span class="n">sigcut</span><span class="p">:</span>
+                <span class="c1"># Remove the branches above sigcut and with length &gt; topmax</span>
+                <span class="k">continue</span>
+            <span class="c1"># Add all possible decays of the R-odd daughter to the original</span>
+            <span class="c1"># branch (if any)</span>
+            <span class="n">newBranches</span> <span class="o">=</span> <span class="n">inbranch</span><span class="o">.</span><span class="n">decayDaughter</span><span class="p">(</span><span class="n">brDictionary</span><span class="p">,</span> <span class="n">massDictionary</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">newBranches</span><span class="p">:</span>
+                <span class="c1"># New branches were generated, add them for next iteration</span>
+                <span class="n">newBranchList</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">newBranches</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># All particles have already decayed, store final branch</span>
+                <span class="n">finalBranchList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inbranch</span><span class="p">)</span>
+        <span class="c1"># Use new branches (if any) for next iteration step</span>
+        <span class="n">branchList</span> <span class="o">=</span> <span class="n">newBranchList</span>
+        
+    <span class="c1">#Sort list by initial branch PID:</span>
+    <span class="n">finalBranchList</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">finalBranchList</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">branch</span><span class="p">:</span> <span class="n">branch</span><span class="o">.</span><span class="n">PIDs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">finalBranchList</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, &lt;function authors at 0x7f73f74eb500&gt;.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.1.0patch1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

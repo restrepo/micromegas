@@ -1,5 +1,5 @@
 #include"SLHAplus.h"
-
+#include"../ntools/include/polint.h"
 //#define HDECAY
 
 static double   fiRe(double tau)
@@ -102,14 +102,15 @@ static double mSi[mNN]={ 0.0000E+00, 0.0000E+00, 0.0000E+00, 0.0000E+00, 0.0000E
 
 
 static double Hgam1Fr(double tau) 
-{ if(tau< maxTauTab) 
+{
+  if(tau< maxTauTab) 
   { double x=1;
     tau-=1;
     if(tau<0) x=1-pow(-tau,0.2);
     else if(tau>0) x=1+pow(tau,0.2);  
-    return polint4(x,mNN,mX,mFr); 
+    return polint3(x,mNN,mX,mFr); 
   }  else
-  {  
+  {    
      double tau0=maxTauTab;
      return  mFr[mNN-1]
       -log(4*tau) *( log(4*tau)/18  +2./3.) +2*log(tau)   +22/log(4*tau)
@@ -124,7 +125,7 @@ static double Hgam1Ar(double tau)
     tau-=1;
     if(tau<0) x=1-pow(-tau,0.2);
     else if(tau>0) x=1+pow(tau,0.2);  
-    return polint4(x,mNN,mX,mAr); 
+    return polint3(x,mNN,mX,mAr); 
   }  else
   { double tau0=maxTauTab;
     return   mAr[mNN-1]
@@ -139,7 +140,7 @@ static double Hgam1Sr(double tau)
     tau-=1;
     if(tau<0) x=1-pow(-tau,0.2);
     else if(tau>0) x=1+pow(tau,0.2);  
-    return polint4(x,mNN,mX,mSr); 
+    return polint3(x,mNN,mX,mSr); 
   }  else
   { 
      double tau0=maxTauTab;
@@ -156,7 +157,7 @@ static double Hgam1Fi(double tau)
     tau-=1;
     if(tau<0) x=1-pow(-tau,0.2);
     else if(tau>0) x=1+pow(tau,0.2);  
-    return polint4(x,mNN-21,mX+21,mFi+21); 
+    return polint3(x,mNN-21,mX+21,mFi+21); 
   }  else 
   {  double tau0=maxTauTab;
      return  mFi[mNN-1] + M_PI/9*(log(4*tau) -log(4*tau0));
@@ -171,7 +172,7 @@ static double Hgam1Ai(double tau)
     tau-=1;
     if(tau<0) x=1-pow(-tau,0.2);
     else if(tau>0) x=1+pow(tau,0.2);  
-    return polint4(x,mNN-21,mX+21,mAi+21); 
+    return polint3(x,mNN-21,mX+21,mAi+21); 
   }  else 
   {  double tau0=maxTauTab;
      return  mFi[mNN-1] + M_PI/9*(log(4*tau) -log(4*tau0));
@@ -186,7 +187,7 @@ static double Hgam1Si(double tau)
     tau-=1;
     if(tau<0) x=1-pow(-tau,0.2);
     else if(tau>0) x=1+pow(tau,0.2);  
-    return polint4(x,mNN-21,mX+21,mSi+21); 
+    return polint3(x,mNN-21,mX+21,mSi+21); 
   }  else  return  mSi[mNN-1];
  
 }
@@ -263,16 +264,17 @@ double complex hAAeven(double MH, double aQCD, int Nitems, ...)
   int i;
   double complex sum=0; 
   double a=aQCD;
-  
+
   va_list ap;
   va_start(ap,Nitems);
 
   for(i=0;i<Nitems;i++)
   {  part[i].spin2=va_arg(ap, int);
      part[i].cdim=va_arg(ap, int);
-     part[i].mass=va_arg(ap,REAL); 
-     part[i].coeff=va_arg(ap,REAL);   
+     part[i].mass=va_arg(ap,REAL);
+     part[i].coeff=va_arg(ap,REAL);
   }
+  
   va_end(ap);
   
   for(i=0;i<Nitems;i++)
@@ -283,8 +285,8 @@ double complex hAAeven(double MH, double aQCD, int Nitems, ...)
      if(abs(part[i].cdim)==3)
      { if(part[i].spin2==1) mass= mass*McRun(MH/2)/McRun(mass);
        else  mass = mass*pow(alphaQCD(MH/2)/alphaQCD(mass),6./23.);
-     }
-     tau=MH/2/mass;
+     }     
+     tau=MH/2/mass; 
      tau=tau*tau;
      
      switch(part[i].spin2)
@@ -302,6 +304,7 @@ double complex hAAeven(double MH, double aQCD, int Nitems, ...)
      { case 0: lf=1+a*Hgam1S(tau); break;
        case 1: lf=1+a*Hgam1F(tau); break;
      }
+     
      sum+= res*cf*lf*part[i].coeff;
   }
   free(part);

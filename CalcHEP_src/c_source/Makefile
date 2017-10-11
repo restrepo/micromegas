@@ -8,6 +8,7 @@ all:
 	$(MAKE) -C ntools
 	$(MAKE) -C dynamicME
 	$(MAKE) -C plot 
+	$(MAKE) -C strfun
 	$(MAKE) -C num 
 	$(MAKE) -C tab
 	$(MAKE) -C SLHAplus

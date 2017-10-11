@@ -21,6 +21,7 @@ typedef struct eventfile_info
   char pName[10][P_NAME_SIZE];  
   double pmass[10];
   long nEvents;
+  double wCoeff;
   long cEvent;
   long FirstEventPos;
   long CurrentEventPos;
@@ -39,7 +40,7 @@ typedef struct decay_info
 
 extern int nFiles;
 extern eventfile_info * initEventFile(char* fname);
-extern int readEvent(eventfile_info *Finfo, int *Nmom, double * mom, int * clr, double *Qf, double *alphaQCD, int * w);
+extern int readEvent(eventfile_info *Finfo, int *Nmom, double * mom, int * clr, double *Qf, double *alphaQCD, double * w);
 
 extern eventfile_info * All;
 

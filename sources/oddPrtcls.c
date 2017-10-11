@@ -76,7 +76,7 @@ char * nextOdd(int N,double * Mass)
 {
   int i,nn, *n;
   double * mass;
-  if(N>Nodd) return NULL;
+  if(N>=Nodd) return NULL;
   n=malloc(sizeof(int)*Nodd);
   mass=malloc(sizeof(double)*Nodd);
   

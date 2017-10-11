@@ -1,0 +1,7 @@
+dataType: efficiencyMap
+dataId: SR3: MET > 350
+observedN: 1
+expectedBG: 2.7
+bgError: 1.2
+upperLimit: 0.19*fb
+expectedUpperLimit: 0.239*fb

@@ -10,10 +10,11 @@
       /* Display  deltarho, B_>sgamma, Bs->mumu, gmuon and
          check LEP mass limits 
       */ 
-//#define HIGGSBOUNDS  "../Packages/HiggsBounds-4.2.0"
-//#define HIGGSSIGNALS "../Packages/HiggsSignals-1.3.0"
 
-//#define LILITH "../Packages/Lilith-1.1.2"
+#define HIGGSBOUNDS 
+#define HIGGSSIGNALS
+#define LILITH 
+//#define SMODELS 
 
 
 #define OMEGA            
@@ -57,13 +58,13 @@
 /*#define SHOWPLOTS */
      /* Display  graphical plots on the screen */ 
 
-#define CLEAN   to clean intermidiate files 
+//#define CLEAN   to clean intermidiate files 
 
 /*===== End of DEFINE  settings ===== */
 
 
-#include"../sources/micromegas.h"
-#include"../sources/micromegas_aux.h"
+#include"../include/micromegas.h"
+#include"../include/micromegas_aux.h"
 #include"lib/pmodel.h"
 
 
@@ -83,17 +84,21 @@ int main(int argc,char** argv)
                                
 /*  err=readVar(argv[1]);*/
   err=readVarCPVMSSM(argv[1]);
+
   
   if(err==-1)     {printf("Can not open the file\n"); exit(1);}
   else if(err>0)  { printf("Wrong file contents at line %d\n",err);exit(1);}
-           
 
   if(err) 
   { printf("Problem with RGE solution or spectrum calculation\n");
      exit(1);
   }
 
-  err=sortOddParticles(cdmName);
+  err=sortOddParticles(cdmName);  
+// to load CPsuperH decay tables  uncomment 
+//slhaRead("cpsuperh2_slha.out",1+8);
+
+
   if(err) { printf("Can't calculate %s\n",cdmName); return 1;}
    qNumbers(cdmName,&spin2, &charge3, &cdim);
    printf("\nDark matter candidate is '%s' with spin=%d/2 \n",
@@ -102,6 +107,10 @@ int main(int argc,char** argv)
    if(cdim!=1) { printf("Dark Matter is a color particle\n"); exit(1);}
    if(strcmp(cdmName,"~o1")) printf(" ~o1 is not CDM\n"); 
                     else o1Contents(stdout);
+
+// slhaRead("cpsuperh2_slha.out",1+8);
+
+
 
 // If you would like to use widths calculated by NMSSMTools, 
 // uncomment the line below
@@ -118,7 +127,7 @@ int main(int argc,char** argv)
 #endif
 
 #ifdef CONSTRAINTS
-{ double rat;
+{ double rat,csLim;
   FILE *f;
   printf("\n==== Physical Constraints: =====\n");  
   printf("EDM(Thallium)=%.2E\n",               slhaValFormat("FDIPOLE",0.,"1000812050  1 1 %lf")  ) ;
@@ -138,62 +147,57 @@ int main(int argc,char** argv)
 
 //  printf("SUSY mass diff, Bd-bar{Bd} =%.2E[1/ps]\n", slhaValFormat("deltaM",0.,"511 1 %lf"));
 //  printf("SUSY mass diff, Bs-bar{Bs} =%.2E[1/ps]\n", slhaValFormat("deltaM",0.,"531 1 %lf"));  
-  
-#ifdef HIGGSBOUNDS
 
-  if(access(HIGGSBOUNDS "/HiggsBounds",X_OK )) system( "cd " HIGGSBOUNDS "; ./configure; make ");
-  System( HIGGSBOUNDS "/HiggsBounds  LandH SLHA 3 1  cpsuperh2_slha.out HB.out");
-  slhaRead("HB.out",1+4);
-  printf("HB result= %.0E  obsratio=%.2E\n",slhaVal("HiggsBoundsResults",0.,2,1,2), slhaVal("HiggsBoundsResults",0.,2,1,3));
-  { char hbInfo[100];
-    if(0==slhaSTRFormat("HiggsBoundsResults","1 5 ||%[^|]||",hbInfo)) printf("Channel: %s\n",hbInfo);
-  }  
-  
-#endif
-
-#ifdef HIGGSSIGNALS
-#define DataSet " latestresults "
-//#define Method  " peak " 
-//#define  Method " mass "
-#define  Method " both "
-#define PDF  " 2 "  // Gaussian
-//#define PDF " 1 "  // box 
-//#define PDF " 3 "  // box+Gaussia
-#define dMh " 2 "
-
-   printf("HiggsSignals:\n");
-   if(access(HIGGSSIGNALS "/HiggsSignals",X_OK )) system( "cd " HIGGSSIGNALS "; ./configure; make ");
-     system("rm -f HS.in HS.out");
-     System("cp cpsuperh2_slha.out HS.in"); 
-     system("echo 'BLOCK DMASS\n 25 " dMh " '>> HS.in");
-     system(HIGGSSIGNALS "/HiggsSignals" DataSet Method  PDF  " SLHA 3 1 HS.in > hs.stdout");
-     System("grep -A 10000  HiggsSignalsResults HS.in > HS.out");
-     slhaRead("HS.out",1+4);
-     printf("  Number of observables %.0f\n",slhaVal("HiggsSignalsResults",0.,1,7));
-     printf("  total chi^2= %.1E\n",slhaVal("HiggsSignalsResults",0.,1,12));
-     printf("  HS p-value = %.1E\n", slhaVal("HiggsSignalsResults",0.,1,13));     
-#undef dMh
-#undef PDF
-#undef Method
-#undef DataSet
-#endif
-
+  if(Zinvisible()) printf("Excluded by Z->invisible\n");
+  if(LspNlsp_LEP(NULL)) printf("LEP excluded by e+,e- -> DM q qbar Cross Section=%2E pb\n",csLim);
 }
 #endif
 
-#ifdef LILITH
+      
+  
+#if defined(HIGGSBOUNDS) || defined(HIGGSSIGNALS)
+{ int NH0=3, NHch=1;
+  double HB_result,HB_obsratio,HS_observ,HS_chi2, HS_pval;
+  char HB_chan[100]={""},HB_version[50], HS_version[50];
 
-   if(LiLithF("Lilith_in.xml"))
-   {  double  like; 
-      int exp_ndf;
-      system("python " LILITH "/run_lilith.py  Lilith_in.xml  -s -r  Lilith_out.slha");
-      slhaRead("Lilith_out.slha", 1);
-      like = slhaVal("LilithResults",0.,1,0);
-      exp_ndf = slhaVal("LilithResults",0.,1,1);
-      printf("LILITH:  -2*log(L): %f; exp ndf: %d \n", like,exp_ndf );
-   } else printf("LILITH: there is no Higgs candidate\n");
-     
+  system("cp cpsuperh2_slha.out HB.in");
+//NH0=hbBlocksMO("HB.in",&NHch);
+  system("echo 'BLOCK DMASS\n 25  2  '>> HB.in");
+#include "../include/hBandS.inc"
+#ifdef HIGGSBOUNDS
+  printf("HB(%s): result=%.0f  obsratio=%.2E  channel= %s \n",HB_version, HB_result,HB_obsratio,HB_chan);
 #endif
+#ifdef HIGGSSIGNALS
+  printf("HS(%s): Nobservables=%.0f chi^2 = %.2E pval= %.2E\n",HS_version, HS_observ,HS_chi2, HS_pval);
+#endif
+}
+#endif
+#ifdef LILITH
+{  double m2logL, m2logL_reference=0,pvalue;
+   int exp_ndf,n_par=0,ndf;
+   char call_lilith[100], Lilith_version[20];
+// LilithMO("Lilith_in.xml");  
+   if(LilithMDL("Lilith_in.xml"))
+   {        
+#include "../include/Lilith.inc"
+      if(ndf)
+      {
+        printf("LILITH(DB%s):  -2*log(L): %.2f; -2*log(L_reference): %.2f; ndf: %d; p-value: %.2E \n", 
+        Lilith_version,m2logL,m2logL_reference,ndf,pvalue);
+      }  
+   }  else printf("LILITH: there is no Higgs candidate\n");
+}     
+#endif
+
+
+#ifdef SMODELS
+{  int result=0;
+   double Rvalue=0;
+   char analysis[30]={},topology[30]={}; 
+#include "../include/SMODELS.inc" 
+}   
+#endif 
+
 
 
 #ifdef OMEGA
@@ -210,7 +214,7 @@ int main(int argc,char** argv)
   printf("\n==== Calculation of relic density =====\n");  
   Omega=darkOmega(&Xf,fast,Beps);
   printf("Xf=%.2e Omega=%.2e\n",Xf,Omega);
-  printChannels(Xf,cut,Beps,1,stdout);
+  if(Omega>0)printChannels(Xf,cut,Beps,1,stdout);
   
   VZdecay=1; VWdecay=1; cleanDecayTable();  // restore default  
 }
@@ -405,14 +409,13 @@ printf("\n======== Direct Detection ========\n");
  displaySpectra("neutrino fluxes [1/Year/km^2/GeV]",Emin,Mcdm,2,nu,"nu",nu_bar,"nu_bar"); 
 #endif
 
-  printf(" E>%.1E GeV neutrino/anti-neutrin fluxes   %.2E/%.2E [1/Year/km^2]\n",Emin,
+  printf(" E>%.1E GeV neutrino/anti-neutrino fluxes   %.2E/%.2E [1/Year/km^2]\n",Emin,
               spectrInfo(Emin,nu,NULL), spectrInfo(Emin,nu_bar,NULL));  
 
 // ICE CUBE 22
 if(forSun) printf("IceCube22 exclusion confidence level = %.2E%%\n", 100*exLevIC22(nu,nu_bar,NULL));
 
 /* Upward events */
-  Emin=0.1;
   muonUpward(nu,nu_bar, mu);
 #ifdef SHOWPLOTS  
   displaySpectrum("Upward muons[1/Year/km^2/GeV]",1,Mcdm/2,mu);
@@ -459,26 +462,36 @@ if(forSun) printf("IceCube22 exclusion confidence level = %.2E%%\n", 100*exLevIC
 
 #ifdef CROSS_SECTIONS
 {
-  double cs, Pcm=4000, Qren,Qfact=pMass("~o2"),pTmin=0;
-  int nf=3;
-
-  printf("pp collision at %.2E GeV\n",Pcm);  
-
-  Qren=Qfact;
-  cs=hCollider(Pcm,1,nf,Qren, Qfact, "~o1","~o2",pTmin,1);
-  printf("cs(pp->~o1,~o2)=%.2E[pb]\n",cs);
+  char* next,next_;
+  double nextM;
+    
+  next=nextOdd(1,&nextM); 
+  if(next && nextM<1000)  
+  { 
+     double cs, Pcm=6500, Qren, Qfact, pTmin=0;
+     int nf=3;
+     char*next_=antiParticle(next);
+     Qren=Qfact=nextM; 
+ 
+     printf("\npp > nextOdd  at sqrt(s)=%.2E GeV\n",2*Pcm);  
+  
+     Qren=Qfact;
+     cs=hCollider(Pcm,1,nf,Qren, Qfact, next,next_,pTmin,1);
+     printf("Production of 'next' odd particle: cs(pp-> %s,%s)=%.2E[pb]\n",next,next_, cs);
+  }  
 }
-
 #endif
 
 #ifdef CLEAN
  
-system(" rm -f CPsuperH.in cpsuperh2_slha.out CPsuperH.out Key.dat nngg.in nngg.out debug_channels.txt debug_predratio.txt"); 
-system(" rm -f HB.in HB.out hb.stdout  HS.in HS.out hs.stdout"); 
+  system(" rm -f CPsuperH.in cpsuperh2_slha.out CPsuperH.out");
+  system(" rm -f nngg.in nngg.out");
+  system("rm -f HB.* HS.* hb.* hs.*  debug_channels.txt debug_predratio.txt  Key.dat");
+  system("rm -f Lilith_*   particles.py*");
+  system("rm -f  smodels.in  smodels.log  smodels.out  summary.*");  
 #endif
 
   killPlots();
-  system("rm -f Lilith_in.xml  Lilith_out.slha");
   return 0;
 }
 

@@ -21,5 +21,5 @@ extern int   scalarProductPos(int p1, int p2);
 
 #define ALIG(n) (n>0 ?  8*((n-1)/8+1): 0 )
 
-#define PPSHIFT 6
+#define PPSHIFT 7
 #endif

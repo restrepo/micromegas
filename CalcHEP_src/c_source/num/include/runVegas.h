@@ -10,6 +10,7 @@ extern void clearGrid(void);
 extern void clearEventMax(void);
 extern void newSession(void);
 extern int nSess;
+extern int regenEvents;
 
 extern double inP1,inP2;
 

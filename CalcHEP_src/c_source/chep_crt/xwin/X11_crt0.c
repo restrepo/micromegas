@@ -42,7 +42,6 @@ static char currentFont[200]="";
 
 
 static char  BGI_DEFAULT_FONT [200]="*"; 
-static char   BGI_TEXT_FONT   [200]="-adobe-courier-bold-r-normal--14-*";
 static int BeepOn=1;
 
 void (*xw_expose)(int x,int y, int width,int height) =NULL; 
@@ -56,6 +55,8 @@ static int xw_fn_w, xw_fn_h;
 
 static void(*xw_error_stat)(void)=NULL;
 
+static char f_ini_name[100]="";
+
 static int  read_ini(char * fname)
 {
   char str[200],name[200],parm1[200];
@@ -68,14 +69,34 @@ static int  read_ini(char * fname)
   { name[0]=0; parm1[0]=0;
     sscanf(str,"%s %[^\n]",name,parm1);
     while( strlen(parm1) &&  parm1[strlen(parm1)-1]==' ') parm1[strlen(parm1)-1]=0; 
-         if(!strcmp(name,"font")) { strcpy(BGI_TEXT_FONT,parm1);strcpy(BGI_DEFAULT_FONT,parm1);}
-         else if(!strcmp(name,"width")) { sscanf(parm1, "%d",&wBest);}
+         if(!strcmp(name,"fontFamily")) { strcpy(BGI_DEFAULT_FONT,parm1);strcpy(BGI_DEFAULT_FONT,parm1);}
+    else if(!strcmp(name,"fontWidth"))  { sscanf(parm1, "%d",&wBest);}
+    else if(!strcmp(name,"fontCurrent")){ strcpy(currentFont,parm1);}
     else if(!strcmp(name,"colors")){if (strcmp(parm1,"off")==0) bgi_maxcolor=0;} 
     else if(!strcmp(name,"sound")) {if(strcmp(parm1,"off")==0) BeepOn=0;}
   }
   fclose(ini);
+  strcpy(f_ini_name,fname);
   return 1;
 }
+
+
+static int  write_ini(void)
+{
+   if(strlen(f_ini_name)==0) return 1;
+   
+   FILE* ini=fopen(f_ini_name,"w");
+   if (ini==NULL) return 2;
+
+   fprintf(ini,"fontCurrent  %s\n",currentFont);
+   fprintf(ini,"fontFamily   %s\nfontWidth %d\n",BGI_DEFAULT_FONT,xw_fn_w);
+   if(bgi_maxcolor) fprintf(ini,"colors on\n"); else  fprintf(ini,"colors off\n");
+   if(BeepOn)       fprintf(ini,"sound  on\n"); else  fprintf(ini,"sound  off\n");
+   fclose(ini);
+   return 0;
+}                                            
+   
+
 
 static int  X_IO_Error_H(Display * display) 
 { if(xw_error_stat)(*xw_error_stat)(); else exit(EXITCODE); return 0;}
@@ -125,9 +146,9 @@ static void  setallpalette(void)
 static int findFont(char * fontName,int dir)
 {
     XFontStruct *info;
-    char ** allFonts;
+    char ** allFonts=NULL;
     int nFonts,n0; 
-           
+
     allFonts=XListFontsWithInfo(display, BGI_DEFAULT_FONT, 3000, &nFonts, &info);
     if(!allFonts)
     { 
@@ -185,8 +206,9 @@ static int bgi_0to2(char * window_name,char * icon_file)
 	screen=DefaultScreen(display);
 	cmap=DefaultColormap(display,screen);
 	depth=DefaultDepth(display,screen);
-	if(0==findFont(currentFont,0)) bgi_font=XLoadQueryFont(display,currentFont);
 	
+        if(strlen(currentFont))	bgi_font=XLoadQueryFont(display,currentFont);	
+	if(!bgi_font &&  0==findFont(currentFont,0)) bgi_font=XLoadQueryFont(display,currentFont);
         text_font= bgi_font;
 	xw_fn_w=text_font->max_bounds.width;	
 	xw_fn_h=text_font->ascent+text_font->descent;
@@ -255,6 +277,9 @@ static int bgi_0to2(char * window_name,char * icon_file)
         xw_graphic=0;          
         setallpalette();	
 	XFillRectangle(display,win,gc,0,0,bgi_maxx+1,bgi_maxy+1);
+ 
+        write_ini();
+
 	return 0;	
 }
 
@@ -380,7 +405,7 @@ static int setNewFont(char *font)
      strcpy(currentFont,font);
      if(isProportional) printf("Monospace "); else printf("Proportional ");
      printf("font \n%s\n  width=%d is detected and applied\n",font,xw_fn_w);
-      
+     
      return 0;                          
    }
    return 1;
@@ -407,16 +432,16 @@ int  crt0_inkey(void)
                           XLookupString(&report.xkey,&c,1,&keysym,NULL);
                           if(Ctrl_mem &&( keysym==XK_plus || keysym==XK_equal||keysym==XK_greater)&& wBest<wMax)     
                           {  wBest++;
-                             if(0==findFont(newFont,1)) { setNewFont(newFont); printf(" Increased\n");}
-                             else printf("no larger font\n");
+                             if(0==findFont(newFont,1)) { setNewFont(newFont); printf(" Increased\n"); write_ini();}
+                             else { printf("no larger font\n"); crt0_beep();}
                              break;
                           }
                             
                           if(Ctrl_mem &&( keysym==XK_minus || keysym==XK_less)&& wBest>wMin)     
                           {  
                              wBest--;
-                             if(0==findFont(newFont,-1)) { setNewFont(newFont); printf(" Decreased\n");}
-                             else printf("no smaller font\n");
+                             if(0==findFont(newFont,-1)) { setNewFont(newFont); printf(" Decreased\n"); write_ini();}
+                             else { printf("no smaller font\n"); crt0_beep();}
                              break;    
                           }                                                          
                              

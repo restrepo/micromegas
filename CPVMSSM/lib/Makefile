@@ -28,5 +28,5 @@ $(CPSUPERH)/cpsuperh.exe:
 
 clean: 
 	rm -f *.o *.a  localpath.h
-	$(MAKE) -C nngg clean
+	$(MAKE) -C nngg12 clean
   

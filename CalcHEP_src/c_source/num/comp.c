@@ -15,7 +15,7 @@
 int nComps=0,nCompParts[60];
 table compTab={"*** Table ***"," Composites  ",
                    "  Name  |> Comma separated list of particles                           <|",NULL,0}; 
-char compName[60][4], compParts[60][60][4];
+char compName[60][P_NAME_SIZE], compParts[60][60][P_NAME_SIZE];
 
 int wrtcomp_(FILE *nchan){ fprintf(nchan,"\n"); writetable0(&compTab,nchan); return 0;}
 int rdrcomp_(FILE *nchan){ 

@@ -1,0 +1,28 @@
+txName: TChiWZoff
+conditionDescription: [[['mu+','mu-']],[['l','nu']]] > [[['e+','e-']],[['l','nu']]]
+condition: Cgtr([[['mu+','mu-']],[['l','nu']]],[[['e+','e-']],[['l','nu']]])
+constraint: 71.*([[['mu+','mu-']],[['l','nu']]] + [[['e+','e-']],[['l','nu']]])
+figureUrl: https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/PAPERS/SUSY-2013-12/fig_07b.png
+validated: True
+axes: 2*Eq(mother,x)_Eq(lsp,y)
+publishedData: False
+upperLimits: [[[[100.0*GeV, 50.0*GeV], [100.0*GeV, 50.0*GeV]], 3.0727*pb],
+[[[112.5*GeV, 50.0*GeV], [112.5*GeV, 50.0*GeV]], 1.8053*pb],
+[[[150.0*GeV, 75.0*GeV], [150.0*GeV, 75.0*GeV]], 1.273*pb],
+[[[200.0*GeV, 175.0*GeV], [200.0*GeV, 175.0*GeV]], 9.7047*pb],
+[[[125.0*GeV, 50.0*GeV], [125.0*GeV, 50.0*GeV]], 1.564*pb],
+[[[200.0*GeV, 150.0*GeV], [200.0*GeV, 150.0*GeV]], 2.0744*pb],
+[[[150.0*GeV, 100.0*GeV], [150.0*GeV, 100.0*GeV]], 2.3722*pb],
+[[[100.0*GeV, 25.0*GeV], [100.0*GeV, 25.0*GeV]], 1.8766*pb],
+[[[150.0*GeV, 125.0*GeV], [150.0*GeV, 125.0*GeV]], 14.023*pb],
+[[[175.0*GeV, 100.0*GeV], [175.0*GeV, 100.0*GeV]], 1.2233*pb],
+[[[200.0*GeV, 187.5*GeV], [200.0*GeV, 187.5*GeV]], 3851.3*pb],
+[[[175.0*GeV, 125.0*GeV], [175.0*GeV, 125.0*GeV]], 2.1213*pb],
+[[[200.0*GeV, 125.0*GeV], [200.0*GeV, 125.0*GeV]], 1.1461*pb],
+[[[125.0*GeV, 100.0*GeV], [125.0*GeV, 100.0*GeV]], 14.65*pb],
+[[[150.0*GeV, 137.5*GeV], [150.0*GeV, 137.5*GeV]], 433.03*pb],
+[[[175.0*GeV, 150.0*GeV], [175.0*GeV, 150.0*GeV]], 14.376*pb],
+[[[250.0*GeV, 200.0*GeV], [250.0*GeV, 200.0*GeV]], 1.687*pb],
+[[[125.0*GeV, 112.5*GeV], [125.0*GeV, 112.5*GeV]], 1033.5*pb],
+[[[125.0*GeV, 75.0*GeV], [125.0*GeV, 75.0*GeV]], 2.7228*pb],
+[[[100.0*GeV, 75.0*GeV], [100.0*GeV, 75.0*GeV]], 19.219*pb]]

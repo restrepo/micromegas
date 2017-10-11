@@ -1,4 +1,7 @@
 .PHONY: all
 
-all: *.lhp
-	lhep -ca susy.lhp
+all: *.lhp ../../Packages/LanHEP/lhep
+	../../Packages/LanHEP/lhep -ca susy.lhp
+
+../../Packages/LanHEP/lhep:
+	$(MAKE) -C ../../Packages/LanHEP

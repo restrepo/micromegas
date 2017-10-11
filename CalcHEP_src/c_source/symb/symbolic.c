@@ -248,9 +248,7 @@ static void  addscmult( int nSpin )
 
    addvar("Helicity1",1);  
    addvar("Helicity2",1);
-   addvar("HelicityN1",1);  
-   addvar("HelicityN2",1);
-   
+   addvar("N_p1p2_",2);
    sortvar();
    symb_start(vardef->nvar, vardef->vars, nSpin, findMaxIndex(),py);
 
@@ -747,9 +745,7 @@ static void  formBlocks(void)
            char txt[150];
            int Paux;
            if(P==1) Paux=2; else Paux=1;
-           sprintf(txt,"m%d.m%d+i*HelicityN%d*eps(p%d,p%d,m%d,m%d)",
-           m1,m2, P,P,Paux,m1,m2);           
-            
+           sprintf(txt,"m%d.m%d -N_p1p2_*(m%d.p%d*m%d.p%d+m%d.p%d*m%d.p%d-i*Helicity%d*eps(p%d,p%d,m%d,m%d))",m1,m2, m1,P,m2,Paux,m1,Paux,m2,P, P,P,Paux,m1,m2);           
                                                       
            m=symb_read(txt);
 
@@ -1130,8 +1126,7 @@ static int toFinish=0;
 static void my_signal(int n) { toFinish=1;}
 
 void calcWithFork(int np, int * diag,int fi)
-{  int        ndel, ncalc, nrest;
-   long       nrecord;
+{  
    csdiagram  csd;
    unsigned   noutmemtot;
    shortstr   txt;
@@ -1150,14 +1145,13 @@ toFinish=0;
    new_action.sa_flags = 0;
    sigaction (SIGUSR1, &new_action, NULL);
 
-
    polyvars  varsInfo[3]={ {0,NULL}, {0,NULL}, {0,NULL} };
 
    memerror=heap_is_empty;
    memoryInfo=memoryInfo_;
- 
+
    sprintf(ctlgName,"%s_%d",CATALOG_NAME,np);
-   catalog = fopen(ctlgName,"ab");
+   catalog = fopen(ctlgName,"wb");
 
    ArcNum=1+10*np;
      
@@ -1171,11 +1165,14 @@ toFinish=0;
    { int one=1; 
      fseek(diagrq,sizeof(csd)*diag[k],SEEK_SET);
      FREAD1(csd,diagrq);
+     if(csd.status>0) continue;
      nsub=csd.nsub;
      ndiagr=csd.ndiagr;
      vardef=&varsInfo[0];
      mark_(&heap_beg);
      calcproc(&csd);
+ //printf(" calc %d by process %d  status=%d \n",  diag[k],np,csd.status );      
+     
      if(csd.status == 1)
      { 
         vardef=&(varsInfo[0]);     
@@ -1185,11 +1182,11 @@ toFinish=0;
      
      release_(&heap_beg);
      {int i; for(i=0;i<3;i++) clearVars(varsInfo+i);}
-     write(fi,&one,sizeof(int));
+//     write(fi,&one,sizeof(int));
      if(toFinish) goto exi;            
    }
 exi:
-
+//printf(" normal termination branch %d\n",np);
    fclose(diagrq); 
    fclose(catalog);
    whichArchive(0,0);      
@@ -1254,7 +1251,7 @@ void updateMenuQ(void)
      if(rdOk)
      {  if(csd.status>0)
         { if(csd.nsub==nsub){  ncalc++;  continue;} 
-          else  if(ncalc==0){  ncalc==1; nsub=csd.nsub; continue;}  
+          else  if(ncalc==0){  ncalc=1; nsub=csd.nsub; continue;}  
         } else continue;
      }
      if( (!rdOk && ncalc) || (rdOk && csd.nsub!=nsub))
@@ -1271,3 +1268,228 @@ void updateMenuQ(void)
    fclose(menuq);
    fclose(diagrq);  
 }
+
+
+#include"../service2/include/writeF.h"
+
+extern int symb_expand(symb_data  m, char***txt,poly**exp);
+extern int vert_code(polyvars * vardef_ext);
+
+static void  writepolyC(poly p)
+{  char txt[STRSIZ], numtxt[STRSIZ];
+   int  i, deg;
+   int  plus, first;
+   int  wpos;
+   unsigned long   wpower;
+
+   if(!p){writeF("0"); return;}
+   if(p->next) plus=0; else plus=1;
+ 
+
+   for(;p;p=p->next)
+   {
+      strcpy(txt,"");
+      i = 1;
+      first = 1;
+      wpos = 1;
+      wpower = p->power[wpos-1];
+      for (i = 1; i <= vardef->nvar; i++)
+      {
+         deg = (p->power[vardef->vars[i-1].wordpos-1] /
+                vardef->vars[i-1].zerodeg) %
+                vardef->vars[i-1].maxdeg;
+
+         if(deg > 0)
+         {
+            if(first)  first = 0; else        strcat(txt,"*");
+            if(deg > 1)  sprintf(txt+strlen(txt),"pow(%s,%d)",vardef->vars[i-1].name,deg);
+            else sprintf(txt+strlen(txt),"%s",vardef->vars[i-1].name);
+         }
+      }
+
+      sprintf(numtxt,"%"NUM_STR, p->num);
+       
+      if(plus && numtxt[0]!='-') writeF("+"); 
+
+      if(strlen(txt))
+      {  if(strcmp(numtxt,"1"))
+         {
+            if(strcmp(numtxt,"-1")==0) writeF("-");
+            else {wrt_0(numtxt);writeF("*");}
+         }    
+         writeF(txt); 
+      }
+      else writeF(numtxt);
+      plus=1;
+   }
+}  
+
+
+
+
+int getVertex(char*pathToModels,int Model,int N,char**field_txt,char *label)
+{ 
+
+  int i;
+  readModelFiles(pathToModels,Model);
+  if(!loadModel(0,1)) {printf("Error in model\n"); return 5;}
+  
+  int field[4], field_inp[4]; 
+  for(i=0;i<N;i++) 
+  { locateinbase(field_txt[i], field_inp +i); 
+    field[i]=field_inp[i]; 
+    if(field[i]==0){ printf("can not find particle %s in the model\n",field_txt[i]); return i+1;}
+  }
+  
+  char fName[40];
+  
+  sprintf(fName,"%s.c",label);
+  outFile=fopen(fName,"w"); 
+  
+  writeF(" // vertex: ");for(i=0;i<N;i++) writeF(" %s ",field_txt[i]);  writeF("\n");
+
+  for(i=0;i<N-1; )  // sorting 
+  { if(field[i]<field[i+1]) 
+    { int m=field[i]; field[i]=field[i+1]; field[i+1]=m;
+      if(i>0)i--;
+    } else i++;
+  } 
+
+  if(N==3) {field[3]=0; field_inp[3]=0;}
+
+  algvertptr  lgrgn1;
+  for(lgrgn1=lgrgn; lgrgn1; lgrgn1=lgrgn1->next)
+  {
+  
+     if( field[0]==lgrgn1->fields[0] && 
+         field[1]==lgrgn1->fields[1] &&
+         field[2]==lgrgn1->fields[2] &&
+         field[3]==lgrgn1->fields[3]    )
+     { 
+
+       rmptr rm=(rmptr)read_rmonom(lgrgn1->comcoef);
+       int GGpower=rmonomGG(rm);
+       int Ipower=rmonomI(rm); while(Ipower<0)Ipower+=4;  while(Ipower>=4) Ipower-=4; 
+       int tcSize=(strchr(lgrgn1->comcoef,'|')-  lgrgn1->comcoef)+10 ;
+       char * tcNtxt=malloc(tcSize);
+       char * tcDtxt=malloc(tcSize);
+             
+       strcpy(tcNtxt, smonomtxt((*rm).n));
+       strcpy(tcDtxt, smonomtxt((*rm).d)); 
+
+       char*txtPre=malloc(strlen(lgrgn1->description)+2*tcSize+20); 
+       sprintf(txtPre,"(%s)*(%s)*(%s",tcNtxt,tcDtxt,lgrgn1->description);     
+       for(i= strlen(txtPre)-1; txtPre[i] ==' ' || txtPre[i] =='\n'  || txtPre[i] =='|';  txtPre[i--]=0) continue;
+       strcat(txtPre,")");
+
+       polyvars  varsInfo={0,NULL};
+       vardef=&varsInfo;
+       preres m= (preres) readExpression(txtPre,rd_pre,act_pre,NULL);
+       free(txtPre);
+
+       int nSpin=m->maxg;
+       int  MaxIndex=8;
+       int maxmomdeg=m->degp+4;
+
+       for (int n=0;n<vardef->nvar;n++) vardef->vars[n].maxdeg=m->varsdeg[n]+1;
+    
+
+       for(int n=1; n<=N+1; n++) for(int m=1; m<n; m++)
+       {  
+         char name[20];
+         sprintf(name,"p%d.p%d",m,n);         
+         addvar(name,maxmomdeg/2);        
+       }
+       sortvar();
+       // rename scalar product 
+       for(i=0;i<vardef->nvar;i++) if(vardef->vars[i].name[2]=='.' &&  vardef->vars[i].name[4]-'0'==N+1) vardef->vars[i].name[4]=vardef->vars[i].name[1];
+
+       symb_start(vardef->nvar, vardef->vars, nSpin, MaxIndex ,N+1);
+
+       for(int n=1; n<=N; n++) for(int m=1; m<=n; m++)
+       {   symb_all mm;
+           char name[20];
+           sprintf(name,"p%d.p%d",m,n);
+           mm=rd_symb(name);
+           assignsclmult(-m,-n,mm->expr.p);
+           delunit(mm);      
+       }
+     
+       int field_in_vert[4],aperm[4],perm[4];
+
+       for(int i=0;i<4;i++) aperm[lgrgn1->perm[i]-1]=i;
+       for(int i=0;i<4;i++) field_in_vert[i]=lgrgn1->fields[aperm[i]];
+
+       for(i=0;i<4;i++)  // set relation between field_in_vert and field_inp
+       { for(int j=0;j<4;j++) if(field_in_vert[i]==field_inp[j]) { perm[i]=j+1; field_inp[j]=-1; break;} }
+
+       char*pstr;
+       if(!Ipower) pstr=parseOneVertex(lgrgn1->description,perm ,field_in_vert);
+       else 
+       { char *buff=malloc(strlen(lgrgn1->description)+10);    
+         switch(Ipower)
+         {  case 1: sprintf(buff,"i*(%s)",lgrgn1->description); break;
+            case 2: sprintf(buff,"-(%s)",lgrgn1->description);  break;
+            case 3: sprintf(buff,"-i*(%s)",lgrgn1->description);  break;
+         }
+         pstr=parseOneVertex(buff,perm ,field_in_vert);
+         free(buff);
+       }     
+       symb_data v= symb_read(pstr);
+
+       symb_data tcN=symb_read(tcNtxt);
+       symb_data tcD=symb_read(tcDtxt);
+       
+       free(pstr); free(tcNtxt); free(tcDtxt);
+
+       char **txt;
+       poly * exp;             
+       int Nterm=symb_expand(v, &txt, &exp);
+
+    int nvars=vert_code(vardef);
+    writeF(" double R=(");writepolyC(tcN.expr.p);writeF(")/(");writepolyC(tcD.expr.p); writeF(");\n");
+        
+    for(int i=0;i<Nterm;i++) { writeF(" coeff_out[%d]=R*(",i); writepolyC(exp[i]); writeF(");\n"); }     
+    writeF(" return 0;\n}\n"); 
+
+    writeF(" static char *SymbVert[%d]={",Nterm);
+    for(int i=0;i<Nterm;i++) {if(i) fprintf(outFile,","); 
+                              if(strlen(txt[i])>0) fprintf(outFile,"\"%s\"",txt[i]); else fprintf(outFile,"\"1\""); }    
+    writeF("};\n"); 
+
+    fprintf(outFile,
+    "typedef struct  lVert\n{\n"
+    "    void * handle;\n"
+    "    void ** link;\n"
+    "    int init;\n"
+    "    int GGpower; int nVar; char **varNames; double *varValues; int nTerms; char **SymbVert;  int (*calcCoeff)(double*);\n"
+    "}  lVert;\n");
+
+    fprintf(outFile," extern lVert %s;\n",label);
+    fprintf(outFile," lVert %s={NULL,NULL,0,%d,%d, varName+1, V, %d, SymbVert, vertexCoeff};\n",label,GGpower,nvars,Nterm);
+                            
+    fclose(outFile);  
+   
+    return 0;
+  }
+  
+  } 
+
+  fprintf(outFile,
+  "// vertex is not found\n" 
+  "#include<stdlib.h>\n"
+  "typedef struct  lVert\n"
+  "{\n"
+  "    void * handle;\n"
+  "    void ** link;\n"
+  "    int init;\n"
+  "    int GGpower; int nVar; char **varNames; double *varValues; int nTerms; char **SymbVert;  int (*calcCoeff)(double*);\n"
+  "}  lVert;\n"
+  "extern lVert %s;\n"
+  " lVert %s={NULL,NULL,0,0,0,NULL,NULL, 0 , NULL, NULL};\n",
+  label,label);
+  fclose(outFile);
+  printf("vertex is not found\n");
+  return 0;
+}
+

@@ -1,0 +1,7 @@
+dataType: efficiencyMap
+dataId: tNboost
+observedN: 5
+expectedBG: 3.3
+bgError: 0.7
+upperLimit: 0.372589063878*fb
+expectedUpperLimit: 0.267794432427*fb

@@ -1,0 +1,479 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>experiment.expResultObj &mdash; SModelS 1.1.0patch1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="SModelS 1.1.0patch1 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> SModelS
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.1.0patch1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../theory.html">theory package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../experiment.html">experiment package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tools.html">tools package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">SModelS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>experiment.expResultObj</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for experiment.expResultObj</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: expResultObj</span>
+<span class="sd">   :synopsis: Contains class that encapsulates an experimental result</span>
+
+<span class="sd">.. moduleauthor:: Veronika Magerl &lt;v.magerl@gmx.at&gt;</span>
+<span class="sd">.. moduleauthor:: Andre Lessa &lt;lessa.a.p@gmail.com&gt;</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">smodels.experiment</span> <span class="kn">import</span> <span class="n">infoObj</span>
+<span class="kn">from</span> <span class="nn">smodels.experiment</span> <span class="kn">import</span> <span class="n">txnameObj</span>
+<span class="kn">from</span> <span class="nn">smodels.experiment</span> <span class="kn">import</span> <span class="n">datasetObj</span>
+<span class="kn">from</span> <span class="nn">smodels.experiment.exceptions</span> <span class="kn">import</span> <span class="n">DatabaseNotFoundException</span>
+<span class="kn">from</span> <span class="nn">smodels.tools.physicsUnits</span> <span class="kn">import</span> <span class="n">fb</span>
+
+<span class="kn">from</span> <span class="nn">smodels.tools.smodelsLogging</span> <span class="kn">import</span> <span class="n">logger</span>
+
+<div class="viewcode-block" id="ExpResult"><a class="viewcode-back" href="../../experiment.html#experiment.expResultObj.ExpResult">[docs]</a><span class="k">class</span> <span class="nc">ExpResult</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Object  containing the information and data corresponding to an</span>
+<span class="sd">    experimental result (experimental conference note or publication).</span>
+<span class="sd">    </span>
+<span class="sd">    :ivar path: path to the experimental result folder (i.e. ATLAS-CONF-2013-047)</span>
+<span class="sd">    :ivar globalInfo: Info object holding the data in &lt;path&gt;/globalInfo.txt</span>
+<span class="sd">    :ivar datasets: List of DataSet objects corresponding to the dataset folders </span>
+<span class="sd">                    in &lt;path&gt;    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+        
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param path: Path to the experimental result folder</span>
+<span class="sd">        &quot;&quot;&quot;</span> 
+
+        <span class="k">if</span> <span class="n">path</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">path</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;globalInfo.txt&quot;</span><span class="p">)):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;globalInfo.txt file not found in &quot;</span> <span class="o">+</span> <span class="n">path</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">globalInfo</span> <span class="o">=</span> <span class="n">infoObj</span><span class="o">.</span><span class="n">Info</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;globalInfo.txt&quot;</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">folders</span><span class="o">=</span><span class="p">[]</span>
+            <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+                <span class="n">folders</span><span class="o">.</span><span class="n">append</span> <span class="p">(</span> <span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">files</span><span class="p">)</span> <span class="p">)</span>
+            <span class="n">folders</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">folders</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s1">&#39;dataInfo.txt&#39;</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>  <span class="c1"># data folder found</span>
+                    <span class="c1"># Build data set</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">dataset</span> <span class="o">=</span> <span class="n">datasetObj</span><span class="o">.</span><span class="n">DataSet</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">globalInfo</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                        <span class="k">continue</span>
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span> <span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">globalInfo</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">globalInfo</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span> <span class="p">(</span> <span class="n">other</span><span class="o">.</span><span class="n">datasets</span> <span class="p">):</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">myds</span><span class="p">,</span><span class="n">otherds</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">datasets</span> <span class="p">):</span>
+            <span class="k">if</span> <span class="n">myds</span> <span class="o">!=</span> <span class="n">otherds</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="bp">True</span>
+
+    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span> <span class="p">):</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__eq__</span> <span class="p">(</span> <span class="n">other</span> <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">globalInfo</span><span class="o">.</span><span class="n">getInfo</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;: &quot;</span>
+        <span class="n">dataIDs</span> <span class="o">=</span> <span class="p">[</span><span class="n">dataset</span><span class="o">.</span><span class="n">dataInfo</span><span class="o">.</span><span class="n">dataId</span> <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">dataIDs</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">dataid</span> <span class="ow">in</span> <span class="n">dataIDs</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">dataid</span><span class="p">:</span>
+                    <span class="n">label</span> <span class="o">+=</span> <span class="n">dataid</span> <span class="o">+</span> <span class="s2">&quot;,&quot;</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="n">label</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">label</span> <span class="o">+=</span> <span class="s1">&#39;:&#39;</span>
+        <span class="n">txnames</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">txname</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">txnameList</span><span class="p">:</span>
+                <span class="n">tx</span> <span class="o">=</span> <span class="n">txname</span><span class="o">.</span><span class="n">txName</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">tx</span> <span class="ow">in</span> <span class="n">txnames</span><span class="p">:</span>
+                    <span class="n">txnames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tx</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">txnames</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">txname</span> <span class="ow">in</span> <span class="n">txnames</span><span class="p">:</span>
+                <span class="n">label</span> <span class="o">+=</span> <span class="n">txname</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">label</span> <span class="o">+=</span> <span class="n">txnames</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span>
+        <span class="k">return</span> <span class="n">label</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+<div class="viewcode-block" id="ExpResult.getDataset"><a class="viewcode-back" href="../../experiment.html#experiment.expResultObj.ExpResult.getDataset">[docs]</a>    <span class="k">def</span> <span class="nf">getDataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataId</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        retrieve dataset by dataId</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">dataset</span><span class="o">.</span><span class="n">dataInfo</span><span class="o">.</span><span class="n">dataId</span> <span class="o">==</span> <span class="n">dataId</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">dataset</span>
+        <span class="k">return</span> <span class="bp">None</span></div>
+
+<div class="viewcode-block" id="ExpResult.getTxNames"><a class="viewcode-back" href="../../experiment.html#experiment.expResultObj.ExpResult.getTxNames">[docs]</a>    <span class="k">def</span> <span class="nf">getTxNames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a list of all TxName objects appearing in all datasets.        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">txnames</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">:</span>
+            <span class="n">txnames</span> <span class="o">+=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">txnameList</span>
+        <span class="k">return</span> <span class="n">txnames</span></div>
+
+<div class="viewcode-block" id="ExpResult.getEfficiencyFor"><a class="viewcode-back" href="../../experiment.html#experiment.expResultObj.ExpResult.getEfficiencyFor">[docs]</a>    <span class="k">def</span> <span class="nf">getEfficiencyFor</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">txname</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convenience function. Get the efficiency for</span>
+<span class="sd">        a specific dataset for a a specific txname.</span>
+<span class="sd">        Equivalent to:</span>
+<span class="sd">        self.getDataset ( dataset ).getEfficiencyFor ( txname, mass )</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getDataset</span> <span class="p">(</span> <span class="n">dataset</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="n">dataset</span><span class="p">:</span> <span class="k">return</span> <span class="n">dataset</span><span class="o">.</span><span class="n">getEfficiencyFor</span> <span class="p">(</span> <span class="n">txname</span><span class="p">,</span> <span class="n">mass</span> <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">None</span></div>
+
+<div class="viewcode-block" id="ExpResult.getUpperLimitFor"><a class="viewcode-back" href="../../experiment.html#experiment.expResultObj.ExpResult.getUpperLimitFor">[docs]</a>    <span class="k">def</span> <span class="nf">getUpperLimitFor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataID</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">expected</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">txname</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">compute</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Computes the 95% upper limit (UL) on the signal cross section according</span>
+<span class="sd">        to the type of result.</span>
+<span class="sd">        For an Efficiency Map type, returns  the UL for the signal*efficiency</span>
+<span class="sd">        for the given dataSet ID (signal region).  For  an Upper Limit type,</span>
+<span class="sd">        returns the UL for the signal*BR for for the given mass array and</span>
+<span class="sd">        Txname.</span>
+<span class="sd">        </span>
+<span class="sd">        :param dataID: dataset ID (string) (only for efficiency-map type results)</span>
+<span class="sd">        :param alpha: Can be used to change the C.L. value. The default value is 0.05 </span>
+<span class="sd">                      (= 95% C.L.) (only for  efficiency-map results)</span>
+<span class="sd">        :param expected: Compute expected limit, i.e. Nobserved = NexpectedBG</span>
+<span class="sd">                         (only for efficiency-map results)</span>
+<span class="sd">        :param txname: TxName object or txname string (only for UL-type results)</span>
+<span class="sd">        :param mass: Mass array with units (only for UL-type results)</span>
+<span class="sd">        :param compute: If True, the upper limit will be computed</span>
+<span class="sd">                        from expected and observed number of events. </span>
+<span class="sd">                        If False, the value listed in the database will be used </span>
+<span class="sd">                        instead.</span>
+<span class="sd">        </span>
+<span class="sd">        </span>
+<span class="sd">        :return: upper limit (Unum object)</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dataInfo</span><span class="o">.</span><span class="n">dataType</span> <span class="o">==</span> <span class="s1">&#39;efficiencyMap&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">dataID</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dataID</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The data set ID must be defined when computing ULs&quot;</span> \
+                             <span class="s2">&quot; for efficiency-map results.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+            
+            <span class="n">useDataset</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">dataset</span><span class="o">.</span><span class="n">dataInfo</span><span class="o">.</span><span class="n">dataId</span> <span class="o">==</span> <span class="n">dataID</span><span class="p">:</span>
+                    <span class="n">useDataset</span> <span class="o">=</span> <span class="n">dataset</span>
+                    <span class="k">break</span>
+            <span class="k">if</span> <span class="n">useDataset</span> <span class="ow">is</span> <span class="bp">False</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The data set ID not found.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+                
+            <span class="k">if</span> <span class="n">compute</span><span class="p">:</span>
+                <span class="n">upperLimit</span> <span class="o">=</span> <span class="n">useDataset</span><span class="o">.</span><span class="n">getSRUpperLimit</span><span class="p">(</span><span class="n">alpha</span><span class="p">,</span> <span class="n">expected</span><span class="p">,</span> <span class="n">compute</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">expected</span><span class="p">:</span>
+                    <span class="n">upperLimit</span> <span class="o">=</span> <span class="n">useDataset</span><span class="o">.</span><span class="n">dataInfo</span><span class="o">.</span><span class="n">expectedUpperLimit</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">upperLimit</span> <span class="o">=</span> <span class="n">useDataset</span><span class="o">.</span><span class="n">dataInfo</span><span class="o">.</span><span class="n">upperLimit</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">upperLimit</span><span class="o">/</span><span class="n">fb</span><span class="p">)</span><span class="o">.</span><span class="n">normalize</span><span class="p">()</span><span class="o">.</span><span class="n">_unit</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Upper limit defined with wrong units for </span><span class="si">%s</span><span class="s2"> and </span><span class="si">%s</span><span class="s2">&quot;</span>
+                                  <span class="o">%</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">globalInfo</span><span class="o">.</span><span class="n">id</span><span class="p">,</span><span class="n">dataset</span><span class="o">.</span><span class="n">dataInfo</span><span class="o">.</span><span class="n">dataId</span><span class="p">))</span>
+                    <span class="k">return</span> <span class="bp">False</span>           
+            
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dataInfo</span><span class="o">.</span><span class="n">dataType</span> <span class="o">==</span> <span class="s1">&#39;upperLimit&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">txname</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">mass</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;A TxName and mass array must be defined when </span><span class="se">\</span>
+<span class="s2">                             computing ULs for upper-limit results.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">txname</span><span class="p">,</span> <span class="n">txnameObj</span><span class="o">.</span><span class="n">TxName</span><span class="p">)</span> <span class="ow">and</span> \
+            <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">txname</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;txname must be a TxName object or a string&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mass</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;mass must be a mass array&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">for</span> <span class="n">tx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">getTxNames</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">tx</span> <span class="o">==</span> <span class="n">txname</span> <span class="ow">or</span> <span class="n">tx</span><span class="o">.</span><span class="n">txName</span> <span class="o">==</span> <span class="n">txname</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">expected</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">tx</span><span class="o">.</span><span class="n">txnameDataExp</span><span class="p">:</span> <span class="n">upperLimit</span> <span class="o">=</span> <span class="bp">None</span>
+                        <span class="k">else</span><span class="p">:</span> <span class="n">upperLimit</span> <span class="o">=</span> <span class="n">tx</span><span class="o">.</span><span class="n">txnameDataExp</span><span class="o">.</span><span class="n">getValueFor</span><span class="p">(</span><span class="n">mass</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span> <span class="n">upperLimit</span> <span class="o">=</span> <span class="n">tx</span><span class="o">.</span><span class="n">txnameData</span><span class="o">.</span><span class="n">getValueFor</span><span class="p">(</span><span class="n">mass</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Unkown data type: </span><span class="si">%s</span><span class="s2">. Data will be ignored.&quot;</span><span class="p">,</span> 
+                           <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dataInfo</span><span class="o">.</span><span class="n">dataType</span><span class="p">)</span>
+
+        
+        <span class="k">return</span> <span class="n">upperLimit</span></div>
+    
+
+<div class="viewcode-block" id="ExpResult.getValuesFor"><a class="viewcode-back" href="../../experiment.html#experiment.expResultObj.ExpResult.getValuesFor">[docs]</a>    <span class="k">def</span> <span class="nf">getValuesFor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a list for the possible values appearing in the ExpResult</span>
+<span class="sd">        for the required attribute (sqrts,id,constraint,...).</span>
+<span class="sd">        If there is a single value, returns the value itself.</span>
+<span class="sd">        </span>
+<span class="sd">        :param attribute: name of a field in the database (string). If not</span>
+<span class="sd">                          defined it will return a dictionary with all fields </span>
+<span class="sd">                          and their respective values</span>
+<span class="sd">        :return: list of values or value</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fieldDict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()[:]</span>
+        <span class="n">valuesDict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">while</span> <span class="n">fieldDict</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">field</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">fieldDict</span><span class="p">[:]:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;&lt;smodels.experiment&#39;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">valuesDict</span><span class="p">:</span>
+                        <span class="n">valuesDict</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span> <span class="n">valuesDict</span><span class="p">[</span><span class="n">field</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+                            <span class="n">fieldDict</span> <span class="o">+=</span> <span class="n">entry</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()[:]</span>
+                    <span class="k">else</span><span class="p">:</span> <span class="n">fieldDict</span> <span class="o">+=</span> <span class="n">value</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()[:]</span>
+                <span class="n">fieldDict</span><span class="o">.</span><span class="n">remove</span><span class="p">((</span><span class="n">field</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+
+        <span class="c1"># Try to keep only the set of unique values</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">valuesDict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">valuesDict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">attribute</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">valuesDict</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">attribute</span> <span class="ow">in</span> <span class="n">valuesDict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Could not find field </span><span class="si">%s</span><span class="s2"> in </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">attribute</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">valuesDict</span><span class="p">[</span><span class="n">attribute</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="ExpResult.getAttributes"><a class="viewcode-back" href="../../experiment.html#experiment.expResultObj.ExpResult.getAttributes">[docs]</a>    <span class="k">def</span> <span class="nf">getAttributes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">showPrivate</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks for all the fields/attributes it contains as well as the</span>
+<span class="sd">        attributes of its objects if they belong to smodels.experiment.</span>
+<span class="sd">        </span>
+<span class="sd">        :param showPrivate: if True, also returns the protected fields (_field)</span>
+<span class="sd">        :return: list of field names (strings)</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getValuesFor</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">fields</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">showPrivate</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">[:]:</span>
+                <span class="k">if</span> <span class="s2">&quot;_&quot;</span> <span class="o">==</span> <span class="n">field</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                    <span class="n">fields</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fields</span></div>
+    
+
+<div class="viewcode-block" id="ExpResult.getTxnameWith"><a class="viewcode-back" href="../../experiment.html#experiment.expResultObj.ExpResult.getTxnameWith">[docs]</a>    <span class="k">def</span> <span class="nf">getTxnameWith</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">restrDict</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a list of TxName objects satisfying the restrictions.</span>
+<span class="sd">        The restrictions specified as a dictionary.</span>
+<span class="sd">        </span>
+<span class="sd">        :param restrDict: dictionary containing the fields and their allowed values.</span>
+<span class="sd">                          E.g. {&#39;txname&#39; : &#39;T1&#39;, &#39;axes&#39; : ....}</span>
+<span class="sd">                          The dictionary values can be single entries or a list</span>
+<span class="sd">                          of values.  For the fields not listed, all values are</span>
+<span class="sd">                          assumed to be allowed.</span>
+<span class="sd">        :return: list of TxName objects if more than one txname matches the selection</span>
+<span class="sd">                 criteria or a single TxName object, if only one matches the </span>
+<span class="sd">                 selection.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">txnameList</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">tag</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">restrDict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">txname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">getTxNames</span><span class="p">():</span>
+                <span class="n">txval</span> <span class="o">=</span> <span class="n">txname</span><span class="o">.</span><span class="n">getInfo</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">txval</span> <span class="ow">is</span> <span class="bp">False</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">elif</span> <span class="n">txval</span> <span class="o">==</span> <span class="n">value</span><span class="p">:</span>
+                    <span class="n">txnameList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">txname</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">txnameList</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">txnameList</span> <span class="o">=</span> <span class="n">txnameList</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">txnameList</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, &lt;function authors at 0x7f73f74eb500&gt;.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.1.0patch1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

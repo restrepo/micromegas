@@ -1,0 +1,498 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tools.coverage &mdash; SModelS 1.1.0patch1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="SModelS 1.1.0patch1 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> SModelS
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.1.0patch1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../theory.html">theory package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../experiment.html">experiment package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tools.html">tools package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">SModelS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>tools.coverage</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tools.coverage</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: coverage</span>
+<span class="sd">   :synopsis: Definitions of classes used to find, format missing topologies</span>
+<span class="sd">    </span>
+<span class="sd">.. moduleauthor:: Ursula Laa &lt;ursula.laa@lpsc.in2p3.fr&gt;    </span>
+<span class="sd">.. moduleauthor:: Suchita Kulkarni &lt;suchita.kulkarni@gmail.com&gt;</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">from</span> <span class="nn">smodels.tools.physicsUnits</span> <span class="kn">import</span> <span class="n">fb</span>
+
+<div class="viewcode-block" id="Uncovered"><a class="viewcode-back" href="../../tools.html#tools.coverage.Uncovered">[docs]</a><span class="k">class</span> <span class="nc">Uncovered</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Object collecting all information of non-tested/covered elements</span>
+<span class="sd">    :ivar topoList: sms topology list</span>
+<span class="sd">    :ivar sumL: if true, sum up electron and muon to lepton, for missing topos</span>
+<span class="sd">    :ivar sumJet: if true, sum up jets, for missing topos</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topoList</span><span class="p">,</span> <span class="n">sumL</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">sumJet</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sqrts</span> <span class="o">=</span> <span class="nb">max</span><span class="p">([</span><span class="n">xsec</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">sqrts</span> <span class="k">for</span> <span class="n">xsec</span> <span class="ow">in</span> <span class="n">topoList</span><span class="o">.</span><span class="n">getTotalWeight</span><span class="p">()])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">missingTopos</span> <span class="o">=</span> <span class="n">UncoveredList</span><span class="p">(</span><span class="n">sumL</span><span class="p">,</span> <span class="n">sumJet</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sqrts</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outsideGrid</span> <span class="o">=</span> <span class="n">UncoveredList</span><span class="p">(</span><span class="n">sumL</span><span class="p">,</span> <span class="n">sumJet</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sqrts</span><span class="p">)</span> <span class="c1"># FIXME change this to derived objects for printout</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">longCascade</span> <span class="o">=</span> <span class="n">UncoveredClassifier</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">asymmetricBranches</span> <span class="o">=</span> <span class="n">UncoveredClassifier</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">motherIDs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">getAllMothers</span><span class="p">(</span><span class="n">topoList</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">topoList</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">asymmetricBranches</span><span class="o">.</span><span class="n">combine</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">longCascade</span><span class="o">.</span><span class="n">combine</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Uncovered.getAllMothers"><a class="viewcode-back" href="../../tools.html#tools.coverage.Uncovered.getAllMothers">[docs]</a>    <span class="k">def</span> <span class="nf">getAllMothers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topoList</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Find all IDs of mother elements, only most compressed element can be missing topology</span>
+<span class="sd">        :ivar topoList: sms topology list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">topoList</span><span class="o">.</span><span class="n">getElements</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">mEl</span> <span class="ow">in</span> <span class="n">el</span><span class="o">.</span><span class="n">motherElements</span><span class="p">:</span>
+                <span class="n">motherID</span> <span class="o">=</span> <span class="n">mEl</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">elID</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">motherID</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">motherIDs</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">motherIDs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">motherID</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Uncovered.fill"><a class="viewcode-back" href="../../tools.html#tools.coverage.Uncovered.fill">[docs]</a>    <span class="k">def</span> <span class="nf">fill</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topoList</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check all elements, categorise those not tested / missing, classify long cascade decays and asymmetric branches</span>
+<span class="sd">        Fills all corresponding objects</span>
+<span class="sd">        :ivar topoList: sms topology list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">topoList</span><span class="o">.</span><span class="n">getElements</span><span class="p">():</span>
+            <span class="n">missing</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">isMissingTopo</span><span class="p">(</span><span class="n">el</span><span class="p">)</span> <span class="c1">#missing topo only if not mother, covered, mother covered</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">missing</span><span class="p">:</span> <span class="c1"># if not missing check if it is actually tested</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">el</span><span class="o">.</span><span class="n">tested</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">outsideGrid</span><span class="o">.</span><span class="n">addToTopos</span><span class="p">(</span><span class="n">el</span><span class="p">)</span> <span class="c1"># not missing but not tested means we are outside the mass grid</span>
+                <span class="k">continue</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">missingTopos</span><span class="o">.</span><span class="n">addToTopos</span><span class="p">(</span><span class="n">el</span><span class="p">)</span> <span class="c1">#keep track of all missing topologies</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasLongCascade</span><span class="p">(</span><span class="n">el</span><span class="p">):</span> <span class="bp">self</span><span class="o">.</span><span class="n">longCascade</span><span class="o">.</span><span class="n">addToClasses</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasAsymmetricBranches</span><span class="p">(</span><span class="n">el</span><span class="p">):</span> <span class="bp">self</span><span class="o">.</span><span class="n">asymmetricBranches</span><span class="o">.</span><span class="n">addToClasses</span><span class="p">(</span><span class="n">el</span><span class="p">)</span> <span class="c1"># if no long cascade, check for asymmetric branches</span></div>
+
+<div class="viewcode-block" id="Uncovered.hasLongCascade"><a class="viewcode-back" href="../../tools.html#tools.coverage.Uncovered.hasLongCascade">[docs]</a>    <span class="k">def</span> <span class="nf">hasLongCascade</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">el</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return True if element has more than 3 particles in the decay chain</span>
+<span class="sd">        :ivar el: Element</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">el</span><span class="o">.</span><span class="n">_getLength</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span> <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="bp">False</span></div>
+
+<div class="viewcode-block" id="Uncovered.hasAsymmetricBranches"><a class="viewcode-back" href="../../tools.html#tools.coverage.Uncovered.hasAsymmetricBranches">[docs]</a>    <span class="k">def</span> <span class="nf">hasAsymmetricBranches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">el</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return True if Element branches are not equal</span>
+<span class="sd">        :ivar el: Element</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">el</span><span class="o">.</span><span class="n">branches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">el</span><span class="o">.</span><span class="n">branches</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="bp">True</span></div>
+
+<div class="viewcode-block" id="Uncovered.isMissingTopo"><a class="viewcode-back" href="../../tools.html#tools.coverage.Uncovered.isMissingTopo">[docs]</a>    <span class="k">def</span> <span class="nf">isMissingTopo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">el</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A missing topology is not a mother element, not covered, and does not have mother which is covered</span>
+<span class="sd">        :ivar el: Element</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">el</span><span class="o">.</span><span class="n">elID</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">motherIDs</span><span class="p">:</span> <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="n">el</span><span class="o">.</span><span class="n">covered</span><span class="p">:</span> <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">motherCovered</span><span class="p">(</span><span class="n">el</span><span class="p">):</span> <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="bp">True</span></div>
+
+<div class="viewcode-block" id="Uncovered.motherCovered"><a class="viewcode-back" href="../../tools.html#tools.coverage.Uncovered.motherCovered">[docs]</a>    <span class="k">def</span> <span class="nf">motherCovered</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">el</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Recursively check if a mother of the given Element is covered</span>
+<span class="sd">        :ivar el: Element</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mothers</span> <span class="o">=</span> <span class="n">el</span><span class="o">.</span><span class="n">motherElements</span>
+        <span class="k">while</span> <span class="n">mothers</span><span class="p">:</span>
+            <span class="n">newmothers</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">mother</span> <span class="ow">in</span> <span class="n">mothers</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">mother</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">covered</span><span class="p">:</span> <span class="k">return</span> <span class="bp">True</span>
+                <span class="n">newmothers</span> <span class="o">+=</span> <span class="n">mother</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">motherElements</span>
+            <span class="n">mothers</span> <span class="o">=</span> <span class="n">newmothers</span>
+        <span class="k">return</span> <span class="bp">False</span></div>
+
+<div class="viewcode-block" id="Uncovered.getMissingXsec"><a class="viewcode-back" href="../../tools.html#tools.coverage.Uncovered.getMissingXsec">[docs]</a>    <span class="k">def</span> <span class="nf">getMissingXsec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sqrts</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate total missing topology cross section at sqrts. If no sqrts is given use self.sqrts</span>
+<span class="sd">        :ivar sqrts: sqrts</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">xsec</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">sqrts</span><span class="p">:</span> <span class="n">sqrts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sqrts</span>
+        <span class="k">for</span> <span class="n">topo</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">missingTopos</span><span class="o">.</span><span class="n">topos</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">topo</span><span class="o">.</span><span class="n">contributingElements</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">el</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">getXsecsFor</span><span class="p">(</span><span class="n">sqrts</span><span class="p">):</span> <span class="k">continue</span>
+                <span class="n">xsec</span> <span class="o">+=</span> <span class="n">el</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">getXsecsFor</span><span class="p">(</span><span class="n">sqrts</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">asNumber</span><span class="p">(</span><span class="n">fb</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">xsec</span></div>
+
+<div class="viewcode-block" id="Uncovered.getOutOfGridXsec"><a class="viewcode-back" href="../../tools.html#tools.coverage.Uncovered.getOutOfGridXsec">[docs]</a>    <span class="k">def</span> <span class="nf">getOutOfGridXsec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sqrts</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span> <span class="c1">#FIXME same as getMissingXsec but different object, should not be separate functions</span>
+        <span class="n">xsec</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">sqrts</span><span class="p">:</span> <span class="n">sqrts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sqrts</span>
+        <span class="k">for</span> <span class="n">topo</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outsideGrid</span><span class="o">.</span><span class="n">topos</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">topo</span><span class="o">.</span><span class="n">contributingElements</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">el</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">getXsecsFor</span><span class="p">(</span><span class="n">sqrts</span><span class="p">):</span> <span class="k">continue</span>
+                <span class="n">xsec</span> <span class="o">+=</span> <span class="n">el</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">getXsecsFor</span><span class="p">(</span><span class="n">sqrts</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">asNumber</span><span class="p">(</span><span class="n">fb</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">xsec</span></div>
+
+<div class="viewcode-block" id="Uncovered.getLongCascadeXsec"><a class="viewcode-back" href="../../tools.html#tools.coverage.Uncovered.getLongCascadeXsec">[docs]</a>    <span class="k">def</span> <span class="nf">getLongCascadeXsec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sqrts</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">xsec</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">sqrts</span><span class="p">:</span> <span class="n">sqrts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sqrts</span>
+        <span class="k">for</span> <span class="n">uncovClass</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">longCascade</span><span class="o">.</span><span class="n">classes</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">uncovClass</span><span class="o">.</span><span class="n">contributingElements</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">el</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">getXsecsFor</span><span class="p">(</span><span class="n">sqrts</span><span class="p">):</span> <span class="k">continue</span>
+                <span class="n">xsec</span> <span class="o">+=</span> <span class="n">el</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">getXsecsFor</span><span class="p">(</span><span class="n">sqrts</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">asNumber</span><span class="p">(</span><span class="n">fb</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">xsec</span></div>
+
+<div class="viewcode-block" id="Uncovered.getAsymmetricXsec"><a class="viewcode-back" href="../../tools.html#tools.coverage.Uncovered.getAsymmetricXsec">[docs]</a>    <span class="k">def</span> <span class="nf">getAsymmetricXsec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sqrts</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">xsec</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">sqrts</span><span class="p">:</span> <span class="n">sqrts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sqrts</span>
+        <span class="k">for</span> <span class="n">uncovClass</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">asymmetricBranches</span><span class="o">.</span><span class="n">classes</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">uncovClass</span><span class="o">.</span><span class="n">contributingElements</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">el</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">getXsecsFor</span><span class="p">(</span><span class="n">sqrts</span><span class="p">):</span> <span class="k">continue</span>
+                <span class="n">xsec</span> <span class="o">+=</span> <span class="n">el</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">getXsecsFor</span><span class="p">(</span><span class="n">sqrts</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">asNumber</span><span class="p">(</span><span class="n">fb</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">xsec</span></div></div>
+          
+<div class="viewcode-block" id="UncoveredClassifier"><a class="viewcode-back" href="../../tools.html#tools.coverage.UncoveredClassifier">[docs]</a><span class="k">class</span> <span class="nc">UncoveredClassifier</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Object collecting elements with long cascade decays or asymmetric branches.</span>
+<span class="sd">    Objects are grouped according to the initially produced particle PID pair.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">classes</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="UncoveredClassifier.addToClasses"><a class="viewcode-back" href="../../tools.html#tools.coverage.UncoveredClassifier.addToClasses">[docs]</a>    <span class="k">def</span> <span class="nf">addToClasses</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">el</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add Element in corresponding UncoveredClass, defined by mother PIDs.</span>
+<span class="sd">        If no corresponding class in self.classes, add new UncoveredClass</span>
+<span class="sd">        :ivar el: Element</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">motherPIDs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getMotherPIDs</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">classes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">entry</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">motherPIDs</span><span class="p">,</span> <span class="n">el</span><span class="p">):</span> <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">classes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">UncoveredClass</span><span class="p">(</span><span class="n">motherPIDs</span><span class="p">,</span> <span class="n">el</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="UncoveredClassifier.getMotherPIDs"><a class="viewcode-back" href="../../tools.html#tools.coverage.UncoveredClassifier.getMotherPIDs">[docs]</a>    <span class="k">def</span> <span class="nf">getMotherPIDs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">el</span><span class="p">):</span>
+        <span class="n">allPIDs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">pids</span> <span class="ow">in</span> <span class="n">el</span><span class="o">.</span><span class="n">getMothers</span><span class="p">():</span>
+            <span class="n">cPIDs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">pid</span> <span class="ow">in</span> <span class="n">pids</span><span class="p">:</span>
+              <span class="n">cPIDs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">pid</span><span class="p">))</span>
+            <span class="n">cPIDs</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">cPIDs</span> <span class="ow">in</span> <span class="n">allPIDs</span><span class="p">:</span>
+                <span class="n">allPIDs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cPIDs</span><span class="p">)</span>
+        <span class="n">allPIDs</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">allPIDs</span></div>
+
+<div class="viewcode-block" id="UncoveredClassifier.combine"><a class="viewcode-back" href="../../tools.html#tools.coverage.UncoveredClassifier.combine">[docs]</a>    <span class="k">def</span> <span class="nf">combine</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">ecopy</span> <span class="ow">in</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">classes</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">classes</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">isSubset</span><span class="p">(</span><span class="n">ecopy</span><span class="p">):</span>
+                    <span class="n">e</span><span class="o">.</span><span class="n">combine</span><span class="p">(</span><span class="n">ecopy</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">ecopy</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="UncoveredClassifier.remove"><a class="viewcode-back" href="../../tools.html#tools.coverage.UncoveredClassifier.remove">[docs]</a>    <span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cl</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Remove element where mother pids match exactly</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">o</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">classes</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">o</span><span class="o">.</span><span class="n">motherPIDs</span> <span class="o">==</span> <span class="n">cl</span><span class="o">.</span><span class="n">motherPIDs</span><span class="p">:</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">classes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="k">break</span></div>
+
+<div class="viewcode-block" id="UncoveredClassifier.getSorted"><a class="viewcode-back" href="../../tools.html#tools.coverage.UncoveredClassifier.getSorted">[docs]</a>    <span class="k">def</span> <span class="nf">getSorted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sqrts</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns list of UncoveredClass objects in self.classes, sorted by weight</span>
+<span class="sd">        :ivar sqrts: sqrts for weight lookup</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">classes</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">getWeight</span><span class="p">(</span><span class="n">sqrts</span><span class="p">)</span><span class="o">.</span><span class="n">asNumber</span><span class="p">(</span><span class="n">fb</span><span class="p">),</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="UncoveredClass"><a class="viewcode-back" href="../../tools.html#tools.coverage.UncoveredClass">[docs]</a><span class="k">class</span> <span class="nc">UncoveredClass</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Object collecting all elements contributing to the same uncovered class, defined by the mother PIDs.</span>
+<span class="sd">    :ivar motherPIDs: PID of initially produces particles, sorted and without charge information</span>
+<span class="sd">    :ivar el: Element</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">motherPIDs</span><span class="p">,</span> <span class="n">el</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">motherPIDs</span> <span class="o">=</span> <span class="n">motherPIDs</span> <span class="c1"># holds nested list of mother PIDs as given by element.getMothers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">contributingElements</span> <span class="o">=</span> <span class="p">[</span><span class="n">el</span><span class="p">]</span> <span class="c1"># collect all contributing elements, to keep track of weights as well</span>
+<div class="viewcode-block" id="UncoveredClass.add"><a class="viewcode-back" href="../../tools.html#tools.coverage.UncoveredClass.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">motherPIDs</span><span class="p">,</span> <span class="n">el</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add Element to this UncoveredClass object if motherPIDs match and return True, else return False</span>
+<span class="sd">        :ivar motherPIDs: PID of initially produces particles, sorted and without charge information</span>
+<span class="sd">        :ivar el: Element</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">motherPIDs</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">motherPIDs</span><span class="p">:</span> <span class="k">return</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">contributingElements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">True</span></div>
+
+<div class="viewcode-block" id="UncoveredClass.combine"><a class="viewcode-back" href="../../tools.html#tools.coverage.UncoveredClass.combine">[docs]</a>    <span class="k">def</span> <span class="nf">combine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">other</span><span class="o">.</span><span class="n">contributingElements</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">contributingElements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="UncoveredClass.getWeight"><a class="viewcode-back" href="../../tools.html#tools.coverage.UncoveredClass.getWeight">[docs]</a>    <span class="k">def</span> <span class="nf">getWeight</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sqrts</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate weight at sqrts</span>
+<span class="sd">        :ivar sqrts: sqrts</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">xsec</span> <span class="o">=</span> <span class="mf">0.</span><span class="o">*</span><span class="n">fb</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">contributingElements</span><span class="p">:</span>
+            <span class="n">elxsec</span> <span class="o">=</span> <span class="n">el</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">getXsecsFor</span><span class="p">(</span><span class="n">sqrts</span><span class="p">)</span>            
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">elxsec</span><span class="p">:</span> <span class="k">continue</span>
+            <span class="n">xsec</span> <span class="o">+=</span> <span class="n">elxsec</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>            
+        <span class="k">return</span> <span class="n">xsec</span></div>
+
+<div class="viewcode-block" id="UncoveredClass.isSubset"><a class="viewcode-back" href="../../tools.html#tools.coverage.UncoveredClass.isSubset">[docs]</a>    <span class="k">def</span> <span class="nf">isSubset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        True if motherPIDs of others are subset of the motherPIDs of this UncoveredClass</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">motherPIDs</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">motherPIDs</span><span class="p">):</span> <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">for</span> <span class="n">mothers</span> <span class="ow">in</span> <span class="n">other</span><span class="o">.</span><span class="n">motherPIDs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">mothers</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">motherPIDs</span><span class="p">:</span> <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="bp">True</span></div></div>
+  
+<div class="viewcode-block" id="UncoveredTopo"><a class="viewcode-back" href="../../tools.html#tools.coverage.UncoveredTopo">[docs]</a><span class="k">class</span> <span class="nc">UncoveredTopo</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Object to describe one missing topology result / one topology outside the mass grid</span>
+<span class="sd">    :ivar topo: topology description</span>
+<span class="sd">    :ivar weights: weights dictionary</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topo</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">contributingElements</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">topo</span> <span class="o">=</span> <span class="n">topo</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">contributingElements</span> <span class="o">=</span> <span class="n">contributingElements</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">0.</span> <span class="c1"># weight for sqrts set in uncoveredList, only set this in printout</span></div>
+
+<div class="viewcode-block" id="UncoveredList"><a class="viewcode-back" href="../../tools.html#tools.coverage.UncoveredList">[docs]</a><span class="k">class</span> <span class="nc">UncoveredList</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Object to find and collect UncoveredTopo objects, plus printout functionality</span>
+<span class="sd">    :ivar sumL: if true sum electrons and muons to leptons</span>
+<span class="sd">    :ivar sumJet: if true, sum up jets</span>
+<span class="sd">    :ivar sqrts: sqrts, for printout</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sumL</span><span class="p">,</span> <span class="n">sumJet</span><span class="p">,</span> <span class="n">sqrts</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">topos</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sumL</span> <span class="o">=</span> <span class="n">sumL</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sumJet</span> <span class="o">=</span> <span class="n">sumJet</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sqrts</span> <span class="o">=</span> <span class="n">sqrts</span>
+
+<div class="viewcode-block" id="UncoveredList.addToTopos"><a class="viewcode-back" href="../../tools.html#tools.coverage.UncoveredList.addToTopos">[docs]</a>    <span class="k">def</span> <span class="nf">addToTopos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">el</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        adds an element to the list of missing topologies</span>
+<span class="sd">        if the element contributes to a missing topology that is already</span>
+<span class="sd">        in the list, add weight to topology</span>
+<span class="sd">        :parameter el: element to be added</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">orderbranches</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">generalName</span><span class="p">(</span><span class="n">el</span><span class="o">.</span><span class="n">__str__</span><span class="p">()))</span>
+        <span class="k">for</span> <span class="n">topo</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">topos</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="n">topo</span><span class="o">.</span><span class="n">topo</span><span class="p">:</span>
+                <span class="n">topo</span><span class="o">.</span><span class="n">contributingElements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+                <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">topos</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">UncoveredTopo</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">el</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span> <span class="p">[</span><span class="n">el</span><span class="p">]))</span>
+        <span class="k">return</span></div>
+
+<div class="viewcode-block" id="UncoveredList.generalName"><a class="viewcode-back" href="../../tools.html#tools.coverage.UncoveredList.generalName">[docs]</a>    <span class="k">def</span> <span class="nf">generalName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        generalize by summing over charges</span>
+<span class="sd">        e, mu are combined to l</span>
+<span class="sd">        :parameter instr: element as string</span>
+<span class="sd">        :returns: string of generalized element</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">smodels.theory.particleNames</span> <span class="kn">import</span> <span class="n">ptcDic</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sumL</span><span class="p">:</span> <span class="n">exch</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;W&quot;</span><span class="p">,</span> <span class="s2">&quot;l&quot;</span><span class="p">,</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;ta&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span> <span class="n">exch</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;W&quot;</span><span class="p">,</span> <span class="s2">&quot;e&quot;</span><span class="p">,</span> <span class="s2">&quot;mu&quot;</span><span class="p">,</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;ta&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sumJet</span><span class="p">:</span> <span class="n">exch</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;jet&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">pn</span> <span class="ow">in</span> <span class="n">exch</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">on</span> <span class="ow">in</span> <span class="n">ptcDic</span><span class="p">[</span><span class="n">pn</span><span class="p">]:</span>
+                <span class="n">instr</span> <span class="o">=</span> <span class="n">instr</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">on</span><span class="p">,</span> <span class="n">pn</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;hijetjets&quot;</span><span class="p">,</span><span class="s2">&quot;higgs&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">instr</span></div>
+
+<div class="viewcode-block" id="UncoveredList.orderbranches"><a class="viewcode-back" href="../../tools.html#tools.coverage.UncoveredList.orderbranches">[docs]</a>    <span class="k">def</span> <span class="nf">orderbranches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        unique ordering of branches</span>
+<span class="sd">        :parameter instr: element as string</span>
+<span class="sd">        :returns: string of ordered element</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">smodels.theory.element</span> <span class="kn">import</span> <span class="n">Element</span>
+        <span class="n">li</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="n">instr</span><span class="p">)</span><span class="o">.</span><span class="n">getParticles</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">be</span> <span class="ow">in</span> <span class="n">li</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">ve</span> <span class="ow">in</span> <span class="n">be</span><span class="p">:</span>
+                <span class="n">ve</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="n">li</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">li</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, &lt;function authors at 0x7f73f74eb500&gt;.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.1.0patch1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

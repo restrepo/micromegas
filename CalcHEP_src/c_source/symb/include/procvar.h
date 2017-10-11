@@ -2,6 +2,7 @@
 #define __PROCVAR_
 
 #include "physics.h"
+#include "pvars.h"
 
 #define VAR_NAME_SIZE_EXT  20 
 
@@ -16,6 +17,6 @@ typedef struct
 extern singlevardescription *vararr;
 extern int nProcessVar;
 
-extern int  initvararray(int nsub, char key,int width);
+extern int  initvararray(int nsub, char key, polyvars * vardef_ext);
 
 #endif

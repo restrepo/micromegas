@@ -14,6 +14,7 @@ else
 fi 
 
 
+
 line=`grep Vegas_calls session.dat`
 ll=`echo $line |sed s/\#// | sed s/x/" "/g`
 
@@ -28,7 +29,7 @@ if(test $nc1 -ne 0 -a $n1 -ne 0 ) then
   fi
  
   if(test $nc2 -ne 0  -a  $n2 -ne  0 ) then 
-    ./n_calchep -blind  "[[[[[[[[[{[[[{[[{[{]]]]]]{$n2{[{$nc2{[[{]]]{$n1{[{$nc1{0" 1>/dev/null 2>/dev/null
+    ./n_calchep -blind  "[[[[[[[[[{[[[{[[{[{]]]{0" 1>/dev/null 2>/dev/null
     err=$?
   else 
     ./n_calchep -blind  "[[[[[[[[[{[[[{0" 1>/dev/null 2>/dev/null
@@ -38,7 +39,7 @@ else
     if(test $grid -eq 0 ) then 
      ./n_calchep -blind  "[[[[[[[[[{[[[[[[{0" 1>/dev/null 2>/dev/null
     fi
-     ./n_calchep -blind  "[[[[[[[[[{{$n2{[{$nc2{[[{[[[{]]]]]]{$n1{[{$nc1{0" 1>/dev/null 2>/dev/null
+     ./n_calchep -blind  "[[[[[[[[[{[[[{0" 1>/dev/null 2>/dev/null
      err=$?
   else
      echo ' Zero number of Vecas call'
@@ -53,7 +54,9 @@ if(test $err -eq 0) then
   n=`echo $n|cut -f2 -d" "`
   if(test -r prt_$n) then 
     res=`grep "< >"  prt_$n |tail -1`
-    res=`echo $res| cut -f3 -d" "`
+    res_=`echo $res| cut -f3 -d" "`
+    res__=`echo $res| cut -f4 -d" "`
+    res="$res_ $res__"  
   else 
     exit 87
   fi

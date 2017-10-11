@@ -1,0 +1,28 @@
+<!--
+parametrization of a 2D Gaussian fitted from the 68% CL contour
+in the plane mu(gg+ttH, WW) vs. mu(VBF+VH, WW)
+at mH = 125.36 GeV, shown in CONF-2014-060
+https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/CONFNOTES/ATLAS-CONF-2014-060/
+-->
+
+<expmu decay="WW" dim="2" type="n">
+  <experiment>ATLAS</experiment>
+  <source type="preliminary">CONF-2014-060</source>
+  <sqrts>7+8</sqrts>
+  <mass>125.36</mass>
+  <CL>68%</CL> <!-- optional -->
+  
+  <eff axis="x" prod="ggH">1.0</eff>
+  <eff axis="y" prod="VBF">1.0</eff>
+
+  <bestfit>
+    <x>1.02615</x>
+    <y>1.36234</y>
+  </bestfit>
+  
+  <param>
+    <a>14.8915</a>
+    <b>1.25053</b>
+    <c>4.27807</c>
+  </param>
+</expmu>

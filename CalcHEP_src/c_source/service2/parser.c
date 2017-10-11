@@ -86,8 +86,7 @@ static void * readSmplTerm(void)
    }                 
    else if(source[count]=='"') 
    {count++; while(count-m1<=ILEN &&  (source[count]!='"' || source[count-1]=='\\') ) count++; count++;} 
-   else {count++; while(isalnum(source[count])||source[count]=='_') count++;}
-
+   else {count++; while(isalnum(source[count])||source[count]=='_'||source[count]=='`') count++;}
    len=count-m1;
    if(len>ILEN) {rderrcode=toolongidentifier; return NULL;} 
    else         sprintf(tmp,"%*.*s",len,len,source+m1); 

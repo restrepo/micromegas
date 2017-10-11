@@ -1,0 +1,517 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tools.databaseBrowser &mdash; SModelS 1.1.0patch1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="SModelS 1.1.0patch1 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> SModelS
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.1.0patch1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../theory.html">theory package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../experiment.html">experiment package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tools.html">tools package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">SModelS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>tools.databaseBrowser</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tools.databaseBrowser</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: databaseBrowser</span>
+<span class="sd">   :synopsis: Centralized facility to access smodels-database.</span>
+
+<span class="sd">.. moduleauthor:: Veronika Magerl &lt;v.magerl@gmx.at&gt;</span>
+<span class="sd">.. moduleauthor:: Andre Lessa &lt;lessa.a.p@gmail.com&gt;</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">smodels.experiment.databaseObj</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span><span class="n">ExpResult</span>
+<span class="kn">import</span> <span class="nn">numpy</span><span class="o">,</span> <span class="nn">unum</span>
+<span class="kn">from</span> <span class="nn">smodels.theory.exceptions</span> <span class="kn">import</span> <span class="n">SModelSTheoryError</span> <span class="k">as</span> <span class="n">SModelSError</span>
+<span class="kn">from</span> <span class="nn">smodels.tools.smodelsLogging</span> <span class="kn">import</span> <span class="n">logger</span>
+
+<span class="c1">#logger.setLevel(level=logging.INFO)</span>
+
+<div class="viewcode-block" id="Browser"><a class="viewcode-back" href="../../tools.html#tools.databaseBrowser.Browser">[docs]</a><span class="k">class</span> <span class="nc">Browser</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Browses the database, exits if given path does not point to a valid</span>
+<span class="sd">    smodels-database. Browser can be restricted to specified run or experiment.</span>
+<span class="sd">    Verbosity can be set to specified level.</span>
+
+<span class="sd">    :ivar database: Database object holding all the database information</span>
+<span class="sd">    :ivar _selectedExpResults: list of experimental results loaded in the browser.</span>
+<span class="sd">                       Can be used to hold a subset of results in the database.</span>
+<span class="sd">                       By default all results are loaded.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database</span><span class="p">,</span> <span class="n">force_txt</span> <span class="o">=</span> <span class="bp">False</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param database: Path to the database or Database object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_selectedExpResults</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">load</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="n">force_txt</span> <span class="o">==</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="n">load</span> <span class="o">=</span> <span class="s2">&quot;txt&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">database</span><span class="p">,</span><span class="nb">str</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">database</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="n">database</span><span class="p">,</span> <span class="n">load</span> <span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">database</span><span class="p">,</span><span class="n">Database</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">database</span> <span class="o">=</span> <span class="n">database</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The input must be the database location or a Database object.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loadAllResults</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_selectedExpResults</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_selectedExpResults</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">expRes</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expRes</span><span class="p">,</span><span class="n">ExpResult</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Input object must be a ExpResult() object&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_selectedExpResults</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">expRes</span>
+
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_selectedExpResults</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">([</span><span class="n">expRes</span><span class="o">.</span><span class="n">globalInfo</span><span class="o">.</span><span class="n">getInfo</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">expRes</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_selectedExpResults</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="Browser.loadAllResults"><a class="viewcode-back" href="../../tools.html#tools.databaseBrowser.Browser.loadAllResults">[docs]</a>    <span class="k">def</span> <span class="nf">loadAllResults</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Saves all the results from database to the _selectedExpResults.</span>
+<span class="sd">        Can be used to restore all results to _selectedExpResults.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_selectedExpResults</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="o">.</span><span class="n">expResultList</span><span class="p">[:]</span></div>
+
+<div class="viewcode-block" id="Browser.getValuesFor"><a class="viewcode-back" href="../../tools.html#tools.databaseBrowser.Browser.getValuesFor">[docs]</a>    <span class="k">def</span> <span class="nf">getValuesFor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">attribute</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">expResult</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a list for the possible values appearing in the database</span>
+<span class="sd">        for the required attribute (sqrts,id,constraint,...).</span>
+
+<span class="sd">        :param attribute: name of a field in the database (string). If not defined</span>
+<span class="sd">                          it will return a dictionary with all fields and their respective</span>
+<span class="sd">                          values</span>
+<span class="sd">        :param expResult: if defined, restricts the list to the corresponding expResult.</span>
+<span class="sd">                          Must be an ExpResult object.</span>
+<span class="sd">        :return: list of values</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+
+        <span class="n">fieldDict</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">expResult</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expResult</span><span class="p">,</span><span class="n">ExpResult</span><span class="p">):</span>
+            <span class="n">fieldDict</span> <span class="o">=</span> <span class="n">expResult</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()[:]</span>   <span class="c1">#Use only the entries for the expResult</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">expResult</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+                <span class="n">fieldDict</span> <span class="o">+=</span> <span class="n">expResult</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()[:]</span>     <span class="c1">#Use all entries/expResults</span>
+        <span class="n">valuesDict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">while</span> <span class="n">fieldDict</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">field</span><span class="p">,</span><span class="n">value</span> <span class="ow">in</span> <span class="n">fieldDict</span><span class="p">[:]:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;&lt;smodels.experiment&#39;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">valuesDict</span><span class="p">:</span> <span class="n">valuesDict</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span> <span class="n">valuesDict</span><span class="p">[</span><span class="n">field</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span><span class="nb">list</span><span class="p">):</span>
+                        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span> <span class="n">fieldDict</span> <span class="o">+=</span> <span class="n">entry</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()[:]</span>
+                    <span class="k">else</span><span class="p">:</span> <span class="n">fieldDict</span> <span class="o">+=</span> <span class="n">value</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()[:]</span>
+                <span class="n">fieldDict</span><span class="o">.</span><span class="n">remove</span><span class="p">((</span><span class="n">field</span><span class="p">,</span><span class="n">value</span><span class="p">))</span>
+
+        <span class="c1">#Try to keep only the set of unique values</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span><span class="n">val</span> <span class="ow">in</span> <span class="n">valuesDict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span> <span class="n">valuesDict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span> <span class="k">pass</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">attribute</span><span class="p">:</span> <span class="k">return</span> <span class="n">valuesDict</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">attribute</span> <span class="ow">in</span> <span class="n">valuesDict</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Could not find field </span><span class="si">%s</span><span class="s2"> in database&quot;</span> <span class="o">%</span> <span class="n">attribute</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">valuesDict</span><span class="p">[</span><span class="n">attribute</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Browser.getAttributes"><a class="viewcode-back" href="../../tools.html#tools.databaseBrowser.Browser.getAttributes">[docs]</a>    <span class="k">def</span> <span class="nf">getAttributes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">showPrivate</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks for all the fields/attributes it contains as well as the</span>
+<span class="sd">        attributes of its objects if they belong to smodels.experiment.</span>
+
+<span class="sd">        :param showPrivate: if True, also returns the protected fields (_field)</span>
+<span class="sd">        :return: list of field names (strings)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getValuesFor</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">fields</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">showPrivate</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">[:]:</span>
+                <span class="k">if</span> <span class="s2">&quot;_&quot;</span> <span class="o">==</span> <span class="n">field</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">fields</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fields</span></div>
+        
+<div class="viewcode-block" id="Browser.getEfficiencyFor"><a class="viewcode-back" href="../../tools.html#tools.databaseBrowser.Browser.getEfficiencyFor">[docs]</a>    <span class="k">def</span> <span class="nf">getEfficiencyFor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">expid</span><span class="p">,</span><span class="n">dataset</span><span class="p">,</span><span class="n">txname</span><span class="p">,</span><span class="n">massarray</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get an efficiency for the given experimental id, </span>
+<span class="sd">        the dataset name, the txname, and the massarray.</span>
+<span class="sd">        Can only be used for EfficiencyMap-type experimental results.</span>
+<span class="sd">        Interpolation is done, if necessary.</span>
+
+<span class="sd">        :param expid: experimental id (string)</span>
+<span class="sd">        :param dataset: dataset name (string)</span>
+<span class="sd">        :param txname: txname (string).</span>
+<span class="sd">        :param massarray: list of masses with units, e.g.</span>
+<span class="sd">                          [[ 400.*GeV, 100.*GeV],[400.*GeV, 100.*GeV]]</span>
+<span class="sd">        :return: efficiency</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#First select the experimental results matching the id and the result type:</span>
+        <span class="n">expres</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">for</span> <span class="n">expResult</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">expResult</span><span class="o">.</span><span class="n">getValuesFor</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">expid</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s1">&#39;efficiencyMap&#39;</span> <span class="ow">in</span> <span class="n">expResult</span><span class="o">.</span><span class="n">getValuesFor</span><span class="p">(</span><span class="s1">&#39;dataType&#39;</span><span class="p">):</span>
+                    <span class="n">expres</span> <span class="o">=</span> <span class="n">expResult</span>
+                    <span class="k">break</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">expres</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span> <span class="s2">&quot;Could not find efficiencyMap result </span><span class="si">%s</span><span class="s2">.&quot;</span>\
+                   <span class="s2">&quot; getEfficiencyForr can only be</span><span class="se">\</span>
+<span class="s2">            used for efficiencyMap results.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">expid</span><span class="p">))</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+        <span class="k">return</span> <span class="n">expres</span><span class="o">.</span><span class="n">getEfficiencyFor</span> <span class="p">(</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">txname</span><span class="p">,</span> <span class="n">massarray</span> <span class="p">)</span></div>
+
+<div class="viewcode-block" id="Browser.getULFor"><a class="viewcode-back" href="../../tools.html#tools.databaseBrowser.Browser.getULFor">[docs]</a>    <span class="k">def</span> <span class="nf">getULFor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">expid</span><span class="p">,</span><span class="n">txname</span><span class="p">,</span><span class="n">massarray</span><span class="p">,</span> <span class="n">expected</span><span class="o">=</span><span class="bp">False</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get an upper limit for the given experimental id, the txname, </span>
+<span class="sd">        and the massarray.</span>
+<span class="sd">        Can only be used for UL experimental results.</span>
+<span class="sd">        Interpolation is done, if necessary.</span>
+
+<span class="sd">        :param expid: experimental id (string)</span>
+<span class="sd">        :param txname: txname (string). ONLY required for upper limit results</span>
+<span class="sd">        :param massarray: list of masses with units, e.g.</span>
+<span class="sd">                          [[ 400.*GeV, 100.*GeV],[400.*GeV, 100.*GeV]]</span>
+<span class="sd">        :param expected: If true, return expected upper limit, otherwise</span>
+<span class="sd">                         return observed upper limit.</span>
+<span class="sd">        :return: upper limit [fb]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1">#First select the experimental results matching the id and the result type:</span>
+        <span class="n">expres</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">for</span> <span class="n">expResult</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">expResult</span><span class="o">.</span><span class="n">getValuesFor</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">expid</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s1">&#39;upperLimit&#39;</span> <span class="ow">in</span> <span class="n">expResult</span><span class="o">.</span><span class="n">getValuesFor</span><span class="p">(</span><span class="s1">&#39;dataType&#39;</span><span class="p">):</span>
+                    <span class="n">expres</span> <span class="o">=</span> <span class="n">expResult</span>
+                    <span class="k">break</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">expres</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span> <span class="s2">&quot;Could not find UL result </span><span class="si">%s</span><span class="s2">. getULFor can only be</span><span class="se">\</span>
+<span class="s2">            used for upper-limit results.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">expid</span><span class="p">))</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+        <span class="n">txnames</span> <span class="o">=</span> <span class="n">expres</span><span class="o">.</span><span class="n">getTxNames</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">tx</span> <span class="ow">in</span> <span class="n">txnames</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">tx</span><span class="o">.</span><span class="n">txName</span> <span class="o">==</span> <span class="n">txname</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">return</span> <span class="n">tx</span><span class="o">.</span><span class="n">getValueFor</span><span class="p">(</span><span class="n">massarray</span><span class="p">,</span><span class="n">expected</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span> <span class="s2">&quot;Could not find TxName </span><span class="si">%s</span><span class="s2"> .&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">txname</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">None</span></div>
+
+<div class="viewcode-block" id="Browser.getULForSR"><a class="viewcode-back" href="../../tools.html#tools.databaseBrowser.Browser.getULForSR">[docs]</a>    <span class="k">def</span> <span class="nf">getULForSR</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">expid</span><span class="p">,</span><span class="n">datasetID</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get an upper limit for the given experimental id and dataset (signal region).</span>
+<span class="sd">        Can only be used for efficiency-map results.</span>
+<span class="sd">        :param expid: experimental id (string)</span>
+<span class="sd">        :param datasetID: string defining the dataset id, e.g. ANA5-CUT3.</span>
+<span class="sd">        :return: upper limit [fb]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1">#First select the experimental results matching the id and the result type:</span>
+        <span class="n">expres</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">for</span> <span class="n">expResult</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">expResult</span><span class="o">.</span><span class="n">getValuesFor</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">expid</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s1">&#39;efficiencyMap&#39;</span> <span class="ow">in</span> <span class="n">expResult</span><span class="o">.</span><span class="n">getValuesFor</span><span class="p">(</span><span class="s1">&#39;dataType&#39;</span><span class="p">):</span>
+                    <span class="n">expres</span> <span class="o">=</span> <span class="n">expResult</span>
+                    <span class="k">break</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">expres</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span> <span class="p">(</span><span class="s2">&quot;Could not find efficiency-map result </span><span class="si">%s</span><span class="s2"> . getULForSR can only be</span><span class="se">\</span>
+<span class="s2">            used for efficiency-map results.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">expid</span><span class="p">))</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+        <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="n">expres</span><span class="o">.</span><span class="n">datasets</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">dataset</span><span class="o">.</span><span class="n">dataInfo</span><span class="o">.</span><span class="n">dataId</span> <span class="o">!=</span> <span class="n">datasetID</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">return</span> <span class="n">dataset</span><span class="o">.</span><span class="n">getUpperLimit</span><span class="p">()</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span> <span class="p">(</span> <span class="s2">&quot;Could not find dataset </span><span class="si">%s</span><span class="s2"> .&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">datasetID</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">None</span></div>
+
+
+<div class="viewcode-block" id="Browser.selectExpResultsWith"><a class="viewcode-back" href="../../tools.html#tools.databaseBrowser.Browser.selectExpResultsWith">[docs]</a>    <span class="k">def</span> <span class="nf">selectExpResultsWith</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">**</span><span class="n">restrDict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Loads the list of the experimental results (pair of InfoFile and DataFile)</span>
+<span class="sd">        satisfying the restrictions to the _selectedExpResults.</span>
+<span class="sd">        The restrictions specified as a dictionary.</span>
+
+<span class="sd">        :param restrDict: selection fields and their allowed values.</span>
+<span class="sd">                          E.g. lumi = [19.4/fb, 20.3/fb], txName = &#39;T1&#39;,....}</span>
+<span class="sd">                          The values can be single entries or a list of values.</span>
+<span class="sd">                          For the fields not listed, all values are assumed to be allowed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1">#First check all the selected fields exist and build the corresponding</span>
+        <span class="c1">#restriction dictionary</span>
+        <span class="n">rDict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">allfields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getAttributes</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">tag</span><span class="p">,</span><span class="n">value</span> <span class="ow">in</span> <span class="n">restrDict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">allfields</span><span class="p">:</span> <span class="n">rDict</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="k">else</span><span class="p">:</span> <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Field/attribute </span><span class="si">%s</span><span class="s2"> not found (will be ignored).&quot;</span> <span class="o">%</span> <span class="n">tag</span><span class="p">)</span>
+
+        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="o">.</span><span class="n">expResultList</span><span class="p">[:]</span>
+        <span class="k">for</span> <span class="n">expRes</span> <span class="ow">in</span> <span class="n">results</span><span class="p">[:]:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getValuesFor</span><span class="p">(</span><span class="n">attribute</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">expResult</span><span class="o">=</span><span class="n">expRes</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">restrDict</span><span class="p">:</span>
+                <span class="c1">#Check if the restriction tag appears in the experimental result</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+                    <span class="n">results</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">expRes</span><span class="p">)</span>
+                    <span class="k">break</span>
+                <span class="n">vals</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span>
+                <span class="c1">#If it does, check if any of the values in expResult match any of the values given</span>
+                <span class="c1">#as restrictions</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">restrDict</span><span class="p">[</span><span class="n">tag</span><span class="p">],</span><span class="nb">list</span><span class="p">):</span> <span class="n">rvals</span> <span class="o">=</span> <span class="p">[</span><span class="n">restrDict</span><span class="p">[</span><span class="n">tag</span><span class="p">]]</span>
+                <span class="k">else</span><span class="p">:</span> <span class="n">rvals</span> <span class="o">=</span> <span class="n">restrDict</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span>
+                <span class="c1">#If there is a type mismatch, also remove</span>
+                <span class="k">try</span><span class="p">:</span> <span class="n">intersec</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span><span class="n">rvals</span><span class="p">)</span>
+                <span class="k">except</span> <span class="n">unum</span><span class="o">.</span><span class="n">IncompatibleUnitsError</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Incompatible units, skipping result.&quot;</span><span class="p">)</span>
+                    <span class="n">results</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">expRes</span><span class="p">)</span>
+                    <span class="k">break</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">intersec</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">results</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">expRes</span><span class="p">)</span>
+                    <span class="k">break</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_selectedExpResults</span> <span class="o">=</span> <span class="n">results</span><span class="p">[:]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_selectedExpResults</span><span class="p">:</span> <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Zero results loaded.&quot;</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../tools.html#tools.databaseBrowser.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    IPython interface for browsing the Database.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">IPython</span>
+    <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">print</span> <span class="p">(</span> <span class="s2">&quot;IPython is not installed. &quot;</span><span class="p">,</span> <span class="p">)</span>
+        <span class="k">print</span> <span class="p">(</span> <span class="s2">&quot;To use this script, please install ipython.&quot;</span> <span class="p">)</span>
+        <span class="kn">import</span> <span class="nn">sys</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+
+
+    <span class="kn">from</span> <span class="nn">smodels.tools</span> <span class="kn">import</span> <span class="n">databaseBrowser</span>
+    <span class="kn">from</span> <span class="nn">smodels.tools.physicsUnits</span> <span class="kn">import</span> <span class="n">fb</span><span class="p">,</span> <span class="n">pb</span><span class="p">,</span> <span class="n">GeV</span><span class="p">,</span> <span class="n">TeV</span>
+
+    <span class="k">def</span> <span class="nf">getHeader</span> <span class="p">():</span>
+        <span class="kn">from</span> <span class="nn">smodels.installation</span> <span class="kn">import</span> <span class="n">installDirectory</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span> <span class="n">installDirectory</span><span class="p">()</span><span class="o">+</span><span class="s2">&quot;/etc/BANNER&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">=</span><span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span> <span class="n">header</span><span class="o">+=</span><span class="n">line</span>
+
+        <span class="n">header</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">header</span> <span class="o">+=</span> <span class="s2">&quot;fb, pb, GeV, TeV defined.</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">header</span> <span class="o">+=</span>  <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Browser loaded for </span><span class="si">%s</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span> <span class="n">args</span><span class="o">.</span><span class="n">path_to_database</span> <span class="p">)</span>
+        <span class="n">header</span> <span class="o">+=</span> <span class="s2">&quot;Try &#39;print browser&#39; for the list of available results.</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">header</span> <span class="o">+=</span> <span class="s2">&quot;More examples on how to access the database can be found in the SModelS manual.</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">header</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Type &#39;exit&#39; to exit this session.&quot;</span>
+
+        <span class="k">return</span> <span class="n">header</span>
+
+    <span class="n">browser</span> <span class="o">=</span> <span class="n">databaseBrowser</span><span class="o">.</span><span class="n">Browser</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">path_to_database</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">text</span> <span class="p">)</span>
+    <span class="n">IPython</span><span class="o">.</span><span class="n">embed</span><span class="p">(</span><span class="n">header</span><span class="o">=</span><span class="n">getHeader</span><span class="p">())</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, &lt;function authors at 0x7f73f74eb500&gt;.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.1.0patch1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

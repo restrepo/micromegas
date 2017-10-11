@@ -1,7 +1,7 @@
 
 include ../../FlagsForMake 
 
-override CFLAGS += -Iinclude -I../SLHAplus/include  -I../service2/include -I../chep_crt/include -I../../include -I../ntools/include  -DMAKE=\"$(MAKE)\"
+override CFLAGS += -Iinclude -I../SLHAplus/include -I../service2/include -I../chep_crt/include -I../../include -I../ntools/include -DMAKE=\"$(MAKE)\"
 
 special =
 

@@ -18,7 +18,7 @@ extern int oneFileInit( char* filename);
 #define  PDFSUP -1
 #define  PDFGUP -1
 #define  AQEDUP -1
-#define  IDWTUP  3
+#define  IDWTUP -4
 #define  XERRUP  0.
 #define  XMAXUP  1.
                 
@@ -44,7 +44,7 @@ int main(int argc,char ** argv)
   int N,II,J;
   FILE *F=stdout;
   eventfile_info *Finfo;
-   
+  double wCoeff; 
   if(argc<2){ printf("%s needs one argument: name of event file in CalcHEP format.\n",argv[0]); exit(1); }
 
   Finfo=initEventFile(argv[1]);
@@ -53,7 +53,7 @@ int main(int argc,char ** argv)
   {  printf("There are no events in file %s \n",argv[0]);
      exit(3);
   }   
-
+  wCoeff=Finfo->cs*Finfo->wCoeff;
   fprintf(F,"<LesHouchesEvents version=\"1.0\">\n");
   fprintf(F,"<!--\n");
   fprintf(F," CalcHEP event file transformed to the LHE format\n");
@@ -105,7 +105,7 @@ int main(int argc,char ** argv)
   { int Nmom,CC=500;
     double mom[40],Qf,alphaQCD;
     int clr[100],icol[100];
-    int w;
+    double w;
 
 
     if(readEvent(Finfo, &Nmom, mom, clr, &Qf,&alphaQCD, &w)) break;
@@ -114,7 +114,7 @@ int main(int argc,char ** argv)
     fprintf(F,"%2d %4d %15.7E %15.7E %15.7E %15.7E\n",
           Finfo->Nin+Finfo->Nout,  //  NUP
            1,                      //  IDPRUP
-           1.,                     //  XWGTUP,
+           w*wCoeff,               //  XWGTUP,
            Qf,                     //  SCALUP,         
           -1.,                     //  AQEDUP,
            alphaQCD                //  AQCDUP

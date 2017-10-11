@@ -59,7 +59,7 @@ void  upinit_(void)
   for(II=0;II<2;II++) { R_.PDFSUP[II]=-1; R_.PDFGUP[II]=-1;}
   E_.AQEDUP=-1;
   E_.AQCDUP=-1;
-  R_.IDWTUP = 3;
+  R_.IDWTUP = -4;
   R_.XERRUP[0] = 0.;
   R_.XMAXUP[0] = 1.;
 }
@@ -84,6 +84,7 @@ int main(int argc,char ** argv)
     {printf("Can not read second argument. Number of events is expected.\n"); exit(1);}  
   } 
   if(access("decaySLHA.txt", R_OK)==0){ readslha_(); SLHA=1;}
+
   for(II=3;II<argc;II++) scandir_(argv[II],strlen(argv[II])); 
   if( Lumi <= 0 &&  NEV <=0 ) { writeInfo(); exit(0);}
 
@@ -191,7 +192,7 @@ int main(int argc,char ** argv)
   fprintf(lun1,"            <beam1>\n");
   fprintf(lun1,"                <particle KFcode=\"%d\">%s</particle>\n",R_.IDBMUP[0],pdg2name(R_.IDBMUP[0]));
   fprintf(lun1,"                <energy unit=\"GeV\">%.3E</energy>\n",R_.EBMUP[0]);
-  fprintf(lun1,"                <pdf name= \"%s\"> </pdf>\n", getField("run_details.txt","pdf1 :"));  
+  fprintf(lun1,"                <pdf name= \"%s\"> </pdf>\n", getField("run_details.txt","StrFun1="));  
 //  fprintf(lun1,"                <QCDCoupling>\n");
 //  fprintf(lun1,"                    <Lambda unit=\"GeV\">0.226200</Lambda>\n");
 //  fprintf(lun1,"                    <NFlavours>6</NFlavours>\n");
@@ -203,7 +204,7 @@ int main(int argc,char ** argv)
   fprintf(lun1,"            <beam2>\n");
   fprintf(lun1,"                <particle KFcode=\"%d\">%s</particle>\n",R_.IDBMUP[1],pdg2name(R_.IDBMUP[0]));
   fprintf(lun1,"                <energy unit=\"GeV\">%.3E</energy>\n",R_.EBMUP[1]);
-  fprintf(lun1,"                <pdf name= \"%s\"> </pdf>\n", getField("run_details.txt","pdf2 :"));  
+  fprintf(lun1,"                <pdf name= \"%s\"> </pdf>\n", getField("run_details.txt","StrFun2="));  
 //  fprintf(lun1,"                <QCDCoupling>\n");
 //  fprintf(lun1,"                    <Lambda unit=\"GeV\">0.226200</Lambda>\n");
 //  fprintf(lun1,"                    <NFlavours>6</NFlavours>\n");
@@ -292,11 +293,13 @@ int main(int argc,char ** argv)
          int first=1;
          for(i=1;allBlocks(i, 0 , blkName, NULL ,NULL, NULL);i++) if(strcmp(blkName,"MASS")==0)
          { for(j=1; allBlocks(i,j, blkName, &len,key, &val);j++) if(len==1)
-           { for(k=0;k<16;k++) if(key[0]==SM[k]) break;
-             if(k==16)
-             {  if(first) { fprintf(lun1,"BLOCK MASS\n"); first=0;}
+           {
+             // for(k=0;k<16;k++) if(key[0]==SM[k]) break;
+             //if(k==16)
+             //{  
+                if(first) { fprintf(lun1,"BLOCK MASS\n"); first=0;}
                 fprintf(lun1," %d    %E # \n", key[0], creal(val));
-             }
+             //}
            }              
            break;
          }
@@ -307,7 +310,7 @@ int main(int argc,char ** argv)
         if(k==16)
         {  fprintf(lun1,"DECAY %d  %E # %s \n",pIn,width,slhaComment);
            for(j=1; allDecays(i,j,&pIn, &len,pOut,&width,&br);j++)
-           { fprintf(lun1," %E  %d ",br, len);
+           { fprintf(lun1,"   %E  %d ",br, len);
              for(k=0;k<len;k++) fprintf(lun1," %d ",pOut[k]);
              fprintf(lun1," # %s \n",slhaComment);
            }
@@ -385,5 +388,6 @@ int main(int argc,char ** argv)
     fclose(lun1);   
   }  
   closeevents_();
+  printf(" %d events are generated\n",NEV);
   return 0;
 }

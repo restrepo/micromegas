@@ -15,7 +15,8 @@ void  plot_Nar( char*  title, double xMin, double xMax, char*xName,  int dim,
 
 int main(int argc,char** argv)
 {   
-  char   xName[60];   
+  char   xName[60];
+  int xScale=0;   
   char*yName=NULL; 
   char*buff=NULL,*procName=NULL;
   int bLen=0;
@@ -65,7 +66,8 @@ int main(int argc,char** argv)
     if(1==sscanf(buff+1,"%s",word))
     {      if(strcmp(word,"type")==0)   sscanf(buff+1,"%*s %d",&ptype);    
       else if(strcmp(word,"xMin")==0)   sscanf(buff+1,"%*s %lf",&xMin);  
-      else if(strcmp(word,"xMax")==0)   sscanf(buff+1,"%*s %lf",&xMax);  
+      else if(strcmp(word,"xMax")==0)   sscanf(buff+1,"%*s %lf",&xMax);
+      else if(strcmp(word,"xScale")==0)   sscanf(buff+1,"%*s %d",&xScale);  
       else if(strcmp(word,"yMin")==0)   sscanf(buff+1,"%*s %lf",&yMin);  
       else if(strcmp(word,"yMax")==0)   sscanf(buff+1,"%*s %lf",&yMax);  
       else if(strcmp(word,"xDim")==0)   sscanf(buff+1,"%*s %d",&xDim);  
@@ -117,7 +119,6 @@ int main(int argc,char** argv)
             dn[n]=malloc(xDim*sizeof(double));
             ch=chh+3; 
           }
-          printf(" Y[%d]= %s f=%p d=%p\n",n,Y[n],fn[n],dn[n]);
        }
        for(i=0;i<xDim;i++) for(n=0;n<N;n++)
        { fscanf(F,"%lf",fn[n]+i); 
@@ -131,7 +132,7 @@ int main(int argc,char** argv)
        sprintf(icon_name,"%s/include/icon",pathtocalchep);
        start1(VERSION_ ,icon_name,"calchep.ini;../calchep.ini",NULL);
        clearTypeAhead();
-       plot_Nar(procName,xMin,xMax,xName,xDim,N,fn,dn,Y);
+       plot_Nar(argv[1],procName,xMin,xMax,xName,xDim,xScale,N,fn,dn,Y);
        finish();
        return 0; 
     }

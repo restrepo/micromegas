@@ -39,6 +39,6 @@ extern factor * colorFactor (int nv, cvertex * vl);
 extern void fct_num_calc(factor * fct,int Nc, long * n, long *d);
 extern void fct_print(factor * fct, char *s);
 
-extern void t2k2(vcsect* g, int * nv, cvertex * vl);
+extern int t2k2(vcsect* g, int * nv, cvertex * vl);
 extern vtype typev(vert0 v,int valence);
 #endif  

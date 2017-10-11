@@ -21,13 +21,14 @@ if(test -x ./n_calchep) then
      fi
      $sbin/_subproc_cycle_1 $bin $*
    else
-     if(test $# -ne 1 -a $# -ne 2 ) then
-       echo Error, subproc_cycle in case of collision needs 1 obligatory parameter:
-       echo 1: Integral luminosity  in [1/fb] units
-       echo And one auxilary parameter 
-       echo 2: a limit for number of events for each channel.
-       exit 200
-     fi
+
+#     if(test $# -ne 1 -a $# -ne 2 ) then
+#       echo Error, subproc_cycle in case of collision needs 1 obligatory parameter:
+#       echo 1: Integral luminosity  in [1/fb] units
+#       echo And one auxilary parameter 
+#       echo 2: a limit for number of events for each channel.
+#       exit 200
+#     fi
  
      $sbin/_subproc_cycle_2 $bin $*
    fi

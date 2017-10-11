@@ -1,17 +1,18 @@
 
 .PHONY: all clean flags
 
-all:sources/microPath.h
+all:include/microPath.h
 	$(MAKE) -C CalcHEP_src
 	$(MAKE) -C sources
 
-sources/microPath.h:
-	echo \#define micrO \"$(CURDIR)\"  > sources/microPath.h
+include/microPath.h:
+	echo \#define micrO \"$(CURDIR)\"  > include/microPath.h
         
    
 clean:  
-	rm -f sources/microPath.h
+	rm -f include/microPath.h
 	./clean
+	rm -rf */*.dSYM 
 
 flags: 
 	$(MAKE) -C CalcHEP_src flags

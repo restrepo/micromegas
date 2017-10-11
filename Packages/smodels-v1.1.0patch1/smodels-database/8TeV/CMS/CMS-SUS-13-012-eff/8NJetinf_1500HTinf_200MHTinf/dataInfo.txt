@@ -1,0 +1,7 @@
+dataType: efficiencyMap
+dataId: 8NJetinf_1500HTinf_200MHTinf
+observedN: 2
+expectedBG: 3.3
+bgError: 4.7
+upperLimit: 0.263605693687*fb
+expectedUpperLimit: 0.31760909785*fb

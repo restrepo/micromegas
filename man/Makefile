@@ -1,9 +1,11 @@
 
-all: manual4.2.pdf 
+all: manual_4.3.4.pdf 
 
-manual4.2.pdf:manual4.2.tex
-	latex  manual4.2
-	latex  manual4.2
-	dvipdf  manual4.2.dvi	
+manual_4.3.4.pdf:manual_4.3.4.tex
+	latex  manual_4.3.4
+	bibtex manual_4.3.4
+	latex  manual_4.3.4
+	latex  manual_4.3.4
+	dvipdf  manual_4.3.4.dvi
 clean: 
-	rm -f  *.dvi *.log *.aux *.toc 	
+	rm -f  *.dvi *.log *.aux *.toc *.bbl *.out *.blg

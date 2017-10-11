@@ -1,6 +1,6 @@
 #include "pmodel.h"
-#include "../../sources/micromegas.h"
-#include "../../sources/micromegas_aux.h"
+#include "../../include/micromegas.h"
+#include "../../include/micromegas_aux.h"
 
 /* ============================================================
    The function presented in this file are used only in calchep 

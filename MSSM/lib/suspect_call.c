@@ -3,7 +3,7 @@
 /*===================================*/
 #include"pmodel.h"
 #include"pmodel_aux.h"
-#include"../../sources/micromegas_aux.h"
+#include"../../include/micromegas_aux.h"
 #include<sys/wait.h>
 #include<unistd.h>
 

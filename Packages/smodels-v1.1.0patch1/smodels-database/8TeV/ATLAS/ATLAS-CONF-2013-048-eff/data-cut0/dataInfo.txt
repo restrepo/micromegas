@@ -1,0 +1,7 @@
+dataType: efficiencyMap
+dataId: SR M90
+observedN: 260
+expectedBG: 300.0
+bgError: 40.0
+upperLimit: 2.5*fb
+expectedUpperLimit: 4.24*fb

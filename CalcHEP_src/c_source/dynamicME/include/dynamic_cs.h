@@ -20,10 +20,6 @@ typedef struct numout
   CalcHEP_interface * interface; 
 } numout;
 
-#endif
-
-#ifndef  __MICROMEGAS__
-
 
 /*======= Subprocesses ===========*/
   typedef struct txtListStr
@@ -35,8 +31,17 @@ typedef struct numout
 
 #endif
 
+//typedef  struct { int GGpower; int nVar; char **varNames; int nTerms; char **SymbVert;  int (*calcCoeff)(double *,double*); } vertex_info;
+//typedef  struct { int GGpower; int nVar; char **varNames; double *varValues; int nTerms; char **SymbVert;  int (*calcCoeff)(double*); } vertex_info;
 
-
+typedef struct  lVert
+{
+    void * handle;
+    void ** link;
+    int init;
+    int GGpower; int nVar; char **varNames; double *varValues; int nTerms; char **SymbVert;  int (*calcCoeff)(double*);        
+}  lVert;
+           
 extern char  * libDir;
 extern char  * modelDir;
 extern char  * compDir;
@@ -48,8 +53,8 @@ extern int  checkMtime(char * fname);
 extern int  checkWorkPlace(void);
 extern int getDynamicVP(void);
 extern int setModel(char * modelDisp , int nModel);
-extern int assignVal(char * name, double val);
-extern int assignValW(char * name, double val);
+extern int assignVal(const char * name, double val);
+extern int assignValW(const char * name, double val);
 extern int findVal(char * name, double*val);
 extern double findValW(char * name);
 extern int readVar(char *fname);
@@ -64,7 +69,8 @@ extern txtList  makeProcList(char ** InNames, char** OutNames, int nx);
 extern void cleanTxtList(txtList L);
 extern void printTxtList(txtList L, FILE *f);
 
-
+extern lVert* getLagrVertex(char*n1,char*n2,char*n3,char*n4);
+int  getNumCoeff(lVert*vv, double * coeff);
 /*===========================================================*/
 typedef struct{ double width; txtList pdList[2]; int status;}  decayTableStr;
 
@@ -82,6 +88,7 @@ extern void     cleanDecayTable(void);
 extern int      pname2lib(char*pname, char * libname);
 extern double   decay2Info(char * pname, FILE* f);
 extern double   pWidth(char *name, txtList * LL);
+extern double   pWidthCC(numout*cc,int*err);
 extern double   aWidth(char *name);
 extern double   findBr(txtList L, char * pattern);
 extern double   pWidth2(numout * cc, int nsub);

@@ -1,13 +1,10 @@
-      SUBROUTINE SUBEXP(PROB)
+      SUBROUTINE OLDEXP(PROB)
 
 ***********************************************************************
-*   Subroutine to check experimental constraints
+*   Subroutine to check experimental constraints, mostly from LEP+Tevatron
 *
 *   The required data files and numbers (inv. Z width, lower bounds on
 *   sparticle masses) are transferred via COMMON/LEP/...
-*
-*   On output:
-*      PROB(I)  = 0, I = 2 - 23, 38, 39, 41-45, 51-52: OK
 *            
 *      PROB(2) =/= 0   excluded by Z -> neutralinos
 *      PROB(3) =/= 0   charged Higgs too light
@@ -31,21 +28,18 @@
 *      PROB(21) =/= 0  excluded by stop -> neutralino c
 *      PROB(22) =/= 0  excluded by sbottom -> neutralino b
 *      PROB(23) =/= 0  squark/gluino too light
-*      PROB(38) =/= 0  excluded by Upsilon(1S) -> A gamma
+*      PROB(38) =/= 0  excluded by Upsilon(1S) -> A/H gamma
 *      PROB(39) =/= 0  excluded by eta_b(1S) mass measurement
 *      PROB(41) =/= 0  excluded by ee -> hZ, h -> AA -> 4taus (new ALEPH analysis)
 *      PROB(42) =/= 0  excluded by top -> b H+, H+ -> c s (CDF, D0)
 *      PROB(43) =/= 0  excluded by top -> b H+, H+ -> tau nu_tau (D0)
 *      PROB(44) =/= 0  excluded by top -> b H+, H+ -> W+ A, A -> 2taus (CDF)
-*      PROB(45) =/= 0  excluded by t -> bH+ (LHC)
-*      PROB(51) =/= 0: excluded by H/A->tautau
-*      PROB(52) =/= 0: Excluded H_125->AA->4mu (CMS)
 *
 ***********************************************************************
 
       IMPLICIT NONE
 
-      INTEGER I,J,K
+      INTEGER I,J,K,PDGLSP
       INTEGER NhZind,NhZbb,NhZll,NhZinv,NhZjj,NhZgg
       INTEGER NhA4b,NhA4tau,NhA2b2tau,NhA2tau2b
       INTEGER NAAA6b,NAAA6tau,NAAZ4b,NAAZ4tau,NAAZ2b2tau
@@ -63,7 +57,7 @@
       DOUBLE PRECISION BRJJ(4),BREE(4),BRMM(4),BRLL(4),BRSS(4),BRCC(4)
       DOUBLE PRECISION BRBB(4),BRTT(4),BRWW(3),BRZZ(3),BRGG(4)
       DOUBLE PRECISION BRZG(4),BRHHH(4),BRHAA(3),BRHCHC(3)
-      DOUBLE PRECISION BRHAZ(3),BRAHZ(3),BRHCW(4)
+      DOUBLE PRECISION BRHAZ(3),BRAHZ(3),BRHCW(4),BRINV(3)
       DOUBLE PRECISION BRHIGGS(4),BRNEU(4,6,6),BRCHA(4,3)
       DOUBLE PRECISION BRHSQ(3,10),BRHSL(3,9),BRASQ(2),BRASL
       DOUBLE PRECISION BRSUSY(4),WIDTH(4),MBQM
@@ -75,15 +69,15 @@
       DOUBLE PRECISION HCBRM,HCBRL,HCBRSU,HCBRBU,HCBRSC,HCBRBC
       DOUBLE PRECISION HCBRBT,HCBRWH(5),HCBRWHT,HCBRNC(5,2)
       DOUBLE PRECISION HCBRSQ(5),HCBRSL(3),HCBRSUSY,HCWIDTH
-      DOUBLE PRECISION MH,MA,h1,h2,R,Rmax,BRINV,M1,M2
+      DOUBLE PRECISION MH,MA,h1,h2,R,Rmax,M1,M2
       DOUBLE PRECISION GZ,GZMAX,ALSMZ,ALEMMZ,GF,g1,g2,S2TW,g
       DOUBLE PRECISION GZINV,GZINVMAX,MCMIN,SIGNEU1,SIGNEU
-      DOUBLE PRECISION MSQMIN,MGLMIN,MMIN
+      DOUBLE PRECISION MSQMIN,MGLMIN,MMIN,BRINVMORE
       DOUBLE PRECISION MS,MC,MB,MBP,MT,MTAU,MMUON,MZ,MW
       DOUBLE PRECISION LAMBDA,X,Y,Z,Q,O,DZ,E1,E2,SIG
       DOUBLE PRECISION MUR,MUL,MDR,MDL,MLR,MLL,MNL
       DOUBLE PRECISION MST1,MST2,MSB1,MSB2,MSL1,MSL2,MSNT
-      DOUBLE PRECISION CST,CSB,CSL,MSMU1,MSMU2,MSMUNT,CSMU,MAtest,ceff
+      DOUBLE PRECISION CST,CSB,CSL,MSMU1,MSMU2,MSNM,CSMU,MAtest,ceff
       DOUBLE PRECISION hZind(1000,2),hZbb(1000,2),hZll(1000,2)
       DOUBLE PRECISION hZinv(1000,2),hZjj(1000,2),hZgg(1000,2)
       DOUBLE PRECISION hA4b(10000,3),hA4tau(10000,3)
@@ -111,7 +105,7 @@
       DOUBLE PRECISION CU(4),CD(4),CV(3),CVZ(3),CJ(4),CG(4),CB(4)
       DOUBLE PRECISION XIN(6),HM1(6),HM2(6),HM3(6),HM4(6),HM5(6)
       DOUBLE PRECISION DMA,HMIN,HMAX
-      DOUBLE PRECISION UPARF,SAZZ,CAZZ,VEV,NCP,VEVS,G1P
+      DOUBLE PRECISION SAZZ,CAZZ,VEV,NCP,VEVS,G1P
       DOUBLE PRECISION QD,QU,QS,QQ,QUP,QDOW,QL,QE,QN
       DOUBLE PRECISION AAT,AAB,Mch2,SST,SSB
       DOUBLE PRECISION TANBETA,SINBETA,COSBETA,LDA,AL,ATAU
@@ -142,7 +136,7 @@
       COMMON/HIGGSPEC/SMASS,SCOMP,PMASS,PCOMP,CMASS
       COMMON/SFSPEC/MUR,MUL,MDR,MDL,MLR,MLL,MNL,
      .      MST1,MST2,MSB1,MSB2,MSL1,MSL2,MSNT,
-     .      CST,CSB,CSL,MSMU1,MSMU2,MSMUNT,CSMU
+     .      CST,CSB,CSL,MSMU1,MSMU2,MSNM,CSMU
       COMMON/BRN/BRJJ,BREE,BRMM,BRLL,BRSS,BRCC,BRBB,BRTT,BRWW,BRZZ,
      .      BRGG,BRZG,BRHHH,BRHAA,BRHCHC,BRHAZ,BRAHZ,
      .      BRHCW,BRHIGGS,BRNEU,BRCHA,BRHSQ,BRHSL,BRASQ,BRASL,
@@ -177,6 +171,7 @@
       COMMON/UMSSM/SAZZ,CAZZ,VEV,NCP,QD,QU,QS,VEVS,G1P,QQ,
      .      QUP,QDOW,QL,QE,QN
       COMMON/NOBUG/TANBETA,AAT,AAB,Mch2,SST,SSB,LDA,AL,ATAU
+      COMMON/INV/BRINV,PDGLSP
 
       LAMBDA(X,Y,Z)= DSQRT(X**2+Y**2+Z**2-2d0*X*Y-2d0*X*Z-2d0*Y*Z)
 
@@ -282,16 +277,44 @@
 
        PROB(3)=DDIM(1d0,CMASS/MCMIN)
       
+* Light H Physics
+
+      MH=SMASS(1)
+
+* Test on Upsilon(1S) -> H gamma (from CLEO)
+
+      MY=9.46d0 ! Upsilon(1S) mass
+      MBQM=4.9d0 ! b quark mass in quark models
+      ALSMY=ALPHAS(MY,2) ! alpha_s at MY, 2 loop calculation
+      BRYMUMU=2.48d-2 ! BR(Upsilon(1S) -> mu mu)
+
+      IF(MH.LT.MY)THEN
+
+      ZZ=1d0-MH**2/MY**2 ! energy fraction of the photon
+      AP=6d0*ZZ**.2d0 ! Nason function for QCD corrections
+      C=1d0+4d0*ALSMY/(3d0*PI)*(4d0-AP) ! QCD corrections
+      DELTA=1.2d0**2/MBQM**2 ! function for rel. corrections
+      C=C* ! relativistic corrections (for MH<~8.8 GeV)
+     .  (MY**2-MH**2)**2/(4d0*MBQM**2-MH**2)**2*(1d0-
+     .  DELTA/3d0*(36d0*MBQM**2+MH**2)/(4d0*MBQM**2-MH**2))
+
+      C=MAX(C,1d-6)
+
+      RMAX=0d0
+      RMAX=SQR2*PI*ALEM0*CLEOTAU(MH)/(GF*MBQM**2*ZZ*C*BRYMUMU)
+      IF(RMAX.NE.0d0)PROB(38)=DDIM(CB(1)**2*BRLL(1)/RMAX,1d0)
+
+      RMAX=0d0
+      RMAX=SQR2*PI*ALEM0*CLEOMU(MH)/(GF*MBQM**2*ZZ*C*BRYMUMU)
+      IF(RMAX.NE.0d0)PROB(38)=PROB(38)+DDIM(CB(1)**2*BRMM(1)/RMAX,1d0)
+
+      ENDIF
+
 * Light A Physics
 
       MA=PMASS
 
 * Test on Upsilon(1S) -> A gamma (from CLEO)
-
-      MY=9.46d0 ! Upsilon(1S) mass
-      MBQM=4.9d0 ! b quark mass in quark models
-      ALSMY=ALPHAS(MY,2) ! alpha_s at MY, 2 loop calculation
-      BRYMUMU=2.48D-2 ! BR(Upsilon(1S) -> mu mu)
 
       IF(MA.LT.MY)THEN
 
@@ -303,34 +326,32 @@
      .  (MY**2-MA**2)**2/(4d0*MBQM**2-MA**2)**2*(1d0-
      .  DELTA/3d0*(36d0*MBQM**2+MA**2)/(4d0*MBQM**2-MA**2))
 
-      C=MAX(C,1.D-6)
+      C=MAX(C,1d-6)
 
       RMAX=0d0
       RMAX=SQR2*PI*ALEM0*CLEOTAU(MA)/(GF*MBQM**2*ZZ*C*BRYMUMU)
-      IF(RMAX.NE.0d0)PROB(38)=DDIM(CB(4)**2*BRLL(4)/RMAX,1d0)
+      IF(RMAX.NE.0d0)PROB(38)=PROB(38)+DDIM(CB(4)**2*BRLL(4)/RMAX,1d0)
 
       RMAX=0d0
       RMAX=SQR2*PI*ALEM0*CLEOMU(MA)/(GF*MBQM**2*ZZ*C*BRYMUMU)
-      IF(RMAX.NE.0d0)PROB(38)=DDIM(CB(4)**2*BRMM(4)/RMAX,1d0)
-
-      IF(WIDTH(4).GT.1.D-2)PROB(38)=-PROB(38)
+      IF(RMAX.NE.0d0)PROB(38)=PROB(38)+DDIM(CB(4)**2*BRMM(4)/RMAX,1d0)
 
       ENDIF
 
 * Test on etab(1S) mass difference (BABAR - theory)
 
       M0=9.389d0 ! etab(1S) mass
-      GYEE=1.34D-6 ! Gamma(Upsilon(1S) -> e+ e-)
+      GYEE=1.34-6 ! Gamma(Upsilon(1S) -> e+ e-)
       RETA=GYEE*9d0*MY**2/(4d0*ALEM0**2)*
      .  (1d0+16d0*ALSMY/(3d0*PI)) ! radial wave fun. at the origin
        ! Resolution of the 3rd degree eq. for the limit on Xd
-      GAM2=(M0*2.D-2)**2
+      GAM2=(M0*2d-2)**2
       XX=MA**2-M0**2
 
       IF(MA.LT.M0)THEN
-       MEMAX=M0-3.D-2
+       MEMAX=M0-3d-2
       ELSE
-       MEMAX=M0+4.D-2
+       MEMAX=M0+4d-2
       ENDIF
       YMAX=MEMAX**2-M0**2
       FMAX=XX*YMAX*(1d0+GAM2/(XX+YMAX)**2)
@@ -351,7 +372,10 @@
 
       DO I=1,3
 
-      IF(I.GT.1 .AND. DABS(SMASS(I)-SMASS(I-1)).LT.3d0)THEN
+      IF(I.EQ.1)THEN
+       MH=SMASS(1)
+       R=CVZ(1)**2
+      ELSEIF(DABS(SMASS(I)-SMASS(I-1)).LT.3d0)THEN
        MH=SMASS(I-1)
        R=R+CVZ(I)**2
       ELSE
@@ -397,9 +421,7 @@
      .       *(hZll(J,2)-hZll(J-1,2))
        PROB(6)=PROB(6)+DDIM(R*BRLL(I)/Rmax,1d0)
 
-*  ee -> hZ, h -> invisible
-*  To change for UMSSM, by including RH sneutrino
-*  but negligible impact on parameter space
+*  ee -> hZ, h -> invisible = LSP (lighest neutralino or lighest RH-sneutrino)
 
        Rmax=1d0
        J=1
@@ -409,15 +431,32 @@
        IF(J.GT.1 .AND. MH.LT.hZinv(NhZinv,1))
      .    Rmax=hZinv(J-1,2)+(MH-hZinv(J-1,1))/(hZinv(J,1)-hZinv(J-1,1))
      .       *(hZinv(J,2)-hZinv(J-1,2))
-       BRINV=BRNEU(I,1,1)
-     .  +BRHAA(I)*BRNEU(4,1,1)**2
-       IF(I.EQ.2)
-     .  BRINV=BRINV+BRHHH(1)*BRNEU(1,1,1)**2
-       IF(I.EQ.3)
-     .  BRINV=BRINV+BRHHH(2)*BRNEU(1,1,1)**2
-     .   +BRHHH(3)*BRNEU(1,1,1)*BRNEU(2,1,1)
-     .   +BRHHH(4)*BRNEU(2,1,1)**2
-       PROB(7)=PROB(7)+DDIM(R*BRINV/Rmax,1d0)
+       BRINVMORE=BRINV(I)
+        IF(PDGLSP.EQ.1000022)THEN
+        BRINVMORE=BRINVMORE
+     .   +BRHAA(I)*BRNEU(4,1,1)**2
+        IF(I.EQ.2)
+     .   BRINVMORE=BRINVMORE+BRHHH(1)*BRNEU(1,1,1)**2
+        IF(I.EQ.3)
+     .   BRINVMORE=BRINVMORE+BRHHH(2)*BRNEU(1,1,1)**2
+     .    +BRHHH(3)*BRNEU(1,1,1)*BRNEU(2,1,1)
+     .    +BRHHH(4)*BRNEU(2,1,1)**2
+        ELSEIF(PDGLSP.EQ.2000012.OR.PDGLSP.EQ.2000014)THEN
+        IF(I.EQ.2)
+     .   BRINVMORE=BRINVMORE+BRHHH(1)*BRHSL(1,8)**2
+        IF(I.EQ.3)
+     .   BRINVMORE=BRINVMORE+BRHHH(2)*BRHSL(1,8)**2
+     .    +BRHHH(3)*BRHSL(1,8)*BRHSL(2,8)
+     .    +BRHHH(4)*BRHSL(2,8)**2
+        ELSEIF(PDGLSP.EQ.2000016)THEN
+        IF(I.EQ.2)
+     .   BRINVMORE=BRINVMORE+BRHHH(1)*BRHSL(1,9)**2
+        IF(I.EQ.3)
+     .   BRINVMORE=BRINVMORE+BRHHH(2)*BRHSL(1,9)**2
+     .    +BRHHH(3)*BRHSL(1,9)*BRHSL(2,9)
+     .    +BRHHH(4)*BRHSL(2,9)**2
+        ENDIF
+       PROB(7)=PROB(7)+DDIM(R*BRINVMORE/Rmax,1d0)
 
 *  ee -> hZ, h -> 2jets
 
@@ -604,7 +643,8 @@
          ENDIF
         ENDIF
        ENDIF
-       PROB(41)=PROB(41)+DDIM(R*BRHHH(I-1)*BRLL(1)**2/Rmax,1d0)
+       IF(I.GT.1)
+     . PROB(41)=PROB(41)+DDIM(R*BRHHH(I-1)*BRLL(1)**2/Rmax,1d0)
 
 *  ee -> hZ, h -> AA -> 2bs 2taus
 
@@ -634,7 +674,8 @@
           GOTO 22
          ENDIF
         ENDDO
- 22     PROB(12)=PROB(12)
+ 22     IF(I.GT.1)
+     . PROB(12)=PROB(12)
      .   +DDIM(R*BRHHH(I-1)*2d0*BRBB(1)*BRLL(1)/Rmax,1d0)
        ENDIF
 
@@ -1420,7 +1461,7 @@
       DOUBLE PRECISION MX,X(N),M(N)
 
       DATA M/.25d0,3.75d0/
-      DATA X/9.D-6,9.D-6/
+      DATA X/9d-6,9d-6/
 
       CLEOMU=0d0
 
@@ -1436,13 +1477,9 @@
       END
 
 
-* No use of SUBROUTINE SUSYLHCSP, because it applies for GUT parameters
-
-* Sparticle searches at LHC (NMSPEC)
-
       SUBROUTINE CMS_TAUTAU(PROB)
 
-* Constraints from ggF/bb->H/A->tautau from CMS-PAS-HIG-13-021 and ATLAS-CONF-2014-049
+* Constraints from ggF/bb->H/A->tautau from CMS-PAS-HIG-13-021
 *      PROB(51) =/= 0: excluded by H/A->tautau
 
       IMPLICIT NONE
@@ -1522,9 +1559,9 @@
         ENDDO
         IF(J.GE.2 .AND. MH(I).LT.HMAS(NX)) THEN
         XSMH(I)=0D0
-	LCMSH(I)=1D10
+        LCMSH(I)=1D10
         XSMHbb(I)=0D0
-	LCMSHbb(I)=1D10
+        LCMSHbb(I)=1D10
 * SM Higgs ggF prod. cross sect.:
           XSMH(I)=XSM(J-1)+(MH(I)-HMAS(J-1))/
      .      (HMAS(J)-HMAS(J-1))*(XSM(J)-XSM(J-1))
@@ -1539,10 +1576,10 @@
      .      (HMAS(J)-HMAS(J-1))*(LATLASgg(J)-LATLASgg(J-1))
 * Correct for jump in Fig.7 at MA=200 GeV: J=8, 
 * modif. LATLASgg(J-1)=LATLASgg(7)=.96D0 and not .794d0:
-	  IF(J.EQ.8) THEN
+          IF(J.EQ.8) THEN
             LATLASH(I)=.96D0+(MH(I)-HMAS(J-1))/
      .        (HMAS(J)-HMAS(J-1))*(LATLASgg(J)-.96D0)
-	  ENDIF
+          ENDIF
           PROB(51)=PROB(51)+DDIM(1D0,LATLASH(I)/SIG(I))
 ***
 * SM Higgs bbH prod. cross sect.:
@@ -1559,10 +1596,10 @@
      .      (HMAS(J)-HMAS(J-1))*(LATLASbb(J)-LATLASbb(J-1))
 * Correct for jump in Fig.7 at MA=200 GeV: J=8, 
 * modif. LATLASbb(J-1)=LATLASbb(7)=.858D0 and not .393d0:
-	  IF(J.EQ.8) THEN
+          IF(J.EQ.8) THEN
             LATLASHbb(I)=.858d0+(MH(I)-HMAS(J-1))/
      .        (HMAS(J)-HMAS(J-1))*(LATLASbb(J)-.858d0)
-	  ENDIF
+          ENDIF
           PROB(51)=PROB(51)+DDIM(1d0,LATLASHbb(I)/SIGbb(I))
 *********************************************************
 * Combine signal rates of 2 Higgses
@@ -1605,10 +1642,10 @@
      .       (HMAS(JBAR)-HMAS(JBAR-1))*(LATLASgg(JBAR)-LATLASgg(JBAR-1))
 * Correct for jump in Fig.7 at MA=200 GeV: JBAR=8, 
 * modif. LATLASgg(JBAR-1)=LATLASgg(7)=.96D0 and not .794d0:
-	         IF(J.EQ.8) THEN
+                 IF(J.EQ.8) THEN
                    LATLASMB=.96D0+(MBAR-HMAS(JBAR-1))/
      .             (HMAS(JBAR)-HMAS(JBAR-1))*(LATLASgg(JBAR)-.96D0)
-	         ENDIF
+                 ENDIF
                PROB(51)=PROB(51)+DDIM(1D0,LATLASMB/SIGTOT)
              ENDIF
 ****
@@ -1631,11 +1668,11 @@
      .             (LATLASbb(JBARbb)-LATLASbb(JBARbb-1))
 * Correct for jump in Fig.7 at MA=200 GeV: JBARbb=8, 
 * modif. LATLASbb(JBARbb-1)=LATLASbb(7)=.858D0 and not .393d0:
-	        IF(J.EQ.8) THEN
+                IF(J.EQ.8) THEN
                   LATLASMBbb=.858D0+(MBARbb-HMAS(JBARbb-1))/
      .              (HMAS(JBARbb)-HMAS(JBARbb-1))*
      .                (LATLASbb(JBARbb)-.858D0)
-	        ENDIF
+                ENDIF
 
                PROB(51)=PROB(51)+DDIM(1D0,LATLASMBbb/SIGTOTbb)
              ENDIF
@@ -1648,16 +1685,22 @@
       END
    
 
-      SUBROUTINE CMS_AA_4MU(PROB)
+      SUBROUTINE LHC_HSMAA_LEPTONS(PROB)
 
-* Sparticle searches at LHC (NMSPEC)
+*     PROB(52) =/= 0: excluded
 
       IMPLICIT NONE
 
-      INTEGER I,NX
-      PARAMETER(NX=6)
+      INTEGER NHAATAUS1,NHAATAUS2,NHAABMU
+      INTEGER NHAAMUS1,NHAAMUS2,NHAAMUS3
+      INTEGER NHAAMUS4,I,J,NM
+      PARAMETER(NM=14)
 
       DOUBLE PRECISION PROB(*)
+      DOUBLE PRECISION HAATAUS1(100,2),HAATAUS2(100,2),HAABMU(100,2)
+      DOUBLE PRECISION HAAMUS1(100,2),HAAMUS2(100,2),HAAMUS3(100,2)
+      DOUBLE PRECISION HAAMUS4(100,4)
+
       DOUBLE PRECISION SMASS(3),SCOMP(3,3),PMASS,PCOMP(3,3),CMASS
       DOUBLE PRECISION BRJJ(4),BREE(4),BRMM(4),BRLL(4),BRSS(4),BRCC(4)
       DOUBLE PRECISION BRBB(4),BRTT(4),BRWW(3),BRZZ(3),BRGG(4)
@@ -1667,9 +1710,10 @@
       DOUBLE PRECISION BRHSQ(3,10),BRHSL(3,9),BRASQ(2),BRASL
       DOUBLE PRECISION BRSUSY(4),WIDTH(4)
       DOUBLE PRECISION CU(4),CD(4),CV(3),CVZ(3),CJ(4),CG(4),CB(4)
-      DOUBLE PRECISION X1(NX),LSIGBR(NX),LIMIT
-      DOUBLE PRECISION D1,D2,CJ2,BRHTOAA
-      DOUBLE PRECISION MHmin,MHmax,chi2max,chi2gam,chi2bb,chi2zz,MHcen
+      DOUBLE PRECISION MHmin,MHmax,chi2max,chi2gam,chi2bb,chi2zz
+      DOUBLE PRECISION D1,D2,CJ2BRHTOAA,MH,MHcen,LIMIT
+      DOUBLE PRECISION MHSM(NM),SMXS_8TeV(NM),SMXS_125_8TeV,SMXS_J_8TeV
+      DOUBLE PRECISION LOWBOUND,HIGHBOUND
 
       COMMON/HIGGSPEC/SMASS,SCOMP,PMASS,PCOMP,CMASS
       COMMON/BRN/BRJJ,BREE,BRMM,BRLL,BRSS,BRCC,BRBB,BRTT,BRWW,BRZZ,
@@ -1678,32 +1722,558 @@
      .      BRSUSY,WIDTH
       COMMON/REDCOUP/CU,CD,CV,CVZ,CJ,CG,CB
       COMMON/HIGGSFIT/MHmin,MHmax,chi2max,chi2gam,chi2bb,chi2zz
+      COMMON/LHCHAA/HAATAUS1,HAATAUS2,HAABMU,
+     .      HAAMUS1,HAAMUS2,HAAMUS3,HAAMUS4,
+     .      NHAATAUS1,NHAATAUS2,NHAABMU,
+     .      NHAAMUS1,NHAAMUS2,NHAAMUS3,NHAAMUS4
 
-      DATA X1/.25d0,.5d0,.75d0,1.d0,2.d0,3.d0/
-      DATA LSIGBR/3.8d-3,3.6d-3,4.1d-3,4.2d-3,4.4d-3,4.6d-3/
+      DATA MHSM/85d0,90d0,95d0,100d0,105d0,110d0,115d0,120d0,125d0,
+     . 130d0,135d0,140d0,145d0,150d0/
+      DATA SMXS_8TeV/3.940d1,3.526d1,3.175d1,2.873d1,2.611d1,2.383d1,
+     . 2.184d1,2.008d1,1.851d1,1.712d1,1.587d1,1.475d1,1.375d1,1.284d1/           ! in pb
 
+* Determining the SM-like Higgs and its couplings / BR / XS
+
+      PROB(52)=0d0
+      CJ2BRHTOAA=0d0
       MHcen=(MHmin+MHmax)/2d0
+      MH=MHcen
       D1=DDIM(SMASS(1)/MHMAX,1d0)-DDIM(1d0,SMASS(1)/MHMIN)
       D2=DDIM(SMASS(2)/MHMAX,1d0)-DDIM(1d0,SMASS(2)/MHMIN)
-      CJ2=0d0
       IF(DABS(SMASS(1)-MHcen).LE.DABS(SMASS(2)-MHcen).AND.D1.EQ.0d0)THEN
-       CJ2=CJ(1)**2
-       BRHTOAA=BRHAA(1)
+       CJ2BRHTOAA=CJ(1)**2*BRHAA(1)
+       MH=SMASS(1)
       ENDIF
       IF(DABS(SMASS(1)-MHcen).GE.DABS(SMASS(2)-MHcen).AND.D2.EQ.0d0)THEN
-       CJ2=CJ(2)**2
-       BRHTOAA=BRHAA(2)
+       CJ2BRHTOAA=CJ(2)**2*BRHAA(2)
+       MH=SMASS(2)
+      ENDIF
+      IF(D1.EQ.0d0.AND.D2.EQ.0d0)THEN
+       CJ2BRHTOAA=CJ(1)**2*BRHAA(1)+CJ(2)**2*BRHAA(2)
+       MH=(CJ(1)**2*SMASS(1)+CJ(2)**2*SMASS(2))
+     .                  /Max(CJ(1)**2+CJ(2)**2,1d-10)
       ENDIF
 
+
+      SMXS_125_8TeV=0d0
       I=1
-      DOWHILE(PMASS.GE.X1(1).AND.X1(I).LE.PMASS .AND. I.LT.NX)
+      DOWHILE(MH.GE.MHSM(1)
+     .        .AND.MHSM(I).LE.MH.AND.I.LT.NM)
        I=I+1
       ENDDO
-      IF(I.GT.1 .AND. PMASS.LT.X1(NX))THEN
-       LIMIT=LSIGBR(I-1)
-     .    +(PMASS-X1(I-1))/(X1(I)-X1(I-1))*(LSIGBR(I)-LSIGBR(I-1))
-       PROB(52)=DDIM(CJ2*BRHTOAA*BRMM(4)**2/LIMIT,1d0)
+      IF(I.GT.1 .AND. MH.LT.MHSM(NM))THEN
+       SMXS_125_8TeV=SMXS_8TeV(I-1)
+     .    +(MH-MHSM(I-1))/(MHSM(I)-MHSM(I-1))
+     .         *(SMXS_8TeV(I)-SMXS_8TeV(I-1))
       ENDIF
 
+* Constraints from ggF->HSM->AA->2mu2tau from 1505.01609 (ATLAS), M_A < 50GeV
+* BR(A->2mu) converted in BR(A->2tau), normalized to SM XS
+
+      I=1
+      DOWHILE(PMASS.GE.HAATAUS1(1,1)
+     .        .AND.HAATAUS1(I,1).LE.PMASS .AND. I.LT.NHAATAUS1)
+       I=I+1
+      ENDDO
+      IF(I.GT.1 .AND. PMASS.LT.HAATAUS1(NHAATAUS1,1))THEN
+       LIMIT=HAATAUS1(I-1,2)
+     .    +(PMASS-HAATAUS1(I-1,1))/(HAATAUS1(I,1)-HAATAUS1(I-1,1))
+     .         *(HAATAUS1(I,2)-HAATAUS1(I-1,2))
+       PROB(52)=PROB(52)+DDIM(CJ2BRHTOAA*BRLL(4)**2/LIMIT,1d0)
+      ENDIF
+
+
+* Constraints from ggF->HSM->AA->4tau from 1510.06534 (CMS), 4GeV < M_A < 8GeV
+
+      I=1
+      DOWHILE(PMASS.GE.HAATAUS2(1,1)
+     .        .AND.HAATAUS2(I,1).LE.PMASS .AND. I.LT.NHAATAUS2)
+       I=I+1
+      ENDDO
+      IF(I.GT.1 .AND. PMASS.LT.HAATAUS2(NHAATAUS2,1))THEN
+       LIMIT=HAATAUS2(I-1,2)
+     .    +(PMASS-HAATAUS2(I-1,1))/(HAATAUS2(I,1)-HAATAUS2(I-1,1))
+     .         *(HAATAUS2(I,2)-HAATAUS2(I-1,2))
+       PROB(52)=PROB(52)
+     .          +DDIM(SMXS_125_8TeV*CJ2BRHTOAA*BRLL(4)**2/LIMIT,1d0)
+      ENDIF
+
+
+* Constraints from ggF->HSM->AA->2mu2b from CMS-PAS-HIG-14-041, 25GeV < M_A < 63GeV
+* normalized to SM XS
+
+      I=1
+      DOWHILE(PMASS.GE.HAABMU(1,1)
+     .        .AND.HAABMU(I,1).LE.PMASS .AND. I.LT.NHAABMU)
+       I=I+1
+      ENDDO
+      IF(I.GT.1 .AND. PMASS.LT.HAABMU(NHAABMU,1))THEN
+       LIMIT=HAABMU(I-1,2)
+     .    +(PMASS-HAABMU(I-1,1))/(HAABMU(I,1)-HAABMU(I-1,1))
+     .         *(HAABMU(I,2)-HAABMU(I-1,2))
+       PROB(52)=PROB(52)
+     .          +DDIM(CJ2BRHTOAA*BRMM(4)*BRBB(4)/LIMIT,1d0)
+      ENDIF
+
+
+* Constraints from ggF->HSM->AA->2mu2tau from CMS-PAS-HIG-15-011, 19GeV < M_A < 57GeV
+* BR(A->2tau) converted in BR(A->2mu), normalized to SM XS
+
+      I=1
+      DOWHILE(PMASS.GE.HAAMUS1(1,1)
+     .        .AND.HAAMUS1(I,1).LE.PMASS .AND. I.LT.NHAAMUS1)
+       I=I+1
+      ENDDO
+      IF(I.GT.1 .AND. PMASS.LT.HAAMUS1(NHAAMUS1,1))THEN
+       LIMIT=HAAMUS1(I-1,2)
+     .    +(PMASS-HAAMUS1(I-1,1))/(HAAMUS1(I,1)-HAAMUS1(I-1,1))
+     .         *(HAAMUS1(I,2)-HAAMUS1(I-1,2))
+       PROB(52)=PROB(52)
+     .          +DDIM(CJ2BRHTOAA*BRMM(4)**2/LIMIT,1d0)
+      ENDIF
+
+
+* Constraints from ggF->HSM->AA->4tau from CMS-PAS-HIG-14-022, 5GeV < M_A < 14GeV
+* BR(A->2tau) converted in BR(A->2mu), as shown in Fig7 of CMS-PAS-HIG-15-011,
+* normalized to SM XS
+
+      I=1
+      DOWHILE(PMASS.GE.HAAMUS2(1,1)
+     .        .AND.HAAMUS2(I,1).LE.PMASS .AND. I.LT.NHAAMUS2)
+       I=I+1
+      ENDDO
+      IF(I.GT.1 .AND. PMASS.LT.HAAMUS2(NHAAMUS2,1))THEN
+       LIMIT=HAAMUS2(I-1,2)
+     .    +(PMASS-HAAMUS2(I-1,1))/(HAAMUS2(I,1)-HAAMUS2(I-1,1))
+     .         *(HAAMUS2(I,2)-HAAMUS2(I-1,2))
+       PROB(52)=PROB(52)
+     .          +DDIM(CJ2BRHTOAA*BRMM(4)**2/LIMIT,1d0)
+      ENDIF
+
+
+* Constraints from ggF->HSM->AA->4tau from CMS-PAS-HIG-14-019, 3GeV < M_A < 8GeV
+* BR(A->2tau) converted in BR(A->2mu), as shown in Fig7 of CMS-PAS-HIG-15-011,
+* normalized to SM XS
+
+      I=1
+      DOWHILE(PMASS.GE.HAAMUS3(1,1)
+     .        .AND.HAAMUS3(I,1).LE.PMASS .AND. I.LT.NHAAMUS3)
+       I=I+1
+      ENDDO
+      IF(I.GT.1 .AND. PMASS.LT.HAAMUS3(NHAAMUS3,1))THEN
+       LIMIT=HAAMUS3(I-1,2)
+     .    +(PMASS-HAAMUS3(I-1,1))/(HAAMUS3(I,1)-HAAMUS3(I-1,1))
+     .         *(HAAMUS3(I,2)-HAAMUS3(I-1,2))
+       PROB(52)=PROB(52)
+     .          +DDIM(CJ2BRHTOAA*BRMM(4)**2/LIMIT,1d0)
+      ENDIF
+
+
+* Constraints from ggF->H->AA->4mu from 1506.00424, 0.25GeV < M_A < 3.55GeV, 85GeV < m_H < 150GeV
+
+      CJ2BRHTOAA=0d0
+
+      DO J=1,3
+
+       IF(J.ge.2)THEN
+        IF(dabs(SMASS(J)-SMASS(J-1)).lt.3d0)THEN
+         MH=(CJ(J-1)**2*SMASS(J-1)+CJ(J)**2*SMASS(J))
+     .     /Max(CJ(J)**2+CJ(J-1)**2,1d-10)
+         CJ2BRHTOAA=CJ2BRHTOAA+CJ(J)**2*BRHAA(J)
+        ELSE
+         MH=SMASS(J)
+         CJ2BRHTOAA=CJ(J)**2*BRHAA(J)
+        ENDIF
+       ELSE
+        MH=SMASS(J)
+        CJ2BRHTOAA=CJ(J)**2*BRHAA(J)
+       ENDIF
+
+       I=1
+       DOWHILE(MH.GE.MHSM(1)
+     .        .AND.MHSM(I).LE.MH.AND.I.LT.NM)
+        I=I+1
+       ENDDO
+       IF(I.GT.1 .AND. MH.LT.MHSM(14))THEN
+        SMXS_J_8TeV=SMXS_8TeV(I-1)
+     .    +(MH-MHSM(I-1))/(MHSM(I)-MHSM(I-1))
+     .         *(SMXS_8TeV(I)-SMXS_8TeV(I-1))
+        SMXS_J_8TeV=SMXS_J_8TeV*1d3         ! converting in fb
+       ENDIF
+
+
+       I=1
+       DOWHILE(MH.GE.HAAMUS4(1,1)
+     .        .AND.HAAMUS4(I,1).LE.MH .AND. I.LT.NHAAMUS4)
+        I=I+1
+       ENDDO
+       IF(I.GT.1 .AND. MH.LT.HAAMUS4(NHAAMUS4,1))THEN
+        LOWBOUND=100d0
+        HIGHBOUND=100d0
+        IF(PMASS.ge.0.25d0.and.PMASS.lt.2d0)THEN
+         LOWBOUND=HAAMUS4(I-1,2)+(PMASS-0.25d0)/(2d0-0.25d0)
+     .         *(HAAMUS4(I-1,3)-HAAMUS4(I-1,2))
+         HIGHBOUND=HAAMUS4(I,2)+(PMASS-0.25d0)/(2d0-0.25d0)
+     .         *(HAAMUS4(I,3)-HAAMUS4(I,2))
+        ELSEIF(PMASS.ge.2d0.and.PMASS.lt.3.55d0)THEN
+         LOWBOUND=HAAMUS4(I-1,3)+(PMASS-2d0)/(3.55d0-2d0)
+     .         *(HAAMUS4(I-1,4)-HAAMUS4(I-1,3))
+         HIGHBOUND=HAAMUS4(I,3)+(PMASS-2d0)/(3.55d0-2d0)
+     .         *(HAAMUS4(I,4)-HAAMUS4(I,3))
+        ENDIF
+
+        LIMIT=LOWBOUND
+     .    +(MH-HAAMUS4(I-1,1))/(HAAMUS4(I,1)-HAAMUS4(I-1,1))
+     .         *(HIGHBOUND-LOWBOUND)
+        PROB(52)=PROB(52)
+     .          +DDIM(SMXS_J_8TeV*CJ2BRHTOAA*BRMM(4)**2/LIMIT,1d0)
+       ENDIF
+
+       ENDDO
+
+      RETURN
+
+      END
+
+      SUBROUTINE ATLAS_H_GAMGAM(PROB)
+
+* Constraints from ggF->H/A->gamgam from ATLAS-CONF-2014-031, M_H/A < 122
+*     PROB(53) =/= 0: excluded by ggF->H/A->gamgam (65GeV < M < 122GeV)
+
+      IMPLICIT NONE
+
+      CHARACTER*256 FILENAME,EXPCON_PATH,catpath
+
+      INTEGER I,J
+
+      DOUBLE PRECISION ggHgg(100,2),dummy(100,4),SMXS(100,2),PROB(*)
+      DOUBLE PRECISION SMASS(3),SCOMP(3,3),PMASS,PCOMP(3,3),CMASS
+      DOUBLE PRECISION BRJJ(4),BREE(4),BRMM(4),BRLL(4),BRSS(4),BRCC(4)
+      DOUBLE PRECISION BRBB(4),BRTT(4),BRWW(3),BRZZ(3),BRGG(4)
+      DOUBLE PRECISION BRZG(4),BRHHH(4),BRHAA(3),BRHCHC(3)
+      DOUBLE PRECISION BRHAZ(3),BRAHZ(3),BRHCW(4)
+      DOUBLE PRECISION BRHIGGS(4),BRNEU(4,6,6),BRCHA(4,3)
+      DOUBLE PRECISION BRHSQ(3,10),BRHSL(3,9),BRASQ(2),BRASL
+      DOUBLE PRECISION BRSUSY(4),WIDTH(4)
+      DOUBLE PRECISION MH(4),XSMH(4),SIG(4),LATLASH(4)
+      DOUBLE PRECISION CU(4),CD(4),CV(3),CVZ(3),CJ(4),CG(4),CB(4)
+
+      COMMON/HIGGSPEC/SMASS,SCOMP,PMASS,PCOMP,CMASS
+      COMMON/BRN/BRJJ,BREE,BRMM,BRLL,BRSS,BRCC,BRBB,BRTT,BRWW,BRZZ,
+     .      BRGG,BRZG,BRHHH,BRHAA,BRHCHC,BRHAZ,BRAHZ,
+     .      BRHCW,BRHIGGS,BRNEU,BRCHA,BRHSQ,BRHSL,BRASQ,BRASL,
+     .      BRSUSY,WIDTH
+      COMMON/REDCOUP/CU,CD,CV,CVZ,CJ,CG,CB
+      
+*   The EXPCON_PATH variable is set:
+      CALL getenv('EXPCON_PATH',EXPCON_PATH)
+      if(EXPCON_PATH.eq.' ')  EXPCON_PATH='../EXPCON'
+
+* Read ATLAS upper limit
+* ggHgg(I,1): Higgs mass
+* ggHgg(I,2): upper limit in fb
+      FILENAME=catpath(EXPCON_PATH,'ggHgg.dat')
+      OPEN(11,FILE=FILENAME,STATUS='UNKNOWN',ERR=1)
+      I=1
+ 1801 READ(11,*,END=1802,ERR=2)(dummy(I,J),J=1,4)
+      ggHgg(I,1)=dummy(I,1)
+      ggHgg(I,2)=dummy(I,4)
+      I=I+1
+      GOTO 1801
+ 1802 CLOSE(11)
+
+* Read SM Higgs ggF production cross section (60-122 GeV)
+* SMXS(I,1): Higgs mass
+* SMXS(I,2): ggF production cross section in fb
+      FILENAME=catpath(EXPCON_PATH,'SMXS.65-122.dat')
+      OPEN(11,FILE=FILENAME,STATUS='UNKNOWN',ERR=1)
+      I=1
+ 1811 READ(11,*,END=1812,ERR=2)(SMXS(I,J),J=1,2)
+      SMXS(I,2)=1d3*SMXS(I,2)
+      I=I+1
+      GOTO 1811
+ 1812 CLOSE(11)
+
+* Loop over 4 Higgses
+      DO I=1,4
+        IF(I.LE.3) MH(I)=SMASS(I)
+        IF(I.EQ.4) MH(I)=PMASS
+        J=1
+        DOWHILE(SMXS(J,1).LE.MH(I) .AND. J.LT.70)
+          J=J+1
+        ENDDO
+
+       IF(J.GE.2 .AND. MH(I).LT.122d0) THEN
+        XSMH(I)=0d0
+        LATLASH(I)=1d10
+* SM Higgs ggF prod. cross sect.:
+          XSMH(I)=SMXS(J-1,2)+(MH(I)-SMXS(J-1,1))/
+     .      (SMXS(J,1)-SMXS(J-1,1))*(SMXS(J,2)-SMXS(J-1,2))
+* ggF Signal cross section*BR(H->gamgam):
+          SIG(I)=CJ(I)**2*BRGG(I)*XSMH(I)
+* ATLAS limit:
+          LATLASH(I)=ggHgg(J-1,2)+(MH(I)-SMXS(J-1,1))/
+     .      (SMXS(J,1)-SMXS(J-1,1))*(ggHgg(J,2)-ggHgg(J-1,2))
+          PROB(53)=PROB(53)+DDIM(1d0,LATLASH(I)/SIG(I))
+
+        ENDIF
+        ENDDO
+
+      RETURN
+
+*   Error catch
+
+ 1    WRITE(*,*)"Cannot find the file ",FILENAME
+      STOP
+
+ 2    WRITE(*,*)"Read error in the file ",FILENAME
+      STOP
+
+      END
+
+      SUBROUTINE LHCHIG(PROB)
+
+*   Subroutine to check LHC Higgs constraints
+*      PROB(45) =/= 0  excluded by t -> bH+ (LHC)
+
+      IMPLICIT NONE
+
+      INTEGER I,J,PDGLSP
+
+      DOUBLE PRECISION PROB(*),SIG(3,10)
+      DOUBLE PRECISION SMASS(3),SCOMP(3,3),PMASS,PCOMP(3,3),CMASS
+      DOUBLE PRECISION BRJJ(4),BREE(4),BRMM(4),BRLL(4),BRSS(4),BRCC(4)
+      DOUBLE PRECISION BRBB(4),BRTT(4),BRWW(3),BRZZ(3),BRGG(4),BRINV(3)
+      DOUBLE PRECISION BRZG(4),BRHHH(4),BRHAA(3),BRHCHC(3)
+      DOUBLE PRECISION BRHAZ(3),BRAHZ(3),BRHCW(4)
+      DOUBLE PRECISION BRHIGGS(4),BRNEU(4,6,6),BRCHA(4,3)
+      DOUBLE PRECISION BRHSQ(3,10),BRHSL(3,9),BRASQ(2),BRASL
+      DOUBLE PRECISION BRSUSY(4),WIDTH(4)
+      DOUBLE PRECISION CU(4),CD(4),CV(3),CVZ(3),CJ(4),CG(4),CB(4)
+      DOUBLE PRECISION WIDTHSM(3),BRJJSM(3),BREESM(3),BRMMSM(3)
+      DOUBLE PRECISION BRLLSM(3)
+      DOUBLE PRECISION BRSSSM(3),BRCCSM(3),BRBBSM(3),BRTTSM(3)
+      DOUBLE PRECISION BRWWSM(3),BRZZSM(3),BRGGSM(3),BRZGSM(3)
+      DOUBLE PRECISION brtopbw,brtopbh,brtopneutrstop(6,2),LHC_TBH
+      DOUBLE PRECISION HCBRE,HCBRM,HCBRL,HCBRSU,HCBRBU,HCBRSC,HCBRBC
+      DOUBLE PRECISION HCBRBT,HCBRWH(4),HCBRWHT,HCBRNC(5,2)
+      DOUBLE PRECISION HCBRSQ(5),HCBRSL(3),HCBRSUSY,HCWIDTH
+
+      COMMON/BRN/BRJJ,BREE,BRMM,BRLL,BRSS,BRCC,BRBB,BRTT,BRWW,BRZZ,
+     .      BRGG,BRZG,BRHHH,BRHAA,BRHCHC,BRHAZ,BRAHZ,
+     .      BRHCW,BRHIGGS,BRNEU,BRCHA,BRHSQ,BRHSL,BRASQ,BRASL,
+     .      BRSUSY,WIDTH
+      COMMON/REDCOUP/CU,CD,CV,CVZ,CJ,CG,CB
+      COMMON/HIGGSPEC/SMASS,SCOMP,PMASS,PCOMP,CMASS
+      COMMON/BR_top2body/brtopbw,brtopbh,brtopneutrstop
+      COMMON/BRC/HCBRE,HCBRM,HCBRL,HCBRSU,HCBRBU,HCBRSC,HCBRBC,
+     .       HCBRBT,HCBRWH,HCBRWHT,HCBRNC,HCBRSQ,HCBRSL,
+     .       HCBRSUSY,HCWIDTH
+      COMMON/BRSM/WIDTHSM,BRJJSM,BREESM,BRMMSM,BRLLSM,BRSSSM,BRCCSM,
+     .       BRBBSM,BRTTSM,BRWWSM,BRZZSM,BRGGSM,BRZGSM 
+      COMMON/LHCSIG/SIG
+      COMMON/INV/BRINV,PDGLSP
+
+* Loop over H1, H2, H3
+
+      DO I=1,3
+
+
+       DO J=1,10
+        SIG(I,J)=0d0
+       ENDDO
+
+       CALL SMDECAY()
+
+*   H -> tautau
+* VBF/VH
+       IF(BRLLSM(I).NE.0d0)SIG(I,1)=CV(I)**2*BRLL(I)/BRLLSM(I)
+* ggF
+       IF(BRLLSM(I).NE.0d0)SIG(I,2)=CJ(I)**2*BRLL(I)/BRLLSM(I)
+       
+*   H -> bb
+* VBF/VH
+       IF(BRBBSM(I).NE.0d0)SIG(I,3)=CV(I)**2*BRBB(I)/BRBBSM(I)
+* ttH
+       IF(BRGGSM(I).NE.0d0)SIG(I,4)=CU(I)**2*BRBB(I)/BRBBSM(I)
+
+*   H -> ZZ/WW
+* VBF/VH
+       IF(BRZZSM(I).NE.0d0)SIG(I,5)=CV(I)**2*BRZZ(I)/BRZZSM(I)
+* ggF
+       IF(BRZZSM(I).NE.0d0)SIG(I,6)=CJ(I)**2*BRZZ(I)/BRZZSM(I)
+       
+*   H -> gammagamma
+* VBF/VH
+       IF(BRGGSM(I).NE.0d0)SIG(I,7)=CV(I)**2*BRGG(I)/BRGGSM(I)
+* ggF
+       IF(BRGGSM(I).NE.0d0)SIG(I,8)=CJ(I)**2*BRGG(I)/BRGGSM(I)
+
+*   H -> invisible = LSP (lighest neutralino or lighest RH-sneutrino)
+* VBF/VH
+       SIG(I,9)=CV(I)**2*BRINV(I)
+* ggF
+       SIG(I,10)=CJ(I)**2*BRINV(I)
+
+      ENDDO
+
+
+* Bound on Br(t->bH+)*BR(H+->tau nu)
+
+      PROB(45)=DDIM(brtopbh*HCBRL/LHC_TBH(CMASS),1d0)
+
+      END
+
+
+      DOUBLE PRECISION FUNCTION LHC_TBH(M)
+
+* ATLAS constraints on BR(t->bH+)*BR(H+->taunu), ATLAS-CONF-2011-151 tab.5
+
+      IMPLICIT NONE
+      INTEGER I,N
+      PARAMETER(N=8)
+      DOUBLE PRECISION X(N),Y(N),M
+
+      DATA X/90d0,100d0,110d0,120d0,130d0,140d0,150d0,160d0/ 
+      DATA Y/.104d0,.098d0,.095d0,.077d0,.066d0,.071d0,.052d0,.141d0/ 
+
+      LHC_TBH=1d9
+      DO I=1,N-1
+       IF((M.GE.X(I)).AND.(M.LE.X(I+1)))THEN
+        LHC_TBH=(Y(I)+(Y(I+1)-Y(I))*(M-X(I))/(X(I+1)-X(I)))
+        RETURN
+       ENDIF
+      ENDDO
+
+      END
+
+
+      SUBROUTINE Higgs_CHI2(PROB)
+
+*      PROB(46) =/= 0  No Higgs in the MHmin-MHmax GeV range
+*      PROB(47) =/= 0  chi2gam > chi2max
+*      PROB(48) =/= 0  chi2bb > chi2max
+*      PROB(49) =/= 0  chi2zz > chi2max
+
+      IMPLICIT NONE
+      INTEGER VFLAG,HFLAG
+      DOUBLE PRECISION PROB(*),SIG(3,10),D1,D2
+      DOUBLE PRECISION SMASS(3),SCOMP(3,3),PMASS,PCOMP(3,3),CMASS
+      DOUBLE PRECISION chi2gam,chi2bb,chi2zz,chi2max,MHmin,MHmax
+      DOUBLE PRECISION agg,bgg,cgg,mugcengg,muvcengg
+      DOUBLE PRECISION abb,bbb,cbb,mugcenbb,muvcenbb
+      DOUBLE PRECISION azz,bzz,czz,mugcenzz,muvcenzz
+
+      COMMON/HIGGSPEC/SMASS,SCOMP,PMASS,PCOMP,CMASS
+      COMMON/LHCSIG/SIG
+      COMMON/HIGGSFIT/MHmin,MHmax,chi2max,chi2gam,chi2bb,chi2zz
+      COMMON/FLAGS/VFLAG,HFLAG
+
+* adding linearly 1 GeV exp. + 2 GeV theor. errors
+      MHmin=125.1d0-3d0
+      MHmax=125.1d0+3d0
+      chi2max=6.18d0
+
+* From J. Bernon with run-II data (sep. 2016):
+
+c Chi^2 from gammagamma:
+      agg=17.47d0
+      bgg=3.17d0
+      cgg=6.26d0
+      mugcengg=1.18d0
+      muvcengg=1.07d0
+
+c Chi^2 from bb/tautau:
+      abb=4.81d0
+      bbb=2.69d0
+      cbb=21.57d0
+      mugcenbb=1.27d0
+      muvcenbb=0.86d0
+
+c Chi^2 from ZZ/WW:
+      azz=36.40d0
+      bzz=4.56d0
+      czz=8.16d0
+      mugcenzz=1.11d0
+      muvcenzz=1.37d0
+
+      IF(HFLAG.EQ.2)THEN
+       D1=1d99
+      ELSE
+       D1=DDIM(SMASS(1)/MHMAX,1d0)-DDIM(1d0,SMASS(1)/MHMIN)
+      ENDIF
+      IF(HFLAG.EQ.1)THEN
+       D2=1d99
+      ELSE
+       D2=DDIM(SMASS(2)/MHMAX,1d0)-DDIM(1d0,SMASS(2)/MHMIN)
+      ENDIF
+
+      IF(D1.EQ.0d0 .and. D2.EQ.0d0)THEN
+       IF(DABS(SMASS(1)-SMASS(2)).LE.3d0) THEN
+        chi2gam=agg*(SIG(1,8)+SIG(2,8)-mugcengg)**2 
+     .     +cgg*(SIG(1,7)+SIG(2,7)-muvcengg)**2
+     .     +2d0*bgg*(SIG(1,8)+SIG(2,8)-mugcengg)
+     .       *(SIG(1,7)+SIG(2,7)-muvcengg)
+        chi2zz=azz*(SIG(1,6)+SIG(2,6)-mugcenzz)**2 
+     .    +czz*(SIG(1,5)+SIG(2,5)-muvcenzz)**2
+     .    +2d0*bzz*(SIG(1,6)+SIG(2,6)-mugcenzz)
+     .       *(SIG(1,5)+SIG(2,5)-muvcenzz)
+       ELSE
+        chi2gam=MIN(
+     .    agg*(SIG(1,8)-mugcengg)**2 +cgg*(SIG(1,7)-muvcengg)**2
+     .    +2d0*bgg*(SIG(1,8)-mugcengg)*(SIG(1,7)-muvcengg),
+     .    agg*(SIG(2,8)-mugcengg)**2+cgg*(SIG(2,7)-muvcengg)**2
+     .    +2d0*bgg*(SIG(2,8)-mugcengg)*(SIG(2,7)-muvcengg))
+        chi2zz=MIN(
+     .    azz*(SIG(1,6)-mugcenzz)**2+czz*(SIG(1,5)-muvcenzz)**2
+     .    +2d0*bzz*(SIG(1,6)-mugcenzz)*(SIG(1,5)-muvcenzz),
+     .    azz*(SIG(2,6)-mugcenzz)**2+czz*(SIG(2,5)-muvcenzz)**2
+     .    +2d0*bzz*(SIG(2,6)-mugcenzz)*(SIG(2,5)-muvcenzz))
+       ENDIF
+       chi2bb=abb*(SIG(1,2)+SIG(2,2)-mugcenbb)**2 
+     .    +cbb*(SIG(1,3)+SIG(2,3)-muvcenbb)**2
+     .    +2d0*bbb*(SIG(1,2)+SIG(2,2)-mugcenbb)
+     .       *(SIG(1,3)+SIG(2,3)-muvcenbb)
+      ELSEIF(D1.EQ.0d0)THEN
+       chi2gam=agg*(SIG(1,8)-mugcengg)**2 +cgg*(SIG(1,7)-muvcengg)**2
+     .    +2d0*bgg*(SIG(1,8)-mugcengg)*(SIG(1,7)-muvcengg)
+       chi2bb=abb*(SIG(1,2)-mugcenbb)**2+cbb*(SIG(1,3)-muvcenbb)**2
+     .    +2d0*bbb*(SIG(1,2)-mugcenbb)*(SIG(1,3)-muvcenbb)
+       chi2zz=azz*(SIG(1,6)-mugcenzz)**2+czz*(SIG(1,5)-muvcenzz)**2
+     .    +2d0*bzz*(SIG(1,6)-mugcenzz)*(SIG(1,5)-muvcenzz)
+      ELSEIF(D2.EQ.0d0)THEN
+       chi2gam=agg*(SIG(2,8)-mugcengg)**2+cgg*(SIG(2,7)-muvcengg)**2
+     .    +2d0*bgg*(SIG(2,8)-mugcengg)*(SIG(2,7)-muvcengg)
+       chi2bb=abb*(SIG(2,2)-mugcenbb)**2+cbb*(SIG(2,3)-muvcenbb)**2
+     .    +2d0*bbb*(SIG(2,2)-mugcenbb)*(SIG(2,3)-muvcenbb)
+       chi2zz=azz*(SIG(2,6)-mugcenzz)**2+czz*(SIG(2,5)-muvcenzz)**2
+     .    +2d0*bzz*(SIG(2,6)-mugcenzz)*(SIG(2,5)-muvcenzz)
+      ELSE
+       chi2gam=0d0
+       chi2bb=0d0
+       chi2zz=0d0
+       IF(DABS(D1).LT.DABS(D2))THEN
+        PROB(46)=DABS(D1)
+       chi2gam=agg*(SIG(1,8)-mugcengg)**2 +cgg*(SIG(1,7)-muvcengg)**2
+     .    +2d0*bgg*(SIG(1,8)-mugcengg)*(SIG(1,7)-muvcengg)
+       chi2bb=abb*(SIG(1,2)-mugcenbb)**2+cbb*(SIG(1,3)-muvcenbb)**2
+     .    +2d0*bbb*(SIG(1,2)-mugcenbb)*(SIG(1,3)-muvcenbb)
+       chi2zz=azz*(SIG(1,6)-mugcenzz)**2+czz*(SIG(1,5)-muvcenzz)**2
+     .    +2d0*bzz*(SIG(1,6)-mugcenzz)*(SIG(1,5)-muvcenzz)
+       ELSE
+        PROB(46)=DABS(D2)
+       chi2gam=agg*(SIG(2,8)-mugcengg)**2+cgg*(SIG(2,7)-muvcengg)**2
+     .    +2d0*bgg*(SIG(2,8)-mugcengg)*(SIG(2,7)-muvcengg)
+       chi2bb=abb*(SIG(2,2)-mugcenbb)**2+cbb*(SIG(2,3)-muvcenbb)**2
+     .    +2d0*bbb*(SIG(2,2)-mugcenbb)*(SIG(2,3)-muvcenbb)
+       chi2zz=azz*(SIG(2,6)-mugcenzz)**2+czz*(SIG(2,5)-muvcenzz)**2
+     .    +2d0*bzz*(SIG(2,6)-mugcenzz)*(SIG(2,5)-muvcenzz)
+       ENDIF
+      ENDIF
+
+      PROB(47)=DDIM(chi2gam/chi2MAX,1d0)
+      PROB(48)=DDIM(chi2bb/chi2MAX,1d0)
+      PROB(49)=DDIM(chi2zz/chi2MAX,1d0)
+      
       END
 

@@ -28,8 +28,10 @@ extern double usrfun(char * name,int n_in, int n_out, double * pvect,char**pname
 
 extern double alpha_lha(double q );
 extern void   getdatapath(char* dirpath, int len);
+extern void   getlhapdfversion(char* s, size_t len);
 extern void   initpdfsetbynamem(int *P,char *name, int len);
-extern void   evolvepdfm(int* P,double *x,double *Q,double *f);
+extern void   evolvePDFm(int P,double x,double Q,double *f);
+extern int    has_photon(void);
 extern void   initpdfm(int* P,int * nSet,double*xMin,double*xMax,double*qMin,double*qMax );
 extern void   numberpdfm(int* P,int * nMax);
 extern double alphaspdfm(int*S,double*Q);

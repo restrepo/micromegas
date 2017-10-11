@@ -1,8 +1,8 @@
-#include"../../sources/micromegas.h"
-#include"../../sources/micromegas_aux.h"
+#include"../../include/micromegas.h"
+#include"../../include/micromegas_aux.h"
 #include "pmodel.h"
 
-int LiLithF(char*fname)
+int LilithMDL(char*fname)
 {
   int i, npart=0;
 
@@ -17,7 +17,7 @@ int LiLithF(char*fname)
 
   double mass = pMass("h");
 
-  if(mass < 123. || mass > 128.) return 0;
+  if(mass < 123 || mass > 128) return 0;
 
   f=fopen(fname,"w");
   
@@ -73,3 +73,12 @@ int LiLithF(char*fname)
   return 1;
 }
 
+int lilithmdl_(char*fname,int len)
+{
+   char * cname=malloc(len+2);
+   int err;
+   fName2c(fname,cname,len);
+   err= LilithMDL(cname);
+   free(cname);
+   return err; 
+}

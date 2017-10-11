@@ -1,6 +1,6 @@
 #include"pmodel.h"
 #include"pmodel_aux.h"
-#include"../../sources/micromegas.h"
+#include"../../include/micromegas.h"
 
 #define xxxSUGRAc  suspectSUGRAc
 #define xxxSUGRA   suspectSUGRA

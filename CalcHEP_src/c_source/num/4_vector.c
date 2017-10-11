@@ -101,14 +101,14 @@ void incomkin(REAL m1, REAL m2, REAL p1, REAL p2,
   REAL sqrt_S, Pcm,rapidity;
   REAL e1=sqrt(m1*m1+p1*p1);
   REAL e2=sqrt(m2*m2+p2*p2);
-   
+ 
   sqrt_S=(e1+e2-p1+p2)*(e1+e2+p1-p2);
-  
+   
   rapidity= atanh((p1-p2)/(e1+e2));
 
   Pcm=p1*cosh(rapidity)-e1*sinh(rapidity);
 
-  if(sqrt_S_) *sqrt_S_=sqrt(sqrt_S);
+  if(sqrt_S_) *sqrt_S_=sqrt(sqrt_S);  
   if(Pcm_) *Pcm_=Pcm; 
   if(rapidity_) *rapidity_=rapidity;
 }

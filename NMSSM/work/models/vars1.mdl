@@ -2,9 +2,9 @@ NMSSM(micro)
  Variables 
  Name  | Value       |>  Comment                                   <|
 Am     |0            |
-EE     |0.3122       |Electromagnetic coupling constant
+EE     |0.31343      |Electromagnetic coupling constant
 MZ     |91.187       |Z mass
-MW     |80.37        |W mass 
+MW     |80.385       |W mass 
 GG     |1.117        |Strong coupling constant
 alfSMZ |0.1184       |
 MbMb   |4.5          |Mb(Mb)

@@ -19,3 +19,4 @@ aLib.a:aLib.a($(aLibOBJ))
 
 clean: 
 	rm -f *.o *.a *.so *.dll *.exe so_located
+	make -C nnggidm clean

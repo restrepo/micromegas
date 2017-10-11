@@ -52,6 +52,62 @@ lterm  - la1*(s_hd*s_Hd)**2/2
        - la1s*(s_hd*s_Hd)*s_s*s_S
        - la2s*(s_hu*s_Hu)*s_s*s_S.
 
+
+% vectorial and axial couplings Z2-q-qbar to be used in dijet constraints :
+_p=[u,d,c,s,b] in parameter gVZp__p=CoefVrt([anti(_p),_p,Z2],[gamma,re]).
+_p=[u,d,c,s,b] in parameter gAZp__p=CoefVrt([anti(_p),_p,Z2],[gamma,gamma5,re]).
+
+%%%%%%%%%%%%%%%%%%%%% Couplings for UMSSMTools %%%%%%%%%%%%%%%%%%%%%%%%
+
+_h=[h2,h3] in parameter _htoh11=CoefVrt([h1,h1,_h],[abbr]).
+_h=[h1,h2] in parameter h3to_h2=CoefVrt([_h,h2,h3],[abbr]).
+_h=[h1,h2,h3] in parameter _htohaa=CoefVrt([_h,ha,ha],[abbr]).
+_h=[h1,h2,h3] in parameter _htoHpm=CoefVrt(['H+','H-',_h],[abbr]).
+_h=[h1,h2,h3] in parameter _htoaZ1=-2*CW*SW/EE*CoefVrt([Z1,_h,ha],[abbr,im,moment(_h)]).
+_h=[h1,h2,h3], _n=[1,2,3,4,5,6] in parameter _htoN_n_n=CoefVrt([~o_n,~o_n,_h],[abbr]).
+_h=[h1,h2,h3], _n=[2,3,4,5,6] in parameter _htoN1_n=CoefVrt([~o1,~o_n,_h],[abbr]).
+_h=[h1,h2,h3], _n=[3,4,5,6] in parameter _htoN2_n=CoefVrt([~o2,~o_n,_h],[abbr]).
+_h=[h1,h2,h3], _n=[4,5,6] in parameter _htoN3_n=CoefVrt([~o3,~o_n,_h],[abbr]).
+_h=[h1,h2,h3], _n=[5,6] in parameter _htoN4_n=CoefVrt([~o4,~o_n,_h],[abbr]).
+_h=[h1,h2,h3] in parameter _htoN56=CoefVrt([~o5,~o6,_h],[abbr]).
+_h=[h1,h2,h3], _c=[1,2] in parameter _htoC_c_c=CoefVrt(['~_c-','~_c+',_h],[abbr]).
+_h=[h1,h2,h3] in parameter _htoCLH=CoefVrt(['~1-','~2+',_h],[abbr])-CoefVrt(['~1-','~2+',_h],[gamma5,abbr]).
+_h=[h1,h2,h3] in parameter _htoCRH=CoefVrt(['~1-','~2+',_h],[abbr])+CoefVrt(['~1-','~2+',_h],[gamma5,abbr]).
+_n=[1,2,3,4,5,6] in parameter hatoN_n_n=CoefVrt([~o_n,~o_n,ha],[gamma5,im,abbr]).
+_n=[2,3,4,5,6] in parameter hatoN1_n=CoefVrt([~o1,~o_n,ha],[gamma5,im,abbr]).
+_n=[3,4,5,6] in parameter hatoN2_n=CoefVrt([~o2,~o_n,ha],[gamma5,im,abbr]).
+_n=[4,5,6] in parameter hatoN3_n=CoefVrt([~o3,~o_n,ha],[gamma5,im,abbr]).
+_n=[5,6] in parameter hatoN4_n=CoefVrt([~o4,~o_n,ha],[gamma5,im,abbr]).
+parameter hatoN56=CoefVrt([~o5,~o6,ha],[gamma5,im,abbr]).
+_c=[1,2] in parameter hatoC_c_c=CoefVrt(['~_c-','~_c+',ha],[gamma5,im,abbr]).
+parameter hatoCLH=CoefVrt(['~1-','~2+',ha],[im])-CoefVrt(['~1-','~2+',ha],[gamma5,im]).
+parameter hatoCRH=CoefVrt(['~1-','~2+',ha],[im])+CoefVrt(['~1-','~2+',ha],[gamma5,im]).
+_n=[1,2,3,4,5,6], _c=[1,2] in parameter LtoN_nC_c=CoefVrt(['~_c-',~o_n,'H+'],[abbr])-CoefVrt(['~_c-',~o_n,'H+'],[gamma5,abbr]).
+_n=[1,2,3,4,5,6], _c=[1,2] in parameter RtoN_nC_c=CoefVrt(['~_c-',~o_n,'H+'],[abbr])+CoefVrt(['~_c-',~o_n,'H+'],[gamma5,abbr]).
+
+do_if haHpmtosfer==on.
+
+_h=[h1,h2,h3], _q=[uL,dL] in parameter _htoS_q=CoefVrt([anti(~_q),~_q,_h],[abbr]).
+_h=[h1,h2,h3] in parameter _htoSuR=CoefVrt([~UR,~uR,_h],[abbr]).
+_h=[h1,h2,h3] in parameter _htoSdR=CoefVrt([~DR,~dR,_h],[abbr]).
+_h=[h1,h2,h3], _t=[t1,t2] in parameter _htoS_t=CoefVrt([anti(~_t),~_t,_h],[abbr]).
+_h=[h1,h2,h3] in parameter _htoStm=CoefVrt([~T2,~t1,_h],[abbr]).
+_h=[h1,h2,h3], _b=[b1,b2] in parameter _htoS_b=CoefVrt([anti(~_b),~_b,_h],[abbr]).
+_h=[h1,h2,h3] in parameter _htoSbm=CoefVrt([~B2,~b1,_h],[abbr]).
+_h=[h1,h2,h3] in parameter _htoSeL=CoefVrt([~EL,~eL,_h],[abbr]).
+_h=[h1,h2,h3] in parameter _htoSeR=CoefVrt([~ER,~eR,_h],[abbr]).
+_h=[h1,h2,h3] in parameter _htoSnL=CoefVrt([~Ne,~ne,_h],[abbr]).
+_h=[h1,h2,h3], _l=[l1,l2] in parameter _htoS_l=CoefVrt([anti(~_l),~_l,_h],[abbr]).
+_h=[h1,h2,h3] in parameter _htoSlm=CoefVrt([~L2,~l1,_h],[abbr]).
+_h=[h1,h2,h3] in parameter _htoSnR=CoefVrt([~NE,~nE,_h],[abbr]).
+parameter hatoStm=CoefVrt([~T2,~t1,ha],[im,abbr]).
+parameter hatoSbm=CoefVrt([~B2,~b1,ha],[im,abbr]).
+parameter hatoSlm=CoefVrt([~L2,~l1,ha],[im,abbr]).
+_t=[1,2], _b=[1,2] in parameter HcSq3_t_b=CoefVrt([~T_t,~b_b,'H+'],[abbr]).
+_l=[1,2] in parameter HcSnl_l=CoefVrt([~Nl,~l_l,'H+'],[abbr]).
+
+end_if.
+
 SetEM(A,EE).
 CheckHerm.
 CheckMasses.

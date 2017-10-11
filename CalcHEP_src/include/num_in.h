@@ -12,7 +12,7 @@ typedef REAL (FNN)(double,REAL*,REAL*,COMPLEX*,REAL*,REAL*);
 
 extern  double Fmax;
 extern  REAL Helicity[2];
-extern  REAL HelicityN[2];
+
 extern  int    CalcConst;
 extern  int    indx_(int k,int l);
 extern  void   sprod_(int ntot, REAL * momenta, REAL*DP);

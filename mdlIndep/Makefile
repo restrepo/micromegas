@@ -1,5 +1,5 @@
 
-include ../modelMakefile
+include ../include/modelMakefile
 
 specialClean: 
 	echo " "

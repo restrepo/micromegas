@@ -861,13 +861,17 @@ double pWidth(char *name, txtList * LL)
            decayTable[i0].width=width;
            decayTable[i0].status=1;  
            for(j=1; allDecays(i,j,&pdg,&Len,decay,&width,&br) ;j++) if(br>0)
-           { int k;  
+           { int k;
+             char*ch;  
              l=malloc(sizeof(txtListStr));
              l->txt=malloc(100); 
              l->next=L;
-             sprintf(l->txt,"%E  %s -> ",br, pdg2name(pdg));
-             sprintf(l->txt+strlen(l->txt),"%s",pdg2name(decay[0]));
-             for(k=1;k<Len;k++) sprintf(l->txt+strlen(l->txt),", %s",pdg2name(decay[k]));
+             ch=pdg2name(pdg);   if(ch) sprintf(l->txt,"%E  %s -> ",br,ch); else sprintf(l->txt,"%E  #%d -> ",br,pdg);
+             ch=pdg2name(decay[0]); if(ch)  sprintf(l->txt+strlen(l->txt),"%s",ch); else  sprintf(l->txt+strlen(l->txt),"#%d",decay[0]);
+             for(k=1;k<Len;k++)
+             { ch=pdg2name(decay[k]);
+               if(ch)sprintf(l->txt+strlen(l->txt),", %s",ch); else sprintf(l->txt+strlen(l->txt),", #%d",decay[k]);
+             }    
              L=l;
            }
            if(pdg0==pdg) 
@@ -880,9 +884,10 @@ double pWidth(char *name, txtList * LL)
                            decayTable[i0].pdList[j0]=conBrList(L);
            }                
            if(LL) *LL=decayTable[i0].pdList[j0];
+
            return width;
         }
-     }          
+     }
   }
   decayTable[i0].status=-1;
   if(Q==NULL) for(i=0;i<nModelVars;i++) if(strcmp(varNames[i],"Q")==0){ Q= varValues+i; break;}
@@ -1088,7 +1093,7 @@ int slhaDecayPrint(char * name, int dVirt, FILE*f)
                   sscanf(chD,"%[^,],%s", name1,name2);
                   trim(name1);
                   sscanf(LV->txt,"%lf",&brV);
-                  fprintf(f," %e  3  %d  %d  %d # %s,%s->%s\n",br*brV , id[1-k] , pNum(name1),pNum(name2),N[1-k],N[k],chD);
+                  fprintf(f,"   %e  3  %d  %d  %d # %s,%s->%s\n",br*brV , id[1-k] , pNum(name1),pNum(name2),N[1-k],N[k],chD);
                } 
                if(id[0]==id[1]) break;
             }
@@ -1096,7 +1101,7 @@ int slhaDecayPrint(char * name, int dVirt, FILE*f)
          }   
       }     
       
-      fprintf(f," %s   %d  ",pn,dim);
+      fprintf(f,"   %s   %d  ",pn,dim);
       for(i=0;i<dim;i++) fprintf(f," %d", id[i] ); 
       chB=strstr(all->txt,"->");
       fprintf(f,"  # %s \n",chB+2);
@@ -1105,3 +1110,17 @@ int slhaDecayPrint(char * name, int dVirt, FILE*f)
    return PDG;
 } 
 
+double pWidthCC(numout*cc,int*err)
+{ int ntot,nin,nout;
+  double res;
+
+  if(!cc)  {*err=1; return 0;}
+  procInfo1(cc,&ntot,&nin,&nout);
+  if(ntot<0 || nin>1||nout>4) { *err=2; return 0;}
+  *err=0;
+  switch(nout)
+  { case 2: res=pWidth2(cc,1);     return res;
+    case 3: res=width13(cc,1,err); return res;
+    case 4: res=width14(cc,err);   return res;          
+  }
+} 

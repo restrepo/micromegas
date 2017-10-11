@@ -1,0 +1,8 @@
+sqrts: 8.0*TeV
+lumi: 20.1/fb
+id: ATLAS-CONF-2013-061
+url: https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/CONFNOTES/ATLAS-CONF-2013-061/
+publication: http://cds.cern.ch/record/1557778
+implementedBy: Federico A
+lastUpdate: 2016/9/29
+

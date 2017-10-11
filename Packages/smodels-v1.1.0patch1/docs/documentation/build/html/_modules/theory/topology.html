@@ -1,0 +1,542 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>theory.topology &mdash; SModelS 1.1.0patch1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="SModelS 1.1.0patch1 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> SModelS
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.1.0patch1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../theory.html">theory package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../experiment.html">experiment package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tools.html">tools package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">SModelS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>theory.topology</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for theory.topology</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: topology</span>
+<span class="sd">   :synopsis: Provides a Topology class and a TopologyList collection type.</span>
+
+<span class="sd">.. moduleauthor:: Andre Lessa &lt;lessa.a.p@gmail.com&gt;</span>
+<span class="sd">.. moduleauthor:: Wolfgang Magerl &lt;wolfgang.magerl@gmail.com&gt;</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">smodels.theory</span> <span class="kn">import</span> <span class="n">crossSection</span>
+<span class="kn">from</span> <span class="nn">smodels.theory.element</span> <span class="kn">import</span> <span class="n">Element</span>
+<span class="kn">from</span> <span class="nn">smodels.theory.exceptions</span> <span class="kn">import</span> <span class="n">SModelSTheoryError</span> <span class="k">as</span> <span class="n">SModelSError</span>
+<span class="kn">from</span> <span class="nn">smodels.theory.auxiliaryFunctions</span> <span class="kn">import</span> <span class="n">index_bisect</span>
+<span class="kn">from</span> <span class="nn">smodels.tools.smodelsLogging</span> <span class="kn">import</span> <span class="n">logger</span>
+
+
+<div class="viewcode-block" id="Topology"><a class="viewcode-back" href="../../theory.html#theory.topology.Topology">[docs]</a><span class="k">class</span> <span class="nc">Topology</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An instance of this class represents a topology.</span>
+<span class="sd">    </span>
+<span class="sd">    :ivar vertnumb: list with number of vertices in each branch</span>
+<span class="sd">    :ivar verparts: list with number of final states in each branch</span>
+<span class="sd">    :ivar elementList: list of Element objects with this common topology</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elements</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructor.</span>
+<span class="sd">        If elements is defined, create the topology from it. If elements it is</span>
+<span class="sd">        a list, all elements must share a common global topology.</span>
+<span class="sd">        </span>
+<span class="sd">        :parameter elements: Element object or list of Element objects</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vertnumb</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vertparts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elementList</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="n">elements</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span><span class="n">Element</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">addElement</span><span class="p">(</span><span class="n">elements</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span><span class="nb">list</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">addElement</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return string with numbers of particles per vertex, e.g.</span>
+<span class="sd">        [1],[2,1]</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: string with number of final states in each branch</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertparts</span><span class="p">:</span>
+            <span class="n">ret</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ret</span>
+
+    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__cmp__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span> <span class="p">)</span>
+        <span class="k">return</span> <span class="n">ret</span>
+
+    <span class="k">def</span> <span class="nf">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cmp__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span><span class="o">&lt;</span><span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">__cmp__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compares the topology with other.</span>
+<span class="sd">        The comparison is made on number of vertices and then on the </span>
+<span class="sd">        total number of particles coming out of the vertices.</span>
+<span class="sd">        :param other:  topology to be compared (Topology object)</span>
+<span class="sd">        :return: -1 if self &lt; other, 0 if self == other, +1, if self &gt; other.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+                
+        <span class="k">if</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vertnumb</span><span class="p">,</span><span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">vertnumb</span><span class="p">,</span><span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+            <span class="n">comp</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vertnumb</span><span class="p">,</span><span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">vertnumb</span><span class="p">,</span><span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">comp</span><span class="p">:</span> <span class="k">return</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>  
+        <span class="k">elif</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vertparts</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">vertparts</span><span class="p">):</span>
+            <span class="n">comp</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vertparts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">vertparts</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">comp</span><span class="p">:</span> <span class="k">return</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="o">-</span><span class="mi">1</span> 
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>        
+
+
+<div class="viewcode-block" id="Topology.checkConsistency"><a class="viewcode-back" href="../../theory.html#theory.topology.Topology.checkConsistency">[docs]</a>    <span class="k">def</span> <span class="nf">checkConsistency</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if the all the elements in elementList are</span>
+<span class="sd">        consistent with the topology (same number of vertices and final states)</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: True if all the elements are consistent. Print error message</span>
+<span class="sd">                  and exits otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elementList</span><span class="p">:</span>
+            <span class="n">info</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">getEinfo</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertnumb</span> <span class="o">!=</span> <span class="n">info</span><span class="p">[</span><span class="s2">&quot;vertnumb&quot;</span><span class="p">]:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Inconsistent topology.&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertparts</span> <span class="o">!=</span> <span class="n">info</span><span class="p">[</span><span class="s2">&quot;vertparts&quot;</span><span class="p">]:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Inconsistent topology.&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Consistent topology.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">True</span></div>
+
+
+<div class="viewcode-block" id="Topology.describe"><a class="viewcode-back" href="../../theory.html#theory.topology.Topology.describe">[docs]</a>    <span class="k">def</span> <span class="nf">describe</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a detailed description of the topology.</span>
+
+<span class="sd">        :returns: list of strings with a description of the topology</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;number of vertices: </span><span class="si">%s</span><span class="s2">, number of vertex particles: </span><span class="si">%s</span><span class="s2">, &quot;</span>
+               <span class="s2">&quot;number of elements: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> \
+               <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vertnumb</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertparts</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elementList</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="n">ret</span></div>
+
+
+<div class="viewcode-block" id="Topology.getElements"><a class="viewcode-back" href="../../theory.html#theory.topology.Topology.getElements">[docs]</a>    <span class="k">def</span> <span class="nf">getElements</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get list of elements of the topology.</span>
+
+<span class="sd">        :return: elementList (list of Element objects)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">elementList</span></div>
+
+    
+<div class="viewcode-block" id="Topology.addElement"><a class="viewcode-back" href="../../theory.html#theory.topology.Topology.addElement">[docs]</a>    <span class="k">def</span> <span class="nf">addElement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newelement</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add an Element object to the elementList.</span>
+
+<span class="sd">        For all the pre-existing elements, which match the new element, add</span>
+<span class="sd">        weight. If no pre-existing elements match the new one, add it to the</span>
+<span class="sd">        list. OBS: newelement MUST ALREADY BE SORTED (see element.sort())</span>
+<span class="sd">        </span>
+<span class="sd">        :parameter newelement: element to be added (Element object)</span>
+<span class="sd">        :returns: True, if the element was added. False, otherwise</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># If the topology info has not been set yet, set it using the element</span>
+        <span class="c1"># info</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertparts</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vertparts</span> <span class="o">=</span> <span class="n">newelement</span><span class="o">.</span><span class="n">getEinfo</span><span class="p">()[</span><span class="s2">&quot;vertparts&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertnumb</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vertnumb</span> <span class="o">=</span> <span class="n">newelement</span><span class="o">.</span><span class="n">getEinfo</span><span class="p">()[</span><span class="s2">&quot;vertnumb&quot;</span><span class="p">]</span>
+
+        <span class="c1">#First check if element matches topology structure</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">newelement</span><span class="o">.</span><span class="n">getEinfo</span><span class="p">()</span>        
+        <span class="k">if</span> <span class="n">info</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getTinfo</span><span class="p">():</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Element to be added does not match topology&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        
+        <span class="n">index</span> <span class="o">=</span> <span class="n">index_bisect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elementList</span><span class="p">,</span><span class="n">newelement</span><span class="p">)</span>        
+        <span class="k">if</span> <span class="n">index</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elementList</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">elementList</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">==</span> <span class="n">newelement</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">elementList</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">combineWith</span><span class="p">(</span><span class="n">newelement</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">elementList</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">combinePIDs</span><span class="p">(</span><span class="n">newelement</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">elementList</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">combineMotherElements</span><span class="p">(</span><span class="n">newelement</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">elementList</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">index</span><span class="p">,</span><span class="n">newelement</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">True</span></div>
+
+
+
+    <span class="k">def</span> <span class="nf">_getTinfo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a dictionary with the topology number of vertices and vertparts.</span>
+
+<span class="sd">        :returns: dictionary with topology information</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;vertnumb&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertnumb</span><span class="p">,</span> <span class="s1">&#39;vertparts&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertparts</span><span class="p">}</span>
+
+
+<div class="viewcode-block" id="Topology.getTotalWeight"><a class="viewcode-back" href="../../theory.html#theory.topology.Topology.getTotalWeight">[docs]</a>    <span class="k">def</span> <span class="nf">getTotalWeight</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the sum of all elements weights.</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: sum of weights of all elements (XSection object)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elementList</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+        <span class="n">sumw</span> <span class="o">=</span> <span class="n">crossSection</span><span class="o">.</span><span class="n">XSectionList</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elementList</span><span class="p">:</span>
+            <span class="n">sumw</span><span class="o">.</span><span class="n">combineWith</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">sumw</span></div></div>
+
+
+<div class="viewcode-block" id="TopologyList"><a class="viewcode-back" href="../../theory.html#theory.topology.TopologyList">[docs]</a><span class="k">class</span> <span class="nc">TopologyList</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An instance of this class represents an iterable collection of topologies.</span>
+<span class="sd">    </span>
+<span class="sd">    :ivar topos: list of topologies (Topology objects)</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topologies</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add topologies sequentially, if provided.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">topos</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">topo</span> <span class="ow">in</span> <span class="n">topologies</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">topo</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">topos</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">topos</span>
+
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">topos</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">topos</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">topos</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;TopologyList:</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="k">for</span> <span class="n">topo</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">topos</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">topo</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="n">s</span>
+
+<div class="viewcode-block" id="TopologyList.insert"><a class="viewcode-back" href="../../theory.html#theory.topology.TopologyList.insert">[docs]</a>    <span class="k">def</span> <span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">index</span><span class="p">,</span><span class="n">topo</span><span class="p">):</span>        
+        <span class="bp">self</span><span class="o">.</span><span class="n">topos</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">index</span><span class="p">,</span><span class="n">topo</span><span class="p">)</span></div>
+        
+
+<div class="viewcode-block" id="TopologyList.addList"><a class="viewcode-back" href="../../theory.html#theory.topology.TopologyList.addList">[docs]</a>    <span class="k">def</span> <span class="nf">addList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topoList</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds topologies in topoList using the add method.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">topo</span> <span class="ow">in</span> <span class="n">topoList</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">topo</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TopologyList.describe"><a class="viewcode-back" href="../../theory.html#theory.topology.TopologyList.describe">[docs]</a>    <span class="k">def</span> <span class="nf">describe</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns string with basic information about the topology list.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;TopologyList:</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="k">for</span> <span class="n">topo</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">topos</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">topo</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="n">s</span></div>
+
+<div class="viewcode-block" id="TopologyList.index"><a class="viewcode-back" href="../../theory.html#theory.topology.TopologyList.index">[docs]</a>    <span class="k">def</span> <span class="nf">index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">topo</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Uses bisect to find the index where of topo in the list.</span>
+<span class="sd">        If topo does not appear in the list, returns None.</span>
+<span class="sd">        </span>
+<span class="sd">        :param topo: Topology object</span>
+<span class="sd">        :return: position of topo in the list. If topo does not    </span>
+<span class="sd">                appear in the list, return None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">i</span> <span class="o">=</span> <span class="n">index_bisect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topo</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">topo</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">i</span>
+        
+        <span class="k">return</span> <span class="bp">None</span></div>
+
+    
+<div class="viewcode-block" id="TopologyList.add"><a class="viewcode-back" href="../../theory.html#theory.topology.TopologyList.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newTopology</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if elements in newTopology matches an entry in self.topos.</span>
+
+<span class="sd">        If it does, add weight. If the same topology exists, but not the same</span>
+<span class="sd">        element, add element. If neither element nor topology exist, add the</span>
+<span class="sd">        new topology and all its elements.</span>
+
+<span class="sd">        :param newTopology: Topology object</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">index</span> <span class="o">=</span> <span class="n">index_bisect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newTopology</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">index</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">==</span> <span class="n">newTopology</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">newelement</span> <span class="ow">in</span> <span class="n">newTopology</span><span class="o">.</span><span class="n">elementList</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">topos</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">addElement</span><span class="p">(</span><span class="n">newelement</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">index</span><span class="p">,</span><span class="n">newTopology</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TopologyList.addElement"><a class="viewcode-back" href="../../theory.html#theory.topology.TopologyList.addElement">[docs]</a>    <span class="k">def</span> <span class="nf">addElement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newelement</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add an Element object to the corresponding topology in the list.</span>
+<span class="sd">        If the element topology does not match any of the topologies in</span>
+<span class="sd">        the list, create a new topology and insert it in the list.</span>
+<span class="sd">        If the element topology already exists, add it to the respective</span>
+<span class="sd">        topology.        </span>
+<span class="sd">        :parameter newelement: element to be added (Element object)</span>
+<span class="sd">        :returns: True, if the element was added. False, otherwise</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c1">#First create a dummy topology from the element to check</span>
+        <span class="c1">#if this topology already exists in the list:</span>
+        <span class="n">elInfo</span> <span class="o">=</span> <span class="n">newelement</span><span class="o">.</span><span class="n">getEinfo</span><span class="p">()</span>
+        <span class="n">topoDummy</span> <span class="o">=</span> <span class="n">Topology</span><span class="p">()</span>
+        <span class="n">topoDummy</span><span class="o">.</span><span class="n">elementList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newelement</span><span class="p">)</span>
+        <span class="n">topoDummy</span><span class="o">.</span><span class="n">vertnumb</span> <span class="o">=</span> <span class="n">elInfo</span><span class="p">[</span><span class="s2">&quot;vertnumb&quot;</span><span class="p">]</span>
+        <span class="n">topoDummy</span><span class="o">.</span><span class="n">vertparts</span> <span class="o">=</span> <span class="n">elInfo</span><span class="p">[</span><span class="s2">&quot;vertparts&quot;</span><span class="p">]</span>
+        
+        <span class="n">index</span> <span class="o">=</span> <span class="n">index_bisect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">topoDummy</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">index</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">topos</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">==</span> <span class="n">topoDummy</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">topos</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">addElement</span><span class="p">(</span><span class="n">newelement</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">topos</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">index</span><span class="p">,</span><span class="n">topoDummy</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TopologyList.getTotalWeight"><a class="viewcode-back" href="../../theory.html#theory.topology.TopologyList.getTotalWeight">[docs]</a>    <span class="k">def</span> <span class="nf">getTotalWeight</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the sum of all topologies total weights.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sumw</span> <span class="o">=</span> <span class="n">crossSection</span><span class="o">.</span><span class="n">XSectionList</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">topo</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">topoweight</span> <span class="o">=</span> <span class="n">topo</span><span class="o">.</span><span class="n">getTotalWeight</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">topoweight</span><span class="p">:</span>
+                <span class="n">sumw</span><span class="o">.</span><span class="n">combineWith</span><span class="p">(</span><span class="n">topoweight</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sumw</span></div>
+
+
+<div class="viewcode-block" id="TopologyList.getElements"><a class="viewcode-back" href="../../theory.html#theory.topology.TopologyList.getElements">[docs]</a>    <span class="k">def</span> <span class="nf">getElements</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a list with all the elements in all the topologies.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">elements</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">top</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">topos</span><span class="p">:</span>
+            <span class="n">elements</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">top</span><span class="o">.</span><span class="n">elementList</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">elements</span></div>
+
+    <span class="k">def</span> <span class="nf">_setElementIds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Assign unique ID to each element in the Topology list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">elID</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">getElements</span><span class="p">():</span>
+            <span class="n">element</span><span class="o">.</span><span class="n">elID</span> <span class="o">=</span> <span class="n">elID</span>
+            <span class="n">elID</span> <span class="o">+=</span> <span class="mi">1</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, &lt;function authors at 0x7f73f74eb500&gt;.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.1.0patch1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

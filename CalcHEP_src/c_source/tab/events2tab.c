@@ -78,6 +78,7 @@ int  main(int argc,char** argv)
   double mass[MAXNP];
   double pvect[4*MAXNP];
   double Etot, pmiss[4]={0,0,0,0};
+  int Nmiss=0;
   rw_paragraph  rd_array[8]=
   {
     {"CalcHEP",NULL },
@@ -108,8 +109,9 @@ int  main(int argc,char** argv)
 
   for(i=0;i<nin_int+nout_int;i++) mass[i]=p_masses_[i];
   nPoints=0;
+  int N=0;
   while(fscanf(stdin,"%lf",&weight)==1)
-  { 
+  { N++;
     for(i=0;i<4*nin_int;i++) pvect[i]=0;
     if(nin_int ==2) fscanf(stdin,"%lf %lf",pvect+3,pvect+7); 
     for(i=nin_int;i<nin_int+nout_int;i++)
@@ -130,7 +132,7 @@ int  main(int argc,char** argv)
         for(i=1;i<nin_int;i++) dif+=pvect[k+i*4];
         for(i=nin_int;i<nin_int+nout_int;i++) dif-=pvect[k+i*4];
         dif=fabs(dif)/Etot;
-        if(dif>pmiss[k]) pmiss[k]=dif; 
+        if(dif>pmiss[k]) {pmiss[k]=dif; Nmiss=N;}
       }     
 
       for(;plist0;plist0=plist0->next) z0[n0++]=calcPhysVal(key[0],plist0->pstr,pvect);
@@ -148,9 +150,9 @@ int  main(int argc,char** argv)
                
       for(k=0;k<n0;k++)
       {
-        i=nbin*(z0[k]- minX)/(maxX-minX); 
-        if(i>=0 && i<nbin) 
-          {hist[i]+=weight; dhist[i]+=weight*weight; nPoints++;}
+        double id=nbin*(z0[k]- minX)/(maxX-minX); 
+        if(id>=0 && id<nbin) 
+        {i=id; hist[i]+=weight; dhist[i]+=weight*weight; nPoints++;}
       }
     }
     fgets(buff,1000,stdin);
@@ -177,13 +179,13 @@ int  main(int argc,char** argv)
     fprintf(stdout,"\n");
       
 
-   fprintf(stdout,"#type 1  %%1d-histogram\n");
+//   fprintf(stdout,"#type 1  %%1d-histogram\n");
    fprintf(stdout,"#xName %s\n",argv[1]);
    fprintf(stdout,"#xMin %E\n",minX);
    fprintf(stdout,"#xMax %E\n",maxX);
    fprintf(stdout,"#xDim %d\n",nbin);
-   fprintf(stdout,"#yName %s\n",yname);
-   fprintf(stdout,"#lost_momenta_max/Etot %.1E %.1E %.1E %.1E\n",pmiss[0],pmiss[1],pmiss[2],pmiss[3]);
+   fprintf(stdout,"#yName %s {h}\n",yname);
+   fprintf(stdout,"#lost_momenta_max/Etot %.1E %.1E %.1E %.1E ( line=%d)\n",pmiss[0],pmiss[1],pmiss[2],pmiss[3],Nmiss);
   }
   for(i=0;i<nbin;i++) fprintf(stdout,"%-12E  %-12E\n",hist[i],dhist[i]);
   return 0;

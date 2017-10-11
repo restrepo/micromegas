@@ -325,7 +325,7 @@ double Y[18]={3.544908E+00,3.660214E+00,3.785458E+00,4.072489E+00,4.424998E+00,
       
 double z=1/(sqrt(k)+1);
        
-return polint4(z,18,X,Y)*z/2/M_PI;
+return polint3(z,18,X,Y)*z/2/M_PI;
 }
 
 static double Kt_,dR_,z_;
@@ -439,7 +439,7 @@ static double* xa_,*ya_;
 static int N_;
 
 static double SpectIntegrand(double Erun)
-{ return  polint4(dKt(Erun,Eobs),N_,xa_,ya_)*SpectdNdE(Erun,tab_); }
+{ return  polint3(dKt(Erun,Eobs),N_,xa_,ya_)*SpectdNdE(Erun,tab_); }
 
 void posiFluxTab(double Emin, double sigmav, double *tab, double *tabOut)
 {
@@ -775,7 +775,7 @@ void pbarFluxTab(double Emin, double sigmav, double *tab, double *tabOut)
   {  double z=Zi(i);
      double E=tab[0]*exp(z);
      if(E<Emin*0.9) tab2[i]=0; else tab2[i]= 
-     sigmav*exp(polint4(z,N, Egrid, Fgrid) )*zInterp(z,tab);
+     sigmav*exp(polint3(z,N, Egrid, Fgrid) )*zInterp(z,tab);
   }   
   for(i=1;i<NZ;i++) tabOut[i]=rho0*tab2[i];
   tabOut[0]=tab[0];

@@ -139,8 +139,9 @@ extern double qbox_(void);
       
 extern int MSSMDDtest(int loop, double*pA0,double*pA5,double*nA0,double*nA5);
 
-extern int  HBblocks(char * fname); 
-extern int  LiLithF(char*fname);
+extern int  hbBlocksMDL(char*fname,int *nHch);
+ 
+extern int  LilithMDL(char*fname);
 
 #ifdef __cplusplus
 }

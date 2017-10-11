@@ -116,8 +116,8 @@ extern double McRun(double Q);
 extern double McEff(double Q);
 extern double MbPole;
 extern double poleQmass(double M_M_, double alpha, int nf);
-extern double Mbp(void);
-
+extern double bPoleMass(void);
+extern double tPoleMass(void);
 extern double MqRun(double mass2GeV, double Q);
 extern double MqEff(double mass2GeV, double Q);
 extern double nfQCD(double Q);
@@ -130,11 +130,6 @@ extern double complex HggA(double z);
 extern double complex Hgam1F(double z);
 extern double complex Hgam1S(double z);
 extern double complex Hgam1A(double z);
-
-extern double polint2(double x, int n,  double *xa, double *ya);
-extern double polint3(double x, int n,  double *xa, double *ya);
-extern double polint4(double x, int n,  double *xa, double *ya);
-
 
 extern double complex hGGeven(double MH, double alphaMH, int Nitems, ...);
 extern double complex hAAeven(double MH, double alphaMH, int Nitems, ...);

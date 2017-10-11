@@ -1067,7 +1067,7 @@ c HiggsBounds
      .    /CDABS(CAUX_H(222))
       WRITE(NOUT,130),RTMP,3,35,21,21,'# H2-gluon-gluon coupling, norm
      .alized to SM'
-      RTMP=(CDABS(NHC_H(84,3))**2+CDABS(NHC_H(85,3))**2)
+      RTMP=sqrt(CDABS(NHC_H(84,3))**2+CDABS(NHC_H(85,3))**2)
      .    /CDABS(CAUX_H(223))
       WRITE(NOUT,130),RTMP,3,36,21,21,'# H3-gluon-gluon coupling^2, norm
      .alized to SM'

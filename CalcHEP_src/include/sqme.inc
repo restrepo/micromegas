@@ -24,12 +24,6 @@ double sqme_ext(int nsub, double GG,REAL*momenta,REAL*cb_coeff, int * err)
 
   if(!momenta){ darr[nsub-1](GG,NULL,NULL,err); return 0;}
 
-  if(nin_ext==2)
-  { double dp0=momenta[0]*momenta[4]-momenta[1]*momenta[5] 
-    - momenta[2]*momenta[6]- momenta[3]*momenta[7];
-    HelicityN[0]=Helicity[0]/dp0;
-    HelicityN[1]=Helicity[1]/dp0;
-  }
 
   if(cb_coeff) for(i=0;i<cb_pow;i++) cb_coeff[i]=0;
    

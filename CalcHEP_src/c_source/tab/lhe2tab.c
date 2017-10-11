@@ -53,8 +53,7 @@ int  main(int argc,char** argv)
   physValRec * plist;
   
   double *hist, *dhist;
-  double weight,coef;
-  long nPoints;  
+  double weight,coef;  
   double pvect[4*MAXNP];
   double Etot,pmiss[4]={0,0,0,0};
   double qmiss[4]={0,0,0,0};
@@ -66,9 +65,7 @@ int  main(int argc,char** argv)
   
  
   if(argc != 5 ) { wrongParam(0); return 1;} 
-  
-    
-       
+         
   if(sscanf(argv[2],"%lf",&minX)!=1){ wrongParam(2); return 1;}
   if(sscanf(argv[3],"%lf",&maxX)!=1 || minX>=maxX){ wrongParam(3); return 1;}
   if(sscanf(argv[4],"%d",&nbin)!=1  || nbin<=0)
@@ -79,8 +76,6 @@ int  main(int argc,char** argv)
   hist=(double*)malloc(nbin*sizeof(double));
   dhist=(double*)malloc(nbin*sizeof(double));
   for(i=0;i<nbin;i++){hist[i]=0; dhist[i]=0;}
-
-  nPoints=0;
   
   openeventfile_(NULL, -1);
   err=readeventheader_();
@@ -159,18 +154,19 @@ int  main(int argc,char** argv)
          break;
       }    
       for(k=0;k<n0;k++)
-      {
-        i=nbin*(z0[k]- minX)/(maxX-minX); 
-        if(i>=0 && i<nbin) {hist[i]+=1; nPoints++;}
+      { double id=nbin*(z0[k]- minX)/(maxX-minX); 
+        if(id>=0 && id<nbin) 
+        {i=id;  hist[i]+=E_.XWGTUP; dhist[i]+=E_.XWGTUP*E_.XWGTUP;}
       }
     }
   }
   
-  coef= R_.XSECUP[0]* nbin/(maxX - minX)/nEvents;
+  coef= nbin/(maxX - minX)/nEvents;
   
   for(i=0;i<nbin;i++)
-  { dhist[i]=sqrt(hist[i])*coef;
-    hist[i]*=coef;
+  { 
+     hist[i]*=coef;
+     dhist[i]=sqrt(dhist[i])*coef;
   }
 
 
@@ -187,12 +183,12 @@ int  main(int argc,char** argv)
     fprintf(stdout,"\n");
       
 
-   fprintf(stdout,"#type 1  %%1d-histogram\n");
+//   fprintf(stdout,"#type 1  %%1d-histogram\n");
    fprintf(stdout,"#xName %s\n",argv[1]);
    fprintf(stdout,"#xMin %E\n",minX);
    fprintf(stdout,"#xMax %E\n",maxX);
    fprintf(stdout,"#xDim %d\n",nbin);
-   fprintf(stdout,"#yName %s\n",yname);
+   fprintf(stdout,"#yName %s {h}\n",yname);
    fprintf(stdout,"#lost_momenta_max/Etot %.1E %.1E %.1E %.1E\n",pmiss[0],pmiss[1],pmiss[2],pmiss[3]); 
    fprintf(stdout,"#lost_internal_momenta_max/M %.1E %.1E %.1E %.1E\n",qmiss[3],qmiss[0],qmiss[1],qmiss[2]);
   }

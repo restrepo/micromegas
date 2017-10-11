@@ -1,0 +1,28 @@
+<!--
+parametrization of a 2D Gaussian fitted from the 95% CL contour
+in the plane mu(gg+ttH, WW) vs. mu(VBF+VH, WW)
+at mH = 125.6 GeV, shown in CMS-PAS-HIG-13-023, Fig. 25
+https://twiki.cern.ch/twiki/bin/view/CMSPublic/Hig13023PubTWiki
+-->
+
+<expmu decay="WW" dim="2" type="n">
+  <experiment>CMS</experiment>
+  <source type="published">HIG-13-023</source>
+  <sqrts>7+8</sqrts>
+  <mass>125.6</mass>
+  <CL>95%</CL> <!-- optional -->
+
+  <eff axis="x" prod="ggH">1.0</eff>
+  <eff axis="y" prod="VVH">1.0</eff>
+
+  <bestfit>
+    <x>0.796</x>
+    <y>0.624</y>
+  </bestfit>
+  
+  <param>
+    <a>20.823</a>
+    <b>2.109</b>
+    <c>2.373</c>
+  </param>
+</expmu>

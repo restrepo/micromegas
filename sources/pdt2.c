@@ -1,11 +1,13 @@
 #include<math.h>
 #include<stdio.h>
 #include <dirent.h>
+#include <pthread.h>
 #include"micromegas.h"
 #include"micromegas_aux.h"
 
 #include "../CalcHEP_src/include/rootDir.h"
-#include"../CalcHEP_src/c_source/num/include/pdt.h"
+#include"../CalcHEP_src/c_source/strfun/include/pdt.h"
+#define dptDefault "cteq6l1"
 
 char pdfName[50]={};
 
@@ -27,17 +29,31 @@ static int pos(int pNum)
 }
 
 static double partonPdt(int pdg, double x, double q)
-{ int n=pos(pdg); 
-  if(!pdfName[0]) setPDT("cteq6l");
+{ int n=pos(pdg);
+  double res;
+  
+  static  pthread_mutex_t lockKey=PTHREAD_MUTEX_INITIALIZER;
+      
+  if(!pdfName[0])
+  {     
+    if(nPROCSS>1) pthread_mutex_lock(&lockKey);
+    if(!pdfName[0])  setPDT(dptDefault);
+    if(nPROCSS>1) pthread_mutex_unlock(&lockKey);
+  }
   if(!n || ! data[n-1]) return 0;
-  else return interFunc(x, q, data[n-1]);
+  if(abs(pdg)==4 && q<1.4) return 0;
+  if(abs(pdg)==5 && q<5  ) return 0;
+  if(x< data[n-1]->x_min) x=data[n-1]->x_min;
+  if(q< data[n-1]->q_min) q=data[n-1]->q_min;
+  res=interFunc(x, q, data[n-1]);
+  if(res<0) return 0; else return res;
+ 
 }
 
 static double alphaPdt(double q)
-{ if(!pdfName[0])  setPDT("cteq6l");
+{ if(!pdfName[0])  setPDT(dptDefault);
   if(data[5]) return  interAlpha(q,data[5]); else return 0;
 }
-
 
 
 static void findAllPDT(void)
@@ -46,14 +62,16 @@ static void findAllPDT(void)
    DIR *dirPtr;
    struct dirent * dp;
    pdtList * cpdt;
-   
+   static  pthread_mutex_t lockKey=PTHREAD_MUTEX_INITIALIZER;   
+ 
+   if(nPROCSS>1) pthread_mutex_lock(&lockKey);
    if(allPDT) return;
    
    fname=malloc(strlen(calchepDir)+50);
    sprintf(fname,"%s/pdTables", calchepDir);
      
    dirPtr=opendir(fname);
-   if(!dirPtr) { free(fname); return;}
+   if(!dirPtr) { free(fname);  if(nPROCSS>1)pthread_mutex_unlock(&lockKey);  return;}
  
    while((dp=readdir(dirPtr)))
    { char *c=dp->d_name;
@@ -69,6 +87,8 @@ static void findAllPDT(void)
    { char *c=strchr(cpdt->name,'(');
      if(c) c[0]=0;
    }
+   
+   if(nPROCSS>1)pthread_mutex_unlock(&lockKey); 
 }     
 
 void PDTList(void)
@@ -87,6 +107,7 @@ int setPDT(char*name)
 {  pdtList * cpdt;
    int i; 
    if(!allPDT)  findAllPDT();
+    
    for(cpdt=allPDT;cpdt;cpdt=cpdt->next) if(cpdt->beamP==2212 && strcmp(name,cpdt->name)==0)
    {  int pdg[8]={ 5  ,  4  ,  3  , -1  , -2  , 21  ,  2  ,  1};
       for(i=0;i<8;i++) if(data[i]){ freePdtData(data[i]); free(data[i]); data[i]=NULL;} 
@@ -99,16 +120,30 @@ int setPDT(char*name)
           break;
         }                                       
       }
-      sprintf(pdfName,"PDT:%s\n",name);      
+      sprintf(pdfName,"PDT:%s",name);    
       parton_distr=partonPdt;
       parton_alpha=alphaPdt;
               
       return 0;    
    }
-   printf("can not find PDP set  %s\n",name);
+   printf("can not find PDT set  %s\n",name);
    return 1;
 }
 
+int restorePDF(char*oldPDF)
+{
+ 
+  if(strcmp(oldPDF,pdfName))
+  {
+    if(strstr(oldPDF,"PDT:")) setPDT(oldPDF+4);
+    else if(strstr(oldPDF,"LHA:"))
+    { int lhaMem;
+      char lhaName[50];
+      sscanf(oldPDF+4,"%[%:]:%d",lhaName,&lhaMem);
+      setLHAPDF(lhaMem,lhaName);
+    }
+  }  
+}
 
 
 static double x0_,q_;
@@ -125,9 +160,14 @@ static  pdtStr *convStrFunAux(int pc1, int pc2)
 { pdtStr *D;
   int i,ix,iq,nc,i1=pos(pc1),i2=pos(pc2);
 
+  if(i1>=i2) nc=i1*(i1-1)/2+i2-1; else nc=i2*(i2-1)/2+i1-1;
+  if(cData[nc])  return cData[nc];
+  
+  static  pthread_mutex_t lockKey=PTHREAD_MUTEX_INITIALIZER;
   static char currentPdf[50]={"XXX"};
   
-  if(!pdfName[0])  setPDT("cteq6l");
+  if(nPROCSS>1) pthread_mutex_lock(&lockKey); 
+  if(!pdfName[0])  setPDT(dptDefault);
   
   if(strcmp(currentPdf,pdfName)) 
   {
@@ -135,14 +175,13 @@ static  pdtStr *convStrFunAux(int pc1, int pc2)
     strcpy(currentPdf,pdfName);
   }  
   
-  if(i1>=i2) nc=i1*(i1-1)/2+i2-1; else nc=i2*(i2-1)/2+i1-1;
-  
-  if(cData[nc])  return cData[nc];
 
-  { double q_grid[20]={
+  { int nq=20;
+    double q_grid[20]={
      1.30000E+00, 1.53106E+00, 1.83098E+00, 2.22659E+00, 2.75766E+00, 3.48439E+00, 4.50000E+00, 6.12359E+00, 8.60159E+00, 1.25127E+01,
      1.89184E+01, 2.98475E+01, 4.93546E+01, 8.59491E+01, 1.58477E+02, 3.11214E+02, 6.55142E+02, 1.48904E+03, 3.68299E+03, 1.00000E+04
                       };
+    int nx=96;
     double x_grid[96]={
      5.E-7      ,  1.00000E-06,  1.28121E-06,  1.64152E-06,  2.10317E-06,  2.69463E-06,  3.45242E-06,  4.42329E-06,  5.66715E-06,  7.26076E-06,
      9.30241E-06,  1.19180E-05,  1.52689E-05,  1.95617E-05,  2.50609E-05,  3.21053E-05,  4.11287E-05,  5.26863E-05,  6.74889E-05,  8.64459E-05,
@@ -156,28 +195,36 @@ static  pdtStr *convStrFunAux(int pc1, int pc2)
      8.82485E-01,  9.05866E-01,  9.29311E-01,  9.52817E-01,  9.76387E-01,  1.00000E+00
                       };
     D=malloc(sizeof(pdtStr));
-
-    D->nq=20;
-    D->q_grid=malloc(D->nq*sizeof(double));
-    for(i=0;i<20;i++)D->q_grid[i]=log(q_grid[i]);
-
-    D->nx=96;
-    D->x_grid=malloc(D->nx*sizeof(double));
-    for(i=0;i<96;i++)D->x_grid[i]=x_grid[i];
+D->index=0;
+    D->nq=nq;
+    D->q_grid=malloc(nq*sizeof(double));
+    for(i=0;i<nq;i++)D->q_grid[i]=q_grid[i];
     
-    D->strfun=malloc(D->nx*D->nq*sizeof(double));    
-    D->interpolation=int_cteq6; 
+    D->lq_grid=(double*)malloc(sizeof(double)*nq);
+    for(i=0;i<nq;i++)D->lq_grid[i]=log(D->q_grid[i]);
+    
+
+    D->nx=nx;
+    D->x_grid=malloc(nx*sizeof(double));
+    for(i=0;i<nx;i++)D->x_grid[i]=x_grid[i];
+    D->lx_grid=malloc(nx*sizeof(double));
+    for(i=0;i<nx;i++)D->lx_grid[i]=log(x_grid[i]);
+    D->strfun=malloc(nx*nq*sizeof(double));    
+    D->interpolation= int_cteq6; //biCubicLogXQ; //  int_cteq6; 
     D->mass=1;  
     D->beamP=2141;
     D->parton=nc;
-    D->x_grid_aux=malloc(D->nx*sizeof(double));
-    for(i=0;i<D->nx;i++) D->x_grid_aux[i]=pow(D->x_grid[i],0.3);
 
-    D->Q0_cteq=0.226000;
-    D->q_grid_aux=malloc(D->nq*sizeof(double));
-    for(i=0;i<D->nq;i++) D->q_grid_aux[i]=log( D->q_grid[i]-log(D->Q0_cteq) );
-  
-    D->alpha=D-> strfun_aux=D->aux= D->q_grid_cteq= NULL; 
+    if(D->interpolation==int_cteq6)
+    {
+       D->x_grid_aux=malloc(nx*sizeof(double));
+       for(i=0;i<D->nx;i++) D->x_grid_aux[i]=pow(D->x_grid[i],0.3);
+
+       D->q_grid_aux=malloc(nq*sizeof(double));
+       for(i=0;i<D->nq;i++) D->q_grid_aux[i]=log( D->lq_grid[i]-log(0.22) ); 
+    }
+    
+    D->alpha=NULL; 
     D->x_min=1.E-6;
     D->q_min=1.3;
     D->q_max=10000; 
@@ -192,14 +239,16 @@ static  pdtStr *convStrFunAux(int pc1, int pc2)
   pc1_=pc1;
   pc2_=pc2; 
   for(iq=0;iq<D->nq;iq++)
-  { q_ =exp(D->q_grid[iq]);
+  { q_ =D->q_grid[iq];
     for(ix=0;ix<D->nx;ix++)
     { 
       x0_=D->x_grid[ix];
-      D->strfun[D->nx*iq+ix] = simpson(conv_integrand,0.,-log(x0_),1.E-3);   
+      D->strfun[D->nx*iq+ix] = simpson(conv_integrand,0.,-log(x0_),1.E-3);
+         
     }
   } 
   cData[nc]=D;
+  if(nPROCSS>1) pthread_mutex_unlock(&lockKey);
   return D;  
 }
 
@@ -209,7 +258,7 @@ double convStrFun2(double x, double q, int pc1, int pc2, int pp)
   double strF;
   
   if(pp>0) pc2c=pc2; else pc2c=-pc2;
-  D1=convStrFunAux(pc1, pc2c);
+  D1=convStrFunAux(pc1,pc2c);
   strF=interFunc(x, q, D1);
   
   if(pc1!=pc2)
@@ -220,6 +269,27 @@ double convStrFun2(double x, double q, int pc1, int pc2, int pp)
   return strF;
 }
 
+
+double convStrFun3(double x, double q, int pc1, int pc2, int pp)
+{  pdtStr *D1,*D2;
+   int pc1c,pc2c;
+   double strF;
+   q_=q; 
+   x0_=x;  
+   if(pp>0) pc2c=pc2; else pc2c=-pc2;
+    pc1_=pc1;
+    pc2_=pc2c;
+    strF=simpson(conv_integrand,0.,-log(x),1.E-3);
+              
+    if(pc1!=pc2)
+    { if(pp>0) pc1c=pc1; else pc1c=-pc1;
+      pc1_=pc1;
+      pc2_=pc2c;
+      strF+=simpson(conv_integrand,0.,-log(x),1.E-3);
+    }
+    return strF;
+}
+                              
 
 double (*parton_distr)(int pdg, double x,double q)=partonPdt;
 double (*parton_alpha)(double q)=alphaPdt;
@@ -235,7 +305,7 @@ double parton_x( int pNum, double  Q)
 {
   double x1;
   
- if(!pdfName[0])  setPDT("cteq6l");  
+ if(!pdfName[0])  setPDT(dptDefault);  
   q_=Q;
 
   pc1_=pNum;

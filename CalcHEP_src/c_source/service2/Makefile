@@ -13,11 +13,11 @@ OBJ = $(subst .c,.o,$(filter-out $(special),$(wildcard *.c)))
 lib = ../../lib
 bin = ../../bin
 
-all: $(lib)/serv.a  $(bin)/calc
+all: $(lib)/serv.a $(bin)/calc
 
 $(lib)/serv.a:$(lib)/serv.a($(OBJ))
 	$(RANLIB) $@
 	@rm -f $(OBJ)
 
-$(bin)/calc: main_calc.c  $(lib)/serv.a
-	$(CC) $(CFLAGS)  -o $@    $^ -lm
+$(bin)/calc: main_calc.c $(lib)/serv.a
+	$(CC) $(CFLAGS) -o $@ $^ -lm

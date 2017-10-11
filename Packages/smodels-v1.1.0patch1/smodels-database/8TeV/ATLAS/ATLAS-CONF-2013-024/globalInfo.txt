@@ -1,0 +1,8 @@
+sqrts: 8.0*TeV
+lumi: 20.5/fb
+id: ATLAS-CONF-2013-024
+supersededBy: ATLAS-SUSY-2013-16
+url: https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/CONFNOTES/ATLAS-CONF-2013-024/
+implementedBy: Federico A
+lastUpdate: 2016/9/29
+

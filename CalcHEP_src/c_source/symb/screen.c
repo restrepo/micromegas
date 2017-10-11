@@ -22,6 +22,7 @@
 #include "screen.h"
 #include "prepdiag.h"
 #include "c_out.h"
+#include "out_serv.h"
 #include "process.h"
 #include "cweight.h"
 #include "procvar.h"
@@ -481,7 +482,7 @@ void f5_key_prog(int x)
   {
     char strmen[]="\040"
 /*                  " Symbolic conservation low   OF1"   */
-                  " Diagrams in C-output        OF3"
+                  " Diagrams in output files    OF3"
                   " Widths in t-channels        OF4"
                   " Virtual W/Z decays          OF5"
                   " Parallelization         nPROCSS"

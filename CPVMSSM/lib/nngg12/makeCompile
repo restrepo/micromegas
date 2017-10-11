@@ -1,0 +1,36 @@
+
+LOOPTOOLS = ../../../Packages/LoopTools-2.12-v0/
+CHEP = ../../../CalcHEP_src/
+
+
+include  $(LOOPTOOLS)/FlagsForMake
+
+all:lGamma.exe
+
+
+.PHONY: force squared_me_gg squared_me_gz  renconst util
+
+export VPATH := $(CURDIR):$(CURDIR)/renconst
+
+INCLUDE := $(patsubst %,-I%,$(subst :, ,$(VPATH)))
+
+FFLAGS += $(INCLUDE)
+
+ifdef DEBUG
+FFLAGS +=  -DDEBUG
+endif
+
+export FC
+export FFLAGS
+
+
+nnggOBJ = $(subst .F,.o,$(wildcard *.F squared_me_gg/*.F squared_me_gz/*.F renconst/*.F)) run_gg.o run_gz.o mdl_ini.o interface.o interfacegz.o
+nngg.a :  nngg.a($(nnggOBJ))
+nngg.a(run.o): 2to2.h renconst.h looptools.h model.h
+nngg.a(mdl_ini.o):model.h
+
+utileOBJ = $(subst .F,.o,$(wildcard util/univariate/*.F util/kin/*.F)) $(subst .f,.o,$(wildcard  util/kin/*.f  ))
+util.a: util.a($(utileOBJ))
+
+lGamma.exe : main.f  nngg.a  $(LOOPTOOLS)/build/libooptools.a util.a
+	$(FC) $(FFLAGS) -o lGamma.exe  $^ $(CHEP)/lib/libSLHAplus.a $(CHEP)/c_source/SLHAplus/faux.f 

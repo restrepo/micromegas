@@ -3,7 +3,7 @@
  This is the ratio of 2body/3body Kaon decay as defined in M. Antonelli et al (FlaviaNet Working group) arXiv:0801.1817
 */
 
-#include "../../sources/micromegas.h"
+#include "../../include/micromegas.h"
 #include "pmodel.h"
 #include "pmodel_aux.h"
 

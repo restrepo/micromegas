@@ -1,0 +1,36 @@
+:
+
+#echo 1:$1: path to model files
+#echo 2:$2: model number
+#echo 3:$3: lib name
+#echo 4:$4: lib directory
+#echo 5-8:$5 $6 [$7]:  vertex contents 
+
+echo VERTEX: $5 $6 $7 $8
+
+#  sprintf(command,"cd %s; %s/sbin/newVertex %s %s \"%s\" %s \"%s\"", compDir, calchepDir,  libDir, lib, vert_txt);
+
+
+#define path to CalcHEP
+USR=`pwd`
+bin=`echo $0_A_E_P |sed s/newVertex_A_E_P//`
+cd $bin/..
+CALCHEP=`pwd`
+cd $USR
+
+
+export CALCHEP
+
+#6 or 7 arguments expected: 1)path to model files; 2) model number  3) label for labrary 4-6[,7] - particle names.
+
+#echo $CALCHEP/sbin/makeVrtLib  $1 $2 $3 $5 $6 $7
+
+  $CALCHEP/sbin/makeVrtLib  $1 $2 $3 $5  $6 $7
+  err=$?
+  if(test $err -ne 0) then exit $err; fi   
+### read compiler flags
+
+. $CALCHEP/FlagsForSh
+
+  $CC $CFLAGS  $SHARED  -o  $3.so  $3.c  -lm
+    mv $3.so  $4/$3.so 

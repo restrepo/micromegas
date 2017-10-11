@@ -2,8 +2,8 @@
 #include<math.h>
 #include <stdlib.h>
 #include<string.h>
-#include"../../sources/micromegas.h"
-#include"../../sources/micromegas_aux.h"
+#include"../../include/micromegas.h"
+#include"../../include/micromegas_aux.h"
 #include "pmodel.h"
 #include "localpath.h"
 
@@ -112,6 +112,6 @@ fprintf(f,"%E               ! SSPARA(38) = Phi_{A_s} in Degree\n",fiAd);
  err=System(command);
  free(command);
 
- err=slhaRead("cpsuperh2_slha.out",4);
+// err=slhaRead("cpsuperh2_slha.out",0);
  return err;
 }

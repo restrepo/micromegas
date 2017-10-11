@@ -9,7 +9,7 @@ Corrections:
 28 march 2002: Correct factor of 1/2. in double result  line 87 
 */
 
-#include"../../sources/micromegas.h"
+#include"../../include/micromegas.h"
 #include "pmodel.h"
 #include "matrix.h"
 

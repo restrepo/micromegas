@@ -15,7 +15,7 @@ extern int    nmssmSUGRA(double m0, double mhf,   double a0, double tb,
                          double xif, double xis, double muP, double MSPQ,double M3HQ
                          );
 extern int    readVarNMSSM(char *fname);
-extern int    readSLHA(char * fname);
+extern int    readSLHA(char * fname,int mode);
 extern int    NMHwarn(FILE * f);
 
 extern double  bsgnlo_(double *M, double*P);
@@ -24,8 +24,7 @@ extern double  deltams_(double *M, double*P);
 extern double  bsmumu_(double *M, double*P);
 extern double  btaunu_(double *M, double*P);
 extern double  gmuon_(double *M, double*P);
-extern int     HBblocks(char * fname);
-extern int     LiLithF(char*fname);
+extern int     LilithMDL(char*fname);
 extern int     loopGamma(double * csAA, double *csAZ);
 
 #define bsgnlo     bsgnlo_

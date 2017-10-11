@@ -1,9 +1,9 @@
 #include<math.h>
-#include"../../sources/micromegas.h"
+#include"../../include/micromegas.h"
 #include "pmodel.h"
 
 
-int masslimits(void)
+int masslimits_(void)
 {
   double tb,c2b,mc1,msne,msnm,msnl,mstau1,mn1,msel,mser,mse1,msmul,msmur,msmu1;
   double mst1,msb1,msul,msur,msdl,msdr;

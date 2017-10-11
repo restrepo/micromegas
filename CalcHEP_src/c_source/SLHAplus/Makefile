@@ -5,10 +5,10 @@ include ../../FlagsForMake
 ifeq ($(FC),)
 all: $(CALCHEP)/lib/libSLHAplus.a 
 else
-all: $(CALCHEP)/lib/libSLHAplus.a  $(CALCHEP)/lib/faux.o
+all: $(CALCHEP)/lib/libSLHAplus.a $(CALCHEP)/lib/faux.o
 endif
 
-OBJ = alpha_s.o aux.o chDiag.o ferror.o fixArg.o hgg.o jacobi.o polint.o SLHAreader.o fortran.o
+OBJ = alpha_s.o aux.o chDiag.o ferror.o fixArg.o hgg.o jacobi.o SLHAreader.o fortran.o
 
 override CFLAGS += -I./include
 

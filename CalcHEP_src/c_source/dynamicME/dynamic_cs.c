@@ -174,6 +174,8 @@ static void dClose(void * handle)
 
 extern double aWidth(char *);
 
+//=======  SQME library generation ==================
+
 static numout* loadLib(void* handle, char * lib)
 { numout * cc=malloc(sizeof(numout));
   char name[100];
@@ -208,6 +210,9 @@ typedef struct  procRec
 }  procRec;   
 
 static  procRec* allProc=NULL;
+
+
+
 
 #include<stdlib.h>
 #include<sys/wait.h>
@@ -311,6 +316,147 @@ numout*getMEcode(int twidth,int Gauge, char*Process, char*excludeVirtual,
     return cc; 
 }
 
+// ================== Lagrangian vertexes library =======================
+
+typedef struct  vertRec 
+{ struct vertRec * next;
+  char * libname;
+  lVert * vv;
+}  vertRec;   
+
+static  vertRec* allVert=NULL;
+
+static  lVert* loadVert(void* handle, char * lib)
+{ if(!handle) return NULL;
+  lVert * vv=newSymbol(handle, lib);
+  
+  if(!vv){free(vv); return NULL;}
+  else
+  {  int i;
+     vv->handle=handle;   
+     vv->init=0;
+     vv->link=malloc(sizeof(REAL*)*(vv->nVar));
+     for(i=0;i<vv->nVar;i++) 
+     { char *name=vv->varNames[i];
+       vv->link[i]=varAddress(name);  
+     }  
+  }
+  return vv;
+}
+
+
+static int vert2name(char**field ,char * lib)
+{ 
+  int i,n=0;
+  strcpy(lib,"vert_");
+
+  for(i=0;i<4;i++) 
+  { 
+    char bufflib[20];
+    if(field[i]) 
+    { 
+      int err=pname2lib(field[i],bufflib);
+      if(err) return i+1;
+      strcat(lib,bufflib);
+      n++;     
+    }
+  }
+  if(n<3) return 5; else return 0;
+} 
+
+
+lVert* getLagrVertex(char*n1,char*n2,char*n3,char*n4)
+{
+   char lib[50];
+   char *proclibf,*command;
+   void * handle=NULL;
+   int new=0;
+   lVert * vv;
+   vertRec*test;
+   int Len;
+   char *fields[4]={n1,n2,n3,n4};
+ 
+   
+   int err=vert2name(fields,lib);      
+   if(err) return NULL;
+   
+   for(test=allVert;test; test=test->next) if(strcmp(lib,test->libname)==0)
+   { if(test->vv->nTerms==0) return NULL;
+     else return test->vv;
+   }  
+   
+   Len=strlen(compDir)+strlen(lib)+strlen(libDir)+300;
+
+   proclibf=malloc(Len);
+   command=malloc(Len);
+ 
+   sprintf(proclibf,"%s/%s.so",libDir,lib);
+   if(access(proclibf,R_OK)==0 && checkMtime(proclibf)==0) handle=dLoad(proclibf);
+   if(!handle)
+   {  int i;
+      char vert_txt[50];
+      strcpy(vert_txt,"");
+      for(i=0; i<4;i++) if(fields[i]) sprintf(vert_txt+strlen(vert_txt)," %s",fields[i]);  
+
+      if(!handle)
+      {
+        int ret;  
+        int delWorkDir;
+        
+        delWorkDir=prepareWorkPlace();
+
+        sprintf(command,"cd %s; %s/sbin/newVertex %s %d  %s  %s %s",
+                       compDir, calchepDir, modelDir, modelNum, lib, libDir, vert_txt);
+                          
+        ret=system(command);
+      
+//        if(ret<0 || WIFSIGNALED(ret)>0 ) exit(10);
+        if(delWorkDir )cleanWorkPlace();
+        
+        if(ret==0) handle=dLoad(proclibf); else 
+        { printf(" Can not compile codes for vertex  [%s] \n",  vert_txt);
+          free(command); free(proclibf);
+          return NULL;
+        } 
+        if(!handle)
+        { printf(" Can not load the compiled library %s \n",proclibf);
+           free(command); free(proclibf); 
+          return NULL;
+        }         
+        new=1;   
+      }
+   }
+   vv=loadVert(handle,lib);
+   if(!vv && new) dClose(handle);
+   if(vv)
+   {  test=(vertRec*)malloc(sizeof(vertRec));
+      test->next=allVert; allVert=test;
+      test->libname=(char*) malloc(strlen(lib)+1);
+      strcpy(test->libname,lib);
+      test->vv=vv;
+   } else if(new) dClose(handle);  
+   free(command); free(proclibf);
+   if(vv->nTerms==0) return NULL;
+   else  return vv; 
+}
+
+
+int  getNumCoeff(lVert*vv, double * coeff)
+{
+   int i;   
+   if(!vv) { printf("Call of  getNumCoeff with NULL argument. Program terminated\n"); exit(1);}
+   REAL**link=(REAL**)(vv->link);
+   for(i=0;i<vv->nVar;i++) vv->varValues[i+1]=*(link[i]); 
+                                     
+   int err= vv->calcCoeff(coeff);
+//   for(i=0;i<vv->vertPtr->nVar;i++) printf("vv->vertPtr->varValues[%d+1]=%E\n",i, vv->vertPtr->varValues[i+1]);   
+   return err;
+}
+
+
+
+//=======  generation of process list ======     
+
 txtList  makeProcList(char ** InNames, char** OutNames, int nx)
 { 
   char lname[20],buff[200];
@@ -356,7 +502,7 @@ printf("process=%s\n",process);
      int delWorkDir=prepareWorkPlace();
      sprintf(command,"cd %s;"
        " %s/bin/s_calchep -blind \"{{%s{{{[[{0\" >/dev/null;"
-       " if(text $? -eq 0) then mv results/list_prc.txt %s/%s ; fi",
+       " if(test $? -eq 0) then mv results/list_prc.txt %s/%s ; fi",
        compDir,calchepDir,process, libDir,lib);
      system(command);
      free(command);

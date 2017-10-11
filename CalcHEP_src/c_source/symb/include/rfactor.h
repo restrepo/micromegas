@@ -3,6 +3,10 @@
 #include"lnum.h"
 #include"procvar.h"
 
+#include "ghosts.h"
+
+
+
 #define vmptr struct vmrec * 
 typedef struct vmrec 
    { 
@@ -65,4 +69,9 @@ extern void  diagramsrfactors(hlpcsptr     gst,
                               rmptr     *  totf);
 
 extern void*  read_rmonom(char *  txt);
+
+extern int  rmonomGG(rmptr   r);
+
+extern int  rmonomI(rmptr   r);
+
 #endif

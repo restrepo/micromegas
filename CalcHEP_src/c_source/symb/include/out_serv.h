@@ -5,6 +5,8 @@
 #include "physics.h"
 #include "polynom.h"
 
+extern int noPict;
+
 extern int   outputLanguage;
 
 extern void momentToString(char * moment, char * outstr);

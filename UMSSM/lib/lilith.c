@@ -1,12 +1,12 @@
-#include"../../sources/micromegas.h"
-#include"../../sources/micromegas_aux.h"
+#include"../../include/micromegas.h"
+#include"../../include/micromegas_aux.h"
 #include "pmodel.h"
 
-int LiLithF(char*fname)
+int LilithMDL(char*fname)
 {
   unsigned int i, npart=0;
 
-  double CU, Cb, Ctau, CV, Cgamma, Cg;
+  double CU, Cb, Ctau, CW, CZ, Cgamma, Cg;
 
   char *parts[4]={"h1","h2","h3","ha"};
   FILE*f; 
@@ -18,9 +18,8 @@ int LiLithF(char*fname)
   for(i=0; i<4; i++) 
   {
     double mass = pMass(parts[i]);
-    if(mass < 123. || mass > 128.) {
-      continue;
-    }
+    if(mass < 123 || mass > 128) continue;
+    
     ++npart;
 
     // compute invisible and undetected branching ratios
@@ -46,9 +45,10 @@ int LiLithF(char*fname)
     CU =   slhaVal("REDCOUP",0.,2,1+i,1);
     Cb =   slhaVal("REDCOUP",0.,2,1+i,3);
     Ctau = slhaVal("REDCOUP",0.,2,1+i,2);
-    CV =   slhaVal("REDCOUP",0.,2,1+i,4);
-    Cg=    slhaVal("REDCOUP",0.,2,1+i,5);
-    Cgamma=slhaVal("REDCOUP",0.,2,1+i,6);
+    CW =   slhaVal("REDCOUP",0.,2,1+i,4);
+    CZ =   slhaVal("REDCOUP",0.,2,1+i,5);
+    Cg=    slhaVal("REDCOUP",0.,2,1+i,6);
+    Cgamma=slhaVal("REDCOUP",0.,2,1+i,7);
 
     fprintf(f, "  <reducedcouplings part=\"%s\">\n", parts[i]);
     fprintf(f, "    <mass>%f</mass>\n", mass);
@@ -56,7 +56,8 @@ int LiLithF(char*fname)
     fprintf(f, "    <C to=\"bb\">%f</C>\n", Cb);
     fprintf(f, "    <C to=\"mumu\">%f</C>\n", Ctau);
     fprintf(f, "    <C to=\"tautau\">%f</C>\n", Ctau);
-    fprintf(f, "    <C to=\"VV\">%f</C>\n", CV);
+    fprintf(f, "    <C to=\"WW\">%f</C>\n", CW);
+    fprintf(f, "    <C to=\"ZZ\">%f</C>\n", CZ);
     fprintf(f, "    <C to=\"gammagamma\">%f</C>\n", Cgamma);
     fprintf(f, "    <C to=\"gg\">%f</C>\n", Cg);
 //    fprintf(f, "    <C to=\"Zgamma\">%f</C>\n", 1.);
@@ -72,4 +73,3 @@ int LiLithF(char*fname)
   fclose(f);
   return npart;
 }
-

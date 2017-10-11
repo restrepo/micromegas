@@ -1,0 +1,210 @@
+14c14
+< static  int PC[5];  
+---
+> static  int PC[5];
+17d16
+< 
+48d46
+< 
+51a50
+> 
+62,63c61
+<    
+<    
+---
+>       
+90d87
+< 
+161a159
+> //printf("process=%s\n",process);
+170c168
+< { int err=0;
+---
+> { int err;
+177,178c175,176
+<   q=Q_ren>0? Q_ren: pvect[10];  
+<   return  sqme22(nsub22,sqrt(4*M_PI*parton_alpha(q)),pvect,NULL,&err);  
+---
+>   q=Q_ren>0? Q_ren: pvect[10];   
+>   return sqme22(nsub22,sqrt(4*M_PI*parton_alpha(q)),pvect,NULL,&err);
+202c200
+<   
+---
+>    q=Q_fact>0? Q_fact:  sqrt(s);
+207,210c205,207
+<   
+<    q=Q_fact>0? Q_fact: sqrt(s);
+<      r*=convStrFun2(x0,q,pc1_,pc2_,ppFlag);
+<    r*=pow(s/sMax,pp)*(1- pow(sMin/sMax,1-pp))/(1-pp);
+---
+>    r*=convStrFun2(x0,q,pc1_,pc2_,ppFlag);
+>    
+>    r*=pow(s/sMax,pp)*(1- pow(sMin/sMax,1-pp))/(1-pp); 
+214c211
+< #define pt2etRange 1
+---
+> #define pt2etRange 0.5
+337a335,337
+> 
+> 
+> 
+383d382
+< 
+389c388
+<    int err=0;
+---
+>    int err;
+472c471,472
+<    if(MET) getMET(&r, PT,M12,M45,chan,x[5],w*fillArr);
+---
+>    if(MET)
+>    { int ch;
+473a474,475
+>       getMET(&r, PT,M12,M45,chan,x[5],w*fillArr);
+>    }
+476a479,480
+> 
+> 
+507a512
+>   
+514a520
+> 
+521c527
+<         y[i]= M0*M1/(M1-M0)*(1/m1-1/m2); ????? y[i]= (m2-m1)/(M1-M0);    
+---
+>         y[i]= (m2-m1)/(M1-M0);    
+526,527c532,533
+<            y[i]+=atan(x2)-atan(x1);
+<         }       
+---
+>            y[i]+=atan(x2)-atan(x1);   
+>         } 
+529c535
+<      impGrid(N, x, y);           
+---
+>      impGrid(N, x, y);
+569c575
+< static double vegas_cycle(vegasGrid *vegPtr, double eps, double aeps,int maxStep, int*NN, double fact,double *dI)
+---
+> static double vegas_cycle(vegasGrid *vegPtr, double eps, double aeps,int maxStep, int *NN, double fact,double *dI)
+579c585
+< //    printf("ti=%E dti=%E  NN=%d \n",ti[k], dti[k],NN);
+---
+> //    printf("ti=%E dti=%E  NN=%d \n",ti[k], dti[k],*NN);
+605,606d610
+< #define METDIM 7
+< 
+638,639c642
+<  
+<   
+---
+>    
+653c656
+<   
+---
+> 
+655c658
+<   { 
+---
+>   {
+657d659
+<     char buff[40];
+658a661
+>     char buff[40];
+660,661c663
+<     
+<     
+---
+>         
+665c667
+< 
+---
+>       
+677c679
+< 
+---
+>       
+685,686c687
+< 
+<        
+---
+>       
+692c693
+<           int err=0;
+---
+>           int err;
+741c742
+<          
+---
+> 
+748d748
+<          
+750a751
+> 
+753a755
+> 
+756c758,759
+<          
+---
+> 
+> 
+770c773,785
+<            tmp=vegas_cycle(vegPtr,eps, aEps, 200,&NN, 1.1,&dI); 
+---
+>            tmp=vegas_cycle(vegPtr,eps, aEps, 100,&NN, 1.1,&dI); 
+>            if(met)
+>            {       for(i=0;i<METDIM;i++) {metArr_[i]=0; dmetArr_[i]=0;}
+>                   fillArr=1;  
+> //                  printf("tmp=%E dI=%e\n", tmp,dI);
+>                   vegas_int(vegPtr, 2*NN , 1.5, nPROCSS  , &tmp, &dI);
+> //                  printf("      tmp=%E dI=%e\n", tmp,dI); 
+>                   fillArr=0;
+>                   for(i=0;i<METDIM;i++) {metArr_[i]/=2*vegPtr->intCubes; metArr[i]+=metArr_[i]; }
+>                   for(i=0;i<METDIM;i++)  printf(" %.2E ",metArr_[i]);
+>                   printf("( %.2f%%)\n",100*dI/metArr_[0]);
+>            }
+>            else if(wrt)printf("cs=%E +/-%E \n", tmp,dI);
+772d786
+<            if(wrt)printf("cs=%E +/-%E \n", tmp,dI);
+787c801
+<   return hColliderStat(Pcm, pp, nf, Qren, Qfact, name1, name2, pTmin, 0, wrt);
+---
+>    return hColliderStat(Pcm, pp, nf, Qren, Qfact, name1, name2, pTmin, 0, wrt);
+790a805,836
+> double monoJet(int nf, char * name1,char *name2)
+> { 
+>   int i;
+>   double ret;
+>   double METmin=250;
+>   double bg[METDIM]= {51800,19600,8190,3930,2050,1040,509};
+>   double dBg[METDIM]={ 2000,  830, 400, 230, 150, 100, 66};
+>   double exp[METDIM]={52200,19800,8320,3830,1830, 934,519};
+>   if( !name1 && !name2) return 0;
+>   double CL=0;
+>   for(i=0;i<METDIM;i++) {metArr[i]=0; dmetArr[i]=0;}
+> 
+>   METmin_=METmin;
+>   ret=hColliderStat(4000, 1, nf, 0, 0, name1, name2,METmin/(1+pt2etRange), 1, 1);
+>   printf("%30.30s","csSum[pb]");  for(i=0;i<METDIM;i++) printf(" %.2E ",metArr[i]);
+>   printf("\n%30.30s","signal");   for(i=0;i<METDIM;i++) printf(" %.2E ",metArr[i]*19.7*1000);
+>   if( abs(pNum(name1)==12)) { printf("\n%30.30s","signal*3");   for(i=0;i<METDIM;i++) printf(" %.2E ",3*metArr[i]*19.7*1000);} 
+>   printf("\n%30.30s","CL");
+>   for(i=0;i<METDIM;i++)
+>   { double s=metArr[i]*19.7E3, b=bg[i],db=dBg[i], n=exp[i];
+>     double CLsb=0.5*(1-erf((s+b-n)/sqrt(2*(s+db*db))));
+>     double CLb=0.5*(1-erf((b-n)/sqrt(2*(db*db))));
+>     double CLs=CLsb/CLb;
+>     printf(" %.2E ",1-CLs);
+>     if(1-CLs>CL) CL=1-CLs;
+>   }
+>   printf("\n");   
+>   return CL;
+> } 
+>  
+> 
+> 
+837c883
+< }
+\ No newline at end of file
+---
+> }

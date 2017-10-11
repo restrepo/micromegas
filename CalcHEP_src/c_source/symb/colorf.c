@@ -405,7 +405,7 @@ static void rem833_866(int n3,int n6, cgraph ** c)
    n62=findl2(2,n6,cg,&l62);        //          :
    lg=cg->vl[n3].e[0];              //  v61--<--*--<--v62
                                     //         v6
-   cg->pow2--;
+//   cg->pow2--;
        
    cg->vl[n3].vt = v633;                cg->vl[n6].vt = V633;
    cg->vl[n3].e[0]=cg->vl[n62].e[l62];  cg->vl[n6].e[0]=cg->vl[n61].e[l61];
@@ -477,6 +477,7 @@ static void rem866_Fabc(int n866,int n3g, cgraph  ** c)
    printf("rem866_Fabc(%d,%d)\n", n866,n3g);
 #  endif 
 
+   cg->pow2++;
    findl2(0,n866,cg,&i0);
    i1=(i0+1)%3;
    i2=(i1+1)%3;
@@ -513,6 +514,8 @@ static void exp866(int n866, cgraph  ** c)
    printf("exp866(%d)\n",n866);
 #  endif 
 
+   cg->pow2++;
+
    N1=getv2(cg,V633);  cg->vl[N1].e[0]=cg->vl[n866].e[1];
    N2=getv2(cg,v633);  cg->vl[N2].e[0]=cg->vl[n866].e[2];
    
@@ -522,7 +525,6 @@ static void exp866(int n866, cgraph  ** c)
    
    cg->vl[n833].e[1]=cg->vl[N1].e[1]= ++(cg->en); 
    cg->vl[n833].e[2]=cg->vl[N2].e[1]= ++(cg->en);
-
 #  if (CDEBLEV > DEBLEV) 
        wrcg(cg);
 #  endif 
@@ -841,7 +843,7 @@ vtype typev(vert0 v,int valence)
 }  /* TypeV */ 
 
 
-void t2k2(vcsect* g, int * nv, cvertex * vl)
+int t2k2(vcsect* g, int * nv, cvertex * vl)
 {
   int   i,k, ne, en=0, maxnv=*nv; 
   int   maptar[2*maxvert][MAXVALENCE];
@@ -888,10 +890,18 @@ void t2k2(vcsect* g, int * nv, cvertex * vl)
                   case  3: case -3: if(!k)k=1;  vl[*nv].e[k++] = l; break;
                 }
                 break;              
-              default:  vl[*nv].e[k++] = l;  break; // vFabc, t88 v333,V333
+              default:  vl[*nv].e[k++] = l; break; // vFabc, t88 v333,V333
             } 
          }
       }  
       (*nv)++;
    } 
+   int j,n, sgn=1;
+   for(n=0;n<g->sizel; n++) if(vl[n].vt==vFabc || vl[n].vt==v333 || vl[n].vt==V333)
+   for(i=0;i<g->valence[n]-1;i++) if(prtclbase1[g->vertlist[n][i].partcl].cdim!=1)
+   for(j=i+1;j<g->valence[n];j++)  if(prtclbase1[g->vertlist[n][j].partcl].cdim!=1)
+   {  int ni=g->vertlist[n][i].link.vno, nj=g->vertlist[n][j].link.vno;
+      if(ni==nj && g->vertlist[n][i].link.edno > g->vertlist[n][j].link.edno) sgn*=-1;
+   }
+   return sgn; 
 }

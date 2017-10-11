@@ -8,6 +8,7 @@
 #include"rw_sess.h"
 #include"subproc.h"
 #include"num_in.h"
+#include"runVegas.h"
 
 #include"VandP.h"
 #include"dynamic_cs.h"
@@ -83,13 +84,20 @@ static void param_menu(int sqtrS_on,int rd_on, int vars_on, int func_on,  int * 
   if(func_on) npos += nModelFunc;
   if(rd_on)   npos++;   
   if(npos==0) {*strmen=NULL; return;}
-  
+
+  int prn= (func_on && sqtrS_on==0 && rd_on==0 && vars_on==0);
+  if(prn) npos++; 
+   
   *strmen=malloc(24*npos+2);
   (*strmen)[0]=24;
 
-  pos=1;    
+  pos=1;  
+  if(prn) 
+  { sprintf((*strmen)+pos," %22.22s ", "Print to file" );
+    pos+=24;
+  }
   for(k=0;k<2;k++) if(polar[k])
-  { sprintf((*strmen)+pos," Helicity%d  %-12.4g",k+1,Helicity[k]);
+  { sprintf((*strmen)+pos," Helicity%d  %-12.4g",k+1,(double)Helicity[k]);
     pos+=24;               
   }
   if(sqtrS_on){ sprintf((*strmen)+pos,"  Pcm       %-12.4g",(double)Pcm22); pos+=24;}
@@ -144,6 +152,8 @@ int selectParam(int x, int y, char * mess, void ** pscrPtr,
            
         position -= shift;       
       } 
+      if(func_on && sqtrS_on==0 && rd_on==0 && vars_on==0) { position--; if(!position) {varPos=NULL; return 1;}}
+
       if(!vars_on)  position+=nModelVars;
       if(rd_on) position--;
       *varPos= varValues+position-1;
@@ -243,6 +253,17 @@ void show_depend(int x, int y)
     REAL * fPos;
     
     if(!selectParam(x,y+1,"Display dependence",&pscr1,0,0,0,1,&fPos,name1,&mPos)) return;
+
+    if(mPos==1) 
+    { char fname[55];
+      sprintf(fname,"Constraints_%d",nSess); 
+      correctStr(10,17,"File name: ",fname,50,1);
+      FILE *f =fopen(fname,"w");
+      for(int i=0; i< nModelFunc;i++) 
+         fprintf(f, " %10.10s %E\n", varNames[i+nModelVars],varValues[i+nModelVars]); 
+      fclose(f);
+       continue;
+     }
     
     for(;;)
     { char name2[20];
@@ -255,7 +276,6 @@ void show_depend(int x, int y)
       int mPos_=1;
       
       if(!selectParam(x,y+5,"on parameter",&pscr2,0,0,1,0,&vPos,name2,&mPos_))break;
-   
       val2=*vPos; 
       xMin=val2 - fabs(val2)/10;
       xMax=val2 + fabs(val2)/10; 

@@ -1,0 +1,80 @@
+<html>
+<head>
+	<title>CalcHEP Batch Help</title>
+	<link rel='stylesheet' href='../style.css' type='text/css'></link>
+</head>
+<body>
+	<div id='links'>
+		<ul>
+			<li><a href='../index.html'>Home</a></li>
+			<li><a href='../symbolic.html'>Symbolic Results</a></li>
+			<li><a href='../numerical.html'>Numerical Results</a></li>
+			<li><a href='../events.html'>Events Library</a></li>
+			<li><a href='../library.html'>Process Library</a></li>
+			<li><a href='index.html'>Help</a>
+				<ul>
+					<li><a href='batch_file.html'>Batch File</a><ul>
+						<li><a href='comment.html'>Comments</a></li>
+						<li><a href='model.html'>Model</a></li>
+						<li><a href='process.html'>Process</a></li>
+						<li><a href='pdf.html'>PDF</a></li>
+						<li><a href='momentum.html'>Momentum</a></li>
+						<li><a href='parameters.html'>Parameters</a></li>
+						<li><a href='runs.html'>Scans</a></li>
+						<li><a href='qcd.html'>QCD</a></li>
+                                                <li><a href='BW.html'>BW</a></li>
+						<li><a href='cuts.html'>Cuts</a></li>
+						<li><a href='kinematics.html'>Kinematics</a></li>
+						<li><a href='regularization.html'>Regularization</a></li>
+						<li><a href='distributions.html'>Distribution</a></li>
+						<li><a href='events.html'>Events</a></li>
+						<li><a href='parallelization.html'>Parallelization</a></lii>
+						<li><a href='vegas.html'>Vegas</a></li>
+						<li><a href='generator.html'>Generator</a></li>
+						<li><a href='example1.html'>Example 1</a></li>
+						<li><a href='example2.html'>Example 2</a></li>
+						<li><a href='example3.html'>Example 3</a></li>
+					</ul></li>
+					<li><a href='process_library.html'>Process Library</a></li>
+					<li><a href='event_library.html'>Event Library</a></li>
+				</ul>
+			</li>
+			<br>
+			<li>Thank you for using <a href='http://theory.sinp.msu.ru/~pukhov/calchep.html'>CalcHEP</a>!</li>
+			<li>Please cite <a href='http://inspirehep.net/record/1123804'>arXiv:1207.6082</a></li>
+		</ul>
+	</div>
+	<div id='help_main'>
+		<h1>Events Help</h1>
+		<h3>Number of events</h3>
+		<p>
+			The number of events is specified with the keyphrase "Number of events".  This specifies the number of events to produce after all subprocesses are combined and decayed.  If a run over a parameter is specified, this keyphrase determines the number of events to produce for each value of the run parameter.  The number of events requested can be zero.  In this case, the cross sections are determined and the distributions generated but no events are produced.  Here is an example:<br>
+			<table>
+				<tr><td>Number of events</td><td>:</td><td>1000</td></tr>
+			</table>
+		</p>
+		<h3>Filename</h3>
+		<p>
+			The name of the file can be specified using the "Filename" keyword.  If specified, all the files will begin with this name.  Here is an example:<br>
+			<table>
+				<tr><td>Filename</td><td>:</td><td>pp-ll</td></tr>
+			</table>
+		</p>
+		<h3>NTuple</h3>
+		<p>
+			If nt_maker has been installed in the bin directory, PAW ntuples can be made on the fly by setting "NTuple" to True as in:<br>
+			<table>
+				<tr><td>NTuple</td><td>:</td><td>True</td></tr>
+			</table>
+			The default is False.
+		</p>
+		<h3>Cleanup</h3>
+		<p>
+			If this is set to true, the individual event files are removed after the final event file is created.  This is useful for saving space on the hard drive.  It is True by default.  Here is an example:<br>
+			<table>
+				<tr><td>Cleanup</td><td>:</td><td>False</td></tr>
+			</table>
+		</p>
+	</div>
+</body>
+</html>

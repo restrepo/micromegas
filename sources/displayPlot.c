@@ -1,4 +1,3 @@
-
 #include"micromegas.h"
 #include"micromegas_aux.h"
 #include"../CalcHEP_src/c_source/chep_crt/include/crt.h"
@@ -27,11 +26,12 @@ static int pidList[100];
 
 extern char pathtocalchep[], pathtohelp[];
   
-void displayPlotN(char * title, double xMin, double xMax,  char*xName,  int dim, int N, double**f,double**ff,char**Y)
+void displayPlotN(char * title, double xMin, double xMax,  char*xName,  int dim,int lScale, int N, double**f,double**ff,char**Y)
 { int pid;
   
   if(First) { First=0;   signal(SIGUSR1, disconnect);}  
-  
+
+  fflush(NULL);
   pid=fork();
   if(pid==0) 
   {  int err,i;
@@ -46,13 +46,13 @@ void displayPlotN(char * title, double xMin, double xMax,  char*xName,  int dim,
      sprintf(pathtocalchep,"%s/",calchepDir);
      sprintf(pathtohelp,"%s/help/",pathtocalchep);
      clearTypeAhead();     
-     plot_Nar(title,xMin,xMax,xName, dim, N, f,ff,Y);
+     plot_Nar(NULL,title,xMin,xMax,xName, dim,lScale,N, f,ff,Y);
      finish();
      exit(0);
   } else pidList[newPID++]=pid;
 }
 
-void displayPlot(char * title, double xMin, double xMax,  char*xName,  int dim, int N, ...)
+void displayPlot(char * title, double xMin, double xMax,  char*xName,  int dim, int lScale, int N, ...)
 {
   int i;
   double **f; double**ff; char**Y;  
@@ -70,7 +70,7 @@ void displayPlot(char * title, double xMin, double xMax,  char*xName,  int dim, 
   }   
   va_end(ap);
   
-  displayPlotN(title,xMin,xMax, xName, dim,N, f,ff,Y);
+  displayPlotN(title,xMin,xMax, xName, dim, lScale,N, f,ff,Y);
 
   free(f); free(ff);free(Y);
 }
@@ -78,16 +78,28 @@ void displayPlot(char * title, double xMin, double xMax,  char*xName,  int dim, 
 
 void  killPlots(void)
 {
-  int  C,i;
-  
-  for(i=0;i<newPID;i++) if(waitpid(pidList[i],NULL,WNOHANG)) break;
+  int  C,i,pid;
 
-  if(newPID && i==newPID)
-  {
-    printf("Kill all plots (Y/N)? "); 
-    C=getchar();
-    if(C=='y'|| C=='Y')  kill(0,SIGKILL); else kill(0,SIGUSR1);
-  }
+  if(!newPID) return;
+  for(i=0;i<newPID;i++) if(waitpid(pidList[i],NULL,WNOHANG)==0) break; else pidList[i]=0;
+  
+  if(i!=newPID)
+  { int id=fork();
+    if(id==0)
+    {  printf("Kill all plots (Y/N)? "); 
+       C=getchar();
+       if(C=='y'|| C=='Y')   exit(0); else exit(1); 
+    } else for(;;) 
+    {  sleep(1);
+       int status;
+       for(i=0;i<newPID;i++ ) if(pidList[i]){ if(waitpid(pidList[i],NULL,WNOHANG)==0) break; else pidList[i]=0; }
+       if(i==newPID)  kill(0,SIGKILL);
+       else  if( waitpid(id,&status,WNOHANG))
+       {  if( !WIFEXITED(status) ||  WEXITSTATUS(status)==0)   kill(0,SIGKILL); else kill(0,SIGUSR1);
+          break; 
+       } 
+    }
+  }  
   newPID=0;
 }
 
@@ -95,20 +107,23 @@ void  killPlots(void)
 
 void  killplots_(void) { killPlots();}
 
-void displayFunc(double (*F)(double), double x1  ,double x2, char * mess)
+void displayFunc(char*title, double (*F)(double), double x1  ,double x2, char * varName, int lScale)
 {
   int i;
   double f[100];
-  
-  for(i=0;i<100;i++) f[i]=F(x1+(i+0.5)*(x2-x1)/100.);
-  displayPlot(mess,x1,x2,"x",100,1,f,NULL,"F(x)");
+  if( x1<=0 || x2<=0) lScale =0;
+  if(lScale) for(i=0;i<100;i++) f[i]=F(x1*pow(x2/x1, (i+0.5)/100.));
+  else      for(i=0;i<100;i++) f[i]=F(x1+(i+0.5)*(x2-x1)/100.);
+  displayPlot(title,x1,x2,varName,100,lScale,1,f,NULL,"");
 }  
 
-void displayFunc10(double (*F)(double), double x1  ,double x2, char * mess)
+
+void displayFuncArg(char*title, double (*F)(double,void *), void* Arg, double x1  ,double x2, char * varName , int lScale)
 {
   int i;
   double f[100];
-  
-  for(i=0;i<100;i++) f[i]=F(pow(10,x1+(i+0.5)*(x2-x1)/99.));
-  displayPlot(mess,x1,x2,"x",100,1,f,NULL,"F(10^x)");
+  if( x1<=0 || x2<=0) lScale =0;
+   if(lScale) for(i=0;i<100;i++) f[i]=F(x1*pow(x2/x1, (i+0.5)/100.),Arg);
+    else      for(i=0;i<100;i++) f[i]=F(x1+(i+0.5)*(x2-x1)/100.,Arg);
+  displayPlot(title,x1,x2,varName,100,lScale,1,f,NULL,"");
 }  

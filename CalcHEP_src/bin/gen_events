@@ -13,7 +13,7 @@ if(test "$testStr") then
      echo "1   number of events"  
      exit 200
   else
-     ./n_calchep -blind  "[[[[[[[[{[[[[[[[[[{{$1{[{0"
+     ./n_calchep -blind  "[[[[[[[[{[[[[[[[[[{$1{[{0"
 
      exit $? 
   fi

@@ -1,0 +1,37 @@
+Number of points:                  
+
+  scanned                                1000
+  mu=0 or (kappa=0 and Akappa=/=0)          0
+  with mh1^2 or ma1^2 or mhc^2 < 0         86
+  with m_sfermion^2 < 0                     0
+  violating constraints                   726
+  RGE integration problem                   0
+  convergence problem                       0
+
+Remaining good points                     188
+
+
+Contraints taken into account:                    
+ - Landau poles and false minima                  
+ - LEP/Tevatron Higgs+sparticle                   
+ - LHC Higgs                                      
+ - Upsilon, B and K decays                        
+
+
+                 Parameter ranges for good points:
+
+     TANB:      0.6864E+01     0.6921E+01     0.4124E-02
+       M2:      0.2484E+03     0.2484E+03     0.0000E+00
+      AU3:      0.1500E+04     0.1500E+04     0.0000E+00
+      MQ3:      0.1000E+04     0.1000E+04     0.0000E+00
+   LAMBDA:      0.4685E+00     0.5002E+00     0.3274E-01
+    KAPPA:      0.0000E+00     0.0000E+00     0.0000E+00
+    MUEFF:      0.3735E+03     0.3735E+03     0.0000E+00
+  ALAMBDA:      0.2596E+04     0.2596E+04     0.0000E+00
+       MA:      0.2594E+04     0.2594E+04     0.0000E+00
+      XIF:     -0.2839E+05    -0.1170E+05
+     (XIF is not an input parameter)
+   AKAPPA:      0.0000E+00     0.0000E+00     0.0000E+00
+       MP:      0.8633E+02     0.8633E+02     0.0000E+00
+      XIS:     -0.8622E+06    -0.1096E+06
+     (XIS is not an input parameter)

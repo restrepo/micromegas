@@ -1,5 +1,6 @@
 #include "micromegas.h"
 #include "micromegas_aux.h"
+#include "micromegas_f.h"
 
 
 void printVar(FILE *f)
@@ -9,14 +10,15 @@ void printVar(FILE *f)
   for(i=0;i<nModelVars;i++) fprintf(f,"%-6.6s   %f\n", varNames[i], varValues[i]);
 }
 
-int assignVal(char * name, double val)
+
+int assignVal(const char * name, double val)
 {
   REAL * a=varAddress(name);
   if(a && a<=varValues+nModelVars )  {*a=val; return 0;} else return 1;
 }
 
 
-int  assignValW(char*name, double  val)
+int  assignValW(const char*name, double  val)
 { 
   if(assignVal(name,val)==1) { printf(" %s not found\n",  name); return 1;}
   return 0; 

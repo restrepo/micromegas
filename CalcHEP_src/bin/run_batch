@@ -1,9 +1,32 @@
 #!/usr/bin/perl
 # (c) 2008 Neil Christensen
-$version="1.26";
+$version="1.37";
 #############################################################################################################
 #Version Notes:
 #############################################################################################################
+#1.37 : March 22, 2017
+#       The limit on number of models to match the mattern was extended from 100 to 1000
+#1.36 : March 2, 2017
+#       Added total cross-section error after summing but before decays.
+#1.35 : Feb 3, 2017
+#       Fixed typos with the process library.
+#1.34 : October 31, 2016
+#       Updated to deal with new PDT: functions  
+#1.33 : October 12, 2016
+#       Added output in the .txt for the distributions  
+#       Fix bug for small nbin distributions (e.g 10, 15 which is confused with 100 and 150  when use "f" in the blind mode)
+#1.32 : July 14, 2016
+#       Format of the files with distributions was changed to .jpg as well the color code
+#       for gnuplot command was changed to be consistent with recent gnuplot version to 
+#       avoid related problems
+#1.31 : July 6, 2016
+#       Fixed typo in showering statement.
+#       Updated cteq6l1 from cteq6l.
+#       Added support for user to specify pdf scales separately and showering scale.
+#1.30 : Added QCD scale support fot Z and S symbols in case of particles change the place
+#1.29 : Added QCD scale support fot T symbol in case of particles change the place
+#1.28 : More $LHAPDFPATH.
+#1.27 : Added $LHAPDFPATH.
 #1.26 : If cs=0, set nevents=0.
 #1.25 : Updated for change in event generation.
 #1.24 : Fixed fix in 1.22.
@@ -286,7 +309,7 @@ $version="1.26";
 #         with 2/100.0.
 #       Fixed QCD scale.  It now allows both MZ/2
 #         and M34 (for example).
-#       If cleanup is set to true, Events/tmp is 
+#       If cleanup is set to true, batch_results/tmp is 
 #         also cleaned up.
 #       Added minor tics to gnuplot distributions.
 #0.63 : Updated to use new version of event_mixer.
@@ -334,7 +357,7 @@ $version="1.26";
 #       Added widths in decaySLHA1.txt to event generation.
 #         This is to enable the cross section to be updated with the
 #         branching ratios of the decays.
-#         This file is linked to Events/tmp where event_mixer works.
+#         This file is linked to batch_results/tmp where event_mixer works.
 #         event_mixer needs to be updated now.
 #       Updated progress to state "Done!" when 0 events are requested.
 #         Just the cross section is being computed or just distributions
@@ -531,10 +554,14 @@ $alphaMbMb = 4.2;
 $alphaMtp  = 175;
 @alphaScale= ();
 @alphaNumber=();
-@alphaFactScale=();
-@alphaFactNumber=();
+@alphaFact1Scale=();
+@alphaFact1Number=();
+@alphaFact2Scale=();
+@alphaFact2Number=();
 @alphaRenScale=();
 @alphaRenNumber=();
+@alphaShowScale=();
+@alphaShowNumber=();
 @cut_param = ();
 @cut_Number= ();
 @cut_invert= ();
@@ -612,6 +639,8 @@ if($CH_PATH eq ""){
 }
 #print "$CH_PATH\n";
 #print "$ARGV[0]\n";
+
+$LHAPDFPATH=$ENV{'LHAPDFPATH'};
 
 
 
@@ -692,10 +721,16 @@ LINE: while($line = <BATCH_FILE>){
 	elsif ($line =~ /Mtop\s*\(pole\)[^:]*:([^:]*)/){$tmp=$1;$tmp =~ s/\s//g;$alphaMtp  = $tmp;}
 	elsif ($line =~ /alpha\s*Q[^:]*:\s*([0-9]*)\s*:([^:]*)/){push(@alphaNumber,$1-1);$tmp=$2;$tmp =~ s/\s//g;push(@alphaScale,$tmp);}
 	elsif ($line =~ /alpha\s*Q[^:]*:([^:]*)/){push(@alphaNumber,-1);$tmp=$1;$tmp =~ s/\s//g;push(@alphaScale,$tmp);}
-	elsif ($line =~ /alpha\s*[Ff]act[^:]*Q[^:]*:\s*([0-9]*)\s*:([^:]*)/){push(@alphaFactNumber,$1-1);$tmp=$2;$tmp =~ s/\s//g;push(@alphaFactScale,$tmp);}
-	elsif ($line =~ /alpha\s*[Ff]act[^:]*Q[^:]*:([^:]*)/){push(@alphaFactNumber,-1);$tmp=$1;$tmp =~ s/\s//g;push(@alphaFactScale,$tmp);}
+	elsif ($line =~ /alpha\s*[Ff]act[^:]*1[^:]*Q[^:]*:\s*([0-9]*)\s*:([^:]*)/){push(@alphaFact1Number,$1-1);$tmp=$2;$tmp =~ s/\s//g;push(@alphaFact1Scale,$tmp);}
+	elsif ($line =~ /alpha\s*[Ff]act[^:]*1[^:]*Q[^:]*:([^:]*)/){push(@alphaFact1Number,-1);$tmp=$1;$tmp =~ s/\s//g;push(@alphaFact1Scale,$tmp);}
+	elsif ($line =~ /alpha\s*[Ff]act[^:]*2[^:]*Q[^:]*:\s*([0-9]*)\s*:([^:]*)/){push(@alphaFact2Number,$1-1);$tmp=$2;$tmp =~ s/\s//g;push(@alphaFact2Scale,$tmp);}
+	elsif ($line =~ /alpha\s*[Ff]act[^:]*2[^:]*Q[^:]*:([^:]*)/){push(@alphaFact2Number,-1);$tmp=$1;$tmp =~ s/\s//g;push(@alphaFact2Scale,$tmp);}
+	elsif ($line =~ /alpha\s*[Ff]act[^:]*Q[^:]*:\s*([0-9]*)\s*:([^:]*)/){push(@alphaFact1Number,$1-1);$tmp=$2;$tmp =~ s/\s//g;push(@alphaFact1Scale,$tmp);}
+	elsif ($line =~ /alpha\s*[Ff]act[^:]*Q[^:]*:([^:]*)/){push(@alphaFact1Number,-1);$tmp=$1;$tmp =~ s/\s//g;push(@alphaFact1Scale,$tmp);}
 	elsif ($line =~ /alpha\s*[Rf]en[^:]*Q[^:]*:\s*([0-9]*)\s*:([^:]*)/){push(@alphaRenNumber,$1-1);$tmp=$2;$tmp =~ s/\s//g;push(@alphaRenScale,$tmp);}
 	elsif ($line =~ /alpha\s*[Rf]en[^:]*Q[^:]*:([^:]*)/){push(@alphaRenNumber,-1);$tmp=$1;$tmp =~ s/\s//g;push(@alphaRenScale,$tmp);}
+	elsif ($line =~ /alpha\s*[Ss]how[^:]*Q[^:]*:\s*([0-9]*)\s*:([^:]*)/){push(@alphaShowNumber,$1-1);$tmp=$2;$tmp =~ s/\s//g;push(@alphaShowScale,$tmp);}
+	elsif ($line =~ /alpha\s*[Ss]how[^:]*Q[^:]*:([^:]*)/){push(@alphaShowNumber,-1);$tmp=$1;$tmp =~ s/\s//g;push(@alphaShowScale,$tmp);}
 	elsif ($line =~ /Cut parameter\s*:\s*([0-9]*)\s*:\s*([^\s]+)/){push(@cut_Number,$1-1);$tmp=$2;$tmp =~ s/\s//g;push(@cut_param,$tmp);}
 	elsif ($line =~ /Cut parameter\s*:\s*([^:]+)/){push(@cut_Number,-1);$tmp=$1;$tmp =~ s/\s//g;push(@cut_param,$tmp);}
 	elsif ($line =~ /Cut inver[^:]*:\s*([0-9]*)\s*:\s*([^:]*)/){$tmp=$2;$tmp =~ s/\s//g;push(@cut_invert,$tmp);}
@@ -780,8 +815,8 @@ if($nCalls2<$nCalls1){$nCalls2=$nCalls1;}
 ####################################################
 #     Make sure directories are in place.          #
 ####################################################
-if (!(-d "Events")){system("mkdir Events");}
-if (!(-d "Events/tmp")){system("mkdir Events/tmp");}
+if (!(-d "batch_results")){system("mkdir batch_results");}
+if (!(-d "batch_results/tmp")){system("mkdir batch_results/tmp");}
 if (!(-d $html_dir)){system("mkdir $html_dir");}
 if (!(-e "$html_dir/style.css")){print_style_file();}
 if (!(-d "$html_dir/runs")){system("mkdir $html_dir/runs");}
@@ -791,7 +826,7 @@ if (!(-d "$html_dir/help")){
 	print_help();
 }
 #Tell the user to look in html/index for progress
-print("Progress information can be found in the html directory.\nSimply open the following link in your browser:\nfile://${html_dir}/index.html\nYou can also view textual progress reports in ${html_dir}/index.txt\n\tand the other .txt files in the html directory.\nEvents will be stored in the Events directory.\n\n");
+print("Progress information can be found in the html directory.\nSimply open the following link in your browser:\nfile://${html_dir}/index.html\nYou can also view textual progress reports in ${html_dir}/index.txt\n\tand the other .txt files in the html directory.\nEvents will be stored in the batch_results directory.\n\n");
 #print "Done printing help\n";
 #exit();
 
@@ -799,16 +834,18 @@ print("Progress information can be found in the html directory.\nSimply open the
 ####################################################
 #           Determine pdf name                     #
 ####################################################
-if    ($pdf1 =~ m/cteq6l[\s\(]*anti-proton/i)     {$pdf1_name="\"PDT:cteq6l(anti-proton)\" -2212";}
-elsif ($pdf1 =~ m/cteq6l[\s\(]*proton/i)          {$pdf1_name="\"PDT:cteq6l(proton)\" 2212";}
-elsif ($pdf1 =~ m/mrst2002lo[\s\(]*anti-proton/i) {$pdf1_name="\"PDT:mrst2002lo(anti-proton)\" -2212";}
-elsif ($pdf1 =~ m/mrst2002lo[\s\(]*proton/i)      {$pdf1_name="\"PDT:mrst2002lo(proton)\" 2212";}
-elsif ($pdf1 =~ m/cteq6m[\s\(]*anti-proton/i)     {$pdf1_name="\"PDT:cteq6m(anti-proton)\" -2212";}
-elsif ($pdf1 =~ m/cteq6m[\s\(]*proton/i)          {$pdf1_name="\"PDT:cteq6m(proton)\" 2212";}
-elsif ($pdf1 =~ m/cteq5m[\s\(]*anti-proton/i)     {$pdf1_name="\"PDT:CTEQ5M(anti-proton)\" -2212";}
-elsif ($pdf1 =~ m/cteq5m[\s\(]*proton/i)          {$pdf1_name="\"PDT:CTEQ5M(proton)\" 2212";}
-elsif ($pdf1 =~ m/mrst2002nlo[\s\(]*anti-proton/i){$pdf1_name="\"PDT:mrst2002nlo(anti-proton)\" -2212";}
-elsif ($pdf1 =~ m/mrst2002nlo[\s\(]*proton/i)     {$pdf1_name="\"PDT:mrst2002nlo(proton)\" 2212";}
+if   ($pdf1 =~ m/cteq6l1[\s\(]*anti-proton/i)     {$pdf1_name="\"PDT:cteq6l1(anti-proton)\" -2212";}
+elsif ($pdf1 =~ m/cteq6l1[\s\(]*proton/i)          {$pdf1_name="\"PDT:cteq6l1(proton)\" 2212";}
+elsif ($pdf1 =~ m/NNPDF23_lo_as_0130.LHgrid[\s\(]*anti-proton/i)     {$pdf1_name="\"PDT:NNPDF23_lo_as_0130.LHgrid(anti-proton)\" -2212";}
+elsif ($pdf1 =~ m/NNPDF23_lo_as_0130.LHgrid[\s\(]*proton/i)     {$pdf1_name="\"PDT:NNPDF23_lo_as_0130.LHgrid(proton)\" 2212";}
+elsif ($pdf1 =~ m/grv98_higherTwist[\s\(]*anti-proton/i)     {$pdf1_name="\"PDT:grv98_higherTwist(anti-proton)\" -2212";}
+elsif ($pdf1 =~ m/grv98_higherTwist[\s\(]*proton/i)     {$pdf1_name="\"PDT:grv98_higherTwist(proton)\" 2212";}
+elsif ($pdf1 =~ m/NNPDF23_lo_as_0130_qed[\s\(]*anti-proton/i)     {$pdf1_name="\"PDT:NNPDF23_lo_as_0130_qed(anti-proton)\" -2212";}
+elsif ($pdf1 =~ m/NNPDF23_lo_as_0130_qed[\s\(]*proton/i)     {$pdf1_name="\"PDT:NNPDF23_lo_as_0130_qed(proton)\" 2212";}
+elsif ($pdf1 =~ m/MRST2004qed_proton[\s\(]*anti-proton/i)     {$pdf1_name="\"PDT:MRST2004qed_proton(anti-proton)\" -2212";}
+elsif ($pdf1 =~ m/MRST2004qed_proton[\s\(]*proton/i)     {$pdf1_name="\"PDT:MRST2004qed_proton(proton)\" 2212";}
+elsif ($pdf1 =~ m/CT10[\s\(]*anti-proton/i)     {$pdf1_name="\"PDT:CT10(anti-proton)\" -2212";}
+elsif ($pdf1 =~ m/CT10[\s\(]*proton/i)     {$pdf1_name="\"PDT:CT10(proton)\" 2212";}
 elsif ($pdf1 =~ /[Ii][Ss][Rr].*[Bb]eam/)        {$pdf1_name=sprintf("\"Qisr=1.00E0*sqrtS,Beamstr:%.1f,%.3f,%.1E\"",$bunch_size,$bunch_length,$bunch_number);}
 elsif ($pdf1 =~ /[Ii][Ss][Rr]/)                 {$pdf1_name="\"Qisr=1.00E0*sqrtS,Beamstr: OFF\"";}
 elsif ($pdf1 =~ /[Ee]quiv[^:]*[Pp]hoton/)       {$pdf1_name=sprintf("\"Equiv.Photon(particle= %s |Q|max=%s)\"",$photon_particle,$photon_Qmax);}
@@ -817,16 +854,18 @@ elsif ($pdf1 =~ /[Pp]roton[^:]*[Pp]hoton/)      {$pdf1_name=sprintf("\"Proton.Ph
 elsif (!($pdf1 eq ""))                          {$pdf1_name="\"$pdf1\"";}
 else                                            {$pdf1_name="\"OFF\"";}
 
-if    ($pdf2 =~ m/cteq6l[\s\(]*anti-proton/i)     {$pdf2_name="\"PDT:cteq6l(anti-proton)\" -2212";}
-elsif ($pdf2 =~ m/cteq6l[\s\(]*proton/i)          {$pdf2_name="\"PDT:cteq6l(proton)\" 2212";}
-elsif ($pdf2 =~ m/mrst2002lo[\s\(]*anti-proton/i) {$pdf2_name="\"PDT:mrst2002lo(anti-proton)\" -2212";}
-elsif ($pdf2 =~ m/mrst2002lo[\s\(]*proton/i)      {$pdf2_name="\"PDT:mrst2002lo(proton)\" 2212";}
-elsif ($pdf2 =~ m/cteq6m[\s\(]*anti-proton/i)     {$pdf2_name="\"PDT:cteq6m(anti-proton)\" -2212";}
-elsif ($pdf2 =~ m/cteq6m[\s\(]*proton/i)          {$pdf2_name="\"PDT:cteq6m(proton)\" 2212";}
-elsif ($pdf2 =~ m/cteq5m[\s\(]*anti-proton/i)     {$pdf2_name="\"PDT:CTEQ5M(anti-proton)\" -2212";}
-elsif ($pdf2 =~ m/cteq5m[\s\(]*proton/i)          {$pdf2_name="\"PDT:CTEQ5M(proton)\" 2212";}
-elsif ($pdf2 =~ m/mrst2002nlo[\s\(]*anti-proton/i){$pdf2_name="\"PDT:mrst2002nlo(anti-proton)\" -2212";}
-elsif ($pdf2 =~ m/mrst2002nlo[\s\(]*proton/i)     {$pdf2_name="\"PDT:mrst2002nlo(proton)\" 2212";}
+if   ($pdf2 =~ m/cteq6l1[\s\(]*anti-proton/i)     {$pdf2_name="\"PDT:cteq6l1(anti-proton)\" -2212";}
+elsif ($pdf2 =~ m/cteq6l1[\s\(]*proton/i)          {$pdf2_name="\"PDT:cteq6l1(proton)\" 2212";}
+elsif ($pdf2 =~ m/NNPDF23_lo_as_0130.LHgrid[\s\(]*anti-proton/i)     {$pdf2_name="\"PDT:NNPDF23_lo_as_0130.LHgrid(anti-proton)\" -2212";}
+elsif ($pdf2 =~ m/NNPDF23_lo_as_0130.LHgrid[\s\(]*proton/i)     {$pdf2_name="\"PDT:NNPDF23_lo_as_0130.LHgrid(proton)\" 2212";}
+elsif ($pdf2 =~ m/grv98_higherTwist[\s\(]*anti-proton/i)     {$pdf2_name="\"PDT:grv98_higherTwist(anti-proton)\" -2212";}
+elsif ($pdf2 =~ m/grv98_higherTwist[\s\(]*proton/i)     {$pdf2_name="\"PDT:grv98_higherTwist(proton)\" 2212";}
+elsif ($pdf2 =~ m/NNPDF23_lo_as_0130_qed[\s\(]*anti-proton/i)     {$pdf2_name="\"PDT:NNPDF23_lo_as_0130_qed(anti-proton)\" -2212";}
+elsif ($pdf2 =~ m/NNPDF23_lo_as_0130_qed[\s\(]*proton/i)     {$pdf2_name="\"PDT:NNPDF23_lo_as_0130_qed(proton)\" 2212";}
+elsif ($pdf2 =~ m/MRST2004qed_proton[\s\(]*anti-proton/i)     {$pdf2_name="\"PDT:MRST2004qed_proton(anti-proton)\" -2212";}
+elsif ($pdf2 =~ m/MRST2004qed_proton[\s\(]*proton/i)     {$pdf2_name="\"PDT:MRST2004qed_proton(proton)\" 2212";}
+elsif ($pdf2 =~ m/CT10[\s\(]*anti-proton/i)     {$pdf2_name="\"PDT:CT10(anti-proton)\" -2212";}
+elsif ($pdf2 =~ m/CT10[\s\(]*proton/i)     {$pdf2_name="\"PDT:CT10(proton)\" 2212";}
 elsif ($pdf2 =~ /[Ii][Ss][Rr].*[Bb]eam/)        {$pdf2_name=sprintf("\"Qisr=1.00E0*sqrtS,Beamstr:%.1f,%.3f,%.1E\"",$bunch_size,$bunch_length,$bunch_number);}
 elsif ($pdf2 =~ /[Ii][Ss][Rr]/)                 {$pdf2_name="\"Qisr=1.00E0*sqrtS,Beamstr: OFF\"";}
 elsif ($pdf2 =~ /[Ee]quiv[^:]*[Pp]hoton/)       {$pdf2_name=sprintf("\"Equiv.Photon(particle= %s |Q|max=%s)\"",$photon_particle,$photon_Qmax);}
@@ -856,17 +895,21 @@ elsif ($alphaOrder =~ /[Nn][Ll][Oo]/){$alphaOrder=2;}
 elsif ($alphaOrder =~ /[Ll][Oo]/){$alphaOrder=1;}
 else {$alphaOrder=2;}
 if($#alphaScale>=0){
-  @alphaFactScale=@alphaScale;
-  @alphaFactNumber=@alphaNumber;
+  @alphaFact1Scale=@alphaScale;
+  @alphaFact1Number=@alphaNumber;
+  @alphaFact2Scale=@alphaScale;
+  @alphaFact2Number=@alphaNumber;
   @alphaRenScale=@alphaScale;
   @alphaRenNumber=@alphaNumber;
+  @alphaShowScale=@alphaScale;
+  @alphaShowNumber=@alphaNumber;
 }
 
 ####################################################
 #            Determine model number                #
 ####################################################
 my $ni=1;
-while($model_num==0&&$ni<100){
+while($model_num==0&&$ni<1000){
 	my $file = "$working_dir/models/prtcls${ni}.mdl";
 	if(-e $file){
 		open(MDL_FILE,$file) or 
@@ -1164,7 +1207,7 @@ else {$model_dir=$model_dir."/Feynman";}
 if (!(-d "Processes/$model_dir")){system("mkdir Processes/$model_dir");}
 if ($nm==1){print_lib_index("m$model_num",$model_name);}
 if (!(-e "Processes/$model_dir/processes.txt")){print_init_library();}
-if (!(-e "Events/events.txt")){print_init_event_library();}
+if (!(-e "batch_results/events.txt")){print_init_event_library();}
 
 
 
@@ -1522,7 +1565,7 @@ LINE: while($line = <PROC_FILE>){
 		$dir =~ s/p//g;
 		if ($dir > $next_lib_dir){$next_lib_dir=$dir;}
 	}
-	if ($line =~ /([^:]+):([^:]+)/){
+	elsif ($line =~ /([^:]+):([^:]+)/){
 		$dir=$1;$proc=$2;
 		#print "$line";
 		$dir =~ s/\s//g;
@@ -1536,7 +1579,7 @@ LINE: while($line = <PROC_FILE>){
 	}
 }
 #print join(" ",@lib_procs)."\n";
-close(BATCH_FILE);
+close(PROC_FILE);
 
 
 ####################################################
@@ -1565,7 +1608,6 @@ DIR: foreach $dir (@dirs){
 SUBPROC: for (my $j=0;$j<=$#subprocesses;$j++){
 	for (my $k=0;$k<=$#lib_procs;$k++){
 		if ($subprocesses[$j] eq $lib_procs[$k] && $subremoves[$j] eq $lib_removes[$k]){
-			#print "$subprocesses[$j] $lib_procs[$k]\n";
 			$subproc_dir[$j]=$lib_dirs[$k];
 			$subproc_in_lib[$j]=1;
 			next SUBPROC;
@@ -2002,8 +2044,8 @@ print_index(0);print_symbolic(0);
 ####################################################
 $cs_begin_time = time();
 #Remove $fileName-cs.png if present.
-if(-e "Events/$fileName-cs.png"){system("rm Events/$fileName-cs.png");}
-if(-e "Events/$fileName-cs.dat"){system("rm Events/$fileName-cs.dat");}
+if(-e "batch_results/$fileName-cs.jpg"){system("rm batch_results/$fileName-cs.jpg");}
+if(-e "batch_results/$fileName-cs.dat"){system("rm batch_results/$fileName-cs.dat");}
 ####################################################
 #Create an array with all the steps in it.         #
 ####################################################
@@ -2088,6 +2130,7 @@ for (my $k=0;$k<=$#subprocesses;$k++){
 		open(JOB_FILE,">job_script")
 			or die("Couldn't open $dir_name/single/jobscript.");
 		print JOB_FILE "#!/bin/bash\n";
+		print JOB_FILE "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LHAPDFPATH\n";
 		my $job_name = $subprocess;
 		$job_name =~ s/'//g;#'
 		if($par_meth=~/[Pp][Bb][Ss]/){write_PBS_info($job_name,"cs.out",1);}
@@ -2196,6 +2239,7 @@ for (my $k=0;$k<=$#subprocesses;$k++){
 			open(JOB_FILE,">job_script")
 			or die("Couldn't open $dir_name/$subdir_name/jobscript.");
 			print JOB_FILE "#!/bin/bash\n";
+			print JOB_FILE "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LHAPDFPATH\n";
 			my $job_name = $subprocess;
 			$job_name =~ s/'//g;#'
 			if($par_meth=~/[Pp][Bb][Ss]/){write_PBS_info($job_name,"cs.out",1);}
@@ -2284,6 +2328,7 @@ for (my $k=0;$k<=$#decay_subprocesses;$k++){
     open(JOB_FILE,">job_script")
       or die("Couldn't open $dir_name/single/jobscript.");
     print JOB_FILE "#!/bin/bash\n";
+    print JOB_FILE "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LHAPDFPATH\n";
     my $job_name = $subprocess;
     $job_name =~ s/'//g;#'
     if($par_meth=~/[Pp][Bb][Ss]/){write_PBS_info($job_name,"cs.out",0);}
@@ -2362,6 +2407,7 @@ for (my $k=0;$k<=$#decay_subprocesses;$k++){
       open(JOB_FILE,">job_script")
 	or die("Couldn't open $dir_name/$subdir_name/jobscript.");
       print JOB_FILE "#!/bin/bash\n";
+      print JOB_FILE "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LHAPDFPATH\n";
       my $job_name = $subprocess;
       $job_name =~ s/'//g;#'
       if($par_meth=~/[Pp][Bb][Ss]/){write_PBS_info($job_name,"cs.out",0);}
@@ -2769,6 +2815,7 @@ for (my $k=0;$k<=$#subprocesses;$k++){
 		open(JOB_FILE,">job_script")
 			or die("Couldn't open $dir_name/single/jobscript.");
 		print JOB_FILE "#!/bin/bash\n";
+		print JOB_FILE "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LHAPDFPATH\n";
 		my $job_name = $subprocesses[$k];
 		$job_name =~ s/'//g;#'
 		if($par_meth=~/[Pp][Bb][Ss]/){write_PBS_info($job_name,"job.out",1);}
@@ -2786,7 +2833,7 @@ for (my $k=0;$k<=$#subprocesses;$k++){
 		if($sub_gen_n =~ /[Tt]rue/){$nevents[$k] = $n_events;}
 		if($cs[$k]==0||$cs[$k]*$max_lumi<1) {$nevents[$k]=0;}
 		#my $systemString = sprintf ("$CH_PATH/bin/subproc_cycle 1E+50 %d",$nevents[$k]);
-		my $systemString = "./n_calchep -blind \"[[[[[[[[[{[[[[[[[[[{{${nevents[$k]}{[{0\"";
+		my $systemString = "./n_calchep -blind \"[[[[[[[[[{[[[[[[[[[{${nevents[$k]}{[{0\"";
 		if($nevents[$k]==0){$systemString="echo \"cs=0\"";}
 		$systemString = $systemString."  2>&1 1>  job.o";
 		if ($par_meth =~ /[Pp][Bb][Ss]/ || $par_meth =~ /[Ll][Ss][Ff]/ || $par_meth =~ /[Ss][Ll][Uu][Rr][Mm]/){print JOB_FILE "$systemString\n";}
@@ -2824,6 +2871,7 @@ for (my $k=0;$k<=$#subprocesses;$k++){
 			open(JOB_FILE,">job_script")
 			or die("Couldn't open $dir_name/$subdir_name/jobscript.");
 			print JOB_FILE "#!/bin/bash\n";
+			print JOB_FILE "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LHAPDFPATH\n";
 			my $job_name = $subprocesses[$k];
 			$job_name =~ s/'//g;#'
 			if($par_meth=~/[Pp][Bb][Ss]/){write_PBS_info($job_name,"job.out",1);}
@@ -2845,7 +2893,7 @@ for (my $k=0;$k<=$#subprocesses;$k++){
 			if($sub_gen_n =~ /[Tt]rue/){$nevents[$k][$j] = $n_events;}
 			if($cs[$k][$j]==0||$cs[$k][$j]*$max_lumi<1) {$nevents[$k][$j]=0;}
 			#my $systemString = sprintf ("$CH_PATH/bin/subproc_cycle 1E+50 %d",$nevents[$k][$j]);
-			my $systemString = "./n_calchep -blind \"[[[[[[[[[{[[[[[[[[[{{${nevents[$k][$j]}{[{0\"";
+			my $systemString = "./n_calchep -blind \"[[[[[[[[[{[[[[[[[[[{${nevents[$k][$j]}{[{0\"";
 			if($nevents[$k][$j]==0){$systemString="echo \"cs=0\"";}
 			$systemString = $systemString."  2>&1 1>  job.o";
 			if ($par_meth =~ /[Pp][Bb][Ss]/ || $par_meth =~ /[Ll][Ss][Ff]/ || $par_meth =~ /[Ss][Ll][Uu][Rr][Mm]/){print JOB_FILE "$systemString\n";}
@@ -2893,6 +2941,7 @@ for (my $k=0;$k<=$#decay_subprocesses;$k++){
 		open(JOB_FILE,">job_script")
 			or die("Couldn't open $dir_name/single/jobscript.");
 		print JOB_FILE "#!/bin/bash\n";
+		print JOB_FILE "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LHAPDFPATH\n";
 		my $job_name = $subprocess;
 		$job_name =~ s/'//g;#'
 		if($par_meth=~/[Pp][Bb][Ss]/){write_PBS_info($job_name,"job.out",0);}
@@ -2902,7 +2951,7 @@ for (my $k=0;$k<=$#decay_subprocesses;$k++){
 		$nevents[$#subprocesses+$k+1] = int(5.1*$n_events);
 		if($cs[$#subprocesses+$k+1]==0) {$nevents[$#subprocesses+$k+1]=0;}
 		#my $systemString = sprintf ("$CH_PATH/bin/subproc_cycle %d",$nevents[$#subprocesses+$k+1]);
-		my $systemString = "./n_calchep -blind \"[[[[[[[[[{[[[[[[[[[{{${nevents[$#subprocesses+$k+1]}{[{0\"";
+		my $systemString = "./n_calchep -blind \"[[[[[[[[[{[[[[[[[[[{${nevents[$#subprocesses+$k+1]}{[{0\"";
 		if($nevents[$#subprocesses+$k+1]==0){$systemString = "echo \"width=0\"";}
 		$systemString = $systemString."  2>&1 1>  job.o";
 		if ($par_meth =~ /[Pp][Bb][Ss]/ || $par_meth =~ /[Ll][Ss][Ff]/ || $par_meth =~ /[Ss][Ll][Uu][Rr][Mm]/){print JOB_FILE "        $systemString\n";}
@@ -2934,6 +2983,7 @@ for (my $k=0;$k<=$#decay_subprocesses;$k++){
 			open(JOB_FILE,">job_script")
 			or die("Couldn't open $dir_name/$subdir_name/jobscript.");
 			print JOB_FILE "#!/bin/bash\n";
+			print JOB_FILE "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LHAPDFPATH\n";
 			my $job_name = $subprocess;
 			$job_name =~ s/'//g;#'
 			if($par_meth=~/[Pp][Bb][Ss]/){write_PBS_info($job_name,"job.out",0);}
@@ -2943,7 +2993,7 @@ for (my $k=0;$k<=$#decay_subprocesses;$k++){
 			$nevents[$#subprocesses+$k+1][$j] = int(5.1*$n_events);
 			if($cs[$#subprocesses+$k+1][$j]==0) {$nevents[$#subprocesses+$k+1][$j]=0;}
 			#my $systemString = sprintf ("$CH_PATH/bin/subproc_cycle %d",$nevents[$#subprocesses+$k+1][$j]);
-			my $systemString = "./n_calchep -blind \"[[[[[[[[[{[[[[[[[[[{{${nevents[$#subprocesses+$k+1][$j]}{[{0\"";
+			my $systemString = "./n_calchep -blind \"[[[[[[[[[{[[[[[[[[[{${nevents[$#subprocesses+$k+1][$j]}{[{0\"";
 			if($nevents[$#subprocesses+$k+1][$j]==0){$systemString="echo \"width=0\"";}
 			$systemString = $systemString."  2>&1 1>  job.o";
 			if ($par_meth =~ /[Pp][Bb][Ss]/ || $par_meth =~ /[Ll][Ss][Ff]/ || $par_meth =~ /[Ss][Ll][Uu][Rr][Mm]/){print JOB_FILE "        $systemString\n";}
@@ -3019,6 +3069,7 @@ if ($#step<0){
 	open(JOB_FILE,">job_script")
 		or die("Couldn't open $dir_name/single/jobscript.");
 	print JOB_FILE "#!/bin/bash\n";
+	print JOB_FILE "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LHAPDFPATH\n";
 	my $job_name = $subprocess;
 	$job_name =~ s/'//g;#'
 	if($par_meth=~/[Pp][Bb][Ss]/){write_PBS_info($job_name,"job.out",0);}
@@ -3111,6 +3162,7 @@ else {
 		open(JOB_FILE,">job_script")
 		or die("Couldn't open $dir_name/$subdir_name/jobscript.");
 		print JOB_FILE "#!/bin/bash\n";
+		print JOB_FILE "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LHAPDFPATH\n";
 		my $job_name = "Widths";
 		$job_name =~ s/'//g;#'
 		if($par_meth=~/[Pp][Bb][Ss]/){write_PBS_info($job_name,"job.out",0);}
@@ -3582,7 +3634,11 @@ generate_cs_plot();
 print_numerical(2);
 
 
+chdir($working_dir);
+if (!(-d "batch_results")){system("mkdir batch_results");}
+system("cp -r html $fileName ;  tar -zcf $fileName.tgz $fileName;  rm -rf $fileName; mv $fileName.tgz batch_results/");
 
+#END OF RUN #
 
 
 
@@ -3602,7 +3658,7 @@ print_numerical(2);
 #         Create plot of final cross sections      #
 ####################################################
 sub generate_cs_plot {
-  chdir("$working_dir/Events/tmp/");
+  chdir("$working_dir/batch_results/tmp/");
   open(GP_DAT,">gnuplot_dat");
   my $min=$final_cs[0], $max=$min;
   my @min_param=();
@@ -3625,11 +3681,11 @@ sub generate_cs_plot {
   }
   close(GP_DAT);
   open(GP_INST,">gnuplot_instructions");
-  print GP_INST "set term png transparent medium xffffff x000000\n";
+  print GP_INST "set term jpeg transparent medium #ffffff #000000\n";
   print GP_INST "set key off\n";
   print GP_INST "set mxtics\n";
   print GP_INST "set mytics\n";
-  print GP_INST "set output 'gnuplot.png'\n";
+  print GP_INST "set output 'gnuplot.jpg'\n";
   
   if($#run_param==0){
     if($max_param[0]/$min_param[0]>100){print GP_INST "set logscale x\n";}
@@ -3648,10 +3704,11 @@ sub generate_cs_plot {
     print GP_INST ", 'gnuplot_dat' using 1:(\$2==1500?\$3:0) with lines\n";
   }
   close(GP_INST);
-  if($#run_param<2){
+  if($#run_param<2){  
+#system("cat gnuplot_dat");
     system("gnuplot gnuplot_instructions");
-    system("cp gnuplot_dat $working_dir/Events/$fileName-cs.dat");
-    system("cp gnuplot.png $working_dir/Events/$fileName-cs.png");
+    system("cp gnuplot_dat $working_dir/batch_results/$fileName-cs.dat");
+    system("cp gnuplot.jpg $working_dir/batch_results/$fileName-cs.jpg");
   }
 }
 
@@ -3678,6 +3735,11 @@ ifneq (\$(SONAME),)
 else
    soname_VandP :=
 endif
+
+ifneq (\$(LHAPDFPATH),)
+  EXTLIB := -L\$(LHAPDFPATH) -lLHAPDF \$(EXTLIB)
+endif
+
 VandP.so:VandP.c \$(DEPEND) models/extlib$model_num.mdl
 \t\$(CC) \$(CFLAGS)  -shared -o VandP.so \$(soname_VandP) VandP.c \$(CALCHEP)/include/VandPgate.c  \$(EXTLIB) \$(CALCHEP)/lib/libSLHAplus.a \$(CALCHEP)/lib/dummy.a  -lm -lpthread
 ENDMK
@@ -3777,8 +3839,8 @@ sub Cleanup {
       if(-d "$dir_name"){`rm -rf $dir_name`;}
     }
   }
-  #Finally the Events/tmp dir.
-  if(-d "$working_dir/Events/tmp"){`rm -rf $working_dir/Events/tmp`;}
+  #Finally the batch_results/tmp dir.
+  if(-d "$working_dir/batch_results/tmp"){`rm -rf $working_dir/batch_results/tmp`;}
 }
 
 
@@ -3850,6 +3912,7 @@ sub create_calchep {
   open(CALCHEP,">$_[0]");
 print CALCHEP <<ENDCH;
 #!/bin/bash
+LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LHAPDFPATH
 CALCHEP=$CH_PATH
 export CALCHEP
 WORK=`pwd`
@@ -4179,19 +4242,36 @@ sub update_session {
 		if ($qcdscales_section==1){
 			print NEW_SESSION_FILE "#QCDscales\n";
 			my $aScale = "M12";
-			for (my $l=0;$l<=$#alphaFactScale;$l++){
-			  if ($alphaFactNumber[$l]==$subproc_which_proc[$_[1]]||$alphaFactNumber[$l]==-1){
-			    $aScale=renumber_Mparts($alphaFactScale[$l],$_[1]);
-			  }
-			}
-			printf NEW_SESSION_FILE  " Factorization %s\n", $aScale;
-			$aScale = "M12";
 			for (my $l=0;$l<=$#alphaRenScale;$l++){
 			  if ($alphaRenNumber[$l]==$subproc_which_proc[$_[1]]||$alphaRenNumber[$l]==-1){
 			    $aScale=renumber_Mparts($alphaRenScale[$l],$_[1]);
 			  }
 			}
 			printf NEW_SESSION_FILE " Renormalization %s\n", $aScale;
+						
+			$aScale = "M12";
+			for (my $l=0;$l<=$#alphaFact1Scale;$l++){
+			  if ($alphaFact1Number[$l]==$subproc_which_proc[$_[1]]||$alphaFact1Number[$l]==-1){
+			    $aScale=renumber_Mparts($alphaFact1Scale[$l],$_[1]);
+			  }
+			}
+			printf NEW_SESSION_FILE  " Factorization1 %s\n", $aScale;
+			$aScale = "Qpdf1";
+			for (my $l=0;$l<=$#alphaFact2Scale;$l++){
+			  if ($alphaFact2Number[$l]==$subproc_which_proc[$_[1]]||$alphaFact2Number[$l]==-1){
+			    $aScale=renumber_Mparts($alphaFact2Scale[$l],$_[1]);
+			  }
+			}
+			printf NEW_SESSION_FILE  " Factorization2  %s\n", $aScale;
+			$aScale = "Qren";
+			for (my $l=0;$l<=$#alphaShowScale;$l++){
+			  if ($alphaShowNumber[$l]==$subproc_which_proc[$_[1]]||$alphaShowNumber[$l]==-1){
+			    $aScale=renumber_Mparts($alphaShowScale[$l],$_[1]);
+			  }
+			}
+			printf NEW_SESSION_FILE  " Showering  %s\n", $aScale;
+			    
+
 			$qcdscales_section=2;
 		}
 		if ($init_section==0&&$param_section==0&&$BW_section==0&&$cuts_section==0&& $reg_section==0 && $kinematics_section==0 && $dists_section==0&&$qcdscales_section==0&&$composite_section==0){
@@ -4228,6 +4308,13 @@ sub update_session {
 sub renumber_Mparts {
   my $MtermOn=0;
   my $Mterm="";
+  my $StermOn=0;
+  my $Sterm="";
+  my $TtermOn=0;
+  my $Tterm="";
+  my $ZtermOn=0;
+  my $Zterm="";
+ 
   my $Rterm="";
   for(my $i=0;$i<length($_[0]);$i++){
     my $cur_symb = substr($_[0],$i,1);
@@ -4239,12 +4326,52 @@ sub renumber_Mparts {
       $MtermOn=0;
       $Mterm="";
     }
+#<#AB insetion begin ###########    
+    elsif($cur_symb =~ /S/){$StermOn=1;$Sterm=$Sterm.$cur_symb;}
+    elsif($StermOn==1 and $cur_symb =~ /[0-9]/){$Sterm=$Sterm.$cur_symb;}
+    elsif($StermOn==1){
+      $Sterm=$Sterm.$cur_symb;
+      $Rterm=$Rterm.renumber_parts($Sterm,$_[1]);
+      $StermOn=0;
+      $Sterm="";
+    }
+    elsif($cur_symb =~ /T/){$TtermOn=1;$Tterm=$Tterm.$cur_symb;}
+    elsif($TtermOn==1 and $cur_symb =~ /[0-9]/){$Tterm=$Tterm.$cur_symb;}
+    elsif($TtermOn==1){
+      $Tterm=$Tterm.$cur_symb;
+      $Rterm=$Rterm.renumber_parts($Tterm,$_[1]);
+      $TtermOn=0;
+      $Tterm="";
+    }
+    elsif($cur_symb =~ /Z/){$ZtermOn=1;$Zterm=$Zterm.$cur_symb;}
+    elsif($ZtermOn==1 and $cur_symb =~ /[0-9]/){$Zterm=$Zterm.$cur_symb;}
+    elsif($ZtermOn==1){
+      $Zterm=$Zterm.$cur_symb;
+      $Rterm=$Rterm.renumber_parts($Zterm,$_[1]);
+      $ZtermOn=0;
+      $Zterm="";
+    }
+#>#AB insetion end ###########
     else {$Rterm=$Rterm.$cur_symb;}
   }
   if(length($Mterm)>0){
     $Mterm=$Mterm.$cur_symb;
     $Rterm=$Rterm.renumber_parts($Mterm,$_[1]);
   }
+#<#AB insetion begin ###########    
+  if(length($Sterm)>0){
+    $Sterm=$Sterm.$cur_symb;
+    $Rterm=$Rterm.renumber_parts($Sterm,$_[1]);
+  }
+  if(length($Tterm)>0){
+    $Tterm=$Tterm.$cur_symb;
+    $Rterm=$Rterm.renumber_parts($Tterm,$_[1]);
+  }
+  if(length($Zterm)>0){
+    $Zterm=$Zterm.$cur_symb;
+    $Rterm=$Rterm.renumber_parts($Zterm,$_[1]);
+  }
+#>#AB insetion end ###########
   return $Rterm;
 }
 
@@ -4632,8 +4759,8 @@ sub update_decay_session {
 #                                                  #
 ####################################################
 sub combine_events {
-	my @contents=`ls $working_dir/Events/tmp`;
-	if ($#contents>=0){system("rm -f $working_dir/Events/tmp/*");}
+	my @contents=`ls $working_dir/batch_results/tmp`;
+	if ($#contents>=0){system("rm -f $working_dir/batch_results/tmp/*");}
 	my $subdir_name = "";
 	for (my $j=0;$j<=$#all_subprocesses;$j++){
 		my $dir_name="$working_dir/Processes/$model_dir/$all_subproc_dir[$j]";
@@ -4663,11 +4790,11 @@ sub combine_events {
 		}
 		$dir_name=$dir_name."/$subdir_name";
 		if(-e "$dir_name/events_1.txt"){
-		  $systemString = "ln -s $dir_name/events_1.txt 	$working_dir/Events/tmp/events_$j.txt";
+		  $systemString = "ln -s $dir_name/events_1.txt 	$working_dir/batch_results/tmp/events_$j.txt";
 		  system($systemString);
 		}
 	}
-	#$systemString = "ln -s $dir_name/../results/qNumbers 	$working_dir/Events/tmp/qNumbers";
+	#$systemString = "ln -s $dir_name/../results/qNumbers 	$working_dir/batch_results/tmp/qNumbers";
 	#system($systemString);
 	#Now for the widths
 	my $dir_name="$working_dir/Processes/$model_dir/$widths_dir";
@@ -4696,7 +4823,7 @@ sub combine_events {
 		}
 	}
 	$dir_name=$dir_name."/$subdir_name";
-	$systemString = "ln -s $dir_name/decaySLHA_1.txt 	$working_dir/Events/tmp/decaySLHA.txt";
+	$systemString = "ln -s $dir_name/decaySLHA_1.txt 	$working_dir/batch_results/tmp/decaySLHA.txt";
 	system($systemString);
 	
 	#Print the batch file details.
@@ -4710,7 +4837,7 @@ sub combine_events {
 	print_run_details($event_filenames[$_[0]]);
 	
 	#Run event_mixer
-	chdir("$working_dir/Events/tmp/");
+	chdir("$working_dir/batch_results/tmp/");
         #print($n_events); 
 	my $command=sprintf "nice -n $nice_level $CH_PATH/bin/event_mixer %G $n_events .  2>&1 1>  event_mixer.o", $max_lumi;
 	#$command="nice -n $nice_level $CH_PATH/bin/event_mixer $n_events .  2>&1 1>  event_mixer.o";
@@ -4718,14 +4845,14 @@ sub combine_events {
 	system($command);
 	
 	#Count the number of lines
-	#$nevents_final[$_[0]] =`wc -l $working_dir/Events/tmp/event_mixer.out`;
+	#$nevents_final[$_[0]] =`wc -l $working_dir/batch_results/tmp/event_mixer.out`;
 	#$nevents_final[$_[0]] =~ s/([0-9]*).*/$1/;
 	#$nevents_final[$_[0]] = int($nevents_final[$_[0]])-1;
 	$nevents_final[$_[0]] = $n_events;
 	
 	#Read the final cs.
-	open(MIXER_FILE,"$working_dir/Events/tmp/event_mixer.o")
-	  or die("Couldn't open $working_dir/Events/tmp/event_mixer.o.");
+	open(MIXER_FILE,"$working_dir/batch_results/tmp/event_mixer.o")
+	  or die("Couldn't open $working_dir/batch_results/tmp/event_mixer.o.");
 	while (my $line = <MIXER_FILE>){
 	  #if($line =~ /total cross section\s*([^\s]*)/){$final_cs[$_[0]]=$1;}
 	  if($line =~ /\s*([0-9E\+-\.]*)\s*-total cross section/){$final_cs[$_[0]]=$1;}
@@ -4742,45 +4869,45 @@ sub combine_events {
 	#if ($fileFormat =~ /plain/){
 	#	my $nt_filename = $event_filenames[$_[0]];
 	#	$event_filenames[$_[0]] = sprintf "%s.out",$event_filenames[$_[0]];
-	#	system("cat $working_dir/Events/tmp/run_details.txt $working_dir/Events/tmp/event_mixer.out > $working_dir/Events/$event_filenames[$_[0]]");
+	#	system("cat $working_dir/batch_results/tmp/run_details.txt $working_dir/batch_results/tmp/event_mixer.out > $working_dir/batch_results/$event_filenames[$_[0]]");
 	#	if (-e "$CH_PATH/bin/nt_maker"){
 	#		system("nice -n $nice_level $CH_PATH/bin/nt_maker  2>&1 1>  nt_maker.o");
-	#		#system ("rm $working_dir/Events/$nt_filename-*.nt");
-	#		opendir(DIR,"$working_dir/Events/tmp/");
+	#		#system ("rm $working_dir/batch_results/$nt_filename-*.nt");
+	#		opendir(DIR,"$working_dir/batch_results/tmp/");
 	#		my @nts = grep(/\.nt/,readdir(DIR));
 	#		closedir(DIR);
 	#		my $j=0;
 	#		foreach $nt (@nts){
 	#			$j++;
-	#			system("cp $working_dir/Events/tmp/$nt $working_dir/Events/${nt_filename}-$j.nt");
+	#			system("cp $working_dir/batch_results/tmp/$nt $working_dir/batch_results/${nt_filename}-$j.nt");
 	#		}
 	#		
 	#	}
 	#}
 	#else {
 	#	$event_filenames[$_[0]] = sprintf "%s.lhe",$event_filenames[$_[0]];
-	#	system("cat $working_dir/Events/tmp/run_details.txt $working_dir/Events/tmp/event_mixer.lhe > $working_dir/Events/$event_filenames[$_[0]]");
+	#	system("cat $working_dir/batch_results/tmp/run_details.txt $working_dir/batch_results/tmp/event_mixer.lhe > $working_dir/batch_results/$event_filenames[$_[0]]");
 	#}
 	#Only LHE format is now supported.  
 	#nt maker now works on LHE format.
 	my $nt_filename = $event_filenames[$_[0]];
 	if ((-e "$CH_PATH/bin/nt_maker")&&$ntuple =~ /[Tt]rue/){
-		system("nice -n $nice_level $CH_PATH/bin/nt_maker $working_dir/Events/tmp/event_mixer.lhe  2>&1 1>  nt_maker.o");
-		#system ("rm $working_dir/Events/$nt_filename-*.nt");
-		opendir(DIR,"$working_dir/Events/tmp/");
+		system("nice -n $nice_level $CH_PATH/bin/nt_maker $working_dir/batch_results/tmp/event_mixer.lhe  2>&1 1>  nt_maker.o");
+		#system ("rm $working_dir/batch_results/$nt_filename-*.nt");
+		opendir(DIR,"$working_dir/batch_results/tmp/");
 		my @nts = grep(/\.nt/,readdir(DIR));
 		closedir(DIR);
 		my $j=0;
 		foreach $nt (@nts){
 			$j++;
-			system("cp $working_dir/Events/tmp/$nt $working_dir/Events/${nt_filename}-$j.nt");
+			system("cp $working_dir/batch_results/tmp/$nt $working_dir/batch_results/${nt_filename}-$j.nt");
 		}	
 	}	
 	$event_filenames[$_[0]] = sprintf "%s.lhe",$event_filenames[$_[0]];
-#	system("cat $working_dir/Events/tmp/run_details.txt $working_dir/Events/tmp/event_mixer.lhe > $working_dir/Events/$event_filenames[$_[0]]");
-	if(-e "$working_dir/Events/$event_filenames[$_[0]].gz"){system("rm -f $working_dir/Events/$event_filenames[$_[0]].gz");}
-	system("mv $working_dir/Events/tmp/event_mixer.lhe  $working_dir/Events/$event_filenames[$_[0]]");
-	system("gzip  $working_dir/Events/$event_filenames[$_[0]]");
+#	system("cat $working_dir/batch_results/tmp/run_details.txt $working_dir/batch_results/tmp/event_mixer.lhe > $working_dir/batch_results/$event_filenames[$_[0]]");
+	if(-e "$working_dir/batch_results/$event_filenames[$_[0]].gz"){system("rm -f $working_dir/batch_results/$event_filenames[$_[0]].gz");}
+	system("mv $working_dir/batch_results/tmp/event_mixer.lhe  $working_dir/batch_results/$event_filenames[$_[0]]");
+	system("gzip  $working_dir/batch_results/$event_filenames[$_[0]]");
 		
 	print_event_library($event_filenames[$_[0]]);
 	
@@ -4819,8 +4946,8 @@ sub combine_distributions {
 	#Link the distribution files
 	my $sum_distr_command="nice -n $nice_level $CH_PATH/bin/sum_distr";
 	if ($#subprocesses==0){$sum_distr_command="nice -n $nice_level more";}
-	my @contents=`ls $working_dir/Events/tmp`;
-	if ($#contents>=0){system("rm -f $working_dir/Events/tmp/*");}
+	my @contents=`ls $working_dir/batch_results/tmp`;
+	if ($#contents>=0){system("rm -f $working_dir/batch_results/tmp/*");}
 	my $subdir_name = "";
 	my $ncsg0=0;
 	for (my $j=0;$j<=$#subprocesses;$j++){
@@ -4875,7 +5002,7 @@ sub combine_distributions {
 	    close(DIST_FILE);
 	    close(NEW_DIST_FILE);
 	    #Link distribution
-	    $systemString = "ln -s $dir_name/new_distr_1 	$working_dir/Events/tmp/distr_$j";
+	    $systemString = "ln -s $dir_name/new_distr_1 	$working_dir/batch_results/tmp/distr_$j";
 	    $sum_distr_command = $sum_distr_command." distr_$j";
 	    system($systemString);
 	    #print "Test $j\n";
@@ -4883,7 +5010,7 @@ sub combine_distributions {
 	}
 	
 	#Run sum_distr
-	chdir("$working_dir/Events/tmp/");
+	chdir("$working_dir/batch_results/tmp/");
 	$sum_distr_command = $sum_distr_command." > distr";
 	if($ncsg0==1){
 	  my $k=0;
@@ -4895,7 +5022,7 @@ sub combine_distributions {
 	#print "$sum_distr_command\n";
 	system($sum_distr_command);
 	
-	#Choose an appropriate name and copy to Events directory
+	#Choose an appropriate name and copy to batch_results directory
 	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst)=localtime(time);
 	if ($fileName eq ""){
 		$dist_filenames[$_[0]] = sprintf "%4d-%02d-%02d-%s.distr",$year+1900,$mon+1,$mday,$subdir_name;
@@ -4903,13 +5030,13 @@ sub combine_distributions {
 	else {
 		$dist_filenames[$_[0]] = sprintf "%s-%s.distr",$fileName,$subdir_name;
 	}
-	$system_string="cp distr $working_dir/Events/$dist_filenames[$_[0]]";
+	$system_string="cp distr $working_dir/batch_results/$dist_filenames[$_[0]]";
 	system($system_string);
 	
 	
 	#Plot using gnuplot.
 	open(GP_INST,">gnuplot_instructions");
-	print GP_INST "set term png transparent medium xffffff x000000 x000000 xadd8e6 xadd8e6 x000000\n";
+	print GP_INST "set term jpeg transparent medium #ffffff #000000 #000000 #add8e6 #add8e6 #000000\n";
 	print GP_INST "set key off\n";
 	print GP_INST "set mxtics\n";
 	print GP_INST "set mytics\n\n";
@@ -4927,8 +5054,9 @@ sub combine_distributions {
 		for ($k=0;$k<=$#tmp_dist_param;$k++){
 			$i++;
 			#$system_string="$CH_PATH/bin/show_distr -blind  '\\06".$dist_param[$j]."{{\\06 ".$dist_n_bins[$j]." {{ [[[{0'   distr";
-			$system_string="$CH_PATH/bin/show_distr -blind  'f".$dist_param[$j]."{{f ".$dist_n_bins[$j]." {{[[[[{[{0'   distr";
-			#print "$system_string\n";
+                #$system_string="$CH_PATH/bin/show_distr -blind  'f".$dist_param[$j]."{{f ".$dist_n_bins[$j]." "."{{{[[[[{[[[[{0'   distr";
+                 $system_string="$CH_PATH/bin/show_distr -blind  'f".$dist_param[$j]."{{f ".$dist_n_bins[$j]." "."{{ [[[[[{{0'   distr";
+                #print "$system_string\n";
 			system($system_string);
 			my $min = $dist_min[$j];
 			my $max = $dist_max[$j];
@@ -4940,7 +5068,7 @@ sub combine_distributions {
 			print GP_INST "set xlabel '$dist_x_title[$j]'\n";
 			#print GP_INST "set ylabel 'sigma/bin (fb)'\n\n";#Appropriate for cs/bin
 			print GP_INST "set ylabel 'dsigma(fb)/d$dist_x_title[$j]'\n\n";
-			print GP_INST "set output 'distr_$i.png'\n";
+			print GP_INST "set output 'distr_$i.jpg'\n";
 			print GP_INST "min = $min\n";
 			print GP_INST "max = $max\n";
 			print GP_INST "bin_size = (max-min)/$dist_n_bins[$j].0\n";
@@ -4951,30 +5079,39 @@ sub combine_distributions {
 			#	"'plot_$i.txt' using (min+\$0*bin_size+(bin_size/2)):(1000*\$1*bin_size) with histeps\n";
 			#differential cs
 			print GP_INST "plot[min:max] ".
-				"'plot_$i.txt' using (min+\$0*bin_size+(bin_size/2)):(1000*(\$1-\$2)) with histeps,".
-				"'plot_$i.txt' using (min+\$0*bin_size+(bin_size/2)):(1000*(\$1+\$2)) with histeps,".
-				"'plot_$i.txt' using (min+\$0*bin_size+(bin_size/2)):(1000*\$1) with histeps\n";
+				"'plot_$i.tab' using (min+\$0*bin_size+(bin_size/2)):(1000*(\$1-\$2)) with histeps,".
+				"'plot_$i.tab' using (min+\$0*bin_size+(bin_size/2)):(1000*(\$1+\$2)) with histeps,".
+				"'plot_$i.tab' using (min+\$0*bin_size+(bin_size/2)):(1000*\$1) with histeps\n";
 			#Create filename.
 			my $tmp_plot_filename="";
-			my $tmp_plot_filename_math="";
+#math!			my $tmp_plot_filename_math="";
+			my $tmp_plot_filename_tab="";
 			if ($fileName eq ""){
-				$tmp_plot_filename = sprintf "%4d-%02d-%02d-%s_$i.png",$year+1900,$mon+1,$mday,$subdir_name;
-				$tmp_plot_filename_math = sprintf "%4d-%02d-%02d-%s_$i.math",$year+1900,$mon+1,$mday,$subdir_name;
+				$tmp_plot_filename = sprintf "%4d-%02d-%02d-%s_$i.jpg",$year+1900,$mon+1,$mday,$subdir_name;
+#math!				$tmp_plot_filename_math = sprintf "%4d-%02d-%02d-%s_$i.math",$year+1900,$mon+1,$mday,$subdir_name;
+				$tmp_plot_filename_tab = sprintf "%4d-%02d-%02d-%s_$i.tab",$year+1900,$mon+1,$mday,$subdir_name;
 			}
 			else {
-				$tmp_plot_filename = sprintf "%s-%s_$i.png",$fileName,$subdir_name;
-				$tmp_plot_filename_math = sprintf "%s-%s_$i.math",$fileName,$subdir_name;
+				$tmp_plot_filename = sprintf "%s-%s_$i.jpg",$fileName,$subdir_name;
+#math!				$tmp_plot_filename_math = sprintf "%s-%s_$i.math",$fileName,$subdir_name;
+				$tmp_plot_filename_txt = sprintf "%s-%s_$i.tab",$fileName,$subdir_name;
 			}
 			push(@tmp_plot_filenames,$tmp_plot_filename);
-			$copy_string=$copy_string."cp distr_$i.png $working_dir/Events/$tmp_plot_filename;";
-			$copy_string=$copy_string."cp plot_$i.math $working_dir/Events/$tmp_plot_filename_math;";
+			$copy_string=$copy_string."cp distr_$i.jpg $working_dir/batch_results/$tmp_plot_filename;";
+#math!			$copy_string=$copy_string."cp plot_$i.math $working_dir/batch_results/$tmp_plot_filename_math;";
+			$copy_string=$copy_string."cp plot_$i.tab $working_dir/batch_results/$tmp_plot_filename_tab;";
 		}
 	}
 	close(GP_INST);
+#system("cat  gnuplot_instructions; echo ======");
+#system("cat plot_$i.tab; echo ====");
+	
 	$system_string="gnuplot gnuplot_instructions";
 	system($system_string);
 	system($copy_string);
 	#system("cp gnuplot_instructions ~/physics/CalcHEP/ch_2.5.6/gnuplot_instructions.tmp"); #for debugging
+	system("cp gnuplot_instructions gnuplot_instructions.template"); 
+	
 	@plot_filenames[$_[0]]=[@tmp_plot_filenames];
 	
 	
@@ -4988,7 +5125,7 @@ sub combine_distributions {
 #            Print Events Library                  #
 ####################################################
 sub print_init_event_library {
-	open(LIB_FILE, ">$working_dir/Events/events.txt");
+	open(LIB_FILE, ">$working_dir/batch_results/events.txt");
 	print LIB_FILE "################################\n";
 	print LIB_FILE "#        Events Library        #\n";
 	print LIB_FILE "#    Automatically generated   #\n";
@@ -4997,29 +5134,29 @@ sub print_init_event_library {
 	close(LIB_FILE);
 }
 sub print_event_library {
-	open(LIB_FILE, ">>$working_dir/Events/events.txt");
+	open(LIB_FILE, ">>$working_dir/batch_results/events.txt");
 	print LIB_FILE "$_[0]\n";
 	close(LIB_FILE);
 	
 
-	#List contents of Events directory.
-	opendir(DIR,"$working_dir/Events/");
+	#List contents of batch_results directory.
+	opendir(DIR,"$working_dir/batch_results/");
 	my @lhes = grep(/\.lhe.gz/,readdir(DIR));
 	closedir(DIR);
-	opendir(DIR,"$working_dir/Events/");
+	opendir(DIR,"$working_dir/batch_results/");
 	my @outs = grep(/\.out/,readdir(DIR));
 	closedir(DIR);
 	my @event_lib_filenames = (@lhes,@outs);
 	@event_lib_filenames = sort @event_lib_filenames;
-	opendir(DIR,"$working_dir/Events/");
+	opendir(DIR,"$working_dir/batch_results/");
 	my @nts = grep(/\.nt/,readdir(DIR));
 	closedir(DIR);
-	opendir(DIR,"$working_dir/Events/");
+	opendir(DIR,"$working_dir/batch_results/");
 	my @distrs = grep(/\.distr/,readdir(DIR));
 	closedir(DIR);
 	my %event_lib_dates = ();
 	foreach $event_lib_filename (@event_lib_filenames){
-		$event_lib_dates{$event_lib_filename}=ctime(stat("$working_dir/Events/$event_lib_filename")->mtime);
+		$event_lib_dates{$event_lib_filename}=ctime(stat("$working_dir/batch_results/$event_lib_filename")->mtime);
 	}
 	
 	
@@ -5027,7 +5164,7 @@ sub print_event_library {
 	
 						
 	#my @event_lib_filenames=();
-	#open(LIB_FILE, "$working_dir/Events/events.txt");
+	#open(LIB_FILE, "$working_dir/batch_results/events.txt");
 	#LINE: while($line = <LIB_FILE>){
 	#	if ($line =~ /^#/){next LINE;}
 	#	$line =~ s/\s//g;
@@ -5064,11 +5201,11 @@ sub print_event_library {
    print HTML_FILE "\t<table>\n";
    print HTML_FILE "\t\t<tr><th>Date</th><th>LHE</th><th>plain</th><th>Ntuple</th></tr>\n";
    #foreach $filename_tmp (@event_lib_filenames){
-   #	print HTML_FILE "\t\t<tr><td><a href='$working_dir/Events/$filename_tmp'>$filename_tmp</a></td></tr>\n";
+   #	print HTML_FILE "\t\t<tr><td><a href='$working_dir/batch_results/$filename_tmp'>$filename_tmp</a></td></tr>\n";
 	#}
 	foreach $event_lib_filename (@event_lib_filenames){
 		if ($event_lib_filename =~ /\.lhe.gz$/){
-			print HTML_FILE "\t\t<tr><td>$event_lib_dates{$event_lib_filename}</td><td><a href='$working_dir/Events/$event_lib_filename'>$event_lib_filename</a></td></tr>\n";
+			print HTML_FILE "\t\t<tr><td>$event_lib_dates{$event_lib_filename}</td><td><a href='$working_dir/batch_results/$event_lib_filename'>$event_lib_filename</a></td></tr>\n";
 		}
 		elsif ($event_lib_filename =~ /\.out$/){
 			my @out_nts = ();
@@ -5079,10 +5216,10 @@ sub print_event_library {
 				$short_nt =~ s/([^\.]+)-[0-9]+.nt/$1/;
 				if ($short_nt eq $short_filename){ push(@out_nts,$nt);}
 			}
-			print HTML_FILE "\t\t<tr><td>$event_lib_dates{$event_lib_filename}</td><td></td><td><a href='$working_dir/Events/$event_lib_filename'>$event_lib_filename</a></td><td>";
+			print HTML_FILE "\t\t<tr><td>$event_lib_dates{$event_lib_filename}</td><td></td><td><a href='$working_dir/batch_results/$event_lib_filename'>$event_lib_filename</a></td><td>";
 			@out_nts = reverse @out_nts;
 			foreach $out_nt (@out_nts){
-				print HTML_FILE "<a href='$working_dir/Events/$out_nt'>$out_nt</a><br>";
+				print HTML_FILE "<a href='$working_dir/batch_results/$out_nt'>$out_nt</a><br>";
 			}
 			print HTML_FILE "</td></tr>\n";
 		}
@@ -5306,7 +5443,7 @@ sub print_request {
 #      Plain format was removed as of 0.63.        #
 ####################################################
 sub print_run_details {
-	open(TXT_FILE, ">$working_dir/Events/tmp/run_details.txt");
+	open(TXT_FILE, ">$working_dir/batch_results/tmp/run_details.txt");
 	print TXT_FILE	"\n";
 	print TXT_FILE "<calchep-batch>\n";
         print TXT_FILE "<![CDATA[\n";
@@ -5379,11 +5516,17 @@ sub print_run_details {
 	print TXT_FILE "alpha order        : $alphaOrder\n";
 	print TXT_FILE "mb(mb)             : $alphaMbMb\n";
 	print TXT_FILE "Mtop(pole)         : $alphaMtp\n";
-	for (my $j=0;$j<=$#alphaFactScale;$j++){
-		print TXT_FILE "alpha Fact Q :".($alphaFactNumber[$j]+1).": $alphaFactScale[$j]\n";
+	for (my $j=0;$j<=$#alphaFact1Scale;$j++){
+		print TXT_FILE "alpha Fact 1 Q :".($alphaFact1Number[$j]+1).": $alphaFact1Scale[$j]\n";
+	}
+	for (my $j=0;$j<=$#alphaFact2Scale;$j++){
+		print TXT_FILE "alpha Fact 2 Q :".($alphaFact2Number[$j]+1).": $alphaFact2Scale[$j]\n";
 	}
 	for (my $j=0;$j<=$#alphaRenScale;$j++){
 		print TXT_FILE "alpha Ren Q :".($alphaRenNumber[$j]+1).": $alphaRenScale[$j]\n";
+	}
+	for (my $j=0;$j<=$#alphaShowScale;$j++){
+		print TXT_FILE "alpha Show Q :".($alphaShowNumber[$j]+1).": $alphaShowScale[$j]\n";
 	}
 	print TXT_FILE "\n";
 	print TXT_FILE "#########################################\n";
@@ -5999,12 +6142,14 @@ sub print_numerical {
 		my $nevents_total=0;
 		my $error="";
 		my $cs_total=0;
+		my $unc_total=0;
 		my $num_subs=$#all_subprocesses;
 		if ($_[0]==0){$num_subs=$#all_subprocesses;}
 		elsif ($_[0]>0.5){$num_subs=$#all_subprocesses+1;}
 		for (my $j=0;$j<=$#subprocesses;$j++){
 			$nevents_total += $nevents[$j];
 			$cs_total += $cs[$j];
+			$unc_total += ($cs[$j]*$unc[$j])*($cs[$j]*$unc[$j]);
 		}
 		if($#decay_subprocesses<0){$final_cs[0]=$cs_total;}
 		for (my $j=0;$j<=$num_subs;$j++){
@@ -6043,7 +6188,7 @@ sub print_numerical {
 			1000*$final_cs[0],$running,$num_subs+1,$finished,$num_subs+1,$total_time);}
 		elsif($_[0]<1){$line = sprintf("\t\t<tr><td><a href='runs/single.html'>Single</a></td><td></td><td>%i/%i</td><td>%i/%i</td><td>%.2f</td><td></td>",
 			$running,$num_subs+1,$finished,$num_subs+1,$total_time);}
-		else{$line = sprintf("\t\t<tr><td><a href='runs/single.html'>Single</a></td><td>%.5g</td><td>%i/%i</td><td>%i/%i</td><td>%.2f</td><td><a href='$working_dir/Events/$event_filenames[0].gz'>%i</a></td>",
+		else{$line = sprintf("\t\t<tr><td><a href='runs/single.html'>Single</a></td><td>%.5g</td><td>%i/%i</td><td>%i/%i</td><td>%.2f</td><td><a href='$working_dir/batch_results/$event_filenames[0].gz'>%i</a></td>",
 			1000*$final_cs[0],$running,$num_subs+1,$finished,$num_subs+1,$total_time,$nevents_final[0]);}
 		$line =~ s|e([\+\-][0-9]+)| x10<sup>$1<\/sup>|g;
 		if ($error eq "Error"){print HTML_FILE "$line<td>Error</td></tr>\n";}
@@ -6120,7 +6265,7 @@ sub print_numerical {
 				$run_html_file,$line,1000*$final_cs[$k],$running,$num_subs+1,$finished,$num_subs+1,$total_time);}
 			if($_[0]<1){$line = sprintf("\t\t<tr><td><a href='runs/%s'>%s</a></td><td></td><td>%i/%i</td><td>%i/%i</td><td>%.2f</td><td></td>",
 				$run_html_file,$line,$running,$num_subs+1,$finished,$num_subs+1,$total_time);}
-			else{$line = sprintf("\t\t<tr><td><a href='runs/%s'>%s</a></td><td>%.5g</td><td>%i/%i</td><td>%i/%i</td><td>%.2f</td><td><a href='$working_dir/Events/$event_filenames[$k].gz'>%i</a></td>",
+			else{$line = sprintf("\t\t<tr><td><a href='runs/%s'>%s</a></td><td>%.5g</td><td>%i/%i</td><td>%i/%i</td><td>%.2f</td><td><a href='$working_dir/batch_results/$event_filenames[$k].gz'>%i</a></td>",
 				$run_html_file,$line,1000*$final_cs[$k],$running,$num_subs+1,$finished,$num_subs+1,$total_time,$nevents_final[$k]);}
 			$line =~ s|e([\+\-][0-9]+)| x10<sup>$1<\/sup>|g;
 			if ($error eq "Error"){print HTML_FILE "$line<td>Error</td></tr>\n";}
@@ -6142,7 +6287,7 @@ sub print_numerical {
 	print HTML_FILE "\t</table>\n";
 
 	#Display plot
-	print HTML_FILE "\t<img src='../Events/$fileName-cs.png'><br/><br/><br/>\n";
+	print HTML_FILE "\t<img src='../batch_results/$fileName-cs.jpg'><br/><br/><br/>\n";
 	print HTML_FILE "\t<p>Remember to clear your web browser cache if the plots are not updating properly.  Also, remember to refresh your browser if you started a new run.</p><br/>\n";
 
 
@@ -6234,6 +6379,7 @@ sub print_numerical {
 		my $time = 0;
 		my $total_time=0;
 		my $cs_total=0;
+		my $unc_total=0;
 		my $nevents_total=0;
 		my $nevents_finished_total=0;
 		my $error = "";
@@ -6244,6 +6390,7 @@ sub print_numerical {
 			$nevents_total += $nevents[$j];
 			$nevents_finished_total += $nevents_finished[$j];
 			$cs_total += $cs[$j];
+			$unc_total += ($cs[$j]*$unc[$j])*($cs[$j]*$unc[$j]);
 		}
 		for(my $j=0;$j<=$#subprocesses;$j++){
 			$time = 0;
@@ -6276,12 +6423,14 @@ sub print_numerical {
 			}		
 		}
 		my $line="";
-		if($_[0]<1) {$line = sprintf("\t\t<tr><td>Total</td><td>%.5g</td><td></td><td></td><td>%.2f</td><td></td></tr>\n",1000*$cs_total,$total_time);}
-		else {$line = sprintf("\t\t<tr><td>Total</td><td>%.5g</td><td></td><td></td><td></td></tr>\n",1000*$cs_total);}
+		if($cs_total>0) {$unc_total = sqrt($unc_total)/$cs_total;}
+		else {$unc_total=0;} 
+		if($_[0]<1) {$line = sprintf("\t\t<tr><td>Total</td><td>%.5g</td><td>%.2g</td><td></td><td>%.2f</td><td></td></tr>\n",1000*$cs_total,$unc_total,$total_time);}
+		else {$line = sprintf("\t\t<tr><td>Total</td><td>%.5g</td><td>%.2g</td><td></td><td></td></tr>\n",1000*$cs_total,$unc_total);}
 		$line =~ s|e([\+\-][0-9]+)| x10<sup>$1<\/sup>|;
 		print HTML_FILE $line;
-		if($_[0]<1){$line = sprintf("Total                    %-15.4e                    %-15.2f\n\n",	1000*$cs_total,$total_time);}
-		else {$line = sprintf("Total                    %-15.4e\n\n", 1000*$cs_total);}
+		if($_[0]<1){$line = sprintf("Total                    %-15.4e%-10.2e                    %-15.2f\n\n",	1000*$cs_total,$unc_total,$total_time);}
+		else {$line = sprintf("Total                    %-15.4e%-10.2e\n\n", 1000*$cs_total,$unc_total);}
 		print TXT_FILE $line;
 		
 		
@@ -6353,7 +6502,7 @@ sub print_numerical {
 		
 			#Totals
 			print HTML_FILE "\t\t<tr><td><br></td></tr>\n";
-			my $line = sprintf("\t\t<tr><td>Total</td><td>%.5g</td><td></td><td></td><td>%.2f</td><td><a href='$working_dir/Events/$event_filenames[0].gz'>%i/%i</a></td></tr>\n",1000*$final_cs[0],$total_time,$nevents_final[0],$n_events);
+			my $line = sprintf("\t\t<tr><td>Total</td><td>%.5g</td><td></td><td></td><td>%.2f</td><td><a href='$working_dir/batch_results/$event_filenames[0].gz'>%i/%i</a></td></tr>\n",1000*$final_cs[0],$total_time,$nevents_final[0],$n_events);
 			$line =~ s|e([\+\-][0-9]+)| x10<sup>$1<\/sup>|;
 			print HTML_FILE $line;
 			$line = sprintf("\nTotal                    %-15.4e                    %-15.2f%i/%i\n\n",1000*$final_cs[0], $total_time,$nevents_final[0],$n_events);
@@ -6365,7 +6514,7 @@ sub print_numerical {
 		print HTML_FILE "\t<h2>Distributions</h2>\n";
 		@tmp_plot_filenames = @{$plot_filenames[0]};
 		foreach my $filename (@tmp_plot_filenames){
-			print HTML_FILE "\t<img src='../../Events/$filename'><br>\n";
+			print HTML_FILE "\t<img src='../../batch_results/$filename'><br>\n";
 		}
 		print HTML_FILE "\t<p>Remember to clear your web browser cache if the plots are not updating properly.  Also, remember to refresh your browser if you started a new run.</p>\n";
 
@@ -6465,6 +6614,7 @@ sub print_numerical {
 		my $time = 0;
 		my $total_time=0;
 		my $cs_total=0;
+		my $unc_total=0;
 		my $nevents_total=0;
 		my $nevents_finished_total=0;
 		my $error = "";
@@ -6475,6 +6625,7 @@ sub print_numerical {
 			$nevents_total += $nevents[$j][$k];
 			$nevents_finished_total += $nevents_finished[$j][$k];
 			$cs_total += $cs[$j][$k];
+			$unc_total += ($cs[$j][$k]*$unc[$j][$k])*($cs[$j][$k]*$unc[$j][$k]);
 		}
 		for(my $j=0;$j<=$#subprocesses;$j++){
 			$time = 0;
@@ -6508,12 +6659,14 @@ sub print_numerical {
 			
 		}
 		my $line="";
-		if($_[0]<1) {$line = sprintf("\t\t<tr><td>Total</td><td>%.5g</td><td></td><td></td><td>%.2f</td><td></td></tr>\n",1000*$cs_total,$total_time);}
-		else {$line = sprintf("\t\t<tr><td>Total</td><td>%.5g</td><td></td><td></td><td></td></tr>\n",1000*$cs_total);}
+		if($cs_total>0) {$unc_total = sqrt($unc_total)/$cs_total;}
+		else {$unc_total=0;}
+		if($_[0]<1) {$line = sprintf("\t\t<tr><td>Total</td><td>%.5g</td><td>%.2g</td><td></td><td>%.2f</td><td></td></tr>\n",1000*$cs_total,$unc_total,$total_time);}
+		else {$line = sprintf("\t\t<tr><td>Total</td><td>%.5g</td><td>%.2g</td><td></td><td></td></tr>\n",1000*$cs_total,$unc_total);}
 		$line =~ s|e([\+\-][0-9]+)| x10<sup>$1<\/sup>|;
 		print HTML_FILE $line;
-		if($_[0]<1){$line = sprintf("Total                    %-15.4e                    %-15.2f\n\n",	1000*$cs_total,$total_time);}
-		else {$line = sprintf("Total                    %-15.4e\n\n", 1000*$cs_total,$total_time);}
+		if($_[0]<1){$line = sprintf("Total                    %-15.4e%-10.2e                    %-15.2f\n\n",	1000*$cs_total,$unc_total,$total_time);}
+		else {$line = sprintf("Total                    %-15.4e%-10.2e\n\n", 1000*$cs_total,$unc_total,$total_time);}
 		print TXT_FILE $line;
 		
 		
@@ -6586,7 +6739,7 @@ sub print_numerical {
 		
 			#Totals
 			print HTML_FILE "\t\t<tr><td><br></td></tr>\n";
-			my $line = sprintf("\t\t<tr><td>Total</td><td>%.5g</td><td></td><td></td><td>%.2f</td><td><a href='$working_dir/Events/$event_filenames[$k].gz'>%i/%i</a></td></tr>\n",1000*$final_cs[$k],$total_time,$nevents_final[$k],$n_events);
+			my $line = sprintf("\t\t<tr><td>Total</td><td>%.5g</td><td></td><td></td><td>%.2f</td><td><a href='$working_dir/batch_results/$event_filenames[$k].gz'>%i/%i</a></td></tr>\n",1000*$final_cs[$k],$total_time,$nevents_final[$k],$n_events);
 			$line =~ s|e([\+\-][0-9]+)| x10<sup>$1<\/sup>|;
 			print HTML_FILE $line;
 			$line = sprintf("\n%-25s%-15.4e                    %-15.2f%i/%i\n\n","Total",1000*$final_cs[$k], $total_time,$nevents_final[$k],$n_events);
@@ -6601,7 +6754,7 @@ sub print_numerical {
 		print HTML_FILE "\t<h2>Distributions</h2>\n";
 		@tmp_plot_filenames = @{$plot_filenames[$k]};
 		foreach my $filename (@tmp_plot_filenames){
-			print HTML_FILE "\t<img src='../../Events/$filename'><br>\n";
+			print HTML_FILE "\t<img src='../../batch_results/$filename'><br>\n";
 		}
 		print HTML_FILE "\t<p>Remember to clear your web browser cache if the plots are not updating properly.  Also, remember to refresh your browser if you started a new run.</p>\n";
 
@@ -7880,7 +8033,7 @@ sub print_help_event_library {
 	<div id='help_main'>
 		<h1>Event Library Help</h1>
 		<p>
-			After the events and/or distributions are generated, they are stored in the Events directory.  The prefix of the files is the name specified in the batch file plus either "-single" if no runs were specified or a string specifying the run parameter values if one or more runs are specified.  We will assume this is filename in the following.  If events are requested, they will be stored in the files<br>
+			After the events and/or distributions are generated, they are stored in the batch_results directory.  The prefix of the files is the name specified in the batch file plus either "-single" if no runs were specified or a string specifying the run parameter values if one or more runs are specified.  We will assume this is filename in the following.  If events are requested, they will be stored in the files<br>
 			<table>
 				<tr><td>filename.lhe</td></tr>
 				<tr><td>filename.nt</td></tr>
@@ -7888,11 +8041,11 @@ sub print_help_event_library {
 			where filename.lhe is the event file in Les Houches format and filename.nt is in PAW ntuple format.  The ntuple file is only created if the keyword "NTuple" is set to true and nt_maker is present in the bin directory.  If distributions are requested, they will be  stored in the files<br>
 			<table>
 				<tr><td>filename.distr</td></tr>
-				<tr><td>filename_1.png</td></tr>
-				<tr><td>filename_2.png</td></tr>
+				<tr><td>filename_1.jpg</td></tr>
+				<tr><td>filename_2.jpg</td></tr>
 				<tr><td>...</td></tr>
 			</table>
-			  where filename.distr is the raw distribution data and can be read by "show_distr" in the bin directory.  The distributions generated on the fly by the batch script are stored in the files ending in ".png".
+			  where filename.distr is the raw distribution data and can be read by "show_distr" in the bin directory.  The distributions generated on the fly by the batch script are stored in the files ending in ".jpg".
 		</p>
 	</div>
 </body>

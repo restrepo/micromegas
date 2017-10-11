@@ -4,6 +4,7 @@
 #include "sets.h"
 
 char*parseVertex(int v, int forReduce);
+char*parseOneVertex(char*v, int * perm ,int * fields);
 char*fermPropagTxt(int v, int l, int forReduce);
 char*tPropagator6mass4(int v,int l,set*indexs);
 char * spin3_2_propagator(int v,int l,int forReduce);

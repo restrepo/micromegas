@@ -1,0 +1,7 @@
+sqrts: 13*TeV
+lumi: 2.2/fb
+id: CMS-PAS-SUS-15-002
+url: http://cms-results.web.cern.ch/cms-results/public-results/superseded/SUS-15-002/index.html
+implementedBy: Federico A
+lastUpdate: 2016/9/29
+

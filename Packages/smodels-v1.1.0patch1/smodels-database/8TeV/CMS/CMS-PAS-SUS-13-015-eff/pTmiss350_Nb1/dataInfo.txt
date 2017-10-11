@@ -1,0 +1,7 @@
+dataType: efficiencyMap
+dataId: pTmiss350_Nb1
+observedN: 45
+expectedBG: 40.9
+bgError: 9.6
+upperLimit: 1.38294531358*fb
+expectedUpperLimit: 1.18936406853*fb

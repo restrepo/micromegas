@@ -6,20 +6,29 @@
 #define MASSES_INFO      
   /* Display information about mass spectrum  */
 
-//#define HIGGSBOUNDS "../Packages/HiggsBounds-4.2.0"  
-//#define HIGGSSIGNALS "../Packages/HiggsSignals-1.3.0"
+#define CONSTRAINTS 
 
-//#define LILITH "../Packages/Lilith-1.1.2"
+#define HIGGSBOUNDS
+//#define HIGGSSIGNALS 
+#define LILITH  
+//#define SMODELS 
+
 
 #define OMEGA            
   /* Calculate relic density and display contribution of  individual channels */
-#define INDIRECT_DETECTION  
+//#define INDIRECT_DETECTION  
   /* Compute spectra of gamma/positron/antiprotons/neutrinos for DM annihilation; 
      Calculate <sigma*v>;
      Integrate gamma signal over DM galactic squared density for given line 
      of sight; 
      Calculate galactic propagation of positrons and antiprotons.      
   */
+
+//#define LoopGAMMA
+    /* Calculate discrete  photon spectrum caused by annihilation of 
+       DM into two photons and Z-photon
+    */ 
+                     
       
 /*#define RESET_FORMFACTORS*/
   /* Modify default nucleus form factors, 
@@ -47,8 +56,8 @@
 /*===== End of DEFINE  settings ===== */
 
 
-#include"../sources/micromegas.h"
-#include"../sources/micromegas_aux.h"
+#include"../include/micromegas.h"
+#include"../include/micromegas_aux.h"
 #include"lib/pmodel.h"
 
 
@@ -75,7 +84,7 @@ int main(int argc,char** argv)
 
   err=sortOddParticles(cdmName);
   if(err) { printf("Can't calculate %s\n",cdmName); return 1;}
-  
+   
    qNumbers(cdmName, &spin2, &charge3, &cdim);
    printf("\nDark matter candidate is '%s' with spin=%d/2\n",
     cdmName,       spin2); 
@@ -89,61 +98,66 @@ int main(int argc,char** argv)
 }
 #endif
 
-#ifdef HIGGSBOUNDS
-   if(access(HIGGSBOUNDS "/HiggsBounds",X_OK )) system( "cd " HIGGSBOUNDS "; ./configure; make ");
-   HBblocks("HB.in");
-   system(HIGGSBOUNDS "/HiggsBounds  LandH SLHA 1 0 HB.in HB.out > hb.stdout");
-   slhaRead("HB.out",1+4);
-    printf("HB result= %.0E  obsratio=%.2E\n",slhaValFormat("HiggsBoundsResults",0.,"1 2 %lf"), slhaValFormat("HiggsBoundsResults",0.,"1 3 %lf" )  );
-   { char hbInfo[100];
-    if(0==slhaSTRFormat("HiggsBoundsResults","1 5 ||%[^|]||",hbInfo)) printf("Channel: %s\n",hbInfo);
-   }     
+
+#ifdef CONSTRAINTS
+{ double csLim; 
+  if(Zinvisible()) printf("Excluded by Z->invisible\n");
+  if(LspNlsp_LEP(&csLim)) printf("LEP excluded by e+,e- -> DM q qbar. Cross section =%.2E pb \n",csLim);
+
+}
 #endif
 
-#ifdef HIGGSSIGNALS
-#define DataSet " latestresults "
-//#define Method  " peak " 
-//#define  Method " mass "
-#define  Method " both "
-#define PDF  " 2 "  // Gaussian
-//#define PDF " 1 "  // box 
-//#define PDF " 3 "  // box+Gaussia
-#define dMh " 2 "
-   printf("HiggsSignals:\n");
-   if(access(HIGGSSIGNALS "/HiggsSignals",X_OK )) system( "cd " HIGGSSIGNALS "; ./configure; make ");
-     system("rm -f HS.in HS.out");
-     HBblocks("HS.in");
-     system(HIGGSSIGNALS "/HiggsSignals" DataSet Method  PDF  " SLHA 1 0 HS.in > hs.stdout");
-     system("grep -A 10000  HiggsSignalsResults HS.in > HS.out");
-     slhaRead("HS.out",1+4);
-     printf("  Number of observables %.0f\n",slhaVal("HiggsSignalsResults",0.,1,7));
-     printf("  total chi^2= %.1E\n",slhaVal("HiggsSignalsResults",0.,1,12));
-     printf("  HS p-value = %.1E\n", slhaVal("HiggsSignalsResults",0.,1,13));     
-#undef dMh
-#undef PDF
-#undef Method
-#undef DataSet
 
+
+
+#if defined(HIGGSBOUNDS) || defined(HIGGSSIGNALS)
+{  int NH0=1,NHch=0;
+   double HB_result,HB_obsratio,HS_observ,HS_chi2, HS_pval;
+   char HB_chan[100]={""},HB_version[50],HS_version[50]; 
+  
+   NH0= hbBlocksMDL("HB.in",&NHch);
+   system("echo 'BLOCK DMASS\n 25  2  '>> HB.in");   
+#include "../include/hBandS.inc"
+#ifdef HIGGSBOUNDS
+   printf("HB(%s): result=%.0f  obsratio=%.2E  channel= %s \n",HB_version, HB_result,HB_obsratio,HB_chan);
+#endif
+#ifdef HIGGSSIGNALS
+   printf("HS(%s): Nobservables=%.0f chi^2 = %.2E pval= %.2E\n",HS_version,HS_observ,HS_chi2, HS_pval);        
+#endif
+}
 #endif
 
 #ifdef LILITH
-   if(LiLithF("Lilith_in.xml"))
-   {  double  like; 
-      int exp_ndf;
-      system("python " LILITH "/run_lilith.py  Lilith_in.xml  -s -r  Lilith_out.slha");
-      slhaRead("Lilith_out.slha", 1);
-      like = slhaVal("LilithResults",0.,1,0);
-      exp_ndf = slhaVal("LilithResults",0.,1,1);
-      printf("LILITH:  -2*log(L): %f; exp ndf: %d \n", like,exp_ndf );
-   } else printf("LILITH: there is no Higgs candidate\n");
-     
+{  double m2logL, m2logL_reference=0,pvalue;
+   int exp_ndf,n_par=0,ndf;
+   char call_lilith[100],Lilith_version[10];
+   if(LilithMDL("Lilith_in.xml"))
+   {        
+#include "../include/Lilith.inc"
+      if(ndf)
+      { 
+         printf("LILITH(DB%s):  -2*log(L): %.2f; -2*log(L_reference): %.2f; ndf: %d; p-value: %.2E \n",
+               Lilith_version, m2logL,m2logL_reference,ndf,pvalue);
+      }         
+   }  
+   else printf("LILITH: there is no Higgs candidate\n");
+}     
 #endif
+
+
+#ifdef SMODELS
+{  int result=0;
+   double Rvalue=0;
+   char analysis[30]={},topology[30]={}; 
+#include "../include/SMODELS.inc" 
+}   
+#endif 
 
 
 
 #ifdef OMEGA
-{ int fast=0;
-  double Beps=1.E-5, cut=0.01;
+{ int fast=1;
+  double Beps=1.E-4, cut=0.01;
   double Omega,Xf;
 
 // to exclude processes with virtual W/Z in DM   annihilation      
@@ -158,7 +172,7 @@ int main(int argc,char** argv)
 
 //    Omega=darkOmega2(fast,Beps);
   printf("Xf=%.2e Omega=%.4e\n",Xf,Omega);  
-  printChannels(Xf,cut,Beps,1,stdout);   
+  if(Omega>0)printChannels(Xf,cut,Beps,1,stdout);   
 //   VZdecay=1; VWdecay=1; cleanDecayTable();  // restore default
 
 }
@@ -187,7 +201,7 @@ printf("\n==== Indirect detection =======\n");
                        4-print cross sections             
     */
   printf("sigmav=%.2E[cm^3/s]\n",sigmaV);  
-
+  
 
   if(SpA)
   { 
@@ -224,6 +238,25 @@ printf("\n==== Indirect detection =======\n");
   }
 }  
 #endif
+
+#ifdef LoopGAMMA
+{    double vcs_gz,vcs_gg;
+     double fi=0.,dfi=M_PI/180.; /* fi angle of sight[rad], dfi  1/2 of cone angle in [rad] */
+                                 /* dfi corresponds to solid angle  pi*(1-cos(dfi)) [sr] */
+                                                       
+     if(loopGamma(&vcs_gz,&vcs_gg)==0)
+     {
+         printf("\nGamma  ray lines:\n");
+         printf("E=%.2E[GeV]  vcs(Z,A)= %.2E[cm^3/s], flux=%.2E[cm^2 s]^{-1}\n",Mcdm-91.19*91.19/4/Mcdm,vcs_gz,
+                               gammaFlux(fi,dfi,vcs_gz));  
+         printf("E=%.2E[GeV]  vcs(A,A)= %.2E[cm^3/s], flux=%.2E[cm^2 s]^{-1}\n",Mcdm,vcs_gg, 
+                             2*gammaFlux(fi,dfi,vcs_gg));
+     }
+     
+     printf("m2=%e\n", sqrt(findValW("mu2")));
+}     
+#endif     
+
 
 #ifdef RESET_FORMFACTORS
 {
@@ -335,7 +368,7 @@ printf("\n======== Direct Detection ========\n");
 #ifdef SHOWPLOTS
   displaySpectra("neutrino fluxes [1/Year/km^2/GeV]",Emin,Mcdm,2,nu,"nu",nu_bar,"nu_bar");
 #endif
-  printf(" E>%.1E GeV neutrino/anti-neutrin fluxes   %.2E/%.2E [1/Year/km^2]\n",Emin,
+  printf(" E>%.1E GeV neutrino/anti-neutrino fluxes   %.2E/%.2E [1/Year/km^2]\n",Emin,
            spectrInfo(Emin,nu,NULL), spectrInfo(Emin,nu_bar,NULL));
 
 // ICE CUBE
@@ -343,7 +376,6 @@ printf("\n======== Direct Detection ========\n");
 /* Upward events */
 
   muonUpward(nu,nu_bar, mu);
-  Emin=0.1;
 #ifdef SHOWPLOTS  
   displaySpectrum("Upward muons[1/Year/km^2/GeV]",Emin,Mcdm/2,mu);
 #endif
@@ -392,25 +424,34 @@ printf("\n======== Direct Detection ========\n");
 
 #ifdef CROSS_SECTIONS
 {
-  double cs, Pcm=4000, Qren,Qfact,pTmin=200;
-  int nf=3;
-  
-  Qfact=pMass(CDM1);
-  Qren=pTmin;
-
-  printf("pp -> DM,DM +jet(pt>%.2E GeV)  at %.2E GeV\n",pTmin,Pcm);  
-  
-  cs=hCollider(Pcm,1,nf,Qren, Qfact, CDM1,aCDM1,pTmin,1);
-  printf("cs(pp->~o1,~o2)=%.2E[pb]\n",cs);
+  char* next,next_;
+  double nextM;
+    
+  next=nextOdd(1,&nextM); 
+  if(next && nextM<1000)  
+  { 
+     double cs, Pcm=6500, Qren, Qfact, pTmin=0;
+     int nf=3;
+     char*next_=antiParticle(next);
+     Qren=Qfact=nextM; 
  
+     printf("\npp > nextOdd  at sqrt(s)=%.2E GeV\n",2*Pcm);  
+  
+     Qren=Qfact;
+     cs=hCollider(Pcm,1,nf,Qren, Qfact, next,next_,pTmin,1);
+     printf("Production of 'next' odd particle: cs(pp-> %s,%s)=%.2E[pb]\n",next,next_, cs);
+  }  
 }
+
 #endif 
 
 #ifdef CLEAN
-   system("rm -f HB.in HB.out HS.in HS.out hb.stdout hs.stdout debug_channels.txt debug_predratio.txt Key.dat");
+  system("rm -f nngg.in nngg.out");
+  system("rm -f HB.* HS.* hb.* hs.*  debug_channels.txt debug_predratio.txt  Key.dat");
+  system("rm -f Lilith_*   particles.py*");
+  system("rm -f   smodels.in  smodels.log  smodels.out  summary.*");  
 #endif
 
   killPlots();
-  system("rm -f Lilith_in.xml  Lilith_out.slha");
   return 0;
 }

@@ -106,13 +106,13 @@ static void  calcscalars(double  cos_f)
 
 
 static double  cross_section(double  x)
-{ double  r,GG,qF,qR,pvect4_[16];
+{ double  r,GG,qF1,qF2,qR,qS,pvect4_[16];
   int i; 
   
   calcscalars(x);
   for(i=0;i<16;i++) pvect4_[i]=pvect4[i];
  
-  Scale(pvect4_,&qF,&qR);
+  Scale(pvect4_,&qR,&qF1,&qF2,&qS);
   GG=sqrt(4*M_PI*alpha_2(qR));
       
   r = sqme_int( Nsub,GG,pvect4,NULL,&err_code)*usrFF(2,2,pvect4_,p_names,p_codes);
@@ -128,7 +128,7 @@ static int fillseq(int  n,double * f)
  double      step;
  
    err_code = 0;
-   step = (cos2 - cos1) /n;
+   step = (cos2 - cos1)/n;
    for (i = 0; i < n; i++)
    {
       f[i]=cross_section(cos1+(i+0.5)*step);
@@ -140,7 +140,7 @@ static int fillseq(int  n,double * f)
 
 static void  drawgraph(void)
 {
- int         n=101;
+ int         n=100;
  double  f[202]; 
    
   calccoef();

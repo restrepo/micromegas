@@ -183,7 +183,7 @@ static void  writeparameters(int nsub)
 static void startMath(int nsub, int* prtclNum,int ncalc)
 {
    outputLanguage='M';
-   initvararray(nsub,outputLanguage,3);
+   initvararray(nsub,outputLanguage,NULL);
 
    outFileOpen("%sresults%csymb%d.m",pathtouser,f_slash,nsub); 
 
@@ -211,7 +211,7 @@ static void  diagramMath(vcsect * vcs,catrec * cr)
 { 
    writeF("\n(*\n"); 
    writeF("  Diagram  %d in subprocess %d\n",cr->ndiagr_,cr->nsub_);               
-   if (vcs != NULL)  DiagramToOutFile(vcs,0,' ');  
+   if (vcs != NULL && !noPict )  DiagramToOutFile(vcs,0,' ');  
    writeF("*)\n");
    emitexpression(cr);
    

@@ -1,0 +1,52 @@
+txName: TChiWH
+conditionDescription: None
+condition: None
+constraint: [[['higgs']],[['W']]]
+figureUrl: https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/PAPERS/SUSY-2013-23/.thumb_fig_08d.png
+dataUrl: http://hepdata.cedar.ac.uk/view/ins1341609/d34/input
+validated: True
+axes: 2*Eq(mother,x)_Eq(lsp,y)
+publishedData: True
+upperLimits: [[[[140.0*GeV, 10.0*GeV], [140.0*GeV, 10.0*GeV]], 1.41*pb],
+[[[150.0*GeV, 0.0*GeV], [150.0*GeV, 0.0*GeV]], 1.277*pb],
+[[[152.5*GeV, 22.5*GeV], [152.5*GeV, 22.5*GeV]], 1.455*pb],
+[[[162.5*GeV, 12.5*GeV], [162.5*GeV, 12.5*GeV]], 1.259*pb],
+[[[165.0*GeV, 35.0*GeV], [165.0*GeV, 35.0*GeV]], 1.43*pb],
+[[[175.0*GeV, 0.0*GeV], [175.0*GeV, 0.0*GeV]], 0.907*pb],
+[[[175.0*GeV, 25.0*GeV], [175.0*GeV, 25.0*GeV]], 0.999*pb],
+[[[177.5*GeV, 47.5*GeV], [177.5*GeV, 47.5*GeV]], 1.373*pb],
+[[[187.5*GeV, 12.5*GeV], [187.5*GeV, 12.5*GeV]], 0.82*pb],
+[[[187.5*GeV, 37.5*GeV], [187.5*GeV, 37.5*GeV]], 1.084*pb],
+[[[190.0*GeV, 60.0*GeV], [190.0*GeV, 60.0*GeV]], 1.074*pb],
+[[[200.0*GeV, 0.0*GeV], [200.0*GeV, 0.0*GeV]], 0.649*pb],
+[[[200.0*GeV, 25.0*GeV], [200.0*GeV, 25.0*GeV]], 0.705*pb],
+[[[200.0*GeV, 50.0*GeV], [200.0*GeV, 50.0*GeV]], 0.839*pb],
+[[[212.5*GeV, 12.5*GeV], [212.5*GeV, 12.5*GeV]], 0.601*pb],
+[[[212.5*GeV, 37.5*GeV], [212.5*GeV, 37.5*GeV]], 0.696*pb],
+[[[212.5*GeV, 62.5*GeV], [212.5*GeV, 62.5*GeV]], 0.805*pb],
+[[[225.0*GeV, 0.0*GeV], [225.0*GeV, 0.0*GeV]], 0.427*pb],
+[[[225.0*GeV, 25.0*GeV], [225.0*GeV, 25.0*GeV]], 0.462*pb],
+[[[225.0*GeV, 50.0*GeV], [225.0*GeV, 50.0*GeV]], 0.627*pb],
+[[[237.5*GeV, 12.5*GeV], [237.5*GeV, 12.5*GeV]], 0.372*pb],
+[[[237.5*GeV, 37.5*GeV], [237.5*GeV, 37.5*GeV]], 0.432*pb],
+[[[237.5*GeV, 62.5*GeV], [237.5*GeV, 62.5*GeV]], 0.515*pb],
+[[[250.0*GeV, 0.0*GeV], [250.0*GeV, 0.0*GeV]], 0.303*pb],
+[[[250.0*GeV, 25.0*GeV], [250.0*GeV, 25.0*GeV]], 0.389*pb],
+[[[250.0*GeV, 50.0*GeV], [250.0*GeV, 50.0*GeV]], 0.391*pb],
+[[[262.5*GeV, 12.5*GeV], [262.5*GeV, 12.5*GeV]], 0.308*pb],
+[[[262.5*GeV, 37.5*GeV], [262.5*GeV, 37.5*GeV]], 0.307*pb],
+[[[262.5*GeV, 62.5*GeV], [262.5*GeV, 62.5*GeV]], 0.401*pb],
+[[[275.0*GeV, 0.0*GeV], [275.0*GeV, 0.0*GeV]], 0.21*pb],
+[[[275.0*GeV, 25.0*GeV], [275.0*GeV, 25.0*GeV]], 0.294*pb],
+[[[275.0*GeV, 50.0*GeV], [275.0*GeV, 50.0*GeV]], 0.283*pb],
+[[[287.5*GeV, 12.5*GeV], [287.5*GeV, 12.5*GeV]], 0.216*pb],
+[[[287.5*GeV, 37.5*GeV], [287.5*GeV, 37.5*GeV]], 0.243*pb],
+[[[287.5*GeV, 62.5*GeV], [287.5*GeV, 62.5*GeV]], 0.267*pb],
+[[[300.0*GeV, 0.0*GeV], [300.0*GeV, 0.0*GeV]], 0.161*pb],
+[[[300.0*GeV, 25.0*GeV], [300.0*GeV, 25.0*GeV]], 0.189*pb],
+[[[300.0*GeV, 50.0*GeV], [300.0*GeV, 50.0*GeV]], 0.204*pb],
+[[[312.5*GeV, 12.5*GeV], [312.5*GeV, 12.5*GeV]], 0.157*pb],
+[[[312.5*GeV, 37.5*GeV], [312.5*GeV, 37.5*GeV]], 0.159*pb],
+[[[325.0*GeV, 0.0*GeV], [325.0*GeV, 0.0*GeV]], 0.131*pb],
+[[[325.0*GeV, 25.0*GeV], [325.0*GeV, 25.0*GeV]], 0.143*pb],
+[[[337.5*GeV, 12.5*GeV], [337.5*GeV, 12.5*GeV]], 0.127*pb]]

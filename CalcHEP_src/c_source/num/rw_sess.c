@@ -136,27 +136,34 @@ static int r_mdl__(FILE * mode)
   return 0;
 } 
 
+static double hMem[2]={0,0};
+
 static int w_in__(FILE *mode)
 { 
-  if(nin_int==1)  fprintf(mode," inP1=%E\n",inP1); else
-  {
-    fprintf(mode," inP1=%E  inP2=%E\n",inP1,inP2);
-    fprintf(mode," Polarizations= { %E  %E }\n",(double)Helicity[0],(double)Helicity[1]);
-    wrt_sf__(mode);
-  }
+  fprintf(mode," inP1=%E  inP2=%E\n",inP1,inP2);
+
+  if(nin_int==2) {if(is_polarized(1,Nsub)) hMem[0]=Helicity[0]; if(is_polarized(2,Nsub))hMem[1]=Helicity[1];}
+  
+  fprintf(mode," Polarizations= { %E  %E }\n",hMem[0],hMem[1]);
+  
+  wrt_sf__(mode);
+
   return 0;
 }
+
 static int r_in__(FILE *mode)
 { 
-  if(nin_int==1)   fscanf(mode," inP1=%lf\n",&inP1); else
-  {  double h[2];
-     fscanf(mode," inP1=%lf  inP2=%lf\n",&inP1,&inP2);
-     fscanf(mode," Polarizations= { %lf  %lf }\n",h,h+1);
-     Helicity[0]=h[0];
-     Helicity[1]=h[1];
-     rd_sf__(mode);
-  }
-  return 0;
+   fscanf(mode," inP1=%lf  inP2=%lf\n",&inP1,&inP2); 
+
+   fscanf(mode," Polarizations= { %lf  %lf }\n",hMem,hMem+1);
+            
+   if(nin_int==2)
+   {
+      if(is_polarized(1,Nsub)) Helicity[0]=hMem[0];
+      if(is_polarized(2,Nsub)) Helicity[1]=hMem[1];
+   }   
+   rd_sf__(mode);
+   return 0;
 }
 
 

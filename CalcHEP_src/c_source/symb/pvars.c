@@ -96,8 +96,7 @@ void  sortvar( )
       } 
       else if(!strcmp(vardef->vars[i].name,"Helicity1"))vardef->vars[i].num=nmodelvar+2;
       else if(!strcmp(vardef->vars[i].name,"Helicity2"))vardef->vars[i].num=nmodelvar+3;
-      else if(!strcmp(vardef->vars[i].name,"HelicityN1"))vardef->vars[i].num=nmodelvar+4;
-      else if(!strcmp(vardef->vars[i].name,"HelicityN2"))vardef->vars[i].num=nmodelvar+5;
+      else if(!strcmp(vardef->vars[i].name,"N_p1p2_"))vardef->vars[i].num=nmodelvar+4;
       else  vardef->vars[i].num = modelVarPos(vardef->vars[i].name);
 
    for(i=0;i< vardef->nvar; i++) 

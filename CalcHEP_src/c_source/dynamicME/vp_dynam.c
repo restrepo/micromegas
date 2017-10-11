@@ -40,7 +40,7 @@ int getDynamicVP(void)
                      "$CALCHEP/bin/make_VandP models 1 6\n"
                      " . $CALCHEP/FlagsForSh;"
                      " . ./EXTLIBsh;"
-                     "$CC $CFLAGS $SHARED -o so_generated/VandP.so VandP.c $CALCHEP/include/VandPgate.c $EXTLIB $CALCHEP/lib/dummy.a  $CALCHEP/lib/libSLHAplus.a -lm"
+                     "$CC $CFLAGS $SHARED -o so_generated/VandP.so VandP.c $CALCHEP/include/VandPgate.c $EXTLIB  $CALCHEP/lib/dummy.a  $CALCHEP/lib/libSLHAplus.a -lm"
                     ,rootDir,compDir);
      err=system(command);
      free(command);
@@ -125,7 +125,7 @@ int setModel(char * modelDisp , int nModel )
 }
 
 
-int assignVal(char * name, double val)
+int assignVal(const char * name, double val)
 {
   int i; 
   for(i=0;i<nModelVars;i++)
@@ -136,7 +136,7 @@ int assignVal(char * name, double val)
   return 2;
 }
 
-int assignValW(char*name, double  val)
+int assignValW(const char*name, double  val)
 {
   if(assignVal(name,val)) { printf(" %s not found\n",  name); return 1;}
   else return 0;

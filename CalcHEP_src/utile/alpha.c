@@ -1,5 +1,6 @@
 #include<math.h>
 #include<stdio.h>
+#include<stdlib.h>
 #include"alpha.h"
 
 double alpha(int nf, int odr, double lambda,  double dscale)

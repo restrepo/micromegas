@@ -136,7 +136,7 @@ static void* vegas_cycle(void * par_)
   int Ndmx=par->vegPtr->ndmx;
   int npg=par->npg;
   int nCore=par->nCore;
-  float*fMax=par->vegPtr->fMax; 
+  double*fMax=par->vegPtr->fMax; 
   int_cycle_out*result=malloc(sizeof(int_cycle_out));
   
   Ng=par->vegPtr->NgI;
@@ -235,10 +235,10 @@ long vegas_int(vegasGrid * vegPtr, long ncall0, double alph, int nCore,  double 
    cycle_str par;
    
    if(alph==0)
-   { 
+   {
      if(vegPtr->evnCubes && !vegPtr->fMax)
      { long cC;
-       vegPtr->fMax=malloc(vegPtr->evnCubes*sizeof(float));
+       vegPtr->fMax=malloc(vegPtr->evnCubes*sizeof(double));
        for(cC=0;cC<vegPtr->evnCubes;cC++) vegPtr->fMax[cC]=0;
        
      }
@@ -329,7 +329,7 @@ typedef struct { vegasGrid *vegPtr;
                  long  nEvents;
                  double gmax;
                  int recalc;
-                 void(*out)( double *,int); 
+                 void(*out)( double *,double); 
                  long  Ntry;
                  long  cEvent;
                  int    end;
@@ -346,36 +346,36 @@ static void* event_cycle(void * par_)
    long nCubes=par->vegPtr->evnCubes;
    double (*fxn)(double*,double)=par->vegPtr->fxn;
    double gmax=par->gmax;
-   float*smax=par->vegPtr->fMax;
+   double*smax=par->vegPtr->fMax;
       
-   double rc1,rc2;
-   long L0,L1;
    int  Ng[MAX_DIM];
    double xlocal[MAX_DIM],x[MAX_DIM];
-   double f,oldMax,newMax;
-   int i,k,sgn;
+   int i,k;
    long Ntry;
    struct  { double x[MAX_DIM]; double f; double rnd; int sgn; }  *events=NULL;
    int nRecT=0,nmax=0;
-   event_stat * stat=malloc(sizeof(event_stat));
+   event_stat * stat=malloc(sizeof(event_stat)); 
    
    stat->neg=0;
    stat->nexc=0;
    stat->lmax=1;
    stat->rmax=1;
-   stat->nan=0;       
+   stat->nan=0;
+   stat->sumW=0;
+   stat->sumW2=0;
+          
    generateVegasCubes(dim, &nCubes,Ng);
   
    for(;; ) 
-   {  long L;
-      double f,ds,w,sum;
-      int n,sgn;      
-      double oldMax,newMax;
+   {  long L,L0,L1;
+      double f,ds,w,sum,weight,rc1,rc2,oldMax,newMax;
+
+      int n,sgn;   
       int Kg[MAX_DIM];
       
       if(nCore)pthread_mutex_lock(&(par->key));
         if(par->end) { if(nCore)pthread_mutex_unlock(&(par->key)); free(events); return stat;}  
-        Ntry= ++(par->Ntry);
+        Ntry= ++(par->Ntry); 
       if(nCore)pthread_mutex_unlock(&(par->key));
       if(nCore)pthread_mutex_lock(&drandXX_key);     
         rc1=drandXX();
@@ -389,27 +389,36 @@ static void* event_cycle(void * par_)
       if(nCore)pthread_mutex_lock(&(par->vegPtr->key));
         sum=smax[nCubes-1];
         rc1*=sum;
-        while(L0+1 < L1)     
-        {  L=(L0+L1)/2;
-           if(smax[L]<=rc1) L0=L;  else L1=L;  
-        }   
-        if(smax[L0]>rc2) L=L0; else L=L1;
-        oldMax= L? smax[L]-smax[L-1] : smax[0];
+        if(smax[0]>rc1) L1=0; else
+        {
+           while(L0+1 < L1)     
+           {  L=(L0+L1)/2;
+              if(smax[L]>rc1) L1=L;  else L0=L;  
+           }
+        } 
+// L0<=L1          
+//        if(smax[L0]>rc2) L=L0; else L=L1;
+        oldMax= L1? smax[L1]-smax[L1-1] : smax[0];
       if(nCore)pthread_mutex_unlock(&par->vegPtr->key);
  
 //      if(informline(cEvent,nEvents))  break;
 
-      L0=L; for(i=dim-1;i>=0; i--) {Kg[i]=L0%Ng[i]; L0=L0/Ng[i];}
+      L=L1; for(i=dim-1;i>=0; i--) {Kg[i]=L%Ng[i]; L=L/Ng[i];}
       Local2Global(par->vegPtr,Kg,Ng, xlocal,x,&w,NULL);
       f=(par->vegPtr->fxn)(x,w)*w; if(f<0){f=-f;sgn=-1;} else sgn=1;      
       if(!isfinite(f)) {stat->nan++; continue;}
       if(f<=oldMax*gmax*rc2) continue;
       if(nCore)pthread_mutex_lock(&par->key);
        if(par->end){ if(nCore)pthread_mutex_unlock(&par->key);  continue;}
-       par->cEvent++;
-       if(sgn<0) stat->neg++;      
-       if(par->cEvent>=par->nEvents) {par->end=1; if(nCore)pthread_mutex_unlock(&par->key); (par->out)(x,sgn); continue;}
-       (par->out)(x,sgn);   
+       par->cEvent++; 
+       if(sgn<0) stat->neg++;
+       weight=f/(oldMax*gmax);
+       if(weight<1 || par->recalc) weight=1;
+       weight*=sgn;
+       stat->sumW+= weight;
+       stat->sumW2+= weight*weight;
+       (par->out)(x,sgn*weight);      
+       if(par->cEvent>=par->nEvents) {par->end=1; if(nCore)pthread_mutex_unlock(&par->key);  continue;}
       if(nCore)pthread_mutex_unlock(&par->key);
       
       newMax=f;
@@ -437,31 +446,32 @@ static void* event_cycle(void * par_)
               }                 
          }
          if(nCore)pthread_mutex_lock(&par->vegPtr->key);
-           oldMax= L? smax[L]-smax[L-1] : smax[0];
+           oldMax= L1? smax[L1]-smax[L1-1] : smax[0];
          if(nCore)pthread_mutex_unlock(&par->vegPtr->key); 
-         if(nCore)pthread_mutex_lock(&par->key);
-           oldMax= L? smax[L]-smax[L-1] : smax[0];      
-           for(k=0;k<nRec ;k++) if(events[k].f>oldMax &&
-              events[k].f>newMax*events[k].rnd && par->cEvent<par->nEvents) par->cEvent++;  
-                                else events[k].sgn=0;
+
+         if(nCore)pthread_mutex_lock(&par->key); 
+           for(n=0,k=0;k<nRec ;k++) if(events[k].f>oldMax &&
+              events[k].f>newMax*events[k].rnd && par->cEvent<par->nEvents)
+           {  par->cEvent++;
+                 (par->out)(events[k].x,events[k].sgn);  
+                 stat->sumW+=sgn;
+                 stat->sumW2+=1;
+                 n++;
+           }                
            if(par->cEvent>=par->nEvents) par->end=1;            
             (par->Ntry)+=dN;
          if(nCore)pthread_mutex_unlock(&par->key);
-         for(n=0,k--;k>=0;k--) if(events[k].sgn)
-         { n++;
-           (par->out)(events[k].x,events[k].sgn);
-         } 
          if(stat->lmax<n+1) stat->lmax=n+1; 
       }
       
-        if(newMax>oldMax*gmax)
-        {  ds=newMax-oldMax;
-          if(nCore)pthread_mutex_lock(&(par->vegPtr->key));
-           for(;L<nCubes;L++) smax[L]+=ds;
-          if(nCore)pthread_mutex_unlock(&(par->vegPtr->key));
-          stat->nexc++;
-          if(stat->rmax < newMax/oldMax) stat->rmax=newMax/oldMax;
-        }                                     
+      if(newMax>oldMax*gmax)
+      {  ds=newMax-oldMax;
+         if(nCore)pthread_mutex_lock(&(par->vegPtr->key));
+           for(L=L1;L<nCubes;L++) smax[L]+=ds;
+         if(nCore)pthread_mutex_unlock(&(par->vegPtr->key));
+         stat->nexc++;
+         if(stat->rmax < newMax/oldMax) stat->rmax=newMax/oldMax;
+      }                                     
    }    
 }
 
@@ -485,14 +495,14 @@ static void* event_control(void * par_)
 
 
 long vegas_events(vegasGrid * vegPtr,  long  nEvents, double gmax, 
-   void (*out)(double*,int),int recalc,  int nCore, event_stat * stat)
+   void (*out)(double*,double),int recalc,  int nCore, event_stat * stat)
 {
    int i, dim= vegPtr->dim;
    long cCube, nCubes=vegPtr->evnCubes;
    event_str par;
    event_stat*stat1;
 
-   float * smax=vegPtr->fMax;
+   double * smax=vegPtr->fMax;
    
    if(!smax) return -1;
    for(cCube=1; cCube<nCubes; cCube++) smax[cCube]+=smax[cCube-1];
@@ -507,7 +517,7 @@ long vegas_events(vegasGrid * vegPtr,  long  nEvents, double gmax,
    par.end=0;
    par.key=keyInit;
   
-   if(stat){ stat->neg=0; stat->lmax=0; stat->nexc=0; stat->rmax=1; stat->nan=0;} 
+   if(stat){ stat->neg=0; stat->lmax=0; stat->nexc=0; stat->rmax=1; stat->nan=0; stat->sumW=0; stat->sumW2=0;} 
    
 /*    - MAIN INTEGRATION LOOP */
    if(nCore)
@@ -520,6 +530,8 @@ long vegas_events(vegasGrid * vegPtr,  long  nEvents, double gmax,
         if(stat)
         { stat->neg+=stat1->neg;
           stat->nan+=stat1->nan;
+          stat->sumW+=stat1->sumW;
+          stat->sumW2+=stat1->sumW2;
           if(stat->lmax<stat1->lmax) stat->lmax=stat1->lmax;
           if(stat->nexc<stat1->nexc) stat->nexc=stat1->nexc;
           if(stat->rmax<stat1->rmax) stat->rmax=stat1->rmax;

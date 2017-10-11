@@ -303,7 +303,6 @@ int mkmom(double*x,double*tfact,double*xp1,double*xp2,REAL*pvect)
         pcmtilda=cmfun(rstilda,pm[0],pm[1]);
 	pIn[0][3]=pcmtilda;
 	pIn[1][3]=-pcmtilda;
-
      
 /*  *sf_fact= *tfact/tfact0; */
     }
@@ -535,7 +534,6 @@ int imkmom(double P1, double P2)
        if(sf_num[1] && m2<sf_mass[1]) m1=sf_mass[1];
               
        incomkin(m1, m2, P1, P2,  &sqrt_S, &pcm, &rapidity);
-
        ssmin=pm[0]+pm[1]; 
        if(ssmin<summas[0][0]+summas[0][1]) ssmin=summas[0][0]+summas[0][1];
        ssmin*=ssmin;      
@@ -547,7 +545,9 @@ int imkmom(double P1, double P2)
        ssmax=stop;
     } else 
     {   REAL m1=pm[0];
-        rapidity=log((P1+sqrt(P1*P1+m1*m1))/m1 ) ;
+
+//        rapidity=log((P1+sqrt(P1*P1+m1*m1))/m1 ) ;
+        rapidity=0;  
     }
     for(i = 0; i < nout1; ++i) 
     {
@@ -658,7 +658,7 @@ int imkmom(double P1, double P2)
 	if (nsph[i] == 0) 
 	{
 	   nsph[i] = 1;
-           sph_inf[i][0].lvpole[0] = (/*i == 0 &&*/ nin_int == 1 )?  nvposx:1;
+           sph_inf[i][0].lvpole[0] = (i == 0 && nin_int == 1 )?  nvposx:1;
 	   sph_inf[i][0].lvpole[1] = 0;
 	   sph_inf[i][0].itypep = 1;
 	} else 

@@ -34,7 +34,7 @@ static void printList(eventfile_info * list)
    printf("\n");
 }
 
-void  printAll(void)
+static void  printAll(void)
 { decay_info * D;
 
   printList(All);
@@ -416,8 +416,8 @@ static int sgn(int x) { if(x<0) return 0; else if(x>0) return 1; else return 0;}
 
 static int upEvent1(void)
 {
-   int i,I,j,N, CC=500,Nmom,w, ch_clr[100];
-   double cs, mom[32], Q,alphaQCD;
+   int i,I,j,N, CC=500,Nmom, ch_clr[100];
+   double cs, mom[32], Q,alphaQCD,w;
    eventfile_info * Finfo;
 
    for(Finfo=All,cs=totCS*drandBuff(); cs>Finfo->cs; )
@@ -425,7 +425,7 @@ static int upEvent1(void)
      if(Finfo->next) Finfo=Finfo->next;
    }
    E_.IDPRUP=1;
-   E_.XWGTUP=1.;
+   E_.XWGTUP= totCS*Finfo->wCoeff;
    N=Finfo->Nin+Finfo->Nout;
    E_.NUP=N;
    
@@ -436,6 +436,8 @@ static int upEvent1(void)
       E_.VTIMUP[I]=0;
    }
    if(readEvent(Finfo,&Nmom, mom, ch_clr, &Q,&alphaQCD, &w)){ E_.NUP=0; return 0 ;}
+   
+   E_.XWGTUP*=w;
    
    E_.SCALUP=Q;
    E_.AQCDUP=alphaQCD;
@@ -481,6 +483,8 @@ static int upEvent1(void)
        }
        readEvent(Finfo,&Nmom, mom, ch_clr, &Q,&alphaQCD, &w);
        E_.VTIMUP[I]=-1.973E-13/(D->totWidth)*log(drand48());
+       
+       E_.XWGTUP*=w*Finfo->wCoeff;
        
        for(i=0; i< E_.NUP;i++) for(j=0;j<5;j++) MYPUP[i][j]=E_.PUP[i][j];
        

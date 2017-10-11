@@ -1,0 +1,421 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>theory.particleNames &mdash; SModelS 1.1.0patch1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="SModelS 1.1.0patch1 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> SModelS
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.1.0patch1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../theory.html">theory package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../experiment.html">experiment package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tools.html">tools package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">SModelS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>theory.particleNames</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for theory.particleNames</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: particleNames</span>
+<span class="sd">   :synopsis: Provides functions for getting particle names from pdg ids, and</span>
+<span class="sd">              other helpers.</span>
+
+<span class="sd">.. moduleauthor:: Andre Lessa &lt;lessa.a.p@gmail.com&gt;</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">from</span> <span class="nn">smodels.particles</span> <span class="kn">import</span> <span class="n">rEven</span><span class="p">,</span> <span class="n">rOdd</span><span class="p">,</span> <span class="n">ptcDic</span>
+<span class="kn">from</span> <span class="nn">smodels.theory.exceptions</span> <span class="kn">import</span> <span class="n">SModelSTheoryError</span> <span class="k">as</span> <span class="n">SModelSError</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+
+<span class="kn">from</span> <span class="nn">smodels.tools.smodelsLogging</span> <span class="kn">import</span> <span class="n">logger</span>
+
+
+<div class="viewcode-block" id="getName"><a class="viewcode-back" href="../../theory.html#theory.particleNames.getName">[docs]</a><span class="k">def</span> <span class="nf">getName</span><span class="p">(</span><span class="n">pdg</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert pdg number to particle name according to the dictionaries rOdd and</span>
+<span class="sd">    rEven.</span>
+
+<span class="sd">    :type pdg: int</span>
+<span class="sd">    :returns: particle name (e.g. gluino, mu-, ...)</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">pdg</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">rOdd</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">rOdd</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">rEven</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">rEven</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">False</span></div>
+
+
+<div class="viewcode-block" id="getPdg"><a class="viewcode-back" href="../../theory.html#theory.particleNames.getPdg">[docs]</a><span class="k">def</span> <span class="nf">getPdg</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert a name to the pdg number according to the dictionaries rOdd and</span>
+<span class="sd">    rEven.</span>
+
+<span class="sd">    :type name: string</span>
+<span class="sd">    :returns: particle pdg; None, if name could not be resolved</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">pdg</span><span class="p">,</span> <span class="n">pname</span><span class="p">)</span> <span class="ow">in</span> <span class="n">rOdd</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="n">pname</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="n">pdg</span><span class="p">)</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">pdg</span><span class="p">,</span> <span class="n">pname</span><span class="p">)</span> <span class="ow">in</span> <span class="n">rEven</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="n">pname</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="n">pdg</span><span class="p">)</span>
+    <span class="k">return</span> <span class="bp">None</span></div>
+
+
+<div class="viewcode-block" id="elementsInStr"><a class="viewcode-back" href="../../theory.html#theory.particleNames.elementsInStr">[docs]</a><span class="k">def</span> <span class="nf">elementsInStr</span><span class="p">(</span><span class="n">instring</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parse instring and return a list of elements appearing in instring.</span>
+<span class="sd">    instring can also be a list of strings.</span>
+<span class="sd">    </span>
+<span class="sd">    :returns: list of elements appearing in instring in string format</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">outstr</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">instring</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="s1">&#39;st&#39;</span><span class="p">):</span>
+        <span class="n">outstr</span> <span class="o">=</span> <span class="n">instring</span>
+    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">instring</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">([]):</span>
+        <span class="k">for</span> <span class="n">st</span> <span class="ow">in</span> <span class="n">instring</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">st</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="s1">&#39;st&#39;</span><span class="p">):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Input must be a string or a list of strings&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+            <span class="c1"># Combine list of strings in a single string</span>
+            <span class="n">outstr</span> <span class="o">+=</span> <span class="n">st</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">SModelSError</span> <span class="p">(</span> <span class="s2">&quot;syntax error in constraint/condition: ``</span><span class="si">%s</span><span class="s2">&#39;&#39;.&quot;</span> \
+              <span class="s2">&quot;Check your constraints and conditions in your database.&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">instring</span><span class="p">)</span> <span class="p">)</span>
+
+    <span class="n">elements</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">outstr</span> <span class="o">=</span> <span class="n">outstr</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">elStr</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">nc</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1"># Parse the string and looks for matching [&#39;s and ]&#39;s, when the matching is</span>
+    <span class="c1"># complete, store element</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">outstr</span><span class="p">:</span>
+        <span class="n">delta</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="s1">&#39;[&#39;</span><span class="p">:</span>
+            <span class="n">delta</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">c</span> <span class="o">==</span> <span class="s1">&#39;]&#39;</span><span class="p">:</span>
+            <span class="n">delta</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">nc</span> <span class="o">+=</span> <span class="n">delta</span>
+        <span class="k">if</span> <span class="n">nc</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">elStr</span> <span class="o">+=</span> <span class="n">c</span>
+        <span class="k">if</span> <span class="n">nc</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">delta</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">elements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">elStr</span> <span class="o">+</span> <span class="n">c</span><span class="p">)</span>
+            <span class="n">elStr</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="c1"># Syntax checks</span>
+            <span class="n">ptclist</span> <span class="o">=</span> <span class="n">elements</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;]&#39;</span><span class="p">,</span> <span class="s1">&#39;,&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">,</span> <span class="s1">&#39;,&#39;</span><span class="p">)</span><span class="o">.</span>\
+                    <span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">ptc</span> <span class="ow">in</span> <span class="n">ptclist</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">ptc</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">ptc</span> <span class="ow">in</span> <span class="n">rEven</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">ptc</span> <span class="ow">in</span> <span class="n">ptcDic</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unknown particle. Add &quot;</span> <span class="o">+</span> <span class="n">ptc</span> <span class="o">+</span> <span class="s2">&quot; to smodels/particles.py&quot;</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+
+    <span class="c1"># Check if there are not unmatched [&#39;s and/or ]&#39;s in the string</span>
+    <span class="k">if</span> <span class="n">nc</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Wrong input (incomplete elements?) &quot;</span> <span class="o">+</span> <span class="n">instring</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">elements</span></div>
+
+
+<div class="viewcode-block" id="vertInStr"><a class="viewcode-back" href="../../theory.html#theory.particleNames.vertInStr">[docs]</a><span class="k">def</span> <span class="nf">vertInStr</span><span class="p">(</span><span class="n">instring</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parses instring (or a list of strings) and returns the list of particle</span>
+<span class="sd">    vertices appearing in instring.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">instring</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="s1">&#39;st&#39;</span><span class="p">):</span>
+        <span class="n">outstr</span> <span class="o">=</span> <span class="n">instring</span>
+    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">instring</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">([]):</span>
+        <span class="n">outstr</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">st</span> <span class="ow">in</span> <span class="n">instring</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">st</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="s1">&#39;st&#39;</span><span class="p">):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Input must be a string or a list of strings&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+            <span class="c1"># Combine list of strings in a single string</span>
+            <span class="n">outstr</span> <span class="o">+=</span> <span class="n">st</span>
+
+    <span class="n">vertices</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">outstr</span> <span class="o">=</span> <span class="n">outstr</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">vertStr</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">nc</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1"># Parse the string and looks for matching [&#39;s and ]&#39;s, when the matching is</span>
+    <span class="c1"># complete, store element</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">outstr</span><span class="p">:</span>
+        <span class="n">delta</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="s1">&#39;[&#39;</span><span class="p">:</span>
+            <span class="n">delta</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">c</span> <span class="o">==</span> <span class="s1">&#39;]&#39;</span><span class="p">:</span>
+            <span class="n">delta</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">nc</span> <span class="o">+=</span> <span class="n">delta</span>
+        <span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="s1">&#39;[&#39;</span><span class="p">:</span>
+            <span class="n">vertStr</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">nc</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">c</span> <span class="o">!=</span> <span class="s1">&#39;[&#39;</span> <span class="ow">and</span> <span class="n">c</span> <span class="o">!=</span> <span class="s1">&#39;]&#39;</span><span class="p">:</span>
+            <span class="n">vertStr</span> <span class="o">+=</span> <span class="n">c</span>
+        <span class="k">if</span> <span class="n">delta</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">vertStr</span><span class="p">:</span>
+            <span class="n">vertices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vertStr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">))</span>
+            <span class="c1"># Syntax checks:</span>
+            <span class="k">for</span> <span class="n">ptc</span> <span class="ow">in</span> <span class="n">vertices</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">ptc</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">ptc</span> <span class="ow">in</span> <span class="n">rEven</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">ptc</span> <span class="ow">in</span> <span class="n">ptcDic</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unknown particle. Add &quot;</span> <span class="o">+</span> <span class="n">ptc</span> <span class="o">+</span> <span class="s2">&quot; to smodels/particle.py&quot;</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+            <span class="n">vertStr</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="c1"># Check if there are not unmatched [&#39;s and/or ]&#39;s in the string</span>
+    <span class="k">if</span> <span class="n">nc</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Wrong input (incomplete elements?) &quot;</span> <span class="o">+</span> <span class="n">instring</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">vertices</span></div>
+
+<div class="viewcode-block" id="simParticles"><a class="viewcode-back" href="../../theory.html#theory.particleNames.simParticles">[docs]</a><span class="k">def</span> <span class="nf">simParticles</span><span class="p">(</span><span class="n">plist1</span><span class="p">,</span> <span class="n">plist2</span><span class="p">,</span> <span class="n">useDict</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compares two lists of particle names. Allows for dictionary</span>
+<span class="sd">    labels (Ex: L = l, l+ = l, l = l-,...). Ignores particle ordering inside</span>
+<span class="sd">    the list</span>
+<span class="sd"> </span>
+<span class="sd">    :param plist1: first list of particle names, e.g. [&#39;l&#39;,&#39;jet&#39;]</span>
+<span class="sd">    :param plist2: second list of particle names </span>
+<span class="sd">    :param useDict: use the translation dictionary, i.e. allow e to stand for</span>
+<span class="sd">                    e+ or e-, l+ to stand for e+ or mu+, etc </span>
+<span class="sd">    :returns: True/False if the particles list match (ignoring order)    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">plist1</span><span class="p">,</span><span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">plist1</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">plist2</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Input must be a list&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">plist1</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">plist2</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">False</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">plist1</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span><span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">plist2</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="nb">str</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Input must be a list of particle strings&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">list</span> <span class="p">(</span> <span class="n">ptcDic</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="p">)</span> <span class="o">+</span> <span class="nb">list</span> <span class="p">(</span> <span class="n">rEven</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unknow particle: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="n">p</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">plist2</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">in</span> <span class="nb">list</span> <span class="p">(</span> <span class="n">ptcDic</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="p">)</span> <span class="o">+</span> <span class="nb">list</span> <span class="p">(</span> <span class="n">rEven</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unknow particle: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="n">plist2</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+                        
+        
+    <span class="n">l1</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">plist1</span><span class="p">)</span>
+    <span class="n">l2</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">plist2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">useDict</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">l1</span> <span class="o">==</span> <span class="n">l2</span>
+    
+    <span class="c1">#If dictionary is to be used, replace particles by their dictionay entries</span>
+    <span class="c1">#e.g. [jet,mu+] -&gt; [[q,g,c],[mu+]], [jet,mu] -&gt; [[q,g,c],[mu+,mu-]] </span>
+    <span class="n">extendedL1</span> <span class="o">=</span> <span class="p">[]</span>    
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">plist1</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">ptcDic</span><span class="p">:</span>
+            <span class="n">extendedL1</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">p</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">extendedL1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ptcDic</span><span class="p">[</span><span class="n">p</span><span class="p">])</span>
+    <span class="n">extendedL2</span> <span class="o">=</span> <span class="p">[]</span>    
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">plist2</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">ptcDic</span><span class="p">:</span>
+            <span class="n">extendedL2</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">p</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">extendedL2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ptcDic</span><span class="p">[</span><span class="n">p</span><span class="p">])</span>
+    
+    <span class="c1">#Generate all combinations of particle lists (already sorted to avoid ordering issues)</span>
+    <span class="c1">#e.g. [[q,g,c],[mu+]] -&gt; [[q,mu+],[g,mu+],[c,mu+]]</span>
+    <span class="n">extendedL1</span> <span class="o">=</span> <span class="p">[</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">i</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">extendedL1</span><span class="p">)]</span>
+    <span class="n">extendedL2</span> <span class="o">=</span> <span class="p">[</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">i</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">extendedL2</span><span class="p">)]</span>
+
+    <span class="c1">#Now compare the two lists and see if there is a match:</span>
+    <span class="k">for</span> <span class="n">plist</span> <span class="ow">in</span> <span class="n">extendedL1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">plist</span> <span class="ow">in</span> <span class="n">extendedL2</span><span class="p">:</span> <span class="k">return</span> <span class="bp">True</span>
+        
+    <span class="k">return</span> <span class="bp">False</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, &lt;function authors at 0x7f73f74eb500&gt;.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.1.0patch1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

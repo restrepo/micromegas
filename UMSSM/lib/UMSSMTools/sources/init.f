@@ -1,5 +1,5 @@
-	SUBROUTINE INITIALIZE()
-	
+        SUBROUTINE INITIALIZE()
+
 *******************************************************************
 *   This subroutine serves to
 *     a) set default values for the SM parameters
@@ -9,174 +9,181 @@
 *        constraints from the directory EXPCON
 *******************************************************************
 
-	IMPLICIT NONE
+        IMPLICIT NONE
 
-	CHARACTER*256 FILENAME,EXPCON_PATH,catpath
+        CHARACTER*256 FILENAME,EXPCON_PATH,catpath
 
-	INTEGER I,J
-	INTEGER NhZind,NhZbb,NhZll,NhZinv,NhZjj,NhZgg
-	INTEGER NhA4b,NhA4tau,NhA2b2tau,NhA2tau2b
-	INTEGER NAAA6b,NAAA6tau,NAAZ4b,NAAZ4tau,NAAZ2b2tau
-	INTEGER Ncccc02,Ncccc04,Ncccc05,Ncccc06,Ncccc08,Ncccc1
-	INTEGER Nccgg02,Nccgg04,Nccgg05,Nccgg06,Nccgg08,Nccgg1
-	INTEGER Ncctt02,Ncctt04,Ncctt05,Ncctt06,Ncctt08,Ncctt1
-	INTEGER Ngggg02,Ngggg04,Ngggg05,Ngggg06,Ngggg08,Ngggg1
-	INTEGER Nttgg02,Nttgg04,Nttgg05,Nttgg06,Nttgg08,Nttgg1
-	INTEGER Ntttt02,Ntttt04,Ntttt05,Ntttt06,Ntttt08,Ntttt1
-	INTEGER Nstblsn,Nstnc,Nsbnb,Nglsq
-      
-	DOUBLE PRECISION ALSMZ,ALEMMZ,GF,g1,g2,S2TW
-	DOUBLE PRECISION MS,MC,MB,MBP,MT,MTAU,MMUON,MZ,MW
-	DOUBLE PRECISION VUS,VCB,VUB,ALEM0
-	DOUBLE PRECISION LQ,KQ,ALQ,AKQ,MUEFFQ,NUQ    
-	DOUBLE PRECISION MUR,MUL,MDR,MDL,MLR,MLL,MNL  
-	DOUBLE PRECISION MST1,MST2,MSB1,MSB2,MSL1,MSL2,MSNT     
-	DOUBLE PRECISION CST,CSB,CSL,MSMU1,MSMU2,MSMUNT,CSMU
-	DOUBLE PRECISION UPARF,SAZZ,CAZZ,VEV,NCP,VEVS,G1P
-	DOUBLE PRECISION QD,QU,QS,QQ,QUP,QDOW,QL,QE,QN,TANB,AU,AD,MU,M2
-	DOUBLE PRECISION SST,SSB,LAMBDA,AL,ATAU
-	DOUBLE PRECISION GZMAX,GZINVMAX,MCMIN,SIGNEU1,SIGNEU
-	DOUBLE PRECISION MSQMIN,MGLMIN
-	DOUBLE PRECISION hZind(1000,2),hZbb(1000,2),hZll(1000,2)
-	DOUBLE PRECISION hZinv(1000,2),hZjj(1000,2),hZgg(1000,2)
-	DOUBLE PRECISION hA4b(10000,3),hA4tau(10000,3)
-	DOUBLE PRECISION hA2b2tau(10000,3),hA2tau2b(10000,3)
-	DOUBLE PRECISION AAA6b(10000,3),AAA6tau(10000,3)
-	DOUBLE PRECISION AAZ4b(10000,3),AAZ4tau(10000,3)
-	DOUBLE PRECISION AAZ2b2tau(10000,3),glsq(100,2)
-	DOUBLE PRECISION cccc02(100,2),cccc04(100,2),cccc05(100,2)
-	DOUBLE PRECISION cccc06(100,2),cccc08(100,2),cccc1(100,2)
-	DOUBLE PRECISION ccgg02(100,2),ccgg04(100,2),ccgg05(100,2)
-	DOUBLE PRECISION ccgg06(100,2),ccgg08(100,2),ccgg1(100,2)
-	DOUBLE PRECISION cctt02(100,2),cctt04(100,2),cctt05(100,2)
-	DOUBLE PRECISION cctt06(100,2),cctt08(100,2),cctt1(100,2)
-	DOUBLE PRECISION gggg02(100,2),gggg04(100,2),gggg05(100,2)
-	DOUBLE PRECISION gggg06(100,2),gggg08(100,2),gggg1(100,2)
-	DOUBLE PRECISION ttgg02(100,2),ttgg04(100,2),ttgg05(100,2)
-	DOUBLE PRECISION ttgg06(100,2),ttgg08(100,2),ttgg1(100,2)
-	DOUBLE PRECISION tttt02(100,2),tttt04(100,2),tttt05(100,2)
-	DOUBLE PRECISION tttt06(100,2),tttt08(100,2),tttt1(100,2)
-	DOUBLE PRECISION stblsn(100,2),stnc(100,2),sbnb(100,2)
+        INTEGER I,J
+        INTEGER NhZind,NhZbb,NhZll,NhZinv,NhZjj,NhZgg
+        INTEGER NhA4b,NhA4tau,NhA2b2tau,NhA2tau2b
+        INTEGER NAAA6b,NAAA6tau,NAAZ4b,NAAZ4tau,NAAZ2b2tau
+        INTEGER Ncccc02,Ncccc04,Ncccc05,Ncccc06,Ncccc08,Ncccc1
+        INTEGER Nccgg02,Nccgg04,Nccgg05,Nccgg06,Nccgg08,Nccgg1
+        INTEGER Ncctt02,Ncctt04,Ncctt05,Ncctt06,Ncctt08,Ncctt1
+        INTEGER Ngggg02,Ngggg04,Ngggg05,Ngggg06,Ngggg08,Ngggg1
+        INTEGER Nttgg02,Nttgg04,Nttgg05,Nttgg06,Nttgg08,Nttgg1
+        INTEGER Ntttt02,Ntttt04,Ntttt05,Ntttt06,Ntttt08,Ntttt1
+        INTEGER Nstblsn,Nstnc,Nsbnb,Nglsq
+        INTEGER NHAATAUS1,NHAATAUS2,NHAABMU
+        INTEGER NHAAMUS1,NHAAMUS2,NHAAMUS3
+        INTEGER NHAAMUS4
+
+        DOUBLE PRECISION ALSMZ,ALEMMZ,GF,g1,g2,S2TW
+        DOUBLE PRECISION MS,MC,MB,MBP,MT,MTAU,MMUON,MZ,MW
+        DOUBLE PRECISION VUS,VCB,VUB,ALEM0,MPI,MEL
+        DOUBLE PRECISION LQ,KQ,ALQ,AKQ,MUEFFQ,NUQ    
+        DOUBLE PRECISION MUR,MUL,MDR,MDL,MLR,MLL,MNL  
+        DOUBLE PRECISION MST1,MST2,MSB1,MSB2,MSL1,MSL2,MSNT     
+        DOUBLE PRECISION CST,CSB,CSL,MSMU1,MSMU2,MSNM,CSMU
+        DOUBLE PRECISION UPARF,SAZZ,CAZZ,VEV,NCP,VEVS,G1P
+        DOUBLE PRECISION QD,QU,QS,QQ,QUP,QDOW,QL,QE,QN,TANB,AU,AD,M2
+        DOUBLE PRECISION SST,SSB,LAMBDA,AL,ATAU
+        DOUBLE PRECISION GZMAX,GZINVMAX,MCMIN,SIGNEU1,SIGNEU
+        DOUBLE PRECISION MSQMIN,MGLMIN
+        DOUBLE PRECISION hZind(1000,2),hZbb(1000,2),hZll(1000,2)
+        DOUBLE PRECISION hZinv(1000,2),hZjj(1000,2),hZgg(1000,2)
+        DOUBLE PRECISION hA4b(10000,3),hA4tau(10000,3)
+        DOUBLE PRECISION hA2b2tau(10000,3),hA2tau2b(10000,3)
+        DOUBLE PRECISION AAA6b(10000,3),AAA6tau(10000,3)
+        DOUBLE PRECISION AAZ4b(10000,3),AAZ4tau(10000,3)
+        DOUBLE PRECISION AAZ2b2tau(10000,3),glsq(100,2)
+        DOUBLE PRECISION cccc02(100,2),cccc04(100,2),cccc05(100,2)
+        DOUBLE PRECISION cccc06(100,2),cccc08(100,2),cccc1(100,2)
+        DOUBLE PRECISION ccgg02(100,2),ccgg04(100,2),ccgg05(100,2)
+        DOUBLE PRECISION ccgg06(100,2),ccgg08(100,2),ccgg1(100,2)
+        DOUBLE PRECISION cctt02(100,2),cctt04(100,2),cctt05(100,2)
+        DOUBLE PRECISION cctt06(100,2),cctt08(100,2),cctt1(100,2)
+        DOUBLE PRECISION gggg02(100,2),gggg04(100,2),gggg05(100,2)
+        DOUBLE PRECISION gggg06(100,2),gggg08(100,2),gggg1(100,2)
+        DOUBLE PRECISION ttgg02(100,2),ttgg04(100,2),ttgg05(100,2)
+        DOUBLE PRECISION ttgg06(100,2),ttgg08(100,2),ttgg1(100,2)
+        DOUBLE PRECISION tttt02(100,2),tttt04(100,2),tttt05(100,2)
+        DOUBLE PRECISION tttt06(100,2),tttt08(100,2),tttt1(100,2)
+        DOUBLE PRECISION stblsn(100,2),stnc(100,2),sbnb(100,2)
+        DOUBLE PRECISION HAATAUS1(100,2),HAATAUS2(100,2),HAABMU(100,2)
+        DOUBLE PRECISION HAAMUS1(100,2),HAAMUS2(100,2),HAAMUS3(100,2)
+        DOUBLE PRECISION HAAMUS4(100,4)
     
 
-	
-	COMMON/ALEM0/ALEM0
-	COMMON/GAUGE/ALSMZ,ALEMMZ,GF,g1,g2,S2TW
-	COMMON/SMSPEC/MS,MC,MB,MBP,MT,MTAU,MMUON,MZ,MW
-	COMMON/CKM/VUS,VCB,VUB
-	COMMON/QNMPAR/LQ,KQ,ALQ,AKQ,MUEFFQ,NUQ    
-	COMMON/SFSPEC/MUR,MUL,MDR,MDL,MLR,MLL,MNL,
-     C		MST1,MST2,MSB1,MSB2,MSL1,MSL2,MSNT,
-     C		CST,CSB,CSL,MSMU1,MSMU2,MSMUNT,CSMU
-	COMMON/UMSSM/SAZZ,CAZZ,VEV,NCP,QD,QU,QS,VEVS,G1P,QQ,
-     C		QUP,QDOW,QL,QE,QN
-	COMMON/LEP/GZMAX,GZINVMAX,MCMIN,SIGNEU1,SIGNEU,
-     C		MSQMIN,MGLMIN,
-     C		hZind,hZbb,hZll,hZinv,hZjj,hZgg,
-     C		hA4b,hA4tau,hA2b2tau,hA2tau2b,
-     C		AAA6b,AAA6tau,AAZ4b,AAZ4tau,AAZ2b2tau,
-     C		cccc02,cccc04,cccc05,cccc06,cccc08,cccc1,
-     C		ccgg02,ccgg04,ccgg05,ccgg06,ccgg08,ccgg1,
-     C		cctt02,cctt04,cctt05,cctt06,cctt08,cctt1,
-     C		gggg02,gggg04,gggg05,gggg06,gggg08,gggg1,
-     C		ttgg02,ttgg04,ttgg05,ttgg06,ttgg08,ttgg1,
-     C		tttt02,tttt04,tttt05,tttt06,tttt08,tttt1,
-     C		stblsn,stnc,sbnb,glsq,
-     C		NhZind,NhZbb,NhZll,NhZinv,NhZjj,NhZgg,
-     C		NhA4b,NhA4tau,NhA2b2tau,NhA2tau2b,
-     C		NAAA6b,NAAA6tau,NAAZ4b,NAAZ4tau,NAAZ2b2tau,
-     C		Ncccc02,Ncccc04,Ncccc05,Ncccc06,Ncccc08,Ncccc1,
-     C		Nccgg02,Nccgg04,Nccgg05,Nccgg06,Nccgg08,Nccgg1,
-     C		Ncctt02,Ncctt04,Ncctt05,Ncctt06,Ncctt08,Ncctt1,
-     C		Ngggg02,Ngggg04,Ngggg05,Ngggg06,Ngggg08,Ngggg1,
-     C		Nttgg02,Nttgg04,Nttgg05,Nttgg06,Nttgg08,Nttgg1,
-     C		Ntttt02,Ntttt04,Ntttt05,Ntttt06,Ntttt08,Ntttt1,
-     C		Nstblsn,Nstnc,Nsbnb,Nglsq
-	COMMON/NOBUG/TANB,AU,AD,M2,SST,SSB,LAMBDA,AL,ATAU
+
+        COMMON/ALEM0/ALEM0
+        COMMON/GAUGE/ALSMZ,ALEMMZ,GF,g1,g2,S2TW
+        COMMON/SMSPEC/MS,MC,MB,MBP,MT,MTAU,MMUON,MZ,MW
+        COMMON/SMEXT/MPI,MEL
+        COMMON/CKM/VUS,VCB,VUB
+        COMMON/QNMPAR/LQ,KQ,ALQ,AKQ,MUEFFQ,NUQ    
+        COMMON/SFSPEC/MUR,MUL,MDR,MDL,MLR,MLL,MNL,
+     .      MST1,MST2,MSB1,MSB2,MSL1,MSL2,MSNT,
+     .      CST,CSB,CSL,MSMU1,MSMU2,MSNM,CSMU
+        COMMON/UMSSM/SAZZ,CAZZ,VEV,NCP,QD,QU,QS,VEVS,G1P,QQ,
+     .      QUP,QDOW,QL,QE,QN
+        COMMON/LEP/GZMAX,GZINVMAX,MCMIN,SIGNEU1,SIGNEU,
+     .      MSQMIN,MGLMIN,
+     .      hZind,hZbb,hZll,hZinv,hZjj,hZgg,
+     .      hA4b,hA4tau,hA2b2tau,hA2tau2b,
+     .      AAA6b,AAA6tau,AAZ4b,AAZ4tau,AAZ2b2tau,
+     .      cccc02,cccc04,cccc05,cccc06,cccc08,cccc1,
+     .      ccgg02,ccgg04,ccgg05,ccgg06,ccgg08,ccgg1,
+     .      cctt02,cctt04,cctt05,cctt06,cctt08,cctt1,
+     .      gggg02,gggg04,gggg05,gggg06,gggg08,gggg1,
+     .      ttgg02,ttgg04,ttgg05,ttgg06,ttgg08,ttgg1,
+     .      tttt02,tttt04,tttt05,tttt06,tttt08,tttt1,
+     .      stblsn,stnc,sbnb,glsq,
+     .      NhZind,NhZbb,NhZll,NhZinv,NhZjj,NhZgg,
+     .      NhA4b,NhA4tau,NhA2b2tau,NhA2tau2b,
+     .      NAAA6b,NAAA6tau,NAAZ4b,NAAZ4tau,NAAZ2b2tau,
+     .      Ncccc02,Ncccc04,Ncccc05,Ncccc06,Ncccc08,Ncccc1,
+     .      Nccgg02,Nccgg04,Nccgg05,Nccgg06,Nccgg08,Nccgg1,
+     .      Ncctt02,Ncctt04,Ncctt05,Ncctt06,Ncctt08,Ncctt1,
+     .      Ngggg02,Ngggg04,Ngggg05,Ngggg06,Ngggg08,Ngggg1,
+     .      Nttgg02,Nttgg04,Nttgg05,Nttgg06,Nttgg08,Nttgg1,
+     .      Ntttt02,Ntttt04,Ntttt05,Ntttt06,Ntttt08,Ntttt1,
+     .      Nstblsn,Nstnc,Nsbnb,Nglsq
+        COMMON/NOBUG/TANB,AU,AD,M2,SST,SSB,LAMBDA,AL,ATAU
+        COMMON/LHCHAA/HAATAUS1,HAATAUS2,HAABMU,
+     .      HAAMUS1,HAAMUS2,HAAMUS3,HAAMUS4,
+     .      NHAATAUS1,NHAATAUS2,NHAABMU,
+     .      NHAAMUS1,NHAAMUS2,NHAAMUS3,NHAAMUS4
      
 *   SM inputs: 
 
 *   Alpha_EM(0)
-	ALEM0= 1.D0/137.035999074D0
+        ALEM0= 1.D0/137.035999074D0
 *   Alpha_s at MZ:
-	ALSMZ= 0.1184D0
-*   Alpha_em at MZ (used in RGES):
-	ALEMMZ= 1.D0/127.944D0
+        ALSMZ= 0.1184D0
+*   Alpha_em at MZ:
+        ALEMMZ= 1.D0/127.944D0
 *   Z, W pole masses:
-	MW= UPARF(32)
-	MZ= UPARF(33)
-*   Lepton masses:		
-	MTAU= 1.77682D0
-	MMUON= 0.1056583715D0
+        MW= UPARF(32)
+        MZ= UPARF(33)
+*   Lepton masses:
+        MTAU= 1.77682D0
+        MMUON= 105.6583715d-3
 *   Quark pole masses:
-	MS= UPARF(43)
-	MC= 1.67D0
+        MS= UPARF(43)
+        MC= 1.67D0
 *	MBP= 4.94D0
-	MBP=4.78d0  
-	MT= UPARF(41)
+        MBP=4.78d0  
+        MT= UPARF(41)
 *   Running MS_bar bottom mass MB at the scale MB:
-	MB= UPARF(42)
+        MB= UPARF(42)
 *   Elements of the Kobayashi-Maskawa matrix:
-	VUS= 0.2252D0
-	VCB= 0.0409D0
-	VUB= 0.00415D0
+        VUS= 0.2253D0
+        VCB= 0.0411D0
+        VUB= 0.00413D0
+*   Pion/electron masses
+        MPI=135d-3
+        MEL=510.998928d-6
     
 *   Weak angle theta_W (S2TW = sin(theta_W)**2):
-	S2TW= UPARF(21)**2
+        S2TW= UPARF(21)**2
     
 *   Some susy inputs :  
 *   mu:
-	MUEFFQ= UPARF(38)
+        MUEFFQ= UPARF(38)
 *   Sfermion mixing angles:
-	CST= UPARF(83)
-	CSB= UPARF(87)    
-	CSL= UPARF(95)            
+        CST= UPARF(83)
+        CSB= UPARF(87)    
+        CSL= UPARF(95)            
 *   g2 and gp squared, CAUTION !!:
-	g2= UPARF(22)**2
-	g1= UPARF(23)**2
+        g2= UPARF(22)**2
+        g1= UPARF(23)**2
 
 
 *   UMSSM inputs :
-	G1P= UPARF(24)
-	VEV= UPARF(25)
-	VEVS= UPARF(26)
-	NCP= UPARF(27)
-	QD= UPARF(28)
-	QU= UPARF(29)
-	QQ= UPARF(30)
-	QL= UPARF(31)
-	SAZZ= UPARF(36)
-	CAZZ= UPARF(37)
+        G1P= UPARF(24)
+        VEV= UPARF(25)
+        VEVS= UPARF(26)
+        NCP= UPARF(27)
+        QD= UPARF(28)
+        QU= UPARF(29)
+        QQ= UPARF(30)
+        QL= UPARF(31)
+        SAZZ= UPARF(36)
+        CAZZ= UPARF(37)
         QS=-QD-QU
-	QUP=-QQ-QU
-	QDOW=-QQ-QD
-	QE=-QL-QD  
-	QN=-QL-QU
+        QUP=-QQ-QU
+        QDOW=-QQ-QD
+        QE=-QL-QD  
+        QN=-QL-QU
 
 *   Some sfermion masses :
-	MUL= UPARF(79)
-	MUR= UPARF(80)
-	MDL= UPARF(81)
-	MDR= UPARF(82)
-	MST1= UPARF(85)
-	MST2= UPARF(86)
-	MSB1= UPARF(89)
-	MSB2= UPARF(90)
+        MUL= UPARF(79)
+        MUR= UPARF(80)
+        MDL= UPARF(81)
+        MDR= UPARF(82)
+        MST1= UPARF(85)
+        MST2= UPARF(86)
+        MSB1= UPARF(89)
+        MSB2= UPARF(90)
 
 *   Electroweak parameters:
-*	GF= 1.D0/(DSQRT(2.D0)*VEV**2)
-	GF= 1.1663787D-5
-
-
-
-*   The EXPCON_PATH variable is set:
-
-C*      EXPCON_PATH='../EXPCON'
-      CALL getenv('EXPCON_PATH',EXPCON_PATH)
+c	GF= 1.D0/(DSQRT(2.D0)*VEV**2)
+        GF= 1.1663787D-5
 
 
 *   Collider constraints on sparticles:
-*   Limit on the Z width from Z -> h(i) + h_a:
+*   Limit on the Z width for Z -> h(i) + h_a:
       GZMAX=5.78D-3
 *   Limit on the inv. Z width from Z -> neutralinos:      
       GZINVMAX=0.5D-3
@@ -190,6 +197,11 @@ C*      EXPCON_PATH='../EXPCON'
       MGLMIN=180d0
 *   Lower limit on charged Higgs mass:
       MCMIN=78.6d0
+
+*   LEP constraints
+
+      CALL getenv('EXPCON_PATH',EXPCON_PATH)
+      if(EXPCON_PATH.eq.' ')  EXPCON_PATH='../EXPCON'
 
       FILENAME=catpath(EXPCON_PATH,'hZind.dat')
       OPEN(11,FILE=FILENAME,STATUS='UNKNOWN',ERR=1)
@@ -720,6 +732,92 @@ C*      EXPCON_PATH='../EXPCON'
       I=I+1
       GOTO 1791
  1792 Nglsq=I-1
+      CLOSE(11)
+
+* Read ATLAS upper limit
+* HAATAUS1(I,1): CP-odd Higgs mass
+* HAATAUS1(I,2): upper limit on sigma[H_125]/sigma_SM*BR[H->2A]*BR[A->2tau]**2
+      FILENAME=catpath(EXPCON_PATH,'1505_01609.dat')
+      OPEN(11,FILE=FILENAME,STATUS='UNKNOWN',ERR=1)
+      I=1
+ 1901 READ(11,*,END=1902,ERR=2)(HAATAUS1(I,J),J=1,2)
+      I=I+1
+      GOTO 1901
+ 1902 NHAATAUS1=I-1
+      CLOSE(11)
+
+* Read CMS upper limit
+* HAATAUS2(I,1): CP-odd Higgs mass
+* HAATAUS2(I,2): upper limit on sigma[H_125]*BR[H->2A]*BR[A->2tau]**2
+      FILENAME=catpath(EXPCON_PATH,'1510_06534.dat')
+      OPEN(11,FILE=FILENAME,STATUS='UNKNOWN',ERR=1)
+      I=1
+ 1903 READ(11,*,END=1904,ERR=2)(HAATAUS2(I,J),J=1,2)
+      I=I+1
+      GOTO 1903
+ 1904 NHAATAUS2=I-1
+      CLOSE(11)
+
+* Read CMS upper limit
+* HAABMU(I,1): CP-odd Higgs mass
+* HAABMU(I,2): upper limit on sigma[H_125]/sigma_SM*BR[H->2A]*BR[A->2mu]*BR[A->2b]
+      FILENAME=catpath(EXPCON_PATH,'cms_pas_hig_14_041.dat')
+      OPEN(11,FILE=FILENAME,STATUS='UNKNOWN',ERR=1)
+      I=1
+ 1905 READ(11,*,END=1906,ERR=2)(HAABMU(I,J),J=1,2)
+      I=I+1
+      GOTO 1905
+ 1906 NHAABMU=I-1
+      CLOSE(11)
+
+* Read CMS upper limit
+* HAAMUS1(I,1): CP-odd Higgs mass
+* HAAMUS1(I,2): upper limit on sigma[H_125]/sigma_SM*BR[H->2A]*BR[A->2mu]**2
+      FILENAME=catpath(EXPCON_PATH,'cms_pas_hig_15_011.dat')
+      OPEN(11,FILE=FILENAME,STATUS='UNKNOWN',ERR=1)
+      I=1
+ 1907 READ(11,*,END=1908,ERR=2)(HAAMUS1(I,J),J=1,2)
+      I=I+1
+      GOTO 1907
+ 1908 NHAAMUS1=I-1
+      CLOSE(11)
+
+* Read CMS upper limit
+* HAAMUS2(I,1): CP-odd Higgs mass
+* HAAMUS2(I,2): upper limit on sigma[H_125]/sigma_SM*BR[H->2A]*BR[A->2mu]**2
+      FILENAME=catpath(EXPCON_PATH,'cms_pas_hig_14_022.dat')
+      OPEN(11,FILE=FILENAME,STATUS='UNKNOWN',ERR=1)
+      I=1
+ 1909 READ(11,*,END=1910,ERR=2)(HAAMUS2(I,J),J=1,2)
+      I=I+1
+      GOTO 1909
+ 1910 NHAAMUS2=I-1
+      CLOSE(11)
+
+* Read CMS upper limit
+* HAAMUS3(I,1): CP-odd Higgs mass
+* HAAMUS3(I,2): upper limit on sigma[H_125]/sigma_SM*BR[H->2A]*BR[A->2mu]**2
+      FILENAME=catpath(EXPCON_PATH,'cms_pas_hig_14_019.dat')
+      OPEN(11,FILE=FILENAME,STATUS='UNKNOWN',ERR=1)
+      I=1
+ 1911 READ(11,*,END=1912,ERR=2)(HAAMUS3(I,J),J=1,2)
+      I=I+1
+      GOTO 1911
+ 1912 NHAAMUS3=I-1
+      CLOSE(11)
+
+* Read CMS upper limit
+* HAAMUS4(I,1): CP-even Higgs mass
+* HAAMUS4(I,2): upper limit on sigma[H]*BR[H->2A]*BR[A->2mu]**2, M_A = 0.25Ge
+* HAAMUS4(I,3): upper limit on sigma[H]*BR[H->2A]*BR[A->2mu]**2, M_A = 2GeV
+* HAAMUS4(I,4): upper limit on sigma[H]*BR[H->2A]*BR[A->2mu]**2, M_A = 3.55GeV
+      FILENAME=catpath(EXPCON_PATH,'1506_00424.dat')
+      OPEN(11,FILE=FILENAME,STATUS='UNKNOWN',ERR=1)
+      I=1
+ 1913 READ(11,*,END=1914,ERR=2)(HAAMUS4(I,J),J=1,4)
+      I=I+1
+      GOTO 1913
+ 1914 NHAAMUS4=I-1
       CLOSE(11)
 
       RETURN

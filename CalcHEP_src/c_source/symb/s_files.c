@@ -185,7 +185,7 @@ int pCompile(void)
                     "$CC $CFLAGS -c -I$CALCHEP/include $csrc\n" 
                     "ar r proclib_0.a $osrc\n"
                     "$RANLIB proclib_0.a \n" 
-                    "rm $csrc $oscr",csrc,osrc);
+                    "rm $csrc $osrc ",csrc,osrc);
     system(command);
   }                 
   system(". ./EXTLIBsh\n"

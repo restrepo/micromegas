@@ -376,7 +376,7 @@ static double FpScalA(double M, double m1, double m2)
 {
   double D= Delta(M,m1,m2),L=Lambda(M,m1,m2), Mq=M*M, m1q=m1*m1, m2q=m2*m2;
 
-  return L*m1q*m2q*m2q*(Mq+m1q-m2q)/(D*D) -((-Mq+m1q+2*m2q)*D +6*m1q*m2q*(Mq-m1q+m2q) )/(6*D*D);
+  return -L*m1q*m2q*m2q*(Mq+m1q-m2q)/(D*D) -((-Mq+m1q+2*m2q)*D +6*m1q*m2q*(Mq-m1q+m2q) )/(6*D*D);
 }  
   
 static double FmScalA(double M, double m1, double m2)
@@ -461,7 +461,7 @@ int nucleonAmplitudes(char * WIMP, double*pA0,double*pA5,double*nA0,double*nA5)
   for(i=0;i<2;i++) {pA0[i]=0; pA5[i]=0; nA0[i]=0; nA5[i]=0;}
   
   wimpMass= pMass(WIMP);
-  GG=sqrt(4*M_PI*parton_alpha(wimpMass));
+  GG=sqrt(4*M_PI*alphaQCD(wimpMass));
   
   for(wimpN=0; wimpN<Nodd;wimpN++) if(strcmp(OddPrtcls[wimpN].name,WIMP)==0 ||
                            strcmp(OddPrtcls[wimpN].aname,WIMP)==0) break;
@@ -513,7 +513,7 @@ int nucleonAmplitudes(char * WIMP, double*pA0,double*pA5,double*nA0,double*nA5)
       {  switch(aQnum)
          { case 4: alphaMq=0.39; break; 
            case 5: alphaMq=0.22; break; 
-           default:alphaMq=parton_alpha(qMass);
+           default:alphaMq=alphaQCD(qMass);
          }  
       } else alphaMq=0;
 
@@ -986,7 +986,7 @@ int displayRecoilPlot(double * tab, char * text, double  E1, double E2)
   int i1=(E1/eStep), i2=(E2/eStep), dim=i2-i1+1;
   
   if(E1<0 || E1>=E2-eStep|| i2>eGrid-1|| i2-i1>299  ) return 1;
-  displayPlot(text, i1*eStep, i2*eStep,"E[keV]",  dim,1, tab+i1,NULL, "dM/dE");
+  displayPlot(text, i1*eStep, i2*eStep,"E[keV]", dim, 0,1, tab+i1,NULL, "dM/dE");
   return 0;
 }
 

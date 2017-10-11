@@ -69,15 +69,16 @@ export CALCHEP
        rm  -f $FILE
     fi 
   done 
-
+#echo symbolic start 
   $CALCHEP/bin/s_calchep -blind "$3{$Gauge{$5{$DelVirtual{$EXCLUDE[{[{{0"
   err=$?
+#echo symbolic end err=$err
 
 if(test $err -eq 0) then
   if(test -r results/sqme.c) then 
     cp $CALCHEP/include/num_in.h $CALCHEP/include/nType.h $CALCHEP/include/num_out.h $CALCHEP/include/sqme.inc results 
   else 
-    rm -f results/*
+    rm -f results/*.c results/*.h
     cp $CALCHEP/include/sqme0_c results/sqme0.c
   fi
 elif(test $err -eq 111) then 
@@ -105,17 +106,26 @@ fi
   done 
 
 ### compilation
-
   LIBS="$CALCHEP/lib/sqme_aux.$SO"
 
-#  $CALCHEP/sbin/make-j $nParProc
-
-  $CC -c $CFLAGS  *.c
+  if(test -r sqme0.c) then 
+    $CC $CFLAGS  $SHARED  -o  $1.so *.c $LIBS -lm
+    mv $1.so  $2/$1.so 
+    exit 0
+  fi 
+#echo compilation starts
+  if(test $nParProc -gt 1) then 
+      $CALCHEP/sbin/make-j $nParProc 
+  else
+      $CC -c $CFLAGS  *.c
+  fi
   err=$? 
   if(test $err -eq 0) then
     $CC $CFLAGS  $SHARED  -o  $1.so *.o $LIBS -lm
     err=$?
   fi
+#echo compilation finishes  
+
   if( test $err -eq 0) then
      mv $1.so  $2/$1.so
   else 

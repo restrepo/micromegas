@@ -1,7 +1,7 @@
 #include<math.h>
 #include<stdlib.h>
-#include"../../sources/micromegas.h"
-#include"../../sources/micromegas_aux.h"
+#include"../../include/micromegas.h"
+#include"../../include/micromegas_aux.h"
 #include"pmodel.h"
 #define SQ(x)  ((x)*(x))
 

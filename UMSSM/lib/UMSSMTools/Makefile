@@ -4,15 +4,15 @@ ifneq ($(MAKECMDGOALS),clean)
 include  ../../../CalcHEP_src/FlagsForMake
 endif
 
-all: ../umhdecay
+all: ../umssmtoolslib
 
 cLib = $(CALCHEP)/lib
-../umhdecay:	umhdecay.F  sources/umhdecay.a ../aLib.a  $(cLib)/dynamic_me.a ../../work/work_aux.a  ../../../CalcHEP_src/lib/libSLHAplus.a ../../../sources/micromegas.a
+../umssmtoolslib: umssmtools.F  sources/sources.a  $(cLib)/dynamic_me.a ../../work/work_aux.a ../aLib.a  ../../../CalcHEP_src/lib/libSLHAplus.a ../../../lib/micromegas.a ../../../CalcHEP_src/lib/ntools.a
 	$(FC) $(FFLAGS) -o $@ $^ 
 
-sources/umhdecay.a: sources/*.f sources/*.c
+sources/sources.a: sources/*.f sources/*.c
 	$(MAKE) -C sources
 	
 clean:
 	$(MAKE) -C sources clean
-	rm -f  ../umhdecay
+	rm -f  ../umssmtoolslib

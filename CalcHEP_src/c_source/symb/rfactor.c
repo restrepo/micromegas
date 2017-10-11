@@ -618,3 +618,58 @@ void  eraseslist(s_listptr s)
       free(sdel);
    } 
 } 
+
+int rmonomGG( rmptr r)
+{
+  int po =0;
+  
+   vmptr v,v_;
+   v=r->n.v;
+   v_=NULL;
+   
+   for(v=r->n.v;v; v=v->next) if(strcmp(v->name,"GG")==0)
+   { 
+     po+=v->deg; 
+     if(v_) v_->next=v->next;  else r->n.v= v->next; 
+     free(v);
+     break;
+   } else v_=v;
+   v_=NULL;
+   for(v=r->d.v; v; v=v->next) if(strcmp(v->name,"GG")==0)
+   { 
+     po-=v->deg; 
+     if(v_) v_->next=v->next;  else r->d.v= v->next; 
+     free(v);
+     break;
+   } else v_=v;
+
+  return po;
+}
+
+int rmonomI( rmptr r)
+{
+  int po =0;
+  
+   vmptr v,v_;
+   v=r->n.v;
+   v_=NULL;
+   
+   for(v=r->n.v;v; v=v->next) if(strcmp(v->name,"i")==0)
+   { 
+     po+=v->deg; 
+     if(v_) v_->next=v->next;  else r->n.v= v->next; 
+     free(v);
+     break;
+   } else v_=v;
+   v_=NULL;
+   for(v=r->d.v; v; v=v->next) if(strcmp(v->name,"i")==0)
+   { 
+     po-=v->deg; 
+     if(v_) v_->next=v->next;  else r->d.v= v->next; 
+     free(v);
+     break;
+   } else v_=v;
+
+  return po;
+}
+

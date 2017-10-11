@@ -1,14 +1,18 @@
-#include"../../sources/micromegas.h"
-#include"../../sources/micromegas_aux.h"
+#include"../../include/micromegas.h"
+#include"../../include/micromegas_aux.h"
 #include "pmodel.h"
 
 #define SQR(x) (x)*(x)
-int  HBblocks(char * fname)
-{ FILE * f=fopen(fname,"a");
+int  hbBlocksMDL(char*fname,int * nHch)
+{ 
+  char buff[100];
+  sprintf(buff,"cat UMSSM_spectr.dat UMSSM_decay.dat > %s",fname);
+  system(buff); 
+  FILE * f=fopen(fname,"a");
   int pdg,i;
   char *h[3]={"h1","h2","h3"};
 
-  if(!f) return 1;
+  if(!f) return 0;
 
   fprintf(f,"Block HiggsBoundsInputHiggsCouplingsBosons\n");
   fprintf(f,"# Effective coupling normalised to SM one and squared\n");
@@ -42,5 +46,6 @@ int  HBblocks(char * fname)
   }
 
   fclose(f);
-  return 0;
+  if(nHch) *nHch=1;
+  return 4;  
 }

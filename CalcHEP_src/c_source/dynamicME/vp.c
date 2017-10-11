@@ -16,6 +16,16 @@ int pTabPos(char * name)
   return 0;
 }
 
+
+int pdg2TabPos(int pdg)
+{ 
+  for(int i=0;i<nModelParticles;i++)
+  {      if(ModelPrtcls[i].NPDG==pdg)  return   i+1;   
+    else if(ModelPrtcls[i].NPDG==-pdg) return -(i+1);
+  } 
+  return 0;  
+} 
+
 char * pdg2name(int pdg)
 {
   int i;
@@ -25,13 +35,19 @@ char * pdg2name(int pdg)
   {          if(ModelPrtcls[i].NPDG==pdg) return ModelPrtcls[i].name;
      else  { if(ModelPrtcls[i].NPDG==-pdg) return ModelPrtcls[i].aname;}
   }   
-  {
-    static char name[20];
-    sprintf(name,"#%d\n",pdg);
-    return name;
-  }
+  
   return NULL;
 } 
+
+char * antiParticle(char*name)
+{  int i; 
+   for(i=0;i<nModelParticles;i++)
+   { if(strcmp(ModelPrtcls[i].name,name)==0) return ModelPrtcls[i].aname;
+     if(strcmp(ModelPrtcls[i].aname,name)==0) return ModelPrtcls[i].name;
+   }      
+   return NULL;
+} 
+
 
 double pMass(char * name)
 {

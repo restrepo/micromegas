@@ -1,7 +1,7 @@
 #include "pmodel.h"
 #include "pmodel_aux.h"
-#include "../../sources/micromegas.h"
-#include "../../sources/micromegas_aux.h"
+#include "../../include/micromegas.h"
+#include "../../include/micromegas_aux.h"
 /*#include"../../CalcHEP_src/c_source/model_aux/include/SLHAreader.h"*/
 
 #include"lpath.h"
@@ -36,6 +36,9 @@ static int runTools(char * cmd, char * fout,int mode)
   double mXiF,double mXiS, double muP, double msP,double m3h)
 { 
 
+  int prec=2;
+  if(mXiF || mXiS || muP|| msP||m3h) prec=0;
+  
    int err,nw;
    FILE*  f=fopen("inp","w");
    if(f==NULL) return -1;
@@ -43,11 +46,11 @@ static int runTools(char * cmd, char * fout,int mode)
    fprintf(f,"Block MODSEL    # Select model\n"   
              "  1    0           # EWSB input\n"
              "  3    1           # NMSSM PARTICLE CONTENT\n"
-             "  8    2           # Precision for Higgs masses\n"
+             "  8    %d           # Precision for Higgs masses\n"
              "  9    0           # FLAG FOR MICROMEGAS (0=NO, 1=YES\n"
              " 10    0           # No scan, no ...\n"
              " 13    1           # Sparticles decays\n"
-           "Block SMINPUTS    # Standard Model inputs\n");
+           "Block SMINPUTS    # Standard Model inputs\n",prec);
 //   fprintf(f," 1   %.8E       # alpha_em^(-1)(MZ) SM MSbar\n",1/findValW("alfEMZ"));
 //   fprintf(f," 2   %.8E       # G_Fermi \n",1.16637E-5); 
    fprintf(f," 3   %.8E       # alpha_s(MZ) SM MSbar\n",findValW("alfSMZ"));
@@ -113,19 +116,20 @@ double sugraNMSSM( double m0, double mhf, double a0, double tb, double sgn,
      double Lambda,double aLambda, double aKappa, double mXiF, double mXiS,
      double muP, double msP,double m3h)
 {
-  int nw=0,err;
+  int nw=0,err,prec=2;
+  if(mXiF || mXiS || muP|| msP||m3h) prec=0;
   FILE*  f=fopen("inp","w");  
-   if(f==NULL) return -1;
+  if(f==NULL) return -1;
    
    fprintf(f,
            "Block MODSEL       # Select model\n"
            "  1    1            # SUGRA\n"   
            "  3    1            # NMSSM PARTICLE CONTENT\n"
-           "  8    2           # Precision for Higgs masses\n"
+           "  8    %d           # Precision for Higgs masses\n"
            "  9    0            # FLAG FOR MICROMEGAS (0=NO)\n" 
            " 10    0            # No scan, no ...\n"
            " 13    1           # Sparticles decays\n"
-           "Block SMINPUTS               # Standard Model inputs\n");
+           "Block SMINPUTS               # Standard Model inputs\n",prec);
 //   fprintf(f," 1   %.8E       # alpha_em^(-1)(MZ) SM MSbar\n",1/findValW("alfEMZ"));
 //   fprintf(f," 2   %.8E       # G_Fermi \n",1.16637E-5); 
    fprintf(f," 3   %.8E       # alpha_s(MZ) SM MSbar\n",findValW("alfSMZ"));

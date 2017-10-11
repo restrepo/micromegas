@@ -1,3 +1,5 @@
+        SUBROUTINE TDECAY()
+
 c ==================================================================== c
 c                           top 2-body decays                          c
 c ==================================================================== c
@@ -12,8 +14,6 @@ c   Susy: ~delta_mb/mb only, from Guasch et al., hep-ph/9507461
 c      and hep-ph/0003109
 c ==================================================================== c
 
-        SUBROUTINE TDECAY()
-
         IMPLICIT NONE 
         INTEGER I,J
 
@@ -26,11 +26,10 @@ c ==================================================================== c
         DOUBLE PRECISION LQ,KQ,ALQ,AKQ,MUEFFQ,NUQ  
         DOUBLE PRECISION MS,MC,MB,MBP,MT,MTAU,MMUON,MZ,MW
         DOUBLE PRECISION MUR,MUL,MDR,MDL,MLR,MLL,MNL,
-     C     MST1,MST2,MSB1,MSB2,MSL1,MSL2,MSNT,
-     C     CST,CSB,CSL,MSMU1,MSMU2,MSMUNT,CSMU
+     .     MST1,MST2,MSB1,MSB2,MSL1,MSL2,MSNT,
+     .     CST,CSB,CSL,MSMU1,MSMU2,MSNM,CSMU
         DOUBLE PRECISION SMASS(3),SCOMP(3,3),PMASS,PCOMP(3,3),CMASS
         DOUBLE PRECISION ALSMZ,ALEMMZ,GF,g1,g2,S2TW
-        DOUBLE PRECISION g1s,g2s,g3s,HTOPS,HBOTS,HTAUS
         DOUBLE PRECISION MGL,MCH(2),U(2,2),V(2,2),MNEU(6),N(6,6)
         DOUBLE PRECISION sst,sw,cw,tw,scalt,UPARF
         DOUBLE PRECISION AU,AD,M2,SSB,LAMBDA,AL,ATAU
@@ -38,13 +37,12 @@ c ==================================================================== c
         COMMON/HIGGSPEC/SMASS,SCOMP,PMASS,PCOMP,CMASS
         COMMON/QNMPAR/LQ,KQ,ALQ,AKQ,MUEFFQ,NUQ  
         COMMON/SFSPEC/MUR,MUL,MDR,MDL,MLR,MLL,MNL,
-     C     MST1,MST2,MSB1,MSB2,MSL1,MSL2,MSNT,
-     C     CST,CSB,CSL,MSMU1,MSMU2,MSMUNT,CSMU
+     .     MST1,MST2,MSB1,MSB2,MSL1,MSL2,MSNT,
+     .     CST,CSB,CSL,MSMU1,MSMU2,MSNM,CSMU
         COMMON/SMSPEC/MS,MC,MB,MBP,MT,MTAU,MMUON,MZ,MW
         COMMON/BR_top2body/brtopbw,brtopbh,brtopneutrstop
         COMMON/topwidth/toptot
         COMMON/GAUGE/ALSMZ,ALEMMZ,GF,g1,g2,S2TW
-        COMMON/SUSYCOUP/g1s,g2s,g3s,HTOPS,HBOTS,HTAUS
         COMMON/SUSYSPEC/MGL,MCH,U,V,MNEU,N
         COMMON/NOBUG/TANB,AU,AD,M2,SST,SSB,LAMBDA,AL,ATAU
 
@@ -118,7 +116,7 @@ c warning : no UMSSM mod. implemented here
        IF(dabs(mneu(1))+MST1.lt.mt) THEN
 
          cw=DSQRT(G2/(G1+G2))
-         sw=DSQRT(G1/(G1s+G2))
+         sw=DSQRT(G1/(G1+G2))
          tw=sw/cw
          scalt=rmt*dsqrt(2d0*sqr2*GF*(1+tanb**2))/(tanb*dsqrt(g2))
 

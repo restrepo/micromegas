@@ -54,11 +54,11 @@ static int rkqc(double * y, double * dydx, int n, double * x, double htry,
       for (i=0;i<n;i++) 
       {  double temp;
          ytemp[i]=y[i]-ytemp[i];
-         if(!finite( ytemp[i])) { errmax=ytemp[i]; break;} 
+         if(!isfinite( ytemp[i])) { errmax=ytemp[i]; break;} 
          temp= fabs(ytemp[i]/yscal[i]);
 	 if (errmax < temp) errmax=temp;
       }
-      if(!finite(errmax)){ h=h/10; continue;}
+      if(!isfinite(errmax)){ h=h/10; continue;}
       errmax /= eps;
 
       if (errmax <= 1.0) 
@@ -227,93 +227,6 @@ double K1pol(double x)
   else      return bessK1(1/x)*exp(1/x)*sqrt(2/M_PI/x); 
 }
 
-static double  polintN(double x, int n,  double *xa, double *ya)
-{  double z[20];
-   int i,m;
-   for(i=0;i<n;i++) z[i]=ya[i];
-   for(m=1;m<n;m++) for(i=0;i<n-m;i++)
-   z[i]=(z[i]*(xa[i+m]-x) - z[i+1]*(xa[i]-x))/(xa[i+m]-xa[i]);
-   return z[0];
-}
-
-static int  leftXN(int n,int dim,  double * xa, double x)
-{  int k1,k2,k3;
-
-   k1=n/2;                         
-   k2=dim-(n+1)/2-1;
-
-   if(xa[0]< xa[dim-1])
-   {              
-     if(x<=xa[k1]) return 0;
-     if(x>=xa[k2]) return dim-n;                   
-     while(k2-k1>1)                
-     { k3=(k1+k2)/2;               
-       if(xa[k3]>x)k2=k3; else k1=k3;
-     }
-   } else 
-   {  
-     if(x>=xa[k1]) return 0;
-     if(x<=xa[k2]) return dim-n;
-     while(k2-k1>1)                
-     { k3=(k1+k2)/2;               
-       if(xa[k3]<x)k2=k3; else k1=k3;
-     }
-   }
-   return k1+1-n/2;
-}
-
-static int  leftX(int dim, double * xa, double x)
-{  int k1,k2,k3;
-                                                                                
-   if(x<=xa[0]) return 0;
-   if(x>=xa[dim-3]) return dim-3;
-                                                                                
-   k1=0;
-   k2=dim-3;
-                                                                                
-   while(k2-k1>1)
-   { k3=(k1+k2)/2;
-     if(xa[k3]>x)k2=k3; else k1=k3;
-   }
-   return k1;
-}
-
-
-double polint2(double x, int n,  double *xa, double *ya)
-{ int shift=leftXN(2,n, xa, x);
-   return polintN(x,2,xa+shift, ya+shift);
-}
-
-double polint2Exp(double x, int n,  double *xa, double *ya)
-{ int shift=leftXN(2,n, xa, x);
-  double  x1=xa[shift], x2=xa[shift+1],y1=ya[shift],y2=ya[shift+1];
-  double alpha= (x-x1)/(x2-x1);
-  
-  if(y1>0 && y2>0) return  pow(y1,1-alpha)*pow(y2,alpha);
-  return  y1*(1-alpha)+y2*alpha;  
-//   return polintN(x,2,xa+shift, ya+shift);
-
-}
-
-
-
-
-double polint3(double x, int n,  double *xa, double *ya)
-{ int shift=leftXN(3,n, xa, x);
-  double ar;
-  ar=polintN(x,3,xa+shift, ya+shift);
-return ar;  
-  if(shift==0) return ar;
-  shift--;
-  return 0.5*( ar+ polintN(x,3,xa+shift, ya+shift));
-}
-
-
-double polint4(double x, int n,  double *xa, double *ya)
-{ int shift=leftXN(4,n, xa, x);
-   return polintN(x,4,xa+shift, ya+shift);
-}
-
 
 static void del(int k, int * N, double *xa, double *ya)
 {  int i;
@@ -346,7 +259,7 @@ int buildInterpolation(double (*Fun)(double), double x1,double x2, double eps,do
         if(i>0   && fabs(xa[i]-xa[i-1]) < dx0) continue;
          
         del(i,&N,xa,ya);
-        yy=polint4(x, N, xa, ya);
+        yy=polint3(x, N, xa, ya);
         ins(i, x, y, &N,xa, ya);
         if( (eps>0 && fabs(yy-y) > eps) || (eps<0 && fabs(yy-y)> -eps*(y)))  
         {
@@ -436,7 +349,7 @@ static double amotry(double *p, double *y, int ndim,
    for(j=0;j<ndim;j++) p_buff[j]=p_ilo[j]*fac;
    for(i=0;i<=ndim;i++)  if(i!=ilo) 
      {double *p_i=p+i*ndim;  for(j=0;j<ndim;j++) p_buff[j] +=p_i[j]*fac1;} 
-   ytry=(*f)(p_buff);
+   ytry=-(*f)(p_buff);
    
    if (ytry > y[ilo]) 
    {  for(j=0;j<ndim;j++) p_ilo[j]=p_buff[j];
@@ -446,12 +359,23 @@ static double amotry(double *p, double *y, int ndim,
    return ytry;
 }
 
-double amoeba(double *p, double * y, int ndim, double (*f)(double *), 
+double amoeba(double *pp, double * dp, int ndim, double (*f)(double *), 
                                                     double eps, int *nCalls)
 {
    int i,ilo,ihi,inlo,j;
    double ysave,ytry;
+   double *p=(double*)malloc(ndim*(ndim+2)*sizeof(double));
+   double *y=(double*)malloc((ndim+1)*sizeof(double));
+   
 
+   for(j=0;j<=ndim;j++) for(i=0;i<ndim;i++)  p[i+j*ndim]=pp[i];
+   for(j=1;j<=ndim;j++) p[j-1+j*ndim]+=dp[j-1];
+ 
+   for(j=0;j<=ndim;j++) y[j]=-f(p+j*ndim);    
+
+//   for(j=0;j<=ndim;j++) printf(" %e %e %e   %e\n",p[0+j*ndim],p[1+j*ndim],p[2+j*ndim], -y[j]);
+   
+   
    for (;;) 
    {
       ihi=0;									     
@@ -480,7 +404,7 @@ double amoeba(double *p, double * y, int ndim, double (*f)(double *),
                if (i != ihi)
      	       {  double * p_i=p+i*ndim;
      		  for(j=0;j<ndim;j++) p_i[j]=0.5*(p_i[j]+p_ihi[j]);
-     		  y[i]=(*f)(p_i);
+     		  y[i]=-(*f)(p_i);
      	       }
             }
 /*printf("srink\n");            */
@@ -488,13 +412,16 @@ double amoeba(double *p, double * y, int ndim, double (*f)(double *),
          }									     
       }										     
    }
-   return y[ihi];
+   for(i=0;i<ndim;i++){ pp[i]=p[i+ihi*ndim]; dp[i]=p[i+ilo*ndim]-p[i+ihi*ndim];}
+   ysave=y[ihi];
+   free(y); free(p);
+   return -ysave;
 }
 /*========================== end of amoeba ================*/
 
 #define MAXSTEP 15
 double vegas_chain(int ndim, double (*Integrand)(double*, double),
-int N0, double Nfact, double eps,double * dI)   
+int N0, double Nfact, double eps,double * dI,void (*clean)(void))   
 { vegasGrid *vegPtr=NULL;
   int k,l;
   double ti[MAXSTEP],dti[MAXSTEP];
@@ -505,8 +432,9 @@ int N0, double Nfact, double eps,double * dI)
   for(k=0;k<MAXSTEP;k++)
   { double s0=0,s1=0,s2=0; 
     vegas_int(vegPtr, N0 , 1.5, nPROCSS, ti+k, dti+k);
-    printf("ti=%E dti=%E\n",ti[k], dti[k]);
-    if(dti[k]==0) break;
+    if(clean) clean();
+//    printf("ti=%E dti=%E\n",ti[k], dti[k]);
+    if(dti[k]==0) { ii=ti[k];  break;}
     for(l=k;l>=k/2;l--)
     { s0+=1/(dti[l]*dti[l]);
       s1+=ti[l]/(dti[l]*dti[l]);
@@ -581,10 +509,11 @@ static int findMinLimit(double mu,double b,double cl)
   
   r[0]=exp(-mu);
   p[0]=exp(-mu-b);
+  s=p[0];
   nMax=0;
   rMax=r[0];
    for(n=1;n<300;n++) p[n]=1;
-  for(n=1,s=0; 1-s> cl/100 ;n++)
+  for(n=1; 1-s> cl/100 ;n++)
   {  double mu_best;
      if(n>b) mu_best=n-b; else mu_best=0;
      r[n]=pow((mu+b)/(mu_best+b),n)*exp(mu_best-mu);
@@ -592,7 +521,6 @@ static int findMinLimit(double mu,double b,double cl)
      p[n]=p[n-1]*(mu+b)/n;
      s+=p[n];
   }
-
   N=n;
   cl-=p[nMax]; nMin=nMax-1; nMax++; 
   for( ;cl>0;)
@@ -600,7 +528,8 @@ static int findMinLimit(double mu,double b,double cl)
     if(nMin>=0) { if(nMax<N && r[nMax]>r[nMin]) cl-=p[nMax++];  else  cl-=p[nMin--];}
     else  cl-=p[nMax++];
   }
-  if(nMin>0) return nMin; else return 0; 
+//  if(nMin>0) return nMin; else return 0; 
+   return nMin; 
 } 
 
 
@@ -608,7 +537,7 @@ double FeldmanCousins(int n0, double b, double cl)
 {
    double delta,mu;
    
-   for(mu=0,delta=1; delta>0.01; delta/=2, mu-=delta)
+   for(mu=0,delta=1; delta>0.001;  mu-=delta,delta/=2 )
    {  
      for(;findMinLimit(mu, b,cl)<n0;mu+=delta);
    }    

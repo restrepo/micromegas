@@ -14,4 +14,6 @@ extern int  readModelFiles(char * path, int l);
 extern int  loadModel(int check, int ugForce);
 extern int  makeVandP(int rd ,char*path,int L, int mode,char*CaLCHEP);
 extern int  ldModelStatus;  // 1- is read; 2-is loaded; 4- ug 
+
+extern int getVertex(char*pathToModels,int Model,int N,char**field,char*label);
 #endif

@@ -1,4 +1,4 @@
-#include"../../sources/micromegas_aux.h"
+#include"../../include/micromegas_aux.h"
 #include"pmodel.h"
 
 
@@ -21,7 +21,7 @@ int readVarCPVMSSM(char * fname)
   "aAt",   "fiAt","aAb", "fiAb","aAl", "fiAl","aAm","fiAm","aAu","fiAu",
   "aAd",   "fiAd","Mq2", "Mq3", "Mu2", "Mu3", "Md2","Md3", "MZ",
   "tb",    "aAe", "fiAe"};
-
-  return readVarSpecial(fname,42,vlist);
+  int r= readVarSpecial(fname,42,vlist);
+  return r;  
 } 
 

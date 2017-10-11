@@ -1,0 +1,36 @@
+# --- variables defined by configure ---
+
+SRC = ../../../Packages/LoopTools-2.12-v0/src
+PREFIX = x86_64-Linux
+LIBDIRSUFFIX = 64
+
+EXE = 
+DEF = -D
+NOUNDERSCORE = 0
+
+FC = gfortran
+FFLAGS =  -O1 -g -ffixed-line-length-none     -fno-range-check -ff2c  $(DEF)QUAD=1 $(DEF)U77EXT=0
+
+CC = gcc
+CFLAGS = -O3 -g -fomit-frame-pointer -ffast-math -Wall -m64   -DNOUNDERSCORE=$(NOUNDERSCORE) -DBIGENDIAN=0
+
+CXX = g++
+CXXFLAGS = -O3 -g -fomit-frame-pointer -ffast-math -Wall -m64   -stdlib=libstdc++
+
+ML = 0
+MCC = mcc
+MCFLAGS = -st -b64
+MCLIBS = -lpthread
+
+LDFLAGS = -L/usr/lib/gcc/x86_64-redhat-linux/4.8.3 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.3/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/usr/lib/gcc/x86_64-redhat-linux/4.8.3/../../.. -lgfortran -lm -lgcc_s -lgcc -lquadmath -lm -lgcc_s -lgcc -lgcc_s -lgcc -m64
+
+AR = ar
+RANLIB = ranlib
+NM = nm
+DLLTOOL = 
+
+PARALLEL = -j 4
+
+# --- end defs by configure ---
+
+

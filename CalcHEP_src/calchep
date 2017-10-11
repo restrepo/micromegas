@@ -1,8 +1,5 @@
 
 
-#export LD_RUN_PATH=$HOME/Packages/lhapdf-5.9.1/install/lib
-#export LD_RUN_PATH=$HOME/Packages/LHAPDF-6.1.5/install/lib
-
 if(test -r lock) then
    echo \"lock\" file in the current directory tells us that CalcHEP
    echo already was launched in this directory. See details about

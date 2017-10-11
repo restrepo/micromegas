@@ -1,5 +1,5 @@
 #include"pmodel.h"
-#include"../../sources/micromegas_aux.h"
+#include"../../include/micromegas_aux.h"
 #include"pmodel_f.h"
 
 int nmhwarn_(int *file)
@@ -42,10 +42,10 @@ double*xif, double*xis, double*muP, double*MSPQ, double*M3HQ)
   *xif,*xis,*muP,*MSPQ,*M3HQ );
 } 
 
-int readslha_(char * fname, int len)
+int readslha_(char * fname, int *mode, int len)
 { char c_name[200];
   fName2c(fname, c_name,len);
-  return readSLHA(c_name);
+  return readSLHA(c_name,*mode);
 }
 
 int  readvarnmssm_(char * f_name,int len)
@@ -55,9 +55,3 @@ int  readvarnmssm_(char * f_name,int len)
   
   return readVarNMSSM(c_name);
 }
-
-int hbblocks_(char*fname, int len)
-{  char cname[100];
-   fName2c(fname,cname,len);
-   return   HBblocks(cname);
-}  

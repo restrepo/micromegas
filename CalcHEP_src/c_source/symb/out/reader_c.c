@@ -8,7 +8,7 @@
 #include "procvar.h"
 #include "reader_c.h"
 
-FILE * ext_h;
+FILE * ext_h=NULL;
 
 int checkNaN;
 

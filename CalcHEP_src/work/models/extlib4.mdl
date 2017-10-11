@@ -1,6 +1,4 @@
 SM+6+333
 Libraries
 External libraries                                                                          |
-%-L$HOME/Packages/lhapdf-5.9.1/install/lib -lLHAPDF                                                                          |
-%-L$HOME/Packages/LHAPDF-6.1.5/install/lib -lLHAPDF
 =============================================================================================

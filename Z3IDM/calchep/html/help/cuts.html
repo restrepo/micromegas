@@ -1,0 +1,79 @@
+<html>
+<head>
+	<title>CalcHEP Batch Help</title>
+	<link rel='stylesheet' href='../style.css' type='text/css'></link>
+</head>
+<body>
+	<div id='links'>
+		<ul>
+			<li><a href='../index.html'>Home</a></li>
+			<li><a href='../symbolic.html'>Symbolic Results</a></li>
+			<li><a href='../numerical.html'>Numerical Results</a></li>
+			<li><a href='../events.html'>Events Library</a></li>
+			<li><a href='../library.html'>Process Library</a></li>
+			<li><a href='index.html'>Help</a>
+				<ul>
+					<li><a href='batch_file.html'>Batch File</a><ul>
+						<li><a href='comment.html'>Comments</a></li>
+						<li><a href='model.html'>Model</a></li>
+						<li><a href='process.html'>Process</a></li>
+						<li><a href='pdf.html'>PDF</a></li>
+						<li><a href='momentum.html'>Momentum</a></li>
+						<li><a href='parameters.html'>Parameters</a></li>
+						<li><a href='runs.html'>Scans</a></li>
+						<li><a href='qcd.html'>QCD</a></li>
+                                                <li><a href='BW.html'>BW</a></li>
+						<li><a href='cuts.html'>Cuts</a></li>
+						<li><a href='kinematics.html'>Kinematics</a></li>
+						<li><a href='regularization.html'>Regularization</a></li>
+						<li><a href='distributions.html'>Distribution</a></li>
+						<li><a href='events.html'>Events</a></li>
+						<li><a href='parallelization.html'>Parallelization</a></lii>
+						<li><a href='vegas.html'>Vegas</a></li>
+						<li><a href='generator.html'>Generator</a></li>
+						<li><a href='example1.html'>Example 1</a></li>
+						<li><a href='example2.html'>Example 2</a></li>
+						<li><a href='example3.html'>Example 3</a></li>
+					</ul></li>
+					<li><a href='process_library.html'>Process Library</a></li>
+					<li><a href='event_library.html'>Event Library</a></li>
+				</ul>
+			</li>
+			<br>
+			<li>Thank you for using <a href='http://theory.sinp.msu.ru/~pukhov/calchep.html'>CalcHEP</a>!</li>
+			<li>Please cite <a href='http://inspirehep.net/record/1123804'>arXiv:1207.6082</a></li>
+		</ul>
+	</div>
+	<div id='help_main'>
+		<h1>Cuts Help</h1>
+		<h3>Cut</h3>
+		<p>
+			Cuts are specified with the keywords "Cut parameter", "Cut invert", "Cut min" and "Cut max" and use standard CalcHEP notation, except for "Cut invert" which can be either "True" or "False".  These cuts are only applied to the production processes.  They are not applied to the products of the decays.  Here is an example:<br>
+			<table>
+				<tr><td>Cut parameter</td><td>:</td><td>T(le)</td></tr>
+				<tr><td>Cut invert</td><td>:</td><td>False</td></tr>
+				<tr><td>Cut min</td><td>:</td><td>20</td></tr>
+				<tr><td>Cut max</td><td>:</td><td></td></tr>
+			</table>
+			For each cut, all four keyphrases have to be present.  As many cuts as desired can be included.  Including "Cut min" or "Cut max" but leaving the value blank will leave the value blank in the CalcHEP table.  If the cut should only be applied to a certain process, then the colon can be changed to :n: where n is the process.  So, for example, we could do:<br>
+			<table>
+				<tr><td>Cut parameter</td><td>:</td><td>T(l)</td></tr>
+				<tr><td>Cut invert</td><td>:</td><td>True</td></tr>
+				<tr><td>Cut min</td><td>:</td><td></td></tr>
+				<tr><td>Cut max</td><td>:</td><td>20</td></tr>
+				<tr><td></td></tr>
+				<tr><td>Cut parameter</td><td>:</td><td>T(j)</td></tr>
+				<tr><td>Cut invert</td><td>:</td><td>False</td></tr>
+				<tr><td>Cut min</td><td>:</td><td>20</td></tr>
+				<tr><td>Cut max</td><td>:</td><td></td></tr>
+				<tr><td></td></tr>
+				<tr><td>Cut parameter</td><td>:2:</td><td>J(j,j)</td></tr>
+				<tr><td>Cut invert</td><td>:</td><td>False</td></tr>
+				<tr><td>Cut min</td><td>:2:</td><td>0.4</td></tr>
+				<tr><td>Cut max</td><td>:2:</td><td></td></tr>
+				</table>
+			This set of cuts will apply a p<sub>T</sub> cut to leptons and jets in all processes but a jet cone angle cut only to process 2.  The numbering of the processes corresponds to the order in which the processes are entered in the batch file.  Alias particle names can be used as long as they are defined by the keyword "Alias" in the process section.  Note that both of the transverse mass cuts apply a p<sub>T</sub>>20GeV cut in this example.
+		</p>
+	</div>
+</body>
+</html>

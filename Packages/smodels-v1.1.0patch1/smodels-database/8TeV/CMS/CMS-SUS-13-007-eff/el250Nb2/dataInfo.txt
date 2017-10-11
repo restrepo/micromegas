@@ -1,0 +1,7 @@
+dataType: efficiencyMap
+dataId: el250Nb2
+observedN: 9
+expectedBG: 3.8
+bgError: 1.89
+upperLimit: 0.64836409005*fb
+expectedUpperLimit: 0.300638812053*fb

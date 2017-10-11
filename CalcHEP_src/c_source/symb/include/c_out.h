@@ -3,7 +3,6 @@
 
 extern int  c_prog(void);
 
-extern int noPict;
 extern int noCChain;
 extern int tWidths;
        

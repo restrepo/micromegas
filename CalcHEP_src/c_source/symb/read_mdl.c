@@ -38,6 +38,10 @@ table  modelTab[5] =
 
 static char * tabName;
 static int nLine;
+static int * vSorted=NULL;
+static int nSortedVar;
+static int testingVar;
+
 
 static void errorMessage( char * fieldName, char * format, ...)
 { 
@@ -53,8 +57,7 @@ static void errorMessage( char * fieldName, char * format, ...)
    else
     sprintf(errorText,"Error in table '%s' line %d field '%s'  position %u:\n  %s",
            tabName,nLine,fieldName, rderrpos, dump);
-                              
-   if(blind) printf("ERROR:%s\n",errorText); else messanykey(2,10,errorText);
+   if(blind==1) { printf("ERROR:%s\n",errorText); exit(125);} else messanykey(2,10,errorText);
 }
 
 
@@ -99,12 +102,60 @@ static int  isVarName(char*  s)
   return 1;
 }
 
-static int  isOriginName(char* s)
-{
-  int k;
-  for(k=1;k<=nmodelvar;k++) if (strcmp(s,modelvars[k].varname) == 0) return 0; 
-  return 1;
+static int findVarFast(char*name)
+{  int c1=1,c2=nSortedVar,c3;
+
+   int d=strcmp(name,modelvars[vSorted[c1]].varname);
+   if(d==0) return vSorted[c1];
+   if(d<0) return -1;
+   d=strcmp(name,modelvars[vSorted[c2]].varname);
+   if(d==0) return vSorted[c2]; 
+   if(d>0)  return -1;
+          
+   for(;;)
+   { 
+      if(c2-c1<=1) return -1;
+      c3=(c1+c2)/2;
+      d=strcmp(name,modelvars[vSorted[c3]].varname);
+      if(d==0) return vSorted[c3];
+      if(d>0) c1=c3; else c2=c3;
+   }   
 }
+
+
+
+static void sortVariables(void)
+{  int i;
+   int nv1=nmodelvar+1;
+   
+   nSortedVar=nmodelvar;
+
+   vSorted=realloc(vSorted,sizeof(int)*nv1);
+   int*vSorted_=malloc(sizeof(int)*nv1);
+   for(i=0;i<nv1;i++) vSorted[i]=i;
+   int b=1 ;
+   for(b=1;b<nv1;b*=2)
+   {  int k;
+      memcpy(vSorted_,vSorted,nv1*sizeof(int));
+      for(k=0; k<1+nv1/(2*b); k++)
+      { int i1=2*k*b,i2,e1,e2;
+        e1=i1+b;
+        if(e1> nv1) e1= nv1;
+        i2=e1;
+        e2=i2+b;if(e2> nv1)e2=  nv1;
+        for(i=2*k*b; i1<e1 || i2<e2;i++)
+        {      if(i2==e2) vSorted[i]=vSorted_[i1++];
+          else if(i1==e1) vSorted[i]=vSorted_[i2++];
+          else if( strcmp(modelvars[vSorted_[i1]].varname,modelvars[vSorted_[i2]].varname)<=0)
+                vSorted[i]=vSorted_[i1++]; 
+          else  vSorted[i]=vSorted_[i2++];
+        } 
+      }
+   }
+   
+   free(vSorted_); 
+}
+
 
 static int Number,String;
 static int ExtFunc,aWidth,aWidth1, depQ;
@@ -135,24 +186,15 @@ static void*  act_33(char* ch,int n, void**args)
 
 
 static void * rd_33(char*s)
-{  int i;
+{  int n;
 
    if(isdigit(s[0])) return &Number;
    if(s[0]=='"')  return  &String;
    if (strcmp(s,"Q")==0) depQ=1;
-
-   if(nmodelvar && strcmp(modelvars[nmodelvar].varname,s)==0)
-   {  i=nmodelvar; 
-      if(setPub && modelvars[i].pub==0 && modelvars[i].func)  modelvars[i].pub=-1; 
-      return &Number;
-   } 
-    
-   for(i=1;i<nmodelvar;i++) if(strcmp(modelvars[i].varname,s) == 0) 
-   {  
-      if(setPub && modelvars[i].pub==0 && modelvars[i].func)  modelvars[i].pub=-1; 
-      return &Number;
-   }
-   rderrcode=unknownidentifier; return NULL;   
+   n=findVarFast(s); 
+   if(n>=testingVar || n<0) {rderrcode=unknownidentifier; return NULL;} 
+   if(setPub) modelvars[n].pub=-1;
+   return &Number;
 }  
 
 static void * rd_33_nocheck(char*s)
@@ -161,12 +203,6 @@ static void * rd_33_nocheck(char*s)
    if(isdigit(s[0])) return &Number;
    if(s[0]=='"')  return  &String;
    if (strcmp(s,"Q")==0) depQ=1; 
-
-   if(setPub) 
-   for(i=1;i<=nmodelvar;i++)  if(modelvars[i].pub==0 && strcmp(modelvars[i].varname,s) == 0) 
-   {  modelvars[i].pub=-1; 
-      return &Number;
-   }
    return &Number;   
 }  
 
@@ -180,7 +216,6 @@ static int  readvars(int  check)
   char      numtxt[60];
   char      name[60];
   char *    ss, * endstr;
-  int       commentShift,funcShift;
   varlist   mvars;
   double    varvalue_tmp;
   linelist  ln;
@@ -188,6 +223,7 @@ static int  readvars(int  check)
   int i;  
   int nv=nv0; /*  0, i, Sqrt2, pi  + ..... */
   char * resName[nv0+1]={"0","i","Sqrt2","pi",strongconst};
+  void* (*rd)(char*);
   
   nmodelvar=nv0-1; 
   
@@ -208,18 +244,18 @@ static int  readvars(int  check)
 
 
   tabName=vars_tab.headln;
-  commentShift=tabCharPos(vars_tab.format,2);
 
   if(modelvars) free(modelvars);
-
+  
   modelvars = m_alloc((nv+1)*sizeof(*modelvars));
-  for(i=0;i<nv;i++) 
+  for(i=0;i<=nv;i++) 
   {  strcpy(modelvars[i].varname,"####");
      modelvars[i].varvalue=0.;
      modelvars[i].func=NULL;   
      modelvars[i].pub=0;
      modelvars[i].hidden=0;
      modelvars[i].pwidth=0;
+     modelvars[i].line=0;
   }
 
   for(i=0;i<nv0;i++) 
@@ -238,15 +274,14 @@ static int  readvars(int  check)
       trim(name); trim(numtxt);
       if(name[0]=='%') continue;
       for(i=1;i<=nv0;i++) if(strcmp(name,resName[i])==0) break;
-      if(i<=nv0) continue;
-        
+      if(i<=nv0){ if(check)
+                  {  char txt[50];
+                     sprintf(txt,"Variable %s ignored",resName[i]); 
+                     messanykey(10,10,txt);   
+                  }  continue;
+                }
       if (check && (!isVarName(name)) )
       {  errorMessage("Name","incorrect or reserved name '%s'",name);
-         goto errExi1;
-      }
-
-      if (check &&  (! isOriginName(name)) )
-      {  errorMessage("Name","duplicate name '%s'",name);   
          goto errExi1;
       }
 
@@ -260,88 +295,95 @@ static int  readvars(int  check)
       mvars=modelvars+nmodelvar; 
       strcpy(mvars->varname,name);
       mvars->varvalue=varvalue_tmp;
+      mvars->line=nLine;
+      mvars->pub=1;
    }
    nCommonVars=nmodelvar;
 
    tabName=func_tab.headln;
-   commentShift=tabCharPos(func_tab.format,2);
-   funcShift=tabCharPos(func_tab.format,1);
 
    for(nLine = 1,ln=func_tab.strings; ln; nLine++,ln=ln->next)
-   {  
+   {  int forcePub=0;  
       int hidden=0;
       ss=ln->line;
       name[0]=0; sscanf(ss," %[^|]",name);   
       trim(name);
       if(!name[0]) { errorMessage("Name","Empty line in the table","*"); goto errExi1; }
-      if(name[0]=='*') {name[0]=' '; trim(name); setPub=1;}  else 
-      {  setPub=0;
+      if(name[0]=='*') {name[0]=' '; trim(name);  forcePub=1; }  else 
+      { 
          if(name[0]=='#') {name[0]=' '; trim(name); hidden=1;}
          else if(name[0]=='%') 
-         {  if(strcmp(name,"%Local!")==0) 
-            { nCommonVars=nmodelvar;
-              if(nCommonVars >= aWidth1)
-              { 
-                errorMessage("Name","The '!Local' label  below call of aWidth()","*");  
-	        goto errExi1;
-              }      
-            }  
+         {  if(strcmp(name,"%Local!")==0) nCommonVars=nmodelvar;
             continue;
          }
-         for(i=1;i<nv0;i++) if( strcmp(name,resName[i])==0) break;
-         if(i<nv0)  continue;
-      }
+         for(i=1;i<=nv0;i++) if( strcmp(name,resName[i])==0) break;
+         if(i<=nv0){   if(check)
+                       { char txt[50];
+                         sprintf(txt,"Constraint %s ignored",resName[i]); 
+                         messanykey(10,10,txt);   
+                       }  continue;
+                   }
+      }               
       if (! isVarName(name))
       {  errorMessage("Name","incorrect or reserved name '%s'",name);
 	 goto errExi1;
       }
 
-      if ( check && (! isOriginName(name)) )
-      {  errorMessage("Name","duplicate name '%s'",name);
-			goto errExi1;
-      }
-      ExtFunc=0;
-      aWidth=0;
-      depQ=0;
-
-      if(check)
-      {
-         if(readExpression(ln->line+funcShift,rd_33, act_33,NULL)==&String) rderrcode=typemismatch;
-         if(rderrcode &&(rderrcode!=unknownfunction))
-         {  
-           if(rderrcode==unknownidentifier)
-           { char buff[100];
-             sscanf(ln->line+funcShift+rderrpos-1,"%[^|*+-/)(. ]",buff);
-             errorMessage("Expression","Unknown variable  %s",buff);
-           }else if(rderrcode==unexpectedcharacter)
-           { char ch=ln->line[funcShift+rderrpos-1];
-             if(!ch) errorMessage("Expression","%s","Unexpected end of line");
-             else errorMessage("Expression","Unexpected characted |%c|",ch);
-           }  else errorMessage("Expression","*");     
-	   goto errExi1;
-         }
-      }  else readExpression(ln->line+funcShift,rd_33_nocheck, act_33,NULL);
-      
-      if(aWidth && aWidth1 > nmodelvar+1)  aWidth1=nmodelvar+1; 
-      if(depQ   && depQ1   > nmodelvar+1)  depQ1  =nmodelvar+1; 
-      if(ExtFunc) 
-      {
-        nCommonVars=nmodelvar+1;
-        if(nCommonVars>=aWidth1)
-        { 
-	  errorMessage("Expression","Call of external functions after aWidth()","*");
-	  goto errExi1;
-        }      
-      }
-      
       nmodelvar++;
       
       mvars=modelvars+nmodelvar;
       strcpy(mvars->varname,name);
-      mvars->func=ln->line+funcShift;
-      mvars->pub=setPub;
-   }  
+      mvars->func=strchr(ln->line,'|')+1;
+      if(forcePub) mvars->pub=forcePub;
+      mvars->line=nLine;
+   }
+
+   sortVariables();
+   if(check) // duplicate name 
+   for(i=1;i<=nmodelvar;i++) if(strcmp(modelvars[vSorted[i]].varname,modelvars[vSorted[i-1]].varname)==0)
+   {  
+       
+      if(modelvars[vSorted[i]].func)  tabName=func_tab.headln; else tabName=vars_tab.headln; 
+      nLine=modelvars[vSorted[i]].line;  
+      rderrpos=1;
+      errorMessage("Name","duplicate name '%s'",modelvars[vSorted[i]].varname);  
+      return 1;
+   }
+   if(check) rd=rd_33;else rd=rd_33_nocheck;
+// Completeness 
+   setPub=0;
+   for(i=1;i<=nmodelvar;i++) if(modelvars[i].func)
+   {  testingVar=i;
+      tabName=func_tab.headln;
+       nLine=modelvars[i].line; 
+       ExtFunc=0;
+       depQ=0;
+       aWidth=0; 
+       if(readExpression(modelvars[i].func,rd, act_33,NULL)==&String) rderrcode=typemismatch;
+       if(rderrcode &&(rderrcode!=unknownfunction))
+       {  
+           if(rderrcode==unknownidentifier)
+           { char buff[100];
+             sscanf(modelvars[i].func  +rderrpos-1,"%[^^|*+-/)(. ]",buff);
+             errorMessage("Expression","Unknown variable  %s",buff);
+           }else if(rderrcode==unexpectedcharacter)
+           { char ch=modelvars[i].func[rderrpos-1];
+             if(!ch) errorMessage("Expression","%s","Unexpected end of line");
+             else errorMessage("Expression","Unexpected characted |%c|",ch);
+           }  else errorMessage("Expression","*");     
+	   goto errExi1;
+       }
+     
+       if(ExtFunc && i>nCommonVars) nCommonVars=i;
+       if(depQ   &&  depQ1>i)  depQ1=i;
+       if(check&&aWidth)
+       { errorMessage("Expression","%s","'aWidth()' - unlegal function");
+         return 0;
+       }  
+   }   
+         
    setPub=1;   
+   testingVar=nmodelvar;
    for(i=nmodelvar; i>nCommonVars; i--) if(modelvars[i].pub==-1) 
    {  readExpression(modelvars[i].func,rd_33, act_33,NULL);
       modelvars[i].pub=1;
@@ -352,25 +394,6 @@ errExi1:
    free (modelvars);
    modelvars=NULL; 
    return 0;
-}
-
-
-
-static int  findvar(char* txt,double* num, int *pos)
-{
-   int  i;
-
-   trim(txt);
-   for(i=1;i<=nmodelvar;i++)
-   { 
-     if(strcmp(txt,modelvars[i].varname)==0)
-     {
-        if(num) *num = modelvars[i].varvalue;
-        if(pos) *pos =i;
-        return 0;
-      }
-   }
-   return -1;
 }
 
 
@@ -546,7 +569,7 @@ static int  readparticles(int  check, int ugForce )
             return 0;
          }
       }
-      
+
       prtclbase[nparticles-1].spin=itmp;
       
       if( 1!=sscanf(numtxt,"%ld",&prtclbase[nparticles-1].N)) prtclbase[nparticles-1].N=0;
@@ -558,27 +581,16 @@ static int  readparticles(int  check, int ugForce )
       { if(prtclbase[nparticles-1].spin==3 || prtclbase[nparticles-1].spin==4)
          errorMessage("mass","spin 3/2 and spin 2 particles should be massive");
       }
-      else 
-      {  int pos;
-         errcode=findvar(massname,NULL,&pos);
-         if (check && (errcode != 0))
+      else  
+      {  
+         int pos=findVarFast(massname);
+         if(pos<0)
          {
             errorMessage("mass","unknown variable %s",massname);
             return 0;
-         }else if(pos<nv0)
-         {
-           errorMessage("mass","illegal variable %s",massname);
-           return 0;
          }
-         else if(strcmp(chlp,"*"))
-         {  if(pos>nCommonVars) nCommonVars=pos;
-            if(nCommonVars >= aWidth1) 
-            {
-                errorMessage("mass","definition of mass %s after aWidth() call",
-                                massname);
-                return 0;
-            }                
-         } 
+         
+         if(strcmp(chlp,"*")) if(pos>nCommonVars) nCommonVars=pos;
       }
       strcpy(prtclbase[nparticles-1].massidnt,massname);
 
@@ -590,37 +602,34 @@ static int  readparticles(int  check, int ugForce )
          return 0;
       }
                                        
-      if(strcmp(imassname,"0") != 0)
-      {  int pos;
-         errcode=findvar(imassname,NULL,&pos);
-         if(errcode)  
-         {  if(imassname[0]=='!') 
-            {  imassname[0]=' ';  
-               trim(imassname);
-               if(check && (!isVarName(imassname)) )
-               {  errorMessage("width","incorrect or reserved name '%s'",imassname);
+      if(imassname[0]=='!')
+      { 
+        imassname[0]=' ';
+        trim(imassname);
+        if(check)
+        {
+           if(!isVarName(imassname) )
+           {  errorMessage("width","incorrect or reserved name '%s'",imassname);
                   return 0;
-               }
-               if(check && (!isOriginName(imassname)) )                            
-               { errorMessage("width","this identifier  '%s' already was used",imassname);
+           }
+           if(findVarFast(imassname)>0)
+           { errorMessage("width","%s used variable, not accepted for automatic width",imassname);
                  return 0;
-               }
-               { varlist mvars=modelvars+1+nmodelvar; 
-                  nmodelvar++;
-                  strcpy(mvars->varname,imassname);
-                  mvars->pwidth=nparticles;
-               }                                                     
-            }else 
-            { 
-               errorMessage("width","unknown variable %s",imassname);
-               return 0;
-            }
-         } else if(pos<nv0)
-         {
-           errorMessage("width","illegal variable %s",imassname);
-           return 0;  
-         }
+           }
+           for(i=nSortedVar+1;i<=nmodelvar;i++) if(strcmp(modelvars[i].varname,imassname)==0)
+           {  errorMessage("width","this identifier  '%s' already was used",imassname);
+              return 0;
+           }  
+        }   
+        nmodelvar++;
+        strcpy(modelvars[nmodelvar].varname,imassname);
+        modelvars[nmodelvar].pwidth=nparticles;     
+      } else if(check && strcmp(imassname,"0") && findVarFast(imassname)<0)
+      { 
+         errorMessage("width","unknown variable %s",imassname);
+         return 0;
       }
+         
       strcpy(prtclbase[nparticles-1].imassidnt,imassname);
 
       itmp=strtol(trim(c),&endstr,10);
@@ -789,8 +798,8 @@ static int  testLgrgn(algvertptr lgrgn)
 
   for (n = 0; n < vardef->nvar; n++)
   { int err;
-    err=findvar(vardef->vars[n].name,NULL,NULL);
-    if (err)
+    err=findVarFast(vardef->vars[n].name);
+    if(err<0 && strcmp(vardef->vars[n].name,strongconst))
     {  errorMessage("Factor","unknown variable '%s'", vardef->vars[n].name);
       return 0;
     }
@@ -822,8 +831,8 @@ static int  testLgrgn(algvertptr lgrgn)
 
   for (n = 0; n < vardef->nvar; n++)
   {  int err;
-    err=findvar (vardef->vars[n].name,NULL,NULL);
-    if (err)
+    err=findVarFast (vardef->vars[n].name);
+    if (err<0)
     {  errorMessage("Lorentz part","unknown variable '%s'",vardef->vars[n].name);
       return 0;
     }
@@ -912,8 +921,8 @@ static int  readlagrangian(int check, int ugForce)
     lgrgn1=(algvertptr)m_alloc( sizeof(*lgrgn1));
     lgrgn1->next = lgrgn;
     lgrgn = lgrgn1;
-    lgrgn->comcoef=    ln->line+factorShift;
-    lgrgn->description=ln->line+lorentzShift;
+    for(lgrgn->comcoef=ln->line,i=0;i<4;lgrgn->comcoef++) if(lgrgn->comcoef[0]=='|')i++;
+    lgrgn->description=strchr(lgrgn->comcoef,'|')+1;
     for (i=0;i<4;i++) lgrgn->fields[i] = f_copy[i];
 
     if(check)
@@ -981,7 +990,7 @@ static int  readlagrangian(int check, int ugForce)
          }
   }
 
-  if (check)
+  if (check && lgrgn1)
   {
     mLine=nLine;
     lgrgn1 = lgrgn;   /*    check1       */
@@ -1057,7 +1066,7 @@ static int  readlagrangian(int check, int ugForce)
 
       errorMessage("P1,P2,P3,P4","conjugated vertex for %s not found",sss);
             return 0;
-       }
+      }
       lgrgn1= lgrgn1->next;
      }  while (lgrgn1 != NULL);
    }
@@ -1174,7 +1183,6 @@ static int find3charge(void)
          if(dec==NULL)
          {  prtclbase[i].q3=0;
             prtclbase[i_].q3=0;
-printf(" zero charge %s %s\n", prtclbase[i].name,prtclbase[i_]);            
             cont=1;
          }             
       }
@@ -1244,6 +1252,7 @@ static void  readEXTLIB(void)
 
 
 
+
 int  loadModel(int check,int ugForce)
 { 
   errorText[0]=0;
@@ -1251,17 +1260,20 @@ int  loadModel(int check,int ugForce)
   
   if((!check) && (ldModelStatus&2)==2 && (ldModelStatus&4)==4*ugForce) return 1;
   ldModelStatus=1;
-  if( !readvars(check) )     {  if(blind) sortie(125); else return 0;}   
+  
+  if( !readvars(check) )     {  if(blind) sortie(125); else return 0;}  
+  
+   
   if( !readparticles(check,ugForce))   {  if(blind) sortie(125); else return 0;}
   nmodelvar++;
   strcpy(modelvars[nmodelvar].varname,strongconst);
-  modelvars[nmodelvar].func=NULL;
   if( !readlagrangian(check,ugForce))   { if(blind) sortie(125); else return 0;}
   filldecaylist();
   if(find3charge()) {if(blind) sortie(125); else return 0;} 
   if(check && ! checkQ3()) {if(blind)  sortie(125); else return 0;}
 //  readEXTLIB();
   ldModelStatus=1+2+4*ugForce;
+  
   return 1;
 }
 
@@ -1412,7 +1424,7 @@ int makeVandP(int rd ,char*path,int L, int mode,char*CalcHEP)
   if (vararr) free(vararr);
   
   for(i=1;i<=nmodelvar;i++) 
-  if(modelvars[i].func) { if( modelvars[i].pub  || i<=nCommonVars) nFunc++;}
+  if(modelvars[i].func) {  if( modelvars[i].pub  || i<=nCommonVars) nFunc++;}
   else                  {  if(strcmp(modelvars[i].varname,"i")) nVar++;    }
   
   
@@ -1421,7 +1433,8 @@ int makeVandP(int rd ,char*path,int L, int mode,char*CalcHEP)
                                             * sizeof(singlevardescription));
 
   sprintf(vararr[0].alias,"XXX");
-  vararr[0].tmpvalue=vararr[0].num=vararr[0].used = 0;
+  vararr[0].tmpvalue=0;
+  vararr[0].num=vararr[0].used = 0;
 
   
   for(i=0;i< nv0;i++)
@@ -1592,3 +1605,4 @@ if(i==depQ1) fprintf(f," FirstQ:\n cErr=1;\n");
   }   
   return 0;
 }
+

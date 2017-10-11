@@ -1,0 +1,594 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tools.xsecComputer &mdash; SModelS 1.1.0patch1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="SModelS 1.1.0patch1 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> SModelS
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.1.0patch1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../theory.html">theory package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../experiment.html">experiment package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tools.html">tools package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">SModelS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>tools.xsecComputer</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tools.xsecComputer</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: xsecComputer</span>
+<span class="sd">   :synopsis: Computation of reference (&quot;theory&quot;) production cross sections.</span>
+
+<span class="sd">.. moduleauthor:: Suchita Kulkarni &lt;suchita.kulkarni@gmail.com&gt;</span>
+<span class="sd">.. moduleauthor:: Andre Lessa &lt;lessa.a.p@gmail.com&gt;</span>
+<span class="sd">.. moduleauthor:: Wolfgang Waltenberger &lt;wolfgang.waltenberger@gmail.com&gt;</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">smodels</span> <span class="kn">import</span> <span class="n">installation</span>
+<span class="kn">from</span> <span class="nn">smodels.tools</span> <span class="kn">import</span> <span class="n">toolBox</span><span class="p">,</span> <span class="n">runtime</span>
+<span class="kn">from</span> <span class="nn">smodels.tools.physicsUnits</span> <span class="kn">import</span> <span class="n">pb</span><span class="p">,</span> <span class="n">TeV</span><span class="p">,</span> <span class="n">GeV</span>
+<span class="kn">from</span> <span class="nn">smodels.theory</span> <span class="kn">import</span> <span class="n">crossSection</span>
+<span class="kn">from</span> <span class="nn">smodels.tools</span> <span class="kn">import</span> <span class="n">nllFast</span>
+<span class="kn">from</span> <span class="nn">smodels.tools.smodelsLogging</span> <span class="kn">import</span> <span class="n">logger</span><span class="p">,</span> <span class="n">setLogLevel</span>
+<span class="kn">from</span> <span class="nn">smodels.theory.exceptions</span> <span class="kn">import</span> <span class="n">SModelSTheoryError</span> <span class="k">as</span> <span class="n">SModelSError</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pyslha</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">cStringIO</span> <span class="kn">as</span> <span class="nn">io</span>
+<span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">io</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="n">LO</span><span class="o">=</span> <span class="mi">0</span>  <span class="c1">## simple variables used to increase readability the perturbation order </span>
+<span class="n">NLO</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">NLL</span><span class="o">=</span><span class="mi">2</span>
+
+<div class="viewcode-block" id="computeXSec"><a class="viewcode-back" href="../../tools.html#tools.xsecComputer.computeXSec">[docs]</a><span class="k">def</span> <span class="nf">computeXSec</span><span class="p">(</span><span class="n">sqrts</span><span class="p">,</span> <span class="n">maxOrder</span><span class="p">,</span> <span class="n">nevts</span><span class="p">,</span> <span class="n">slhafile</span><span class="p">,</span> <span class="n">lhefile</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">unlink</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">loFromSlha</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">pythiacard</span><span class="o">=</span><span class="bp">None</span> <span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Run pythia and compute SUSY cross sections for the input SLHA file.</span>
+
+<span class="sd">    :param sqrts: sqrt{s} to run Pythia, given as a unum (e.g. 7.*TeV)</span>
+<span class="sd">    :param maxOrder: maximum order to compute the cross section, given as an integer</span>
+<span class="sd">                if maxOrder == 0, compute only LO pythia xsecs</span>
+<span class="sd">                if maxOrder == 1, apply NLO K-factors from NLLfast (if available)</span>
+<span class="sd">                if maxOrder == 2, apply NLO+NLL K-factors from NLLfast (if available)</span>
+<span class="sd">    :param nevts: number of events for pythia run</span>
+<span class="sd">    :param slhafile: SLHA file</span>
+<span class="sd">    :param lhefile: LHE file. If None, do not write pythia output to file. If</span>
+<span class="sd">                    file does not exist, write pythia output to this file name. If</span>
+<span class="sd">                    file exists, read LO xsecs from this file (does not run pythia).</span>
+<span class="sd">    :param unlink: Clean up temp directory after running pythia</span>
+
+<span class="sd">    :param loFromSlha: If True, uses the LO xsecs from the SLHA file to compute the</span>
+<span class="sd">                       higher order xsecs</span>
+<span class="sd">    :param pythiaCard: Optional path to pythia.card. If None, uses /etc/pythia.card</span>
+
+<span class="sd">    :returns: XSectionList object</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">slhafile</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;SLHA file </span><span class="si">%s</span><span class="s2"> not found.&quot;</span><span class="p">,</span> <span class="n">slhafile</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">=</span><span class="n">pyslha</span><span class="o">.</span><span class="n">readSLHAFile</span><span class="p">(</span><span class="n">slhafile</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">pyslha</span><span class="o">.</span><span class="n">ParseError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;File cannot be parsed as SLHA file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">e</span> <span class="p">)</span>
+        <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">sqrts</span><span class="p">)</span><span class="o">==</span><span class="nb">type</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">sqrts</span><span class="p">)</span><span class="o">==</span><span class="nb">type</span><span class="p">(</span><span class="nb">int</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;sqrt(s) given as scalar, will add TeV as unit.&quot;</span> <span class="p">)</span>
+        <span class="n">sqrts</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">sqrts</span><span class="p">)</span><span class="o">*</span><span class="n">TeV</span>
+
+    <span class="n">smaxorder</span><span class="o">=</span><span class="p">{</span> <span class="s2">&quot;LO&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;NLO&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;NLL&quot;</span><span class="p">:</span> <span class="mi">2</span> <span class="p">}</span>
+    <span class="k">if</span> <span class="n">maxOrder</span> <span class="ow">in</span> <span class="n">smaxorder</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;maxorder given as string, please supply integer.&quot;</span><span class="p">)</span>
+        <span class="n">maxOrder</span><span class="o">=</span><span class="n">smaxorder</span><span class="p">[</span><span class="n">maxOrder</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">lhefile</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">lhefile</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Using LO cross sections from &quot;</span> <span class="o">+</span> <span class="n">lhefile</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Writing pythia LHE output to &quot;</span> <span class="o">+</span> <span class="n">lhefile</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">loFromSlha</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Using LO cross sections from &quot;</span> <span class="o">+</span> <span class="n">slhafile</span><span class="p">)</span>
+        <span class="n">xsecsInfile</span> <span class="o">=</span> <span class="n">crossSection</span><span class="o">.</span><span class="n">getXsecFromSLHAFile</span><span class="p">(</span><span class="n">slhafile</span><span class="p">)</span>
+        <span class="n">loXsecs</span> <span class="o">=</span> <span class="n">crossSection</span><span class="o">.</span><span class="n">XSectionList</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">xsec</span> <span class="ow">in</span> <span class="n">xsecsInfile</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">xsec</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">order</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">xsec</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">sqrts</span> <span class="o">==</span> <span class="n">sqrts</span><span class="p">:</span>
+                <span class="n">loXsecs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">xsec</span><span class="p">)</span>
+                
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">lhefile</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">lhefile</span><span class="p">):</span>
+            <span class="n">lheFile</span> <span class="o">=</span> <span class="n">runPythia</span><span class="p">(</span><span class="n">slhafile</span><span class="p">,</span> <span class="n">nevts</span><span class="p">,</span> <span class="n">sqrts</span> <span class="o">/</span> <span class="n">TeV</span><span class="p">,</span> <span class="n">lhefile</span><span class="p">,</span> <span class="n">unlink</span><span class="o">=</span><span class="n">unlink</span><span class="p">,</span><span class="n">pythiacard</span><span class="o">=</span><span class="n">pythiacard</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lheFile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">lhefile</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+        <span class="n">loXsecs</span> <span class="o">=</span> <span class="n">crossSection</span><span class="o">.</span><span class="n">getXsecFromLHEFile</span><span class="p">(</span><span class="n">lheFile</span><span class="p">)</span>
+    <span class="n">xsecs</span> <span class="o">=</span> <span class="n">loXsecs</span>
+    <span class="n">wlabel</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">sqrts</span> <span class="o">/</span> <span class="n">TeV</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39; TeV&#39;</span>
+    <span class="k">if</span> <span class="n">maxOrder</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">wlabel</span> <span class="o">+=</span> <span class="s1">&#39; (LO)&#39;</span>
+    <span class="k">elif</span> <span class="n">maxOrder</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">wlabel</span> <span class="o">+=</span> <span class="s1">&#39; (NLO)&#39;</span>
+    <span class="k">elif</span> <span class="n">maxOrder</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">wlabel</span> <span class="o">+=</span> <span class="s1">&#39; (NLO+NLL)&#39;</span>
+    <span class="k">for</span> <span class="n">ixsec</span><span class="p">,</span> <span class="n">xsec</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">xsecs</span><span class="p">):</span>
+        <span class="n">xsecs</span><span class="p">[</span><span class="n">ixsec</span><span class="p">]</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">wlabel</span>
+        <span class="n">xsecs</span><span class="p">[</span><span class="n">ixsec</span><span class="p">]</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">order</span> <span class="o">=</span> <span class="n">maxOrder</span>
+
+    <span class="k">if</span> <span class="n">maxOrder</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">pIDs</span> <span class="o">=</span> <span class="n">loXsecs</span><span class="o">.</span><span class="n">getPIDpairs</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">pID</span> <span class="ow">in</span> <span class="n">pIDs</span><span class="p">:</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="mf">0.</span>
+            <span class="n">kNLO</span><span class="p">,</span> <span class="n">kNLL</span> <span class="o">=</span> <span class="n">nllFast</span><span class="o">.</span><span class="n">getKfactorsFor</span><span class="p">(</span><span class="n">pID</span><span class="p">,</span> <span class="n">sqrts</span><span class="p">,</span> <span class="n">slhafile</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">maxOrder</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">kNLO</span><span class="p">:</span>
+                <span class="n">k</span> <span class="o">=</span> <span class="n">kNLO</span>
+            <span class="k">elif</span> <span class="n">maxOrder</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">kNLL</span> <span class="ow">and</span> <span class="n">kNLO</span><span class="p">:</span>
+                <span class="n">k</span> <span class="o">=</span> <span class="n">kNLO</span> <span class="o">*</span> <span class="n">kNLL</span>
+            <span class="k">elif</span> <span class="n">maxOrder</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">kNLL</span> <span class="ow">and</span> <span class="n">kNLO</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Unkown xsec order, using NLL+NLO k-factor, &quot;</span>
+                               <span class="s2">&quot;if available&quot;</span><span class="p">)</span>
+                <span class="n">k</span> <span class="o">=</span> <span class="n">kNLO</span> <span class="o">*</span> <span class="n">kNLL</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">xsec</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">xsecs</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">xsec</span><span class="o">.</span><span class="n">pid</span><span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span><span class="n">pID</span><span class="p">):</span>
+                    <span class="c1"># Apply k-factor</span>
+                    <span class="n">xsecs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">xsec</span> <span class="o">*</span> <span class="n">k</span>
+
+    <span class="c1"># Remove zero cross sections</span>
+    <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">xsecs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">xsecs</span><span class="o">.</span><span class="n">getMinXsec</span><span class="p">()</span> <span class="o">==</span> <span class="mf">0.</span> <span class="o">*</span> <span class="n">pb</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">xsec</span> <span class="ow">in</span> <span class="n">xsecs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">xsec</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="mf">0.</span> <span class="o">*</span> <span class="n">pb</span><span class="p">:</span>
+                <span class="n">xsecs</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">xsec</span><span class="p">)</span>
+                <span class="k">break</span>
+    <span class="k">if</span> <span class="n">maxOrder</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">xsecs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No NLO or NLL cross sections available.&quot;</span><span class="p">)</span>
+        
+    <span class="k">return</span> <span class="n">xsecs</span></div>
+
+
+<div class="viewcode-block" id="addXSecToFile"><a class="viewcode-back" href="../../tools.html#tools.xsecComputer.addXSecToFile">[docs]</a><span class="k">def</span> <span class="nf">addXSecToFile</span><span class="p">(</span><span class="n">xsecs</span><span class="p">,</span> <span class="n">slhafile</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">complain</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Write cross sections to an SLHA file.</span>
+<span class="sd">    </span>
+<span class="sd">    :param xsecs: a XSectionList object containing the cross sections</span>
+<span class="sd">    :param slhafile: target file for writing the cross sections in SLHA format</span>
+<span class="sd">    :param comment: optional comment to be added to each cross section block</span>
+<span class="sd">    :param complain: complain if there are already cross sections in file</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">slhafile</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;SLHA file not found.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">xsecs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No cross sections available.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">False</span>
+    <span class="c1"># Check if file already contain cross section blocks</span>
+    <span class="n">xSectionList</span> <span class="o">=</span> <span class="n">crossSection</span><span class="o">.</span><span class="n">getXsecFromSLHAFile</span><span class="p">(</span><span class="n">slhafile</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">xSectionList</span> <span class="ow">and</span> <span class="n">complain</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;SLHA file already contains XSECTION blocks. Adding &quot;</span>
+                       <span class="s2">&quot;only missing cross sections.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Write cross sections to file, if they do not overlap any cross section in</span>
+    <span class="c1"># the file</span>
+    <span class="n">outfile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">slhafile</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">xsec</span> <span class="ow">in</span> <span class="n">xsecs</span><span class="p">:</span>
+        <span class="n">writeXsec</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">for</span> <span class="n">oldxsec</span> <span class="ow">in</span> <span class="n">xSectionList</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">oldxsec</span><span class="o">.</span><span class="n">info</span> <span class="o">==</span> <span class="n">xsec</span><span class="o">.</span><span class="n">info</span> <span class="ow">and</span> <span class="nb">set</span><span class="p">(</span><span class="n">oldxsec</span><span class="o">.</span><span class="n">pid</span><span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span><span class="n">xsec</span><span class="o">.</span><span class="n">pid</span><span class="p">):</span>
+                <span class="n">writeXsec</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="k">break</span>
+        <span class="k">if</span> <span class="n">writeXsec</span><span class="p">:</span>
+            <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">xsecToBlock</span><span class="p">(</span><span class="n">xsec</span><span class="p">,</span> <span class="p">(</span><span class="mi">2212</span><span class="p">,</span> <span class="mi">2212</span><span class="p">),</span> <span class="n">comment</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">outfile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="bp">True</span></div>
+
+
+<div class="viewcode-block" id="xsecToBlock"><a class="viewcode-back" href="../../tools.html#tools.xsecComputer.xsecToBlock">[docs]</a><span class="k">def</span> <span class="nf">xsecToBlock</span><span class="p">(</span><span class="n">xsec</span><span class="p">,</span> <span class="n">inPDGs</span><span class="o">=</span><span class="p">(</span><span class="mi">2212</span><span class="p">,</span> <span class="mi">2212</span><span class="p">),</span> <span class="n">comment</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">xsecUnit</span> <span class="o">=</span> <span class="n">pb</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a string for a XSECTION block in the SLHA format from a XSection</span>
+<span class="sd">    object.</span>
+
+<span class="sd">    :param inPDGs: defines the PDGs of the incoming states</span>
+<span class="sd">                   (default = 2212,2212)</span>
+
+<span class="sd">    :param comment: is added at the end of the header as a comment</span>
+<span class="sd">    :param xsecUnit: unit of cross sections to be written (default is pb). Must be a Unum unit.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">xsec</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">crossSection</span><span class="o">.</span><span class="n">XSection</span><span class="p">()):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Wrong input&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+    <span class="c1"># Sqrt(s) in GeV</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="s2">&quot;XSECTION  &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">xsec</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">sqrts</span> <span class="o">/</span> <span class="n">GeV</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">pdg</span> <span class="ow">in</span> <span class="n">inPDGs</span><span class="p">:</span>
+        <span class="c1"># PDGs of incoming states</span>
+        <span class="n">header</span> <span class="o">+=</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">pdg</span><span class="p">)</span>
+    <span class="c1"># Number of outgoing states</span>
+    <span class="n">header</span> <span class="o">+=</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xsec</span><span class="o">.</span><span class="n">pid</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">pid</span> <span class="ow">in</span> <span class="n">xsec</span><span class="o">.</span><span class="n">pid</span><span class="p">:</span>
+        <span class="c1"># PDGs of outgoing states</span>
+        <span class="n">header</span> <span class="o">+=</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">pid</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">comment</span><span class="p">:</span>
+        <span class="n">header</span> <span class="o">+=</span> <span class="s2">&quot;   # &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">comment</span><span class="p">)</span>  <span class="c1"># Comment</span>
+    <span class="n">entry</span> <span class="o">=</span> <span class="s2">&quot;  0  &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">xsec</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">order</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;  0  0  0  0  &quot;</span> <span class="o">+</span> \
+            <span class="nb">str</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%16.8E</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">xsec</span><span class="o">.</span><span class="n">value</span> <span class="o">/</span> <span class="n">xsecUnit</span><span class="p">)</span> <span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; SModelS &quot;</span> <span class="o">+</span> <span class="n">installation</span><span class="o">.</span><span class="n">version</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">header</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">entry</span></div>
+
+
+<div class="viewcode-block" id="runPythia"><a class="viewcode-back" href="../../tools.html#tools.xsecComputer.runPythia">[docs]</a><span class="k">def</span> <span class="nf">runPythia</span><span class="p">(</span><span class="n">slhafile</span><span class="p">,</span> <span class="n">nevts</span><span class="p">,</span> <span class="n">sqrts</span><span class="p">,</span> <span class="n">lhefile</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">unlink</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">pythiacard</span><span class="o">=</span><span class="bp">None</span> <span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Execute pythia_lhe with n events, at sqrt(s)=sqrts.</span>
+
+<span class="sd">    :param slhafile: input SLHA file</span>
+<span class="sd">    :param nevts: number of events to be generated</span>
+<span class="sd">    :param sqrts: center of mass sqrt{s} (in TeV)</span>
+<span class="sd">    :param lhefile: option to write LHE output to file; ff None, do not write</span>
+<span class="sd">                    output to disk.</span>
+<span class="sd">    :param unlink: Clean up temp directory after running pythia</span>
+<span class="sd">    :param pythiaCard: Optional path to pythia.card. If None, uses /etc/pythia.card</span>
+<span class="sd">    </span>
+<span class="sd">    :returns: file object with the LHE events</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">box</span> <span class="o">=</span> <span class="n">toolBox</span><span class="o">.</span><span class="n">ToolBox</span><span class="p">()</span>
+    <span class="n">tool</span> <span class="o">=</span> <span class="n">box</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;pythia6&quot;</span><span class="p">)</span>
+    <span class="c1">#Change pythia card, if defined:</span>
+    <span class="k">if</span> <span class="n">pythiacard</span><span class="p">:</span>
+        <span class="n">pythiacard_default</span> <span class="o">=</span> <span class="n">tool</span><span class="o">.</span><span class="n">cfgfile</span>
+        <span class="n">tool</span><span class="o">.</span><span class="n">cfgfile</span> <span class="o">=</span> <span class="n">pythiacard</span>
+    <span class="c1"># Check if template config file exists</span>
+    <span class="n">tool</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+    <span class="n">tool</span><span class="o">.</span><span class="n">replaceInCfgFile</span><span class="p">({</span><span class="s2">&quot;NEVENTS&quot;</span><span class="p">:</span> <span class="n">nevts</span><span class="p">,</span> <span class="s2">&quot;SQRTS&quot;</span><span class="p">:</span><span class="mi">1000</span> <span class="o">*</span> <span class="n">sqrts</span><span class="p">})</span>
+    <span class="n">tool</span><span class="o">.</span><span class="n">setParameter</span><span class="p">(</span><span class="s2">&quot;MSTP(163)&quot;</span><span class="p">,</span> <span class="s2">&quot;6&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">unlink</span><span class="o">==</span><span class="bp">False</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span> <span class="p">(</span> <span class="s2">&quot;keeping temporary directory at </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">tool</span><span class="o">.</span><span class="n">tempDirectory</span><span class="p">()</span> <span class="p">)</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">tool</span><span class="o">.</span><span class="n">checkInstallation</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">r</span> <span class="o">==</span> <span class="bp">False</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span> <span class="p">(</span> <span class="s2">&quot;Installation check failed.&quot;</span> <span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+    <span class="c1">#logger.info ( &quot;cfgfile=%s&quot; % tool.cfgfile )</span>
+    <span class="c1">#logger.info ( &quot;executable=%s&quot; % tool.executable )</span>
+    <span class="c1">#logger.info ( &quot;tempdir=%s&quot; % tool.tempdir )</span>
+    <span class="c1">#logger.info ( &quot;nevents=%s&quot; % tool.nevents )</span>
+    <span class="n">tool</span><span class="o">.</span><span class="n">replaceInCfgFile</span><span class="p">({</span><span class="s2">&quot;NEVENTS&quot;</span><span class="p">:</span> <span class="n">nevts</span><span class="p">,</span> <span class="s2">&quot;SQRTS&quot;</span><span class="p">:</span><span class="mi">1000</span> <span class="o">*</span> <span class="n">sqrts</span><span class="p">})</span>
+    <span class="n">tool</span><span class="o">.</span><span class="n">setParameter</span><span class="p">(</span><span class="s2">&quot;MSTP(163)&quot;</span><span class="p">,</span> <span class="s2">&quot;6&quot;</span><span class="p">)</span>
+    <span class="n">lhedata</span> <span class="o">=</span> <span class="n">tool</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">slhafile</span><span class="p">,</span> <span class="n">do_check</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">do_unlink</span><span class="o">=</span><span class="n">unlink</span> <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="s2">&quot;&lt;LesHouchesEvents&quot;</span> <span class="ow">in</span> <span class="n">lhedata</span><span class="p">:</span>
+        <span class="n">pythiadir</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/log&quot;</span> <span class="o">%</span> <span class="n">tool</span><span class="o">.</span><span class="n">tempDirectory</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No LHE events found in pythia output </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pythiadir</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span> <span class="p">(</span> <span class="n">pythiadir</span> <span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span> <span class="p">(</span><span class="s2">&quot;Will dump pythia output to </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pythiadir</span> <span class="p">)</span>
+            <span class="n">f</span><span class="o">=</span><span class="nb">open</span> <span class="p">(</span> <span class="n">pythiadir</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span> <span class="p">)</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lhedata</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span> <span class="p">(</span> <span class="n">line</span> <span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">(</span> <span class="s2">&quot;No LHE events found in </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pythiadir</span> <span class="p">)</span>
+
+    <span class="c1">#Reset pythia card to its default value</span>
+    <span class="k">if</span> <span class="n">pythiacard</span><span class="p">:</span>
+        <span class="n">tool</span><span class="o">.</span><span class="n">cfgfile</span> <span class="o">=</span> <span class="n">pythiacard_default</span>
+
+    <span class="c1"># Generate file object with lhe events</span>
+    <span class="k">if</span> <span class="n">lhefile</span><span class="p">:</span>
+        <span class="n">lheFile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">lhefile</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">lheFile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">lhedata</span><span class="p">)</span>
+        <span class="n">lheFile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">lheFile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">lhefile</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Create memory only file object</span>
+        <span class="n">lheFile</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">(</span><span class="n">lhedata</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">lheFile</span></div>
+
+<div class="viewcode-block" id="computeForOneFile"><a class="viewcode-back" href="../../tools.html#tools.xsecComputer.computeForOneFile">[docs]</a><span class="k">def</span> <span class="nf">computeForOneFile</span> <span class="p">(</span> <span class="n">sqrtses</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">nevents</span><span class="p">,</span> <span class="n">inputFile</span><span class="p">,</span> <span class="n">unlink</span><span class="p">,</span>
+                        <span class="n">lOfromSLHA</span><span class="p">,</span> <span class="n">tofile</span><span class="p">,</span> <span class="n">pythiacard</span><span class="o">=</span><span class="bp">None</span> <span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; compute the cross sections for one file &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">tofile</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Computing SLHA cross section from </span><span class="si">%s</span><span class="s2">, adding to &quot;</span>
+                    <span class="s2">&quot;SLHA file.&quot;</span> <span class="o">%</span> <span class="n">inputFile</span> <span class="p">)</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sqrtses</span><span class="p">:</span>
+            <span class="n">ss</span> <span class="o">=</span> <span class="n">s</span><span class="o">*</span><span class="n">TeV</span> 
+            <span class="n">xsecs</span> <span class="o">=</span> <span class="n">computeXSec</span><span class="p">(</span> <span class="n">ss</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">nevents</span><span class="p">,</span> <span class="n">inputFile</span><span class="p">,</span> 
+                                 <span class="n">unlink</span><span class="o">=</span> <span class="n">unlink</span><span class="p">,</span> <span class="n">loFromSlha</span><span class="o">=</span> <span class="n">lOfromSLHA</span><span class="p">,</span> <span class="n">pythiacard</span><span class="o">=</span><span class="n">pythiacard</span><span class="p">)</span>
+            <span class="n">comment</span> <span class="o">=</span> <span class="s2">&quot;Nevts: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">nevents</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; xsec unit: pb&quot;</span>
+            <span class="n">addXSecToFile</span><span class="p">(</span><span class="n">xsecs</span><span class="p">,</span> <span class="n">inputFile</span><span class="p">,</span> <span class="n">comment</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Computing SLHA cross section from </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">inputFile</span> <span class="p">)</span>
+        <span class="k">print</span><span class="p">()</span>
+        <span class="k">print</span><span class="p">(</span> <span class="s2">&quot;     Cross sections:&quot;</span> <span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span> <span class="s2">&quot;=======================&quot;</span> <span class="p">)</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sqrtses</span><span class="p">:</span>
+            <span class="n">ss</span> <span class="o">=</span> <span class="n">s</span><span class="o">*</span><span class="n">TeV</span> 
+            <span class="n">xsecs</span> <span class="o">=</span> <span class="n">computeXSec</span><span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">nevents</span><span class="p">,</span> <span class="n">inputFile</span><span class="p">,</span> \
+                        <span class="n">unlink</span><span class="o">=</span><span class="n">unlink</span><span class="p">,</span> <span class="n">loFromSlha</span><span class="o">=</span><span class="n">lOfromSLHA</span> <span class="p">)</span>
+            <span class="k">for</span> <span class="n">xsec</span> <span class="ow">in</span> <span class="n">xsecs</span><span class="p">:</span> 
+                <span class="k">print</span><span class="p">(</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%20s</span><span class="s2">:  </span><span class="si">%.3e</span><span class="s2"> pb&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">xsec</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">label</span><span class="p">,</span><span class="n">xsec</span><span class="o">.</span><span class="n">pid</span><span class="p">,</span><span class="n">xsec</span><span class="o">.</span><span class="n">value</span><span class="o">/</span><span class="n">pb</span> <span class="p">)</span> <span class="p">)</span>
+        <span class="k">print</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="queryCrossSections"><a class="viewcode-back" href="../../tools.html#tools.xsecComputer.queryCrossSections">[docs]</a><span class="k">def</span> <span class="nf">queryCrossSections</span> <span class="p">(</span> <span class="n">filename</span> <span class="p">):</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span> <span class="p">(</span> <span class="n">filename</span> <span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span> <span class="p">(</span> <span class="s2">&quot;Cannot query cross sections for a directory.&quot;</span> <span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">xsecsInfile</span> <span class="o">=</span> <span class="n">crossSection</span><span class="o">.</span><span class="n">getXsecFromSLHAFile</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">xsecsInfile</span><span class="p">:</span>
+        <span class="k">print</span> <span class="p">(</span> <span class="s2">&quot;1&quot;</span> <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span> <span class="p">(</span> <span class="s2">&quot;0&quot;</span> <span class="p">)</span></div>
+
+<div class="viewcode-block" id="getOrder"><a class="viewcode-back" href="../../tools.html#tools.xsecComputer.getOrder">[docs]</a><span class="k">def</span> <span class="nf">getOrder</span> <span class="p">(</span> <span class="n">args</span> <span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; retrieve the order in perturbation theory from argument list &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">NLL</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">2</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">NLO</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="getSqrtses"><a class="viewcode-back" href="../../tools.html#tools.xsecComputer.getSqrtses">[docs]</a><span class="k">def</span> <span class="nf">getSqrtses</span> <span class="p">(</span> <span class="n">args</span> <span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; extract the sqrtses from argument list &quot;&quot;&quot;</span>
+    <span class="n">sqrtses</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">sublist</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="n">sqrts</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">sublist</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sqrtses</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">sqrtses</span> <span class="o">=</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span><span class="mi">13</span><span class="p">]</span>
+    <span class="n">sqrtses</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">sqrtses</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">sqrtses</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sqrtses</span></div>
+
+<div class="viewcode-block" id="checkAllowedSqrtses"><a class="viewcode-back" href="../../tools.html#tools.xsecComputer.checkAllowedSqrtses">[docs]</a><span class="k">def</span> <span class="nf">checkAllowedSqrtses</span> <span class="p">(</span> <span class="n">order</span><span class="p">,</span> <span class="n">sqrtses</span> <span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; check if the sqrtses are &#39;allowed&#39; &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span>
+    <span class="n">allowedsqrtses</span><span class="o">=</span><span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">13</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">sqrts</span> <span class="ow">in</span> <span class="n">sqrtses</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">sqrts</span> <span class="ow">in</span> <span class="n">allowedsqrtses</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Cannot compute NLO or NLL xsecs for sqrts = </span><span class="si">%d</span><span class="s2"> &quot;</span>
+                    <span class="s2">&quot;TeV! Available are: </span><span class="si">%s</span><span class="s2"> TeV.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sqrts</span><span class="p">,</span> <span class="n">allowedsqrtses</span> <span class="p">))</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="computeForBunch"><a class="viewcode-back" href="../../tools.html#tools.xsecComputer.computeForBunch">[docs]</a><span class="k">def</span> <span class="nf">computeForBunch</span> <span class="p">(</span> <span class="n">sqrtses</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">nevents</span><span class="p">,</span> <span class="n">inputFiles</span><span class="p">,</span> <span class="n">unlink</span><span class="p">,</span>
+                        <span class="n">lOfromSLHA</span><span class="p">,</span> <span class="n">tofile</span><span class="p">,</span> <span class="n">pythiacard</span><span class="o">=</span><span class="bp">None</span> <span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; compute xsecs for a bunch of slha files &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">inputFile</span> <span class="ow">in</span> <span class="n">inputFiles</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span> <span class="p">(</span> <span class="s2">&quot;computing xsec for </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">inputFile</span> <span class="p">)</span>
+        <span class="n">computeForOneFile</span> <span class="p">(</span> <span class="n">sqrtses</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">nevents</span><span class="p">,</span> <span class="n">inputFile</span><span class="p">,</span> <span class="n">unlink</span><span class="p">,</span> 
+                            <span class="n">lOfromSLHA</span><span class="p">,</span> <span class="n">tofile</span><span class="p">,</span> <span class="n">pythiacard</span><span class="o">=</span><span class="n">pythiacard</span> <span class="p">)</span></div>
+
+<div class="viewcode-block" id="getInputFiles"><a class="viewcode-back" href="../../tools.html#tools.xsecComputer.getInputFiles">[docs]</a><span class="k">def</span> <span class="nf">getInputFiles</span> <span class="p">(</span> <span class="n">args</span> <span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; geth the names of the slha files to run over &quot;&quot;&quot;</span>
+    <span class="n">inputPath</span>  <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">filename</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span> <span class="n">inputPath</span> <span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span> <span class="s2">&quot;Path </span><span class="si">%s</span><span class="s2"> does not exist.&quot;</span> <span class="o">%</span> <span class="n">inputPath</span> <span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">inputFiles</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span> <span class="p">(</span> <span class="n">inputPath</span> <span class="p">):</span>
+        <span class="n">inputFiles</span> <span class="o">=</span> <span class="p">[</span> <span class="n">inputPath</span> <span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">files</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span> <span class="p">(</span> <span class="n">inputPath</span> <span class="p">)</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+            <span class="n">inputFiles</span><span class="o">.</span><span class="n">append</span> <span class="p">(</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span> <span class="p">(</span> <span class="n">inputPath</span><span class="p">,</span> <span class="n">f</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="k">return</span> <span class="n">inputFiles</span></div>
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../tools.html#tools.xsecComputer.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="n">setLogLevel</span> <span class="p">(</span> <span class="n">args</span><span class="o">.</span><span class="n">verbosity</span> <span class="p">)</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">query</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">queryCrossSections</span> <span class="p">(</span> <span class="n">args</span><span class="o">.</span><span class="n">filename</span> <span class="p">)</span>
+    <span class="n">sqrtses</span> <span class="o">=</span> <span class="n">getSqrtses</span> <span class="p">(</span> <span class="n">args</span> <span class="p">)</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="n">getOrder</span> <span class="p">(</span> <span class="n">args</span> <span class="p">)</span>
+    <span class="n">checkAllowedSqrtses</span> <span class="p">(</span> <span class="n">order</span><span class="p">,</span> <span class="n">sqrtses</span> <span class="p">)</span>
+    <span class="n">inputFiles</span> <span class="o">=</span> <span class="n">getInputFiles</span> <span class="p">(</span> <span class="n">args</span> <span class="p">)</span>
+    <span class="n">ncpus</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">ncpus</span>
+
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s1">&#39;pythiacard&#39;</span><span class="p">):</span>
+        <span class="n">pythiacard</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">pythiacard</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">pythiacard</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="n">ncpus</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">or</span> <span class="n">ncpus</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span> <span class="p">(</span> <span class="s2">&quot;Weird number of CPUs given: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">ncpus</span> <span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">ncpus</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">ncpus</span> <span class="o">=</span> <span class="n">runtime</span><span class="o">.</span><span class="n">nCPUs</span><span class="p">()</span>
+    <span class="n">ncpus</span> <span class="o">=</span> <span class="nb">min</span> <span class="p">(</span> <span class="nb">len</span><span class="p">(</span><span class="n">inputFiles</span><span class="p">),</span> <span class="n">ncpus</span> <span class="p">)</span>
+    <span class="k">if</span> <span class="n">ncpus</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span> <span class="p">(</span> <span class="s2">&quot;We run on a single cpu&quot;</span> <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span> <span class="p">(</span> <span class="s2">&quot;We run on </span><span class="si">%d</span><span class="s2"> cpus&quot;</span> <span class="o">%</span> <span class="n">ncpus</span> <span class="p">)</span>
+    <span class="n">children</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ncpus</span><span class="p">):</span>
+        <span class="n">pid</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">fork</span><span class="p">()</span>
+        <span class="n">chunk</span> <span class="o">=</span> <span class="n">inputFiles</span> <span class="p">[</span> <span class="n">i</span><span class="p">::</span><span class="n">ncpus</span> <span class="p">]</span>
+        <span class="k">if</span> <span class="n">pid</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span> <span class="p">(</span> <span class="s2">&quot;fork did not succeed! Pid=</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pid</span> <span class="p">)</span> 
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">pid</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span> <span class="p">(</span> <span class="s2">&quot;chunk #</span><span class="si">%d</span><span class="s2">: pid </span><span class="si">%d</span><span class="s2"> (parent </span><span class="si">%d</span><span class="s2">).&quot;</span> <span class="o">%</span> 
+                       <span class="p">(</span> <span class="n">i</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">(),</span> <span class="n">os</span><span class="o">.</span><span class="n">getppid</span><span class="p">()</span> <span class="p">)</span> <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span> <span class="p">(</span> <span class="s2">&quot; `-&gt; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span> <span class="p">(</span> <span class="n">chunk</span> <span class="p">)</span> <span class="p">)</span>
+            <span class="n">computeForBunch</span> <span class="p">(</span>  <span class="n">sqrtses</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">nevents</span><span class="p">,</span> <span class="n">chunk</span><span class="p">,</span> <span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">keep</span><span class="p">,</span>
+                               <span class="n">args</span><span class="o">.</span><span class="n">LOfromSLHA</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">tofile</span><span class="p">,</span> <span class="n">pythiacard</span><span class="o">=</span><span class="n">pythiacard</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">_exit</span> <span class="p">(</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="n">pid</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">children</span><span class="o">.</span><span class="n">append</span> <span class="p">(</span> <span class="n">pid</span> <span class="p">)</span>
+    <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">children</span><span class="p">:</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">waitpid</span> <span class="p">(</span> <span class="n">child</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span> <span class="p">(</span> <span class="s2">&quot;child </span><span class="si">%d</span><span class="s2"> terminated: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">child</span><span class="p">,</span><span class="n">r</span><span class="p">)</span> <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span> <span class="p">(</span> <span class="s2">&quot;all children terminated.&quot;</span> <span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, &lt;function authors at 0x7f73f74eb500&gt;.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.1.0patch1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

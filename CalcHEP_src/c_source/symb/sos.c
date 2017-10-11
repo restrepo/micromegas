@@ -9,6 +9,7 @@
 #include "physics.h"
 #include "sos.h"
 #include "c_out.h"      /* consLow */
+#include "out_serv.h"
 #include "prepdiag.h"   /* longDouble */
 #include "process.h"
 #include "cweight.h"

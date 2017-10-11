@@ -1,0 +1,441 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tools.statistics &mdash; SModelS 1.1.0patch1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="SModelS 1.1.0patch1 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> SModelS
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.1.0patch1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../theory.html">theory package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../experiment.html">experiment package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tools.html">tools package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">SModelS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>tools.statistics</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tools.statistics</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: statistics</span>
+<span class="sd">   :synopsis: Code that computes CLs, p values, etc.</span>
+
+<span class="sd">.. moduleauthor:: Andre Lessa &lt;lessa.a.p@gmail.com&gt;</span>
+<span class="sd">.. moduleauthor:: Wolfgang Waltenberger &lt;wolfgang.waltenberger@gmail.com&gt;</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">smodels.tools.physicsUnits</span> <span class="kn">import</span> <span class="n">fb</span>
+<span class="kn">from</span> <span class="nn">smodels.tools.smodelsLogging</span> <span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span> <span class="nn">smodels.tools.caching</span> <span class="kn">import</span> <span class="n">_memoize</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">stats</span><span class="p">,</span> <span class="n">optimize</span><span class="p">,</span> <span class="n">integrate</span><span class="p">,</span> <span class="n">special</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">sqrt</span><span class="p">,</span> <span class="n">exp</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">sign</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="nd">@_memoize</span>
+<div class="viewcode-block" id="upperLimit"><a class="viewcode-back" href="../../tools.html#tools.statistics.upperLimit">[docs]</a><span class="k">def</span> <span class="nf">upperLimit</span> <span class="p">(</span> <span class="n">Nobs</span><span class="p">,</span> <span class="n">Nexp</span><span class="p">,</span> <span class="n">sigmaexp</span><span class="p">,</span> <span class="n">lumi</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=.</span><span class="mo">05</span><span class="p">,</span> <span class="n">toys</span><span class="o">=</span><span class="mi">200000</span> <span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; computes the 95% CL upper limit on the production cross section &quot;&quot;&quot;</span>
+    <span class="c1">#ret = _upperLimitMadAnalysis ( Nobs, Nexp, sigmaexp, 1.-alpha, toys ) / lumi</span>
+    <span class="c1">#print &quot;ret=&quot;,ret</span>
+    <span class="n">computer</span> <span class="o">=</span> <span class="n">UpperLimitComputer</span> <span class="p">(</span> <span class="n">toys</span><span class="p">,</span> <span class="n">lumi</span><span class="p">,</span> <span class="mf">1.</span><span class="o">-</span><span class="n">alpha</span> <span class="p">)</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="n">computer</span><span class="o">.</span><span class="n">compute</span> <span class="p">(</span> <span class="n">Nobs</span><span class="p">,</span> <span class="n">Nexp</span><span class="p">,</span> <span class="n">sigmaexp</span><span class="p">,</span> <span class="mf">5.</span> <span class="p">)</span>
+    <span class="c1">#print &quot;ret=&quot;,ret</span>
+    <span class="k">return</span> <span class="n">ret</span></div>
+
+<div class="viewcode-block" id="UpperLimitComputer"><a class="viewcode-back" href="../../tools.html#tools.statistics.UpperLimitComputer">[docs]</a><span class="k">class</span> <span class="nc">UpperLimitComputer</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">numberoftoys</span><span class="p">,</span> <span class="n">lumi</span><span class="p">,</span> <span class="n">cl</span><span class="o">=.</span><span class="mi">95</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param numberoftoys: how many toy experiments do we make?</span>
+<span class="sd">        :param lumi: integrated luminosity</span>
+<span class="sd">        :param cl: desired CL</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">origNToys</span><span class="o">=</span><span class="n">numberoftoys</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">currentNToys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">origNToys</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lumi</span> <span class="o">=</span> <span class="n">lumi</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cl</span> <span class="o">=</span> <span class="n">cl</span>
+
+<div class="viewcode-block" id="UpperLimitComputer.f"><a class="viewcode-back" href="../../tools.html#tools.statistics.UpperLimitComputer.f">[docs]</a>    <span class="k">def</span> <span class="nf">f</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">sig</span> <span class="p">):</span>
+        <span class="c1"># self.currentNToys=int ( self.currentNToys * 1.10 )</span>
+        <span class="n">cls</span> <span class="o">=</span> <span class="n">CLs</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">nev</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xbg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sbg</span><span class="p">,</span> <span class="n">sig</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">currentNToys</span> <span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">cl</span>
+        <span class="c1"># print &quot;[ULC] running&quot;,sig,&quot; with&quot;,self.currentNToys,&quot;cls=&quot;,cls</span>
+        <span class="k">return</span> <span class="n">cls</span></div>
+
+<div class="viewcode-block" id="UpperLimitComputer.compute"><a class="viewcode-back" href="../../tools.html#tools.statistics.UpperLimitComputer.compute">[docs]</a>    <span class="k">def</span> <span class="nf">compute</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">nev</span><span class="p">,</span> <span class="n">xbg</span><span class="p">,</span> <span class="n">sbg</span><span class="p">,</span> <span class="n">upto</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">return_nan</span><span class="o">=</span><span class="bp">False</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; upper limit obtained via mad analysis 5 code</span>
+<span class="sd">        :param nev: number of observed events</span>
+<span class="sd">        :param sac: relative uncertainty in acceptance</span>
+<span class="sd">        :param xbg: expected bg</span>
+<span class="sd">        :param sbg: uncertainty in background</span>
+<span class="sd">        :param upto: defines the interval to be probed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nev</span> <span class="o">=</span> <span class="n">nev</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xbg</span> <span class="o">=</span> <span class="n">xbg</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sbg</span> <span class="o">=</span> <span class="n">sbg</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">currentNToys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">origNToys</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1">## up = upto ## 5. ##  upto * max(nev,xbg,sbg)</span>
+            <span class="n">dn</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span> <span class="mi">0</span><span class="p">,</span> <span class="n">nev</span> <span class="o">-</span> <span class="n">xbg</span> <span class="p">)</span>
+            <span class="n">up</span> <span class="o">=</span> <span class="n">upto</span> <span class="o">*</span> <span class="nb">max</span><span class="p">(</span> <span class="n">dn</span> <span class="o">+</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">nev</span><span class="p">),</span> <span class="n">dn</span> <span class="o">+</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">xbg</span><span class="p">),</span><span class="n">sbg</span><span class="p">)</span>
+            <span class="c1">#print &quot;checking between 0 and &quot;,up ## ,self.f(0),self.f(up)</span>
+            <span class="k">return</span> <span class="n">optimize</span><span class="o">.</span><span class="n">brentq</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">up</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-3</span> <span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">lumi</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span><span class="ne">RuntimeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1">#print &quot;exception: &gt;&gt;&quot;,type(e),e</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">return_nan</span><span class="p">:</span>
+                <span class="c1"># print &quot;compute again, upto=&quot;,upto</span>
+                <span class="c1"># self.origNToys = 5* self.origNToys</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute</span> <span class="p">(</span> <span class="n">nev</span><span class="p">,</span> <span class="n">xbg</span><span class="p">,</span> <span class="n">sbg</span><span class="p">,</span> <span class="mf">5.0</span><span class="o">*</span><span class="n">upto</span><span class="p">,</span> <span class="n">upto</span><span class="o">&gt;</span><span class="mf">200.</span> <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="CLs"><a class="viewcode-back" href="../../tools.html#tools.statistics.CLs">[docs]</a><span class="k">def</span> <span class="nf">CLs</span><span class="p">(</span><span class="n">NumObserved</span><span class="p">,</span> <span class="n">ExpectedBG</span><span class="p">,</span> <span class="n">BGError</span><span class="p">,</span> <span class="n">SigHypothesis</span><span class="p">,</span> <span class="n">NumToyExperiments</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; this method has been taken from MadAnalysis5, see</span>
+<span class="sd">        Official website: &lt;https://launchpad.net/madanalysis5&gt;</span>
+
+<span class="sd">        Thanks to the MadAnalysis for granting us the permission to use</span>
+<span class="sd">        the code here! &quot;&quot;&quot;</span>
+
+    <span class="c1">## testing whether scipy is there</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">scipy.stats</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;scipy is not installed... the CLs module cannot be used.&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Please install scipy.&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">False</span>
+    <span class="c1"># generate a set of expected-number-of-background-events, one for each toy</span>
+    <span class="c1"># experiment, distributed according to a Gaussian with the specified mean</span>
+    <span class="c1"># and uncertainty</span>
+    <span class="n">ExpectedBGs</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span> <span class="n">loc</span><span class="o">=</span><span class="n">ExpectedBG</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">BGError</span><span class="p">,</span>
+                                        <span class="n">size</span><span class="o">=</span><span class="n">NumToyExperiments</span> <span class="p">)</span>
+
+    <span class="c1"># Ignore values in the tail of the Gaussian extending to negative numbers</span>
+    <span class="n">ExpectedBGs</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">ExpectedBGs</span> <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># For each toy experiment, get the actual number of background events by</span>
+    <span class="c1"># taking one value from a Poisson distribution created using the expected</span>
+    <span class="c1"># number of events.</span>
+    <span class="n">ToyBGs</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">poisson</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="n">ExpectedBGs</span><span class="p">)</span>
+    <span class="n">ToyBGs</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">ToyBGs</span><span class="p">)</span>
+
+    <span class="c1"># The probability for the background alone to fluctutate as LOW as</span>
+    <span class="c1"># observed = the fraction of the toy experiments with backgrounds as low as</span>
+    <span class="c1"># observed = p_b.</span>
+    <span class="c1"># NB (1 - this p_b) corresponds to what is usually called p_b for CLs.</span>
+    <span class="n">p_b</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">percentileofscore</span><span class="p">(</span><span class="n">ToyBGs</span><span class="p">,</span> <span class="n">NumObserved</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;weak&#39;</span><span class="p">)</span><span class="o">*.</span><span class="mo">01</span>
+
+    <span class="c1"># Toy MC for background+signal</span>
+    <span class="n">ExpectedBGandS</span> <span class="o">=</span> <span class="p">[</span><span class="n">expectedbg</span> <span class="o">+</span> <span class="n">SigHypothesis</span> <span class="k">for</span> <span class="n">expectedbg</span> <span class="ow">in</span> <span class="n">ExpectedBGs</span><span class="p">]</span>
+    <span class="n">ToyBplusS</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">poisson</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="n">ExpectedBGandS</span><span class="p">)</span>
+    <span class="n">ToyBplusS</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">ToyBplusS</span><span class="p">)</span>
+
+    <span class="c1"># Calculate the fraction of these that are &gt;= the number observed,</span>
+    <span class="c1"># giving p_(S+B). Divide by (1 - p_b) a la the CLs prescription.</span>
+    <span class="n">p_SplusB</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">percentileofscore</span><span class="p">(</span><span class="n">ToyBplusS</span><span class="p">,</span> <span class="n">NumObserved</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;weak&#39;</span><span class="p">)</span><span class="o">*.</span><span class="mo">01</span>
+
+    <span class="k">if</span> <span class="n">p_SplusB</span><span class="o">&gt;</span><span class="n">p_b</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">0.</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">1.</span><span class="o">-</span><span class="p">(</span><span class="n">p_SplusB</span> <span class="o">/</span> <span class="n">p_b</span><span class="p">)</span> <span class="c1"># 1 - CLs</span></div>
+
+
+<div class="viewcode-block" id="likelihood"><a class="viewcode-back" href="../../tools.html#tools.statistics.likelihood">[docs]</a><span class="k">def</span> <span class="nf">likelihood</span><span class="p">(</span><span class="n">nsig</span><span class="p">,</span> <span class="n">nobs</span><span class="p">,</span> <span class="n">nb</span><span class="p">,</span> <span class="n">deltab</span><span class="p">,</span> <span class="n">deltas</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the likelihood to observe nobs events given the</span>
+<span class="sd">        predicted background nb, error on this background (deltab),</span>
+<span class="sd">        expected number of signal events nsig and the error on the signal (deltas).</span>
+
+<span class="sd">        :param nsig: predicted signal (float)</span>
+<span class="sd">        :param nobs: number of observed events (float)</span>
+<span class="sd">        :param nb: predicted background (float)</span>
+<span class="sd">        :param deltab: uncertainty on background (float)</span>
+<span class="sd">        :param deltas: uncertainty on signal (float)</span>
+
+<span class="sd">        :return: likelihood to observe nobs events (float)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1">#Set signal error to 20%, if not defined</span>
+        <span class="k">if</span> <span class="n">deltas</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">deltas</span> <span class="o">=</span> <span class="mf">0.2</span><span class="o">*</span><span class="n">nsig</span>
+
+        <span class="c1">#     Why not a simple gamma function for the factorial:</span>
+        <span class="c1">#     -----------------------------------------------------</span>
+        <span class="c1">#     The scipy.stats.poisson.pmf probability mass function</span>
+        <span class="c1">#     for the Poisson distribution only works for discrete</span>
+        <span class="c1">#     numbers. The gamma distribution is used to create a</span>
+        <span class="c1">#     continuous Poisson distribution.</span>
+        <span class="c1">#</span>
+        <span class="c1">#     Why not a simple gamma function for the factorial:</span>
+        <span class="c1">#     -----------------------------------------------------</span>
+        <span class="c1">#     The gamma function does not yield results for integers</span>
+        <span class="c1">#     larger than 170. Since the expression for the Poisson</span>
+        <span class="c1">#     probability mass function as a whole should not be huge,</span>
+        <span class="c1">#     the exponent of the log of this expression is calculated</span>
+        <span class="c1">#     instead to avoid using large numbers.</span>
+
+
+        <span class="c1">#Define integrand (gaussian_(bg+signal)*poisson(nobs)):</span>
+        <span class="k">def</span> <span class="nf">prob</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">nsig</span><span class="p">,</span> <span class="n">nobs</span><span class="p">,</span> <span class="n">nb</span><span class="p">,</span> <span class="n">deltab</span><span class="p">,</span> <span class="n">deltas</span><span class="p">):</span>
+            <span class="n">poisson</span> <span class="o">=</span> <span class="n">exp</span><span class="p">(</span><span class="n">nobs</span><span class="o">*</span><span class="n">log</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="n">x</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">lgamma</span><span class="p">(</span><span class="n">nobs</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="n">gaussian</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">loc</span><span class="o">=</span><span class="n">nb</span><span class="o">+</span><span class="n">nsig</span><span class="p">,</span><span class="n">scale</span><span class="o">=</span><span class="n">sqrt</span><span class="p">(</span><span class="n">deltab</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">deltas</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+
+            <span class="k">return</span> <span class="n">poisson</span><span class="o">*</span><span class="n">gaussian</span>
+
+        <span class="c1">#Compute maximum value for the integrand:</span>
+        <span class="n">sigma2</span> <span class="o">=</span> <span class="n">deltab</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">deltas</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">xm</span> <span class="o">=</span> <span class="n">nb</span> <span class="o">+</span> <span class="n">nsig</span> <span class="o">-</span> <span class="n">sigma2</span>
+        <span class="c1">#If nb + nsig = sigma2, shift the values slightly:</span>
+        <span class="k">if</span> <span class="n">xm</span> <span class="o">==</span> <span class="mf">0.</span><span class="p">:</span>
+            <span class="n">xm</span> <span class="o">=</span> <span class="mf">0.001</span>
+        <span class="n">xmax</span> <span class="o">=</span> <span class="n">xm</span><span class="o">*</span><span class="p">(</span><span class="mf">1.</span><span class="o">+</span><span class="n">sign</span><span class="p">(</span><span class="n">xm</span><span class="p">)</span><span class="o">*</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">1.</span> <span class="o">+</span> <span class="mf">4.</span><span class="o">*</span><span class="n">nobs</span><span class="o">*</span><span class="n">sigma2</span><span class="o">/</span><span class="n">xm</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span><span class="o">/</span><span class="mf">2.</span>
+
+        <span class="c1">#Define initial integration range:</span>
+        <span class="n">nrange</span> <span class="o">=</span> <span class="mf">5.</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="n">xmax</span><span class="o">-</span><span class="n">nrange</span><span class="o">*</span><span class="n">sqrt</span><span class="p">(</span><span class="n">sigma2</span><span class="p">))</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">xmax</span><span class="o">+</span><span class="n">nrange</span><span class="o">*</span><span class="n">sqrt</span><span class="p">(</span><span class="n">sigma2</span><span class="p">)</span>
+        <span class="n">like</span> <span class="o">=</span> <span class="n">integrate</span><span class="o">.</span><span class="n">quad</span><span class="p">(</span><span class="n">prob</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,(</span><span class="n">nsig</span><span class="p">,</span> <span class="n">nobs</span><span class="p">,</span> <span class="n">nb</span><span class="p">,</span> <span class="n">deltab</span><span class="p">,</span> <span class="n">deltas</span><span class="p">),</span>
+                                      <span class="n">epsabs</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span><span class="n">epsrel</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1">#Increase integration range until integral converges</span>
+        <span class="n">err</span> <span class="o">=</span> <span class="mf">1.</span>
+        <span class="k">while</span> <span class="n">err</span> <span class="o">&gt;</span> <span class="mf">0.01</span><span class="p">:</span>
+            <span class="n">like_old</span> <span class="o">=</span> <span class="n">like</span>
+            <span class="n">nrange</span> <span class="o">=</span> <span class="n">nrange</span><span class="o">*</span><span class="mi">2</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="n">xmax</span><span class="o">-</span><span class="n">nrange</span><span class="o">*</span><span class="n">sqrt</span><span class="p">(</span><span class="n">sigma2</span><span class="p">))</span>
+            <span class="n">b</span> <span class="o">=</span> <span class="n">xmax</span><span class="o">+</span><span class="n">nrange</span><span class="o">*</span><span class="n">sqrt</span><span class="p">(</span><span class="n">sigma2</span><span class="p">)</span>
+            <span class="n">like</span> <span class="o">=</span> <span class="n">integrate</span><span class="o">.</span><span class="n">quad</span><span class="p">(</span><span class="n">prob</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,(</span><span class="n">nsig</span><span class="p">,</span> <span class="n">nobs</span><span class="p">,</span> <span class="n">nb</span><span class="p">,</span> <span class="n">deltab</span><span class="p">,</span> <span class="n">deltas</span><span class="p">),</span>
+                                      <span class="n">epsabs</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span><span class="n">epsrel</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">err</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">like_old</span><span class="o">-</span><span class="n">like</span><span class="p">)</span><span class="o">/</span><span class="n">like</span>
+
+        <span class="c1">#Renormalize the likelihood to account for the cut at x = 0.</span>
+        <span class="c1">#The integral of the gaussian from 0 to infinity gives:</span>
+        <span class="c1">#(1/2)*(1 + Erf(mu/sqrt(2*sigma2))), so we need to divide by it</span>
+        <span class="c1">#(for mu - sigma &gt;&gt; 0, the normalization gives 1.)</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.</span><span class="o">/</span><span class="mf">2.</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mf">1.</span> <span class="o">+</span> <span class="n">special</span><span class="o">.</span><span class="n">erf</span><span class="p">((</span><span class="n">nb</span><span class="o">+</span><span class="n">nsig</span><span class="p">)</span><span class="o">/</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">sigma2</span><span class="p">)))</span>
+        <span class="n">like</span> <span class="o">=</span> <span class="n">like</span><span class="o">/</span><span class="n">norm</span>
+
+        <span class="k">return</span> <span class="n">like</span></div>
+
+
+<div class="viewcode-block" id="chi2"><a class="viewcode-back" href="../../tools.html#tools.statistics.chi2">[docs]</a><span class="k">def</span> <span class="nf">chi2</span><span class="p">(</span><span class="n">nsig</span><span class="p">,</span> <span class="n">nobs</span><span class="p">,</span> <span class="n">nb</span><span class="p">,</span> <span class="n">deltab</span><span class="p">,</span> <span class="n">deltas</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Computes the chi2 for a given number of observed events nobs</span>
+<span class="sd">        given the predicted background nb, error on this background deltab,</span>
+<span class="sd">        expected number of signal events nsig and, if given, the error on signal (deltas).</span>
+<span class="sd">        If deltas is not given, assume an error of 20% on the signal.</span>
+
+<span class="sd">        :param nsig: predicted signal (float)</span>
+<span class="sd">        :param nobs: number of observed events (float)</span>
+<span class="sd">        :param nb: predicted background (float)</span>
+<span class="sd">        :param deltab: uncertainty in background (float)</span>
+<span class="sd">        :param deltas: uncertainty in signal acceptance (float)</span>
+
+<span class="sd">        :return: chi2 (float)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1">#Set signal error to 20%, if not defined</span>
+        <span class="k">if</span> <span class="n">deltas</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">deltas</span> <span class="o">=</span> <span class="mf">0.2</span><span class="o">*</span><span class="n">nsig</span>
+
+        <span class="c1"># Compute the likelhood for the null hypothesis (signal hypothesis) H0:</span>
+        <span class="n">llhd</span> <span class="o">=</span> <span class="n">likelihood</span><span class="p">(</span><span class="n">nsig</span><span class="p">,</span> <span class="n">nobs</span><span class="p">,</span> <span class="n">nb</span><span class="p">,</span> <span class="n">deltab</span><span class="p">,</span> <span class="n">deltas</span><span class="p">)</span>
+
+        <span class="c1">#Percentual signal error:</span>
+        <span class="n">deltas_pct</span> <span class="o">=</span> <span class="n">deltas</span><span class="o">/</span><span class="p">(</span><span class="mf">1.0</span><span class="o">*</span><span class="n">nsig</span><span class="p">)</span>
+
+        <span class="c1"># Compute the maximum likelihood H1, which sits at nsig = nobs - nb</span>
+        <span class="c1"># (keeping the same % error on signal):</span>
+        <span class="n">maxllhd</span> <span class="o">=</span> <span class="n">likelihood</span><span class="p">(</span><span class="n">nobs</span><span class="o">-</span><span class="n">nb</span><span class="p">,</span> <span class="n">nobs</span><span class="p">,</span> <span class="n">nb</span><span class="p">,</span> <span class="n">deltab</span><span class="p">,</span> <span class="n">deltas_pct</span><span class="o">*</span><span class="p">(</span><span class="n">nobs</span><span class="o">-</span><span class="n">nb</span><span class="p">))</span>
+
+        <span class="c1"># Return infinite likelihood if it is zero</span>
+        <span class="c1"># This can happen in case e.g. nb &gt;&gt; nobs</span>
+        <span class="k">if</span> <span class="n">llhd</span> <span class="o">==</span> <span class="mf">0.</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Return the test statistic -2log(H0/H1)</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">log</span><span class="p">(</span><span class="n">llhd</span><span class="o">/</span><span class="n">maxllhd</span><span class="p">)</span></div>
+
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">doctest</span>
+    <span class="n">doctest</span><span class="o">.</span><span class="n">testmod</span><span class="p">()</span>
+    <span class="k">print</span> <span class="p">(</span> <span class="n">upperLimit</span> <span class="p">(</span> <span class="mi">4</span><span class="p">,</span> <span class="mf">3.6</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">20.</span> <span class="o">/</span> <span class="n">fb</span> <span class="p">)</span> <span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, &lt;function authors at 0x7f73f74eb500&gt;.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.1.0patch1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,8 +1,8 @@
 .PHONY: clean all
 
-NMSSMTools = $(CURDIR)/../../Packages/NMSSMTools_4.7.1
+NMSSMTools = $(CURDIR)/../../Packages/NMSSMTools_5.1.1
 CALCHEP =    ../../CalcHEP_src
-all:  aLib.a $(NMSSMTools)/main/nmhdecay 
+all:  aLib.a $(NMSSMTools)/sources/sources.a  $(NMSSMTools)/main/nmhdecay  $(NMSSMTools)/main/nmspec
 
 ifneq ($(MAKECMDGOALS),clean)
 include $(CALCHEP)/FlagsForMake
@@ -21,11 +21,17 @@ lpath.h:
 	echo \#define LPATH \"`pwd`\"  >lpath.h
 	echo \#define NMSSMTOOLS \"$(NMSSMTools)\" >> lpath.h
 
-
-$(NMSSMTools)/main/nmhdecay:
+$(NMSSMTools)/sources/sources.a:
 	make -C $(NMSSMTools) init
-	make -C $(NMSSMTools)/main
+
+$(NMSSMTools)/main/nmhdecay: $(NMSSMTools)/sources/sources.a
+	make -C $(NMSSMTools)/main  nmhdecay
+
+$(NMSSMTools)/main/nmspec: $(NMSSMTools)/sources/sources.a
+	make -C $(NMSSMTools)/main nmspec
+
 
 
 clean: 
 	rm -f lpath.h *.o *.a  
+	make -C nngg-nm4b clean

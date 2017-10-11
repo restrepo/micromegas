@@ -29,7 +29,6 @@
 /* ======================================================== */
 typedef char prtclsarray[MAXINOUT][P_NAME_SIZE];
 
-int noPict=0;
 int noCChain=0;
 int tWidths=0;
 static int sumDiag=0;
@@ -401,7 +400,7 @@ static void  onediagram(deninforec* dendescript)
    pos_c= ftell(outFile); writeF("%80s\n","");
   
    writeF("if(!DP){C%d(C); return 0;} \n",diagrcount);
-   
+   if(nin==2) writeF("  REAL N_p1p2_=1/DP[0];\n");
    fortwriter("N",totnum);
    fortwriter("D",totdenum);
    fortwriter("R",rnum);
@@ -441,7 +440,7 @@ static int  alldiagrams(FILE * fd,  int nsub)
    writeF("REAL N,D,R; COMPLEX Prop;\n");
    pos_c1= ftell(outFile); writeF("%70s\n","");   
    writeF("if(!momenta){ C%d(C); return 0;}\n",nsub);
-
+   if(nin==2) writeF("  REAL N_p1p2_=1/DP[0];\n");
    while(FREAD1(dendescript,fd) == 1)
    {
       fseek(catalog,dendescript.cr_pos,SEEK_SET);
@@ -1052,7 +1051,7 @@ static int c_prog_int(void)
    memerror=zeroHeep;
    mark_(&heapbeg);
 
-   initvararray(0,'c',3);
+   initvararray(0,'c',NULL);
   /* ======= Initialisation parth ======= */
 
    firstVar=nmodelvar;
@@ -1189,3 +1188,67 @@ int  c_prog(void)
 
  return result; 
 }
+
+int vert_code(polyvars * vardef_ext)
+{
+   
+//   outFile=stdout;
+   labl();   
+   writeF("#include<stdlib.h>\n");
+   writeF("#include<math.h>\n");
+   writeF("#include<complex.h>\n");                 
+   
+   initvararray(0,'c',vardef_ext);
+
+   firstVar=nmodelvar;
+   if(!strcmp( modelvars[firstVar].varname,strongconst))  firstVar--;
+
+   calc_nvars_nfunc();
+
+//   geninf(" nvar_ext",nvars);
+//   geninf(" nfunc_ext",nfunc);
+//   writeF(" static int nvars=%d;\n",nvars);
+   
+   writeF("static char*varName[%d]={\"zero\"",nvars+nfunc+1);
+   sortvars();
+   writeF("};\n");   
+
+   writeF(" static double V[%d];\n",nvars+nfunc+1);
+   
+
+   writeF("static int vertexCoeff(double * coeff_out)\n{\n");
+
+   int    l;  
+
+        
+   for(l=nCommonVars+1;l<=nmodelvar;l++)
+   { 
+      char *ss;
+      if(vararr[l].used && ((modelvars[l].func && modelvars[l].pub==0) || modelvars[l].pwidth) )
+      {  int num;
+         checkNaN=0;
+         if(modelvars[l].pwidth)
+         {  writeF("   %s=aWidth_ext(\"%s\");\n",vararr[l].alias,
+             prtclbase1[modelvars[l].pwidth].name); 
+             checkNaN=1;
+         } else
+         {
+           ss=(char *)readExpression(modelvars[l].func,rd_c,act_c,free);
+/*	   writeF("   %s=%s;\n",vararr[l].alias,ss+3);*/
+	   fprintf(outFile,"   %s=%s;\n",vararr[l].alias,ss+3);
+	   free(ss);
+	 }
+	 if(checkNaN)
+	 {
+    	    sscanf(vararr[l].alias,"V[%d]",&num); 
+            writeF("   if(!isfinite(%s)){ return %d;}\n",vararr[l].alias,num);
+         }
+      }
+   }
+   
+   for(l=0;l<vardef_ext->nvar;l++) if(!strchr( vardef_ext->vars[l].name,'.'))  
+         strcpy(vardef_ext->vars[l].name,vararr[vardef_ext->vars[l].num].alias);
+
+   return nvars;
+}
+

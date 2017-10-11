@@ -8,7 +8,7 @@ external_func(MtRun,1).
 external_func(McEff,1).
 external_func(MbEff,1).
 external_func(MtEff,1).
-external_func(cpHiggs,34).
+external_func(cpHiggs,36).
 external_func(slhaRead,2).
 external_func(slhaVal,*).
 
@@ -18,8 +18,10 @@ parameter Lqcd=initQCD5(alfSMZ,McMc,MbMb,Mtp),
           MbMt =MbRun(Mtp),
           McMt =McRun(Mtp).
 
-parameter SHok = cpHiggs(EE,alfSMZ,Mtp,McMt,MbMt,Ml,SW,tb,MHc,aMu,fiMu,aM1,fiM1,aM2,fiM2,aM3,fiM3,Mq3,Mu3,Md3,Ml3,Mr3,aAt,fiAt,aAb,fiAb,aAl,fiAl,
-aAu,fiAu,aAd,fiAd,aAe,fiAe,aAm,fiAm).
+parameter SHok = cpHiggs(EE  ,alfSMZ,Mtp ,McMt,MbMt,Ml,  SW,  tb,  MHc,aMu,
+                         fiMu,aM1   ,fiM1,aM2, fiM2,aM3, fiM3,Mq3, Mu3,Md3,
+                         Ml3, Mr3,   aAt, fiAt,aAb, fiAb,aAl, fiAl,aAu,fiAu,
+                         aAd, fiAd,  aAe, fiAe,aAm,fiAm).
 
 parameter RdOK=slhaRead(str("cpsuperh2_slha.out"),4).
 slhaRead('./cpsuperh2_slha.out').

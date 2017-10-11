@@ -1,0 +1,721 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>experiment.txnameObj &mdash; SModelS 1.1.0patch1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="SModelS 1.1.0patch1 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> SModelS
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.1.0patch1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../theory.html">theory package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../experiment.html">experiment package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tools.html">tools package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">SModelS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>experiment.txnameObj</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for experiment.txnameObj</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: txnameObj</span>
+<span class="sd">   :synopsis: Holds the classes and methods used to read and store the</span>
+<span class="sd">              information in the txname.txt files.</span>
+<span class="sd">              Also contains the interpolation methods.</span>
+
+<span class="sd">.. moduleauthor:: Veronika Magerl &lt;v.magerl@gmx.at&gt;</span>
+<span class="sd">.. moduleauthor:: Andre Lessa &lt;lessa.a.p@gmail.com&gt;</span>
+<span class="sd">.. moduleauthor:: Wolfgang Waltenberger &lt;wolfgang.waltenberger@gmail.com&gt;</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span><span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">smodels.tools.physicsUnits</span> <span class="kn">import</span> <span class="n">GeV</span><span class="p">,</span> <span class="n">fb</span><span class="p">,</span> <span class="n">TeV</span><span class="p">,</span> <span class="n">pb</span>
+<span class="kn">from</span> <span class="nn">smodels.theory.particleNames</span> <span class="kn">import</span> <span class="n">elementsInStr</span>
+<span class="kn">from</span> <span class="nn">smodels.tools.stringTools</span> <span class="kn">import</span> <span class="n">concatenateLines</span>
+<span class="kn">from</span> <span class="nn">smodels.theory.element</span> <span class="kn">import</span> <span class="n">Element</span>
+<span class="kn">from</span> <span class="nn">smodels.theory.topology</span> <span class="kn">import</span> <span class="n">TopologyList</span>
+<span class="kn">from</span> <span class="nn">smodels.tools.smodelsLogging</span> <span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span> <span class="nn">smodels.experiment.exceptions</span> <span class="kn">import</span> <span class="n">SModelSExperimentError</span> <span class="k">as</span> <span class="n">SModelSError</span>
+<span class="kn">from</span> <span class="nn">smodels.tools.caching</span> <span class="kn">import</span> <span class="n">_memoize</span>
+<span class="kn">from</span> <span class="nn">scipy.linalg</span> <span class="kn">import</span> <span class="n">svd</span>
+<span class="kn">import</span> <span class="nn">scipy.spatial.qhull</span> <span class="kn">as</span> <span class="nn">qhull</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">unum</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">floor</span><span class="p">,</span> <span class="n">log10</span>
+
+
+<div class="viewcode-block" id="TxName"><a class="viewcode-back" href="../../experiment.html#experiment.txnameObj.TxName">[docs]</a><span class="k">class</span> <span class="nc">TxName</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Holds the information related to one txname in the Txname.txt</span>
+<span class="sd">    file (constraint, condition,...) as well as the data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">globalObj</span><span class="p">,</span> <span class="n">infoObj</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">globalInfo</span> <span class="o">=</span> <span class="n">globalObj</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_infoObj</span> <span class="o">=</span> <span class="n">infoObj</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txnameData</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txnameDataExp</span> <span class="o">=</span> <span class="bp">None</span> <span class="c1">## expected Data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_topologyList</span> <span class="o">=</span> <span class="n">TopologyList</span><span class="p">()</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Creating object based on txname file: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+        <span class="c1">#Open the info file and get the information:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Txname file </span><span class="si">%s</span><span class="s2"> not found&quot;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+        <span class="n">txtFile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
+        <span class="n">txdata</span> <span class="o">=</span> <span class="n">txtFile</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">txtFile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s2">&quot;txName&quot;</span> <span class="ow">in</span> <span class="n">txdata</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">TypeError</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;upperLimits&#39;</span> <span class="ow">in</span> <span class="n">txdata</span> <span class="ow">and</span> <span class="ow">not</span> <span class="s1">&#39;efficiencyMap&#39;</span> <span class="ow">in</span> <span class="n">txdata</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span>
+        <span class="n">txfile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">concatenateLines</span> <span class="p">(</span>  <span class="n">txfile</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span> <span class="p">)</span>
+        <span class="n">txfile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="c1">#Get tags in info file:</span>
+        <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">content</span><span class="p">]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">expectedData</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">dataType</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">tag</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tags</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">tag</span><span class="p">:</span> <span class="k">continue</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">content</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">tags</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s1">&#39;;&#39;</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span> <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;upperLimits&#39;</span> <span class="ow">or</span> <span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;efficiencyMap&#39;</span><span class="p">:</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="n">value</span>
+                    <span class="n">dataType</span> <span class="o">=</span> <span class="n">tag</span>
+                <span class="k">elif</span> <span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;expectedUpperLimits&#39;</span><span class="p">:</span>
+                    <span class="n">expectedData</span> <span class="o">=</span> <span class="n">value</span>
+                    <span class="n">dataType</span> <span class="o">=</span> <span class="s1">&#39;upperLimits&#39;</span>
+                <span class="k">else</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">addInfo</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Ignoring unknown field </span><span class="si">%s</span><span class="s2"> found in file </span><span class="si">%s</span><span class="s2">&quot;</span> \
+                             <span class="o">%</span> <span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">))</span>
+                <span class="k">continue</span>
+        <span class="n">ident</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">globalInfo</span><span class="o">.</span><span class="n">id</span><span class="o">+</span><span class="s2">&quot;:&quot;</span><span class="o">+</span><span class="n">dataType</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s2">&quot;:&quot;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_infoObj</span><span class="o">.</span><span class="n">dataId</span><span class="p">)</span>
+        <span class="n">ident</span> <span class="o">+=</span> <span class="s2">&quot;:&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">txName</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txnameData</span> <span class="o">=</span> <span class="n">TxNameData</span><span class="p">(</span> <span class="n">data</span><span class="p">,</span> <span class="n">dataType</span><span class="p">,</span> <span class="n">ident</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="n">expectedData</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">txnameDataExp</span> <span class="o">=</span> <span class="n">TxNameData</span><span class="p">(</span> <span class="n">expectedData</span><span class="p">,</span> <span class="n">dataType</span><span class="p">,</span> <span class="n">ident</span> <span class="p">)</span>
+
+        <span class="c1">#Builds up a list of elements appearing in constraints:</span>
+        <span class="n">elements</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s1">&#39;constraint&#39;</span><span class="p">):</span>
+            <span class="n">elements</span> <span class="o">+=</span> <span class="p">[</span><span class="n">Element</span><span class="p">(</span><span class="n">el</span><span class="p">)</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">elementsInStr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">constraint</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s1">&#39;condition&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">condition</span><span class="p">:</span>
+            <span class="n">conds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">condition</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">conds</span><span class="p">,</span><span class="nb">list</span><span class="p">):</span> <span class="n">conds</span> <span class="o">=</span> <span class="p">[</span><span class="n">conds</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">cond</span> <span class="ow">in</span> <span class="n">conds</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">elementsInStr</span><span class="p">(</span><span class="n">cond</span><span class="p">):</span>
+                    <span class="n">newEl</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">newEl</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span> <span class="n">elements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newEl</span><span class="p">)</span>
+
+        <span class="c1"># Builds up TopologyList with all the elements appearing in constraints</span>
+        <span class="c1"># and conditions:</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+            <span class="n">el</span><span class="o">.</span><span class="n">sortBranches</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_topologyList</span><span class="o">.</span><span class="n">addElement</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">txName</span>
+
+    <span class="k">def</span> <span class="nf">__lt__</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; sort by txName &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">txName</span> <span class="o">&lt;</span> <span class="n">other</span><span class="o">.</span><span class="n">txName</span>
+
+<div class="viewcode-block" id="TxName.getValueFor"><a class="viewcode-back" href="../../experiment.html#experiment.txnameObj.TxName.getValueFor">[docs]</a>    <span class="k">def</span> <span class="nf">getValueFor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">massarray</span><span class="p">,</span><span class="n">expected</span><span class="o">=</span><span class="bp">False</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Access txnameData and txnameDataExp to get value for </span>
+<span class="sd">        massarray.</span>
+
+<span class="sd">        :param massarray: mass array values (with units), i.e.</span>
+<span class="sd">                          [[100*GeV,10*GeV],[100*GeV,10*GeV]]</span>
+<span class="sd">        :param expected: query self.txnameDataExp</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">expected</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">txnameData</span><span class="o">.</span><span class="n">getValueFor</span><span class="p">(</span> <span class="n">massarray</span> <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">txnameDataExp</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">txnameDataExp</span><span class="o">.</span><span class="n">getValueFor</span><span class="p">(</span> <span class="n">massarray</span> <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TxName.addInfo"><a class="viewcode-back" href="../../experiment.html#experiment.txnameObj.TxName.addInfo">[docs]</a>    <span class="k">def</span> <span class="nf">addInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">tag</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds the info field labeled by tag with value value to the object.</span>
+<span class="sd">        </span>
+<span class="sd">        :param tag: information label (string)</span>
+<span class="sd">        :param value: value for the field in string format</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;constraint&#39;</span> <span class="ow">or</span> <span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;condition&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span><span class="nb">list</span><span class="p">):</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">value</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span> <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">tag</span><span class="p">,</span><span class="nb">eval</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;fb&#39;</span> <span class="p">:</span> <span class="n">fb</span><span class="p">,</span> <span class="s1">&#39;pb&#39;</span> <span class="p">:</span> <span class="n">pb</span><span class="p">,</span> <span class="s1">&#39;GeV&#39;</span> <span class="p">:</span> <span class="n">GeV</span><span class="p">,</span> <span class="s1">&#39;TeV&#39;</span> <span class="p">:</span> <span class="n">TeV</span><span class="p">}))</span>
+        <span class="k">except</span> <span class="ne">SyntaxError</span><span class="p">:</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">tag</span><span class="p">,</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">tag</span><span class="p">,</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">tag</span><span class="p">,</span><span class="n">value</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TxName.getInfo"><a class="viewcode-back" href="../../experiment.html#experiment.txnameObj.TxName.getInfo">[docs]</a>    <span class="k">def</span> <span class="nf">getInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">infoLabel</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the value of info field.</span>
+<span class="sd">        </span>
+<span class="sd">        :param infoLabel: label of the info field (string). It must be an attribute of</span>
+<span class="sd">                          the TxNameInfo object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">infoLabel</span><span class="p">):</span> <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">infoLabel</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="bp">False</span></div>
+
+<div class="viewcode-block" id="TxName.hasElementAs"><a class="viewcode-back" href="../../experiment.html#experiment.txnameObj.TxName.hasElementAs">[docs]</a>    <span class="k">def</span> <span class="nf">hasElementAs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">element</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Verify if the conditions or constraint in Txname contains the element.</span>
+<span class="sd">        Check both branch orderings.</span>
+<span class="sd">        </span>
+<span class="sd">        :param element: Element object</span>
+<span class="sd">        :return: A copy of the element on the correct branch ordering appearing</span>
+<span class="sd">                in the Txname constraint or condition.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_topologyList</span><span class="o">.</span><span class="n">getElements</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">particlesMatch</span><span class="p">(</span><span class="n">el</span><span class="p">,</span><span class="n">branchOrder</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">element</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">elementB</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">switchBranches</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">elementB</span><span class="o">.</span><span class="n">particlesMatch</span><span class="p">(</span><span class="n">el</span><span class="p">,</span><span class="n">branchOrder</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="n">elementB</span>
+        <span class="k">return</span> <span class="bp">False</span></div>
+
+
+<div class="viewcode-block" id="TxName.getEfficiencyFor"><a class="viewcode-back" href="../../experiment.html#experiment.txnameObj.TxName.getEfficiencyFor">[docs]</a>    <span class="k">def</span> <span class="nf">getEfficiencyFor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">mass</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        For upper limit results, checks if the input mass falls inside the</span>
+<span class="sd">        upper limit grid.  If it does, returns efficiency = 1, else returns</span>
+<span class="sd">        efficiency = 0.  For efficiency map results, checks if the mass falls</span>
+<span class="sd">        inside the efficiency map grid.  If it does, returns the corresponding</span>
+<span class="sd">        efficiency value, else returns efficiency = 0.</span>
+
+<span class="sd">        :param element: Element object</span>
+<span class="sd">        :return: efficiency (float)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1">#Check if the element appears in Txname:</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">txnameData</span><span class="o">.</span><span class="n">getValueFor</span><span class="p">(</span><span class="n">mass</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">fb</span><span class="p">):</span>
+            <span class="k">return</span> <span class="mf">1.</span>  <span class="c1">#The element has an UL, return 1</span>
+        <span class="k">elif</span> <span class="n">val</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+            <span class="k">return</span> <span class="mf">0.</span>  <span class="c1">#The element mass is outside the data grid</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="mf">1.</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">val</span>  <span class="c1">#The element has an eff</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unknown txnameData value: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">))))</span>
+            <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span></div></div>
+
+<div class="viewcode-block" id="TxNameData"><a class="viewcode-back" href="../../experiment.html#experiment.txnameObj.TxNameData">[docs]</a><span class="k">class</span> <span class="nc">TxNameData</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Holds the data for the Txname object.  It holds Upper limit values or efficiencies.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">value</span><span class="p">,</span><span class="n">datatag</span><span class="p">,</span><span class="n">Id</span><span class="p">,</span><span class="n">accept_errors_upto</span><span class="o">=.</span><span class="mo">05</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param value: values in string format</span>
+<span class="sd">        :param datatag: the dataTag (upperLimits or efficiencyMap)</span>
+<span class="sd">        :param Id: an identifier, must be unique for each TxNameData!</span>
+<span class="sd">        :param _accept_errors_upto: If None, do not allow extrapolations outside of</span>
+<span class="sd">                convex hull.  If float value given, allow that much relative</span>
+<span class="sd">                uncertainty on the upper limit / efficiency</span>
+<span class="sd">                when extrapolating outside convex hull.</span>
+<span class="sd">                This method can be used to loosen the equal branches assumption.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataTag</span> <span class="o">=</span> <span class="n">datatag</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="n">Id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_accept_errors_upto</span><span class="o">=</span><span class="n">accept_errors_upto</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_V</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loadData</span><span class="p">(</span> <span class="n">value</span> <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span> <span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; a simple unique string identifier, mostly for _memoize &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">str</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="p">)</span>
+
+<div class="viewcode-block" id="TxNameData.round_to_n"><a class="viewcode-back" href="../../experiment.html#experiment.txnameObj.TxNameData.round_to_n">[docs]</a>    <span class="k">def</span> <span class="nf">round_to_n</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">n</span> <span class="p">):</span>
+        <span class="k">if</span> <span class="n">x</span><span class="o">==</span><span class="mf">0.0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">x</span>
+        <span class="k">return</span> <span class="nb">round</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="n">floor</span><span class="p">(</span><span class="n">log10</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">))))</span> <span class="o">+</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)))</span></div>
+
+
+    <span class="k">def</span> <span class="nf">__ne__</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span> <span class="p">):</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__eq__</span> <span class="p">(</span> <span class="n">other</span> <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__eq__</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span> <span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">_id</span>
+
+<div class="viewcode-block" id="TxNameData.loadData"><a class="viewcode-back" href="../../experiment.html#experiment.txnameObj.TxNameData.loadData">[docs]</a>    <span class="k">def</span> <span class="nf">loadData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Uses the information in value to generate the data grid used for</span>
+<span class="sd">        interpolation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_V</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">==</span><span class="nb">str</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;fb&#39;</span><span class="p">:</span><span class="n">fb</span><span class="p">,</span> <span class="s1">&#39;pb&#39;</span><span class="p">:</span><span class="n">pb</span><span class="p">,</span> <span class="s1">&#39;GeV&#39;</span><span class="p">:</span><span class="n">GeV</span><span class="p">,</span> <span class="s1">&#39;TeV&#39;</span><span class="p">:</span><span class="n">TeV</span><span class="p">})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="c1">## store the unit so that we can take arbitrary units for</span>
+                        <span class="c1">## the &quot;z&quot; values.  default is unitless,</span>
+                        <span class="c1">## which we use for efficiency maps</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span> <span class="p">(</span> <span class="s2">&quot;input value not in correct format. expecting sth &quot;</span> \
+                               <span class="s2">&quot;like [ [ [[ 300.*GeV,100.*GeV], &quot;</span>\
+                               <span class="s2">&quot;[ 300.*GeV,100.*GeV] ], 10.*fb ], ... ] &quot;</span>\
+                               <span class="s2">&quot;for upper limits or [ [ [[ 300.*GeV,100.*GeV],&quot;</span>\
+                               <span class="s2">&quot; [ 300.*GeV,100.*GeV] ], .1 ], ... ] for &quot;</span>\
+                               <span class="s2">&quot;efficiency maps&quot;</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span><span class="o">==</span><span class="n">unum</span><span class="o">.</span><span class="n">Unum</span><span class="p">:</span>
+            <span class="c1">## if its a unum, we store 1.0 * unit</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="o">=</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">asNumber</span><span class="p">()</span> <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">computeV</span><span class="p">(</span> <span class="n">value</span> <span class="p">)</span></div>
+
+    <span class="nd">@_memoize</span>
+<div class="viewcode-block" id="TxNameData.getValueFor"><a class="viewcode-back" href="../../experiment.html#experiment.txnameObj.TxNameData.getValueFor">[docs]</a>    <span class="k">def</span> <span class="nf">getValueFor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">massarray</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Interpolates the value and returns the UL or efficiency for the</span>
+<span class="sd">        respective massarray</span>
+<span class="sd">        </span>
+<span class="sd">        :param massarray: mass array values (with units), i.e.</span>
+<span class="sd">                          [[100*GeV,10*GeV],[100*GeV,10*GeV]]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">porig</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">flattenMassArray</span> <span class="p">(</span> <span class="n">massarray</span> <span class="p">)</span> <span class="c1">## flatten</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">massarray</span> <span class="o">=</span> <span class="n">massarray</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">porig</span><span class="p">)</span><span class="o">!=</span><span class="bp">self</span><span class="o">.</span><span class="n">full_dimensionality</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span> <span class="p">(</span> <span class="s2">&quot;dimensional error. I have been asked to compare a &quot;</span>\
+                    <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">-dimensional mass vector with </span><span class="si">%d</span><span class="s2">-dimensional data!&quot;</span> <span class="o">%</span> \
+                    <span class="p">(</span> <span class="nb">len</span><span class="p">(</span><span class="n">porig</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">full_dimensionality</span> <span class="p">)</span> <span class="p">)</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="n">p</span><span class="o">=</span> <span class="p">(</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">porig</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_x</span> <span class="p">)</span> <span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">P</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">p</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_V</span><span class="p">)</span>  <span class="c1">## rotate</span>
+        <span class="n">dp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">countNonZeros</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">projected_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpolate</span><span class="p">([</span> <span class="n">P</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensionality</span><span class="p">]</span> <span class="p">])</span>
+
+        <span class="c1"># self.projected_value = griddata( self.Mp, self.xsec, [ P[:self.dimensionality] ], method=&quot;linear&quot;)[0]</span>
+        <span class="c1"># self.projected_value = float(self.projected_value)</span>
+        <span class="k">if</span> <span class="n">dp</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensionality</span><span class="p">:</span> <span class="c1">## we have data in different dimensions</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_accept_errors_upto</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">None</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span> <span class="s2">&quot;attempting to interpolate outside of convex hull &quot;</span>\
+                    <span class="s2">&quot;(d=</span><span class="si">%d</span><span class="s2">,dp=</span><span class="si">%d</span><span class="s2">,masses=</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span>
+                     <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensionality</span><span class="p">,</span> <span class="n">dp</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">massarray</span><span class="p">)</span> <span class="p">)</span> <span class="p">)</span>            
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolateOutsideConvexHull</span><span class="p">(</span> <span class="n">massarray</span> <span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_returnProjectedValue</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="TxNameData.flattenMassArray"><a class="viewcode-back" href="../../experiment.html#experiment.txnameObj.TxNameData.flattenMassArray">[docs]</a>    <span class="k">def</span> <span class="nf">flattenMassArray</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">data</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; flatten mass array and remove units &quot;&quot;&quot;</span>
+        <span class="n">ret</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">i</span><span class="p">:</span>
+                <span class="n">ret</span><span class="o">.</span><span class="n">append</span> <span class="p">(</span> <span class="n">j</span><span class="o">.</span><span class="n">asNumber</span><span class="p">(</span><span class="n">GeV</span><span class="p">)</span> <span class="p">)</span>
+        <span class="k">return</span> <span class="n">ret</span></div>
+
+<div class="viewcode-block" id="TxNameData.interpolate"><a class="viewcode-back" href="../../experiment.html#experiment.txnameObj.TxNameData.interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uvw</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">):</span>
+        <span class="n">tol</span> <span class="o">=</span> <span class="mf">1e-6</span>
+        <span class="c1"># tol = sys.float_info.epsilon * 1e10</span>
+        <span class="n">simplex</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tri</span><span class="o">.</span><span class="n">find_simplex</span><span class="p">(</span><span class="n">uvw</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="n">tol</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">simplex</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==-</span><span class="mi">1</span><span class="p">:</span> <span class="c1">## not inside any simplex?</span>
+            <span class="k">return</span> <span class="n">fill_value</span>
+        <span class="n">vertices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tri</span><span class="o">.</span><span class="n">simplices</span><span class="p">,</span> <span class="n">simplex</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tri</span><span class="o">.</span><span class="n">transform</span><span class="p">,</span> <span class="n">simplex</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">d</span><span class="o">=</span><span class="n">temp</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">delta</span> <span class="o">=</span> <span class="n">uvw</span> <span class="o">-</span> <span class="n">temp</span><span class="p">[:,</span> <span class="n">d</span><span class="p">]</span>
+        <span class="n">bary</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;njk,nk-&gt;nj&#39;</span><span class="p">,</span> <span class="n">temp</span><span class="p">[:,</span> <span class="p">:</span><span class="n">d</span><span class="p">,</span> <span class="p">:],</span> <span class="n">delta</span><span class="p">)</span>
+        <span class="n">vtx</span> <span class="o">=</span> <span class="n">vertices</span>
+        <span class="n">wts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">bary</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">bary</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="bp">True</span><span class="p">)))</span>
+        <span class="n">v</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">xsec</span>
+        <span class="k">if</span> <span class="nb">type</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xsec</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="nb">float</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span> <span class="p">(</span> <span class="p">[</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">xsec</span> <span class="p">]</span> <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span> <span class="p">(</span> <span class="p">[</span> <span class="n">x</span><span class="o">.</span><span class="n">asNumber</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">xsec</span> <span class="p">]</span> <span class="p">)</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;nj,nj-&gt;n&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">vtx</span><span class="p">),</span> <span class="n">wts</span><span class="p">)</span>
+        <span class="c1"># the following was just a test to see if the point is outside the</span>
+        <span class="c1"># convex hull, but we check this via simplex[0]==-1, anyways.</span>
+        <span class="c1">#with np.errstate(invalid=&#39;ignore&#39;):</span>
+        <span class="c1">#    ret[np.any(self.wts &lt; -1e-10, axis=1)] = fill_value</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">ret</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_estimateExtrapolationError</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">massarray</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; when projecting a point p from n to the point P in m dimensions, we</span>
+<span class="sd">            estimate the expected extrapolation error with the following</span>
+<span class="sd">            strategy: we compute the gradient at point P, and let alpha be the</span>
+<span class="sd">            distance between p and P. We then walk one step of length alpha in</span>
+<span class="sd">            the direction of the greatest ascent, and the opposite direction.</span>
+<span class="sd">            Whichever relative change is greater is reported as the expected</span>
+<span class="sd">            extrapolation error.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#p=self.flattenMassArray ( massarray ) ## point p in n dimensions</span>
+        <span class="n">porig</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">flattenMassArray</span> <span class="p">(</span> <span class="n">massarray</span> <span class="p">)</span> <span class="c1">## flatten</span>
+        <span class="n">p</span><span class="o">=</span> <span class="p">(</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">porig</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_x</span> <span class="p">)</span> <span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">P</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">p</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_V</span><span class="p">)</span>                    <span class="c1">## projected point p in n dimensions</span>
+        <span class="c1">## P[self.dimensionality:] is project point p in m dimensions</span>
+        <span class="c1"># m=self.countNonZeros ( P ) ## dimensionality of input</span>
+        <span class="c1">## how far are we away from the &quot;plane&quot;: distance alpha</span>
+        <span class="n">alpha</span> <span class="o">=</span> <span class="nb">float</span> <span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span> <span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span> <span class="p">(</span> <span class="n">P</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensionality</span><span class="p">:],</span>
+                        <span class="n">P</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensionality</span><span class="p">:]</span> <span class="p">)</span> <span class="p">)</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="n">alpha</span> <span class="o">==</span> <span class="mf">0.</span><span class="p">:</span>
+            <span class="c1">## no distance to the plane, so no extrapolation error</span>
+            <span class="k">return</span> <span class="mf">0.</span>
+        <span class="c1">## the value of the grid at the point projected to the &quot;plane&quot;</span>
+
+        <span class="c1">## compute gradient</span>
+        <span class="n">gradient</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensionality</span> <span class="p">):</span>
+            <span class="n">P2</span><span class="o">=</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>
+            <span class="n">P2</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+=</span><span class="n">alpha</span>
+            <span class="n">pv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpolate</span> <span class="p">(</span> <span class="p">[</span> <span class="n">P2</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensionality</span><span class="p">]</span> <span class="p">]</span> <span class="p">)</span>
+            <span class="n">g</span><span class="o">=</span><span class="nb">float</span> <span class="p">(</span> <span class="p">(</span> <span class="n">pv</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">projected_value</span> <span class="p">)</span> <span class="o">/</span> <span class="n">alpha</span> <span class="p">)</span>
+            <span class="c1">#g=float ( ( griddata( self.Mp, self.xsec, [ P2[:self.dimensionality]],</span>
+            <span class="c1">#            method=&quot;linear&quot;)[0] - self.projected_value ) / alpha )</span>
+            <span class="k">if</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span> <span class="p">(</span> <span class="n">g</span> <span class="p">):</span>
+                <span class="c1">## if we cannot compute a gradient, we return nan</span>
+                <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">)</span>
+            <span class="n">gradient</span><span class="o">.</span><span class="n">append</span> <span class="p">(</span> <span class="n">g</span> <span class="p">)</span>
+        <span class="c1">## normalize gradient</span>
+        <span class="c1"># print &quot;gradient=&quot;,gradient</span>
+        <span class="n">C</span><span class="o">=</span> <span class="nb">float</span> <span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span> <span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span> <span class="p">(</span> <span class="n">gradient</span><span class="p">,</span> <span class="n">gradient</span> <span class="p">)</span> <span class="p">)</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="n">C</span> <span class="o">==</span> <span class="mf">0.</span><span class="p">:</span>
+            <span class="c1">## zero gradient? we return 0.</span>
+            <span class="k">return</span> <span class="mf">0.</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">j</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">gradient</span><span class="p">):</span>
+            <span class="n">gradient</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">gradient</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="n">C</span><span class="o">*</span><span class="n">alpha</span>
+            <span class="c1">#print &quot;gradient after=&quot;,gradient[i]</span>
+        <span class="c1">#print &quot;^^^^^^&quot;</span>
+        <span class="c1">## walk one alpha along gradient</span>
+        <span class="n">P3</span><span class="o">=</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>
+        <span class="n">P4</span><span class="o">=</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">j</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">gradient</span><span class="p">):</span>
+            <span class="n">P3</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+=</span><span class="n">gradient</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">P4</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-=</span><span class="n">gradient</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="c1"># print &quot;projected value&quot;, projected_value</span>
+        <span class="n">agp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">interpolate</span> <span class="p">(</span> <span class="p">[</span> <span class="n">P3</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensionality</span><span class="p">]</span> <span class="p">]</span> <span class="p">)</span>
+        <span class="c1">#agp=griddata( self.Mp, self.xsec, [ P3[:self.dimensionality] ],</span>
+        <span class="c1">#              method=&quot;linear&quot;)[0]</span>
+        <span class="c1">#print &quot;along gradient&quot;, ag</span>
+        <span class="n">agm</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">interpolate</span> <span class="p">(</span> <span class="p">[</span> <span class="n">P4</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensionality</span><span class="p">]</span> <span class="p">]</span> <span class="p">)</span>
+        <span class="c1">#agm=griddata( self.Mp, self.xsec, [ P4[:self.dimensionality] ],</span>
+        <span class="c1">#              method=&quot;linear&quot;)[0]</span>
+        <span class="c1">#print &quot;along negative gradient&quot;,agm</span>
+        <span class="n">dep</span><span class="p">,</span><span class="n">dem</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">projected_value</span> <span class="o">==</span> <span class="mf">0.</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">agp</span><span class="o">!=</span><span class="mf">0.</span><span class="p">:</span>
+                <span class="n">dep</span> <span class="o">=</span><span class="mf">1.0</span>
+            <span class="k">if</span> <span class="n">agm</span><span class="o">!=</span><span class="mf">0.</span><span class="p">:</span>
+                <span class="n">dem</span> <span class="o">=</span><span class="mf">1.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dep</span><span class="o">=</span><span class="nb">abs</span> <span class="p">(</span> <span class="n">agp</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">projected_value</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">projected_value</span>
+            <span class="n">dem</span><span class="o">=</span><span class="nb">abs</span> <span class="p">(</span> <span class="n">agm</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">projected_value</span> <span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">projected_value</span>
+        <span class="n">de</span><span class="o">=</span><span class="n">dep</span>
+        <span class="k">if</span> <span class="n">dem</span> <span class="o">&gt;</span> <span class="n">de</span><span class="p">:</span> <span class="n">de</span><span class="o">=</span><span class="n">dem</span>
+        <span class="k">return</span> <span class="n">de</span>
+
+    <span class="k">def</span> <span class="nf">_interpolateOutsideConvexHull</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">massarray</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; experimental routine, meant to check if we can interpolate outside</span>
+<span class="sd">            convex hull &quot;&quot;&quot;</span>
+        <span class="n">porig</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">flattenMassArray</span> <span class="p">(</span> <span class="n">massarray</span> <span class="p">)</span> <span class="c1">## flatten</span>
+        <span class="n">p</span><span class="o">=</span> <span class="p">(</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">porig</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_x</span> <span class="p">)</span> <span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">P</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">p</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_V</span><span class="p">)</span>
+        <span class="n">de</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_estimateExtrapolationError</span> <span class="p">(</span> <span class="n">massarray</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="n">de</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_accept_errors_upto</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_returnProjectedValue</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">de</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span> <span class="p">(</span> <span class="s2">&quot;Expected propagation error of </span><span class="si">%f</span><span class="s2"> too large to &quot;</span> \
+                           <span class="s2">&quot;propagate.&quot;</span> <span class="o">%</span> <span class="n">de</span> <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">_returnProjectedValue</span> <span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
+        <span class="c1">## None is returned without units&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">projected_value</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">projected_value</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span> <span class="p">(</span> <span class="s2">&quot;projected value is None. Projected point not in &quot;</span> \
+                    <span class="s2">&quot;convex hull? original point=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">massarray</span> <span class="p">)</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="c1">#Set value to zero if it is lower than machine precision (avoids fake negative values)</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">projected_value</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">100.</span><span class="o">*</span><span class="n">sys</span><span class="o">.</span><span class="n">float_info</span><span class="o">.</span><span class="n">epsilon</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">projected_value</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">projected_value</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span>
+
+<div class="viewcode-block" id="TxNameData.countNonZeros"><a class="viewcode-back" href="../../experiment.html#experiment.txnameObj.TxNameData.countNonZeros">[docs]</a>    <span class="k">def</span> <span class="nf">countNonZeros</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">mp</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; count the nonzeros in a vector &quot;&quot;&quot;</span>
+        <span class="n">nz</span><span class="o">=</span><span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">mp</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">10</span><span class="o">**-</span><span class="mi">4</span><span class="p">:</span>
+                <span class="n">nz</span><span class="o">+=</span><span class="mi">1</span>
+        <span class="k">return</span> <span class="n">nz</span></div>
+
+<div class="viewcode-block" id="TxNameData.computeV"><a class="viewcode-back" href="../../experiment.html#experiment.txnameObj.TxNameData.computeV">[docs]</a>    <span class="k">def</span> <span class="nf">computeV</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">values</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; compute rotation matrix _V, and triangulation self.tri &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_V</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+             <span class="k">return</span>
+        <span class="n">Morig</span><span class="o">=</span><span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xsec</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">xsec</span><span class="o">.</span><span class="n">append</span> <span class="p">(</span> <span class="n">y</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="p">)</span>
+            <span class="n">xp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flattenMassArray</span> <span class="p">(</span> <span class="n">x</span> <span class="p">)</span>
+            <span class="n">Morig</span><span class="o">.</span><span class="n">append</span> <span class="p">(</span> <span class="n">xp</span> <span class="p">)</span>
+        <span class="n">aM</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">matrix</span> <span class="p">(</span> <span class="n">Morig</span> <span class="p">)</span>
+        <span class="n">MT</span><span class="o">=</span><span class="n">aM</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delta_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span> <span class="p">(</span> <span class="p">[</span> <span class="nb">sum</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">Morig</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">MT</span> <span class="p">]</span> <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">M</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># print &quot;here&quot;</span>
+        <span class="k">for</span> <span class="n">Mx</span> <span class="ow">in</span> <span class="n">Morig</span><span class="p">:</span>
+            <span class="n">m</span><span class="o">=</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span> <span class="p">(</span> <span class="n">Mx</span> <span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_x</span> <span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">M</span><span class="o">.</span><span class="n">append</span> <span class="p">(</span> <span class="n">m</span> <span class="p">)</span>
+            <span class="c1"># M.append ( [ self.round_to_n ( x, 7 ) for x in m ] )</span>
+
+        <span class="n">U</span><span class="p">,</span><span class="n">s</span><span class="p">,</span><span class="n">Vt</span><span class="o">=</span><span class="n">svd</span><span class="p">(</span><span class="n">M</span><span class="p">)</span>
+        <span class="n">V</span><span class="o">=</span><span class="n">Vt</span><span class="o">.</span><span class="n">T</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_V</span><span class="o">=</span> <span class="n">V</span> <span class="c1">## self.round ( V )</span>
+        <span class="n">Mp</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="c1">## the dimensionality of the whole mass space, disrespecting equal branches</span>
+        <span class="c1">## assumption</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">full_dimensionality</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">xp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dimensionality</span><span class="o">=</span><span class="mi">0</span>
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">M</span><span class="p">:</span>
+            <span class="n">mp</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="n">V</span><span class="p">)</span>
+            <span class="n">Mp</span><span class="o">.</span><span class="n">append</span> <span class="p">(</span> <span class="n">mp</span> <span class="p">)</span>
+            <span class="n">nz</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">countNonZeros</span> <span class="p">(</span> <span class="n">mp</span> <span class="p">)</span>
+            <span class="k">if</span> <span class="n">nz</span><span class="o">&gt;</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensionality</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dimensionality</span><span class="o">=</span><span class="n">nz</span>
+        <span class="c1">## print &quot;dim=&quot;,self.dimensionality</span>
+        <span class="c1"># self.MpCut=[]</span>
+        <span class="n">MpCut</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">Mp</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensionality</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">MpCut</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensionality</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">MpCut</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span><span class="mf">0.</span><span class="p">])</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensionality</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;1-D data found. Extending to a small 2-D band around the line.&quot;</span><span class="p">)</span>
+            <span class="n">MpCut</span> <span class="o">+=</span> <span class="p">[[</span><span class="n">pt</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">pt</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mf">0.0001</span><span class="p">]</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">MpCut</span><span class="p">]</span> <span class="o">+</span> <span class="p">[[</span><span class="n">pt</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">pt</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="mf">0.0001</span><span class="p">]</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">MpCut</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_1dim</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">xsec</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xsec</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">xsec</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dimensionality</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_1dim</span> <span class="o">=</span> <span class="bp">False</span>
+             
+        <span class="c1"># self.Mp=MpCut ## also keep the rotated points, with truncated zeros</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tri</span> <span class="o">=</span> <span class="n">qhull</span><span class="o">.</span><span class="n">Delaunay</span><span class="p">(</span> <span class="n">MpCut</span> <span class="p">)</span></div></div>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">time</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="p">[</span> <span class="p">[</span> <span class="p">[[</span> <span class="mf">150.</span><span class="o">*</span><span class="n">GeV</span><span class="p">,</span> <span class="mf">50.</span><span class="o">*</span><span class="n">GeV</span><span class="p">],</span> <span class="p">[</span> <span class="mf">150.</span><span class="o">*</span><span class="n">GeV</span><span class="p">,</span> <span class="mf">50.</span><span class="o">*</span><span class="n">GeV</span><span class="p">]</span> <span class="p">],</span>  <span class="mf">3.</span><span class="o">*</span><span class="n">fb</span> <span class="p">],</span>
+         <span class="p">[</span> <span class="p">[[</span> <span class="mf">200.</span><span class="o">*</span><span class="n">GeV</span><span class="p">,</span><span class="mf">100.</span><span class="o">*</span><span class="n">GeV</span><span class="p">],</span> <span class="p">[</span> <span class="mf">200.</span><span class="o">*</span><span class="n">GeV</span><span class="p">,</span><span class="mf">100.</span><span class="o">*</span><span class="n">GeV</span><span class="p">]</span> <span class="p">],</span>  <span class="mf">5.</span><span class="o">*</span><span class="n">fb</span> <span class="p">],</span>
+         <span class="p">[</span> <span class="p">[[</span> <span class="mf">300.</span><span class="o">*</span><span class="n">GeV</span><span class="p">,</span><span class="mf">100.</span><span class="o">*</span><span class="n">GeV</span><span class="p">],</span> <span class="p">[</span> <span class="mf">300.</span><span class="o">*</span><span class="n">GeV</span><span class="p">,</span><span class="mf">100.</span><span class="o">*</span><span class="n">GeV</span><span class="p">]</span> <span class="p">],</span> <span class="mf">10.</span><span class="o">*</span><span class="n">fb</span> <span class="p">],</span>
+         <span class="p">[</span> <span class="p">[[</span> <span class="mf">300.</span><span class="o">*</span><span class="n">GeV</span><span class="p">,</span><span class="mf">150.</span><span class="o">*</span><span class="n">GeV</span><span class="p">],</span> <span class="p">[</span> <span class="mf">300.</span><span class="o">*</span><span class="n">GeV</span><span class="p">,</span><span class="mf">150.</span><span class="o">*</span><span class="n">GeV</span><span class="p">]</span> <span class="p">],</span> <span class="mf">13.</span><span class="o">*</span><span class="n">fb</span> <span class="p">],</span>
+         <span class="p">[</span> <span class="p">[[</span> <span class="mf">300.</span><span class="o">*</span><span class="n">GeV</span><span class="p">,</span><span class="mf">200.</span><span class="o">*</span><span class="n">GeV</span><span class="p">],</span> <span class="p">[</span> <span class="mf">300.</span><span class="o">*</span><span class="n">GeV</span><span class="p">,</span><span class="mf">200.</span><span class="o">*</span><span class="n">GeV</span><span class="p">]</span> <span class="p">],</span> <span class="mf">15.</span><span class="o">*</span><span class="n">fb</span> <span class="p">],</span>
+         <span class="p">[</span> <span class="p">[[</span> <span class="mf">300.</span><span class="o">*</span><span class="n">GeV</span><span class="p">,</span><span class="mf">250.</span><span class="o">*</span><span class="n">GeV</span><span class="p">],</span> <span class="p">[</span> <span class="mf">300.</span><span class="o">*</span><span class="n">GeV</span><span class="p">,</span><span class="mf">250.</span><span class="o">*</span><span class="n">GeV</span><span class="p">]</span> <span class="p">],</span> <span class="mf">20.</span><span class="o">*</span><span class="n">fb</span> <span class="p">],</span>
+         <span class="p">[</span> <span class="p">[[</span> <span class="mf">400.</span><span class="o">*</span><span class="n">GeV</span><span class="p">,</span><span class="mf">100.</span><span class="o">*</span><span class="n">GeV</span><span class="p">],</span> <span class="p">[</span> <span class="mf">400.</span><span class="o">*</span><span class="n">GeV</span><span class="p">,</span><span class="mf">100.</span><span class="o">*</span><span class="n">GeV</span><span class="p">]</span> <span class="p">],</span>  <span class="mf">8.</span><span class="o">*</span><span class="n">fb</span> <span class="p">],</span>
+         <span class="p">[</span> <span class="p">[[</span> <span class="mf">400.</span><span class="o">*</span><span class="n">GeV</span><span class="p">,</span><span class="mf">150.</span><span class="o">*</span><span class="n">GeV</span><span class="p">],</span> <span class="p">[</span> <span class="mf">400.</span><span class="o">*</span><span class="n">GeV</span><span class="p">,</span><span class="mf">150.</span><span class="o">*</span><span class="n">GeV</span><span class="p">]</span> <span class="p">],</span> <span class="mf">10.</span><span class="o">*</span><span class="n">fb</span> <span class="p">],</span>
+         <span class="p">[</span> <span class="p">[[</span> <span class="mf">400.</span><span class="o">*</span><span class="n">GeV</span><span class="p">,</span><span class="mf">200.</span><span class="o">*</span><span class="n">GeV</span><span class="p">],</span> <span class="p">[</span> <span class="mf">400.</span><span class="o">*</span><span class="n">GeV</span><span class="p">,</span><span class="mf">200.</span><span class="o">*</span><span class="n">GeV</span><span class="p">]</span> <span class="p">],</span> <span class="mf">12.</span><span class="o">*</span><span class="n">fb</span> <span class="p">],</span>
+         <span class="p">[</span> <span class="p">[[</span> <span class="mf">400.</span><span class="o">*</span><span class="n">GeV</span><span class="p">,</span><span class="mf">250.</span><span class="o">*</span><span class="n">GeV</span><span class="p">],</span> <span class="p">[</span> <span class="mf">400.</span><span class="o">*</span><span class="n">GeV</span><span class="p">,</span><span class="mf">250.</span><span class="o">*</span><span class="n">GeV</span><span class="p">]</span> <span class="p">],</span> <span class="mf">15.</span><span class="o">*</span><span class="n">fb</span> <span class="p">],</span>
+         <span class="p">[</span> <span class="p">[[</span> <span class="mf">400.</span><span class="o">*</span><span class="n">GeV</span><span class="p">,</span><span class="mf">300.</span><span class="o">*</span><span class="n">GeV</span><span class="p">],</span> <span class="p">[</span> <span class="mf">400.</span><span class="o">*</span><span class="n">GeV</span><span class="p">,</span><span class="mf">300.</span><span class="o">*</span><span class="n">GeV</span><span class="p">]</span> <span class="p">],</span> <span class="mf">17.</span><span class="o">*</span><span class="n">fb</span> <span class="p">],</span>
+         <span class="p">[</span> <span class="p">[[</span> <span class="mf">400.</span><span class="o">*</span><span class="n">GeV</span><span class="p">,</span><span class="mf">350.</span><span class="o">*</span><span class="n">GeV</span><span class="p">],</span> <span class="p">[</span> <span class="mf">400.</span><span class="o">*</span><span class="n">GeV</span><span class="p">,</span><span class="mf">350.</span><span class="o">*</span><span class="n">GeV</span><span class="p">]</span> <span class="p">],</span> <span class="mf">19.</span><span class="o">*</span><span class="n">fb</span> <span class="p">],</span> <span class="p">]</span>
+    <span class="n">txnameData</span><span class="o">=</span><span class="n">TxNameData</span> <span class="p">(</span> <span class="n">data</span><span class="p">,</span> <span class="s2">&quot;upperLimits&quot;</span><span class="p">,</span>  <span class="n">sys</span><span class="o">.</span><span class="n">_getframe</span><span class="p">()</span><span class="o">.</span><span class="n">f_code</span><span class="o">.</span><span class="n">co_name</span> <span class="p">)</span>
+    <span class="n">t0</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">masses</span> <span class="ow">in</span> <span class="p">[</span> <span class="p">[[</span> <span class="mf">302.</span><span class="o">*</span><span class="n">GeV</span><span class="p">,</span><span class="mf">123.</span><span class="o">*</span><span class="n">GeV</span><span class="p">],</span> <span class="p">[</span> <span class="mf">302.</span><span class="o">*</span><span class="n">GeV</span><span class="p">,</span><span class="mf">123.</span><span class="o">*</span><span class="n">GeV</span><span class="p">]],</span>
+                    <span class="p">[[</span> <span class="mf">254.</span><span class="o">*</span><span class="n">GeV</span><span class="p">,</span><span class="mf">171.</span><span class="o">*</span><span class="n">GeV</span><span class="p">],</span> <span class="p">[</span> <span class="mf">254.</span><span class="o">*</span><span class="n">GeV</span><span class="p">,</span><span class="mf">170.</span><span class="o">*</span><span class="n">GeV</span><span class="p">]],</span>
+    <span class="p">]:</span>
+        <span class="n">result</span><span class="o">=</span><span class="n">txnameData</span><span class="o">.</span><span class="n">getValueFor</span><span class="p">(</span> <span class="n">masses</span> <span class="p">)</span>
+        <span class="n">sm</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%.1f</span><span class="s2"> </span><span class="si">%.1f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">masses</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">asNumber</span><span class="p">(</span><span class="n">GeV</span><span class="p">),</span> <span class="n">masses</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">asNumber</span><span class="p">(</span><span class="n">GeV</span><span class="p">)</span> <span class="p">)</span>
+        <span class="k">print</span> <span class="p">(</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%.3f</span><span class="s2"> fb&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">sm</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">asNumber</span><span class="p">(</span><span class="n">fb</span><span class="p">)</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="k">print</span> <span class="p">(</span> <span class="s2">&quot;</span><span class="si">%.2f</span><span class="s2"> ms&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">t0</span><span class="p">)</span><span class="o">*</span><span class="mf">1000.</span> <span class="p">)</span> <span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, &lt;function authors at 0x7f73f74eb500&gt;.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.1.0patch1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

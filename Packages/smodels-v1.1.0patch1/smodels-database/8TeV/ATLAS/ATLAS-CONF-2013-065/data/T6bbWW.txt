@@ -1,0 +1,29 @@
+txName: T6bbWW
+conditionDescription: None
+condition: None
+constraint: [[['b'],['W+']],[['b'],['W-']]]
+checked: VM
+figureUrl: https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/CONFNOTES/ATLAS-CONF-2013-065/fig_11.png
+dataUrl: https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/CONFNOTES/ATLAS-CONF-2013-065/fig_11_PRELIMINARY.data
+validated: True
+axes: 2*Eq(mother,300.000000000000)_Eq(inter0,x)_Eq(lsp,y)
+publishedData: True
+upperLimits: [[[[300.0*GeV, 100.0*GeV, 1.0*GeV], [300.0*GeV, 100.0*GeV, 1.0*GeV]], 0.5*pb],
+[[[300.0*GeV, 100.0*GeV, 50.0*GeV], [300.0*GeV, 100.0*GeV, 50.0*GeV]], 0.8*pb],
+[[[300.0*GeV, 100.0*GeV, 95.0*GeV], [300.0*GeV, 100.0*GeV, 95.0*GeV]], 384.4*pb],
+[[[300.0*GeV, 150.0*GeV, 1.0*GeV], [300.0*GeV, 150.0*GeV, 1.0*GeV]], 1.6*pb],
+[[[300.0*GeV, 150.0*GeV, 25.0*GeV], [300.0*GeV, 150.0*GeV, 25.0*GeV]], 1.2*pb],
+[[[300.0*GeV, 150.0*GeV, 50.0*GeV], [300.0*GeV, 150.0*GeV, 50.0*GeV]], 1.3*pb],
+[[[300.0*GeV, 150.0*GeV, 100.0*GeV], [300.0*GeV, 150.0*GeV, 100.0*GeV]], 3.1*pb],
+[[[300.0*GeV, 200.0*GeV, 1.0*GeV], [300.0*GeV, 200.0*GeV, 1.0*GeV]], 0.51*pb],
+[[[300.0*GeV, 200.0*GeV, 50.0*GeV], [300.0*GeV, 200.0*GeV, 50.0*GeV]], 0.67*pb],
+[[[300.0*GeV, 200.0*GeV, 100.0*GeV], [300.0*GeV, 200.0*GeV, 100.0*GeV]], 2.47*pb],
+[[[300.0*GeV, 250.0*GeV, 1.0*GeV], [300.0*GeV, 250.0*GeV, 1.0*GeV]], 0.41*pb],
+[[[300.0*GeV, 250.0*GeV, 50.0*GeV], [300.0*GeV, 250.0*GeV, 50.0*GeV]], 0.44*pb],
+[[[300.0*GeV, 250.0*GeV, 100.0*GeV], [300.0*GeV, 250.0*GeV, 100.0*GeV]], 0.6*pb],
+[[[300.0*GeV, 250.0*GeV, 150.0*GeV], [300.0*GeV, 250.0*GeV, 150.0*GeV]], 2.94*pb],
+[[[300.0*GeV, 290.0*GeV, 1.0*GeV], [300.0*GeV, 290.0*GeV, 1.0*GeV]], 0.41*pb],
+[[[300.0*GeV, 290.0*GeV, 50.0*GeV], [300.0*GeV, 290.0*GeV, 50.0*GeV]], 0.52*pb],
+[[[300.0*GeV, 290.0*GeV, 100.0*GeV], [300.0*GeV, 290.0*GeV, 100.0*GeV]], 0.5*pb],
+[[[300.0*GeV, 290.0*GeV, 150.0*GeV], [300.0*GeV, 290.0*GeV, 150.0*GeV]], 0.95*pb],
+[[[300.0*GeV, 290.0*GeV, 190.0*GeV], [300.0*GeV, 290.0*GeV, 190.0*GeV]], 3.07*pb]]

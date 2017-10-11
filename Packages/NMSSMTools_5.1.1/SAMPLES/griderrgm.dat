@@ -1,0 +1,34 @@
+Number of points:                       
+
+  scanned                                      100
+  no electroweak symmetry breaking               0
+  with mh1^2 or ma1^2 or mhc^2 < 0               0
+  with m_sfermion^2 < 0                          0
+  violating constraints                         24
+  RGE integration problem                        0
+  convergence problem                            0
+
+Remaining good points                           76
+
+
+Contraints taken into account:                    
+ - Relic density from Planck upper bound < 0.131  
+ - Landau poles and false minima                  
+ - Upsilon, B and K decays                        
+
+
+Parameter ranges for good points:                 
+
+ MSUSYEFF:      0.4000E+05     0.4000E+05     0.0000E+00
+    MMESS:      0.1000E+08     0.1000E+08     0.0000E+00
+     TANB:      0.1500E+01     0.2000E+01     0.1429E+00
+   LAMBDA:      0.4000E+00     0.6000E+00     0.2000E+00
+  ALAMBDA:      0.0000E+00     0.0000E+00     0.0000E+00
+    MUEFF:      0.4555E+03     0.5913E+03     0.1298E+00
+   (MUEFF is not an input parameter)
+    KAPPA:      0.1977E+00     0.3530E+00     0.2819E+00
+   (KAPPA is not an input parameter)
+      XIF:      0.5000E+05     0.5000E+05     0.3398E-05
+       MS:      0.1026E+00     0.3591E+00     0.5555E+00
+      XIS:     -0.5214E+09    -0.1012E+09     0.6750E+00
+     (XIS is not an input parameter)

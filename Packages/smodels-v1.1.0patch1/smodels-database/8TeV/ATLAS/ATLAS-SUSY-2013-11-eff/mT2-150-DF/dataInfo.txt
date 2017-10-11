@@ -1,0 +1,7 @@
+dataType: efficiencyMap
+dataId: mT2-150-DF
+observedN: 2
+expectedBG: 1.0
+bgError: 0.5
+upperLimit: 0.269531120785*fb
+expectedUpperLimit: 0.206068346632*fb

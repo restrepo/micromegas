@@ -1,0 +1,2337 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tools package &mdash; SModelS 1.1.0patch1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="SModelS 1.1.0patch1 documentation" href="index.html"/>
+        <link rel="prev" title="experiment package" href="experiment.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> SModelS
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.1.0patch1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="theory.html">theory package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="experiment.html">experiment package</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">tools package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-tools.asciiGraph">tools.asciiGraph module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-tools.caching">tools.caching module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-tools.coverage">tools.coverage module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-tools.crashReport">tools.crashReport module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-tools.databaseBrowser">tools.databaseBrowser module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-tools.externalNllFast">tools.externalNllFast module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-tools.externalPythia6">tools.externalPythia6 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-tools.externalPythonTools">tools.externalPythonTools module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-tools.externalTool">tools.externalTool module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-tools.ioObjects">tools.ioObjects module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-tools.lheChecks">tools.lheChecks module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-tools.modelTester">tools.modelTester module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-tools.nllFast">tools.nllFast module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-tools.physicsUnits">tools.physicsUnits module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-tools.printer">tools.printer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-tools.runtime">tools.runtime module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-tools.slhaChecks">tools.slhaChecks module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-tools.smodelsLogging">tools.smodelsLogging module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-tools.statistics">tools.statistics module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-tools.stringTools">tools.stringTools module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-tools.timeOut">tools.timeOut module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-tools.toolBox">tools.toolBox module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-tools.xsecComputer">tools.xsecComputer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-tools">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">SModelS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>tools package</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/tools.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="tools-package">
+<h1>tools package<a class="headerlink" href="#tools-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-tools.asciiGraph">
+<span id="tools-asciigraph-module"></span><h2>tools.asciiGraph module<a class="headerlink" href="#module-tools.asciiGraph" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-asciiGraph"></span><dl class="function">
+<dt id="tools.asciiGraph.asciidraw">
+<code class="descname">asciidraw</code><span class="sig-paren">(</span><em>element</em>, <em>labels=True</em>, <em>html=False</em>, <em>border=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/asciiGraph.html#asciidraw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.asciiGraph.asciidraw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw a simple ASCII graph on the screen.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-tools.caching">
+<span id="tools-caching-module"></span><h2>tools.caching module<a class="headerlink" href="#module-tools.caching" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-caching"></span><dl class="class">
+<dt id="tools.caching.Cache">
+<em class="property">class </em><code class="descname">Cache</code><a class="reference internal" href="_modules/tools/caching.html#Cache"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.caching.Cache" title="Permalink to this definition">¶</a></dt>
+<dd><p>a class for storing results from interpolation</p>
+<dl class="staticmethod">
+<dt id="tools.caching.Cache.add">
+<em class="property">static </em><code class="descname">add</code><span class="sig-paren">(</span><em>key</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/caching.html#Cache.add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.caching.Cache.add" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="tools.caching.Cache.n_stored">
+<code class="descname">n_stored</code><em class="property"> = 1000</em><a class="headerlink" href="#tools.caching.Cache.n_stored" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="tools.caching.Cache.reset">
+<em class="property">static </em><code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/caching.html#Cache.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.caching.Cache.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>completely reset the cache</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="tools.caching.Cache.size">
+<em class="property">static </em><code class="descname">size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/caching.html#Cache.size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.caching.Cache.size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-tools.coverage">
+<span id="tools-coverage-module"></span><h2>tools.coverage module<a class="headerlink" href="#module-tools.coverage" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-coverage"></span><dl class="class">
+<dt id="tools.coverage.Uncovered">
+<em class="property">class </em><code class="descname">Uncovered</code><span class="sig-paren">(</span><em>topoList</em>, <em>sumL=True</em>, <em>sumJet=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/coverage.html#Uncovered"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.coverage.Uncovered" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Object collecting all information of non-tested/covered elements
+:ivar topoList: sms topology list
+:ivar sumL: if true, sum up electron and muon to lepton, for missing topos
+:ivar sumJet: if true, sum up jets, for missing topos</p>
+<dl class="method">
+<dt id="tools.coverage.Uncovered.fill">
+<code class="descname">fill</code><span class="sig-paren">(</span><em>topoList</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/coverage.html#Uncovered.fill"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.coverage.Uncovered.fill" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check all elements, categorise those not tested / missing, classify long cascade decays and asymmetric branches
+Fills all corresponding objects
+:ivar topoList: sms topology list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.coverage.Uncovered.getAllMothers">
+<code class="descname">getAllMothers</code><span class="sig-paren">(</span><em>topoList</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/coverage.html#Uncovered.getAllMothers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.coverage.Uncovered.getAllMothers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find all IDs of mother elements, only most compressed element can be missing topology
+:ivar topoList: sms topology list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.coverage.Uncovered.getAsymmetricXsec">
+<code class="descname">getAsymmetricXsec</code><span class="sig-paren">(</span><em>sqrts=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/coverage.html#Uncovered.getAsymmetricXsec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.coverage.Uncovered.getAsymmetricXsec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tools.coverage.Uncovered.getLongCascadeXsec">
+<code class="descname">getLongCascadeXsec</code><span class="sig-paren">(</span><em>sqrts=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/coverage.html#Uncovered.getLongCascadeXsec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.coverage.Uncovered.getLongCascadeXsec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tools.coverage.Uncovered.getMissingXsec">
+<code class="descname">getMissingXsec</code><span class="sig-paren">(</span><em>sqrts=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/coverage.html#Uncovered.getMissingXsec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.coverage.Uncovered.getMissingXsec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate total missing topology cross section at sqrts. If no sqrts is given use self.sqrts
+:ivar sqrts: sqrts</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.coverage.Uncovered.getOutOfGridXsec">
+<code class="descname">getOutOfGridXsec</code><span class="sig-paren">(</span><em>sqrts=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/coverage.html#Uncovered.getOutOfGridXsec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.coverage.Uncovered.getOutOfGridXsec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tools.coverage.Uncovered.hasAsymmetricBranches">
+<code class="descname">hasAsymmetricBranches</code><span class="sig-paren">(</span><em>el</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/coverage.html#Uncovered.hasAsymmetricBranches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.coverage.Uncovered.hasAsymmetricBranches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if Element branches are not equal
+:ivar el: Element</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.coverage.Uncovered.hasLongCascade">
+<code class="descname">hasLongCascade</code><span class="sig-paren">(</span><em>el</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/coverage.html#Uncovered.hasLongCascade"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.coverage.Uncovered.hasLongCascade" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if element has more than 3 particles in the decay chain
+:ivar el: Element</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.coverage.Uncovered.isMissingTopo">
+<code class="descname">isMissingTopo</code><span class="sig-paren">(</span><em>el</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/coverage.html#Uncovered.isMissingTopo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.coverage.Uncovered.isMissingTopo" title="Permalink to this definition">¶</a></dt>
+<dd><p>A missing topology is not a mother element, not covered, and does not have mother which is covered
+:ivar el: Element</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.coverage.Uncovered.motherCovered">
+<code class="descname">motherCovered</code><span class="sig-paren">(</span><em>el</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/coverage.html#Uncovered.motherCovered"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.coverage.Uncovered.motherCovered" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recursively check if a mother of the given Element is covered
+:ivar el: Element</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tools.coverage.UncoveredClass">
+<em class="property">class </em><code class="descname">UncoveredClass</code><span class="sig-paren">(</span><em>motherPIDs</em>, <em>el</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/coverage.html#UncoveredClass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.coverage.UncoveredClass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Object collecting all elements contributing to the same uncovered class, defined by the mother PIDs.
+:ivar motherPIDs: PID of initially produces particles, sorted and without charge information
+:ivar el: Element</p>
+<dl class="method">
+<dt id="tools.coverage.UncoveredClass.add">
+<code class="descname">add</code><span class="sig-paren">(</span><em>motherPIDs</em>, <em>el</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/coverage.html#UncoveredClass.add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.coverage.UncoveredClass.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add Element to this UncoveredClass object if motherPIDs match and return True, else return False
+:ivar motherPIDs: PID of initially produces particles, sorted and without charge information
+:ivar el: Element</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.coverage.UncoveredClass.combine">
+<code class="descname">combine</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/coverage.html#UncoveredClass.combine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.coverage.UncoveredClass.combine" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tools.coverage.UncoveredClass.getWeight">
+<code class="descname">getWeight</code><span class="sig-paren">(</span><em>sqrts</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/coverage.html#UncoveredClass.getWeight"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.coverage.UncoveredClass.getWeight" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate weight at sqrts
+:ivar sqrts: sqrts</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.coverage.UncoveredClass.isSubset">
+<code class="descname">isSubset</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/coverage.html#UncoveredClass.isSubset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.coverage.UncoveredClass.isSubset" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if motherPIDs of others are subset of the motherPIDs of this UncoveredClass</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tools.coverage.UncoveredClassifier">
+<em class="property">class </em><code class="descname">UncoveredClassifier</code><a class="reference internal" href="_modules/tools/coverage.html#UncoveredClassifier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.coverage.UncoveredClassifier" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Object collecting elements with long cascade decays or asymmetric branches.
+Objects are grouped according to the initially produced particle PID pair.</p>
+<dl class="method">
+<dt id="tools.coverage.UncoveredClassifier.addToClasses">
+<code class="descname">addToClasses</code><span class="sig-paren">(</span><em>el</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/coverage.html#UncoveredClassifier.addToClasses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.coverage.UncoveredClassifier.addToClasses" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add Element in corresponding UncoveredClass, defined by mother PIDs.
+If no corresponding class in self.classes, add new UncoveredClass
+:ivar el: Element</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.coverage.UncoveredClassifier.combine">
+<code class="descname">combine</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/coverage.html#UncoveredClassifier.combine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.coverage.UncoveredClassifier.combine" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tools.coverage.UncoveredClassifier.getMotherPIDs">
+<code class="descname">getMotherPIDs</code><span class="sig-paren">(</span><em>el</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/coverage.html#UncoveredClassifier.getMotherPIDs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.coverage.UncoveredClassifier.getMotherPIDs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tools.coverage.UncoveredClassifier.getSorted">
+<code class="descname">getSorted</code><span class="sig-paren">(</span><em>sqrts</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/coverage.html#UncoveredClassifier.getSorted"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.coverage.UncoveredClassifier.getSorted" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns list of UncoveredClass objects in self.classes, sorted by weight
+:ivar sqrts: sqrts for weight lookup</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.coverage.UncoveredClassifier.remove">
+<code class="descname">remove</code><span class="sig-paren">(</span><em>cl</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/coverage.html#UncoveredClassifier.remove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.coverage.UncoveredClassifier.remove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove element where mother pids match exactly</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tools.coverage.UncoveredList">
+<em class="property">class </em><code class="descname">UncoveredList</code><span class="sig-paren">(</span><em>sumL</em>, <em>sumJet</em>, <em>sqrts</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/coverage.html#UncoveredList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.coverage.UncoveredList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Object to find and collect UncoveredTopo objects, plus printout functionality
+:ivar sumL: if true sum electrons and muons to leptons
+:ivar sumJet: if true, sum up jets
+:ivar sqrts: sqrts, for printout</p>
+<dl class="method">
+<dt id="tools.coverage.UncoveredList.addToTopos">
+<code class="descname">addToTopos</code><span class="sig-paren">(</span><em>el</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/coverage.html#UncoveredList.addToTopos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.coverage.UncoveredList.addToTopos" title="Permalink to this definition">¶</a></dt>
+<dd><p>adds an element to the list of missing topologies
+if the element contributes to a missing topology that is already
+in the list, add weight to topology
+:parameter el: element to be added</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.coverage.UncoveredList.generalName">
+<code class="descname">generalName</code><span class="sig-paren">(</span><em>instr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/coverage.html#UncoveredList.generalName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.coverage.UncoveredList.generalName" title="Permalink to this definition">¶</a></dt>
+<dd><p>generalize by summing over charges
+e, mu are combined to l
+:parameter instr: element as string
+:returns: string of generalized element</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.coverage.UncoveredList.orderbranches">
+<code class="descname">orderbranches</code><span class="sig-paren">(</span><em>instr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/coverage.html#UncoveredList.orderbranches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.coverage.UncoveredList.orderbranches" title="Permalink to this definition">¶</a></dt>
+<dd><p>unique ordering of branches
+:parameter instr: element as string
+:returns: string of ordered element</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tools.coverage.UncoveredTopo">
+<em class="property">class </em><code class="descname">UncoveredTopo</code><span class="sig-paren">(</span><em>topo</em>, <em>weights</em>, <em>contributingElements=[]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/coverage.html#UncoveredTopo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.coverage.UncoveredTopo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Object to describe one missing topology result / one topology outside the mass grid
+:ivar topo: topology description
+:ivar weights: weights dictionary</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-tools.crashReport">
+<span id="tools-crashreport-module"></span><h2>tools.crashReport module<a class="headerlink" href="#module-tools.crashReport" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-crashReport"></span><dl class="class">
+<dt id="tools.crashReport.CrashReport">
+<em class="property">class </em><code class="descname">CrashReport</code><a class="reference internal" href="_modules/tools/crashReport.html#CrashReport"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.crashReport.CrashReport" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Class that handles all crash report information.</p>
+<dl class="method">
+<dt id="tools.crashReport.CrashReport.createCrashReportFile">
+<code class="descname">createCrashReportFile</code><span class="sig-paren">(</span><em>inputFileName</em>, <em>parameterFileName</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/crashReport.html#CrashReport.createCrashReportFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.crashReport.CrashReport.createCrashReportFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new SModelS crash report file.</p>
+<p>A SModelS crash report file contains:</p>
+<ul class="simple">
+<li>a timestamp</li>
+<li>SModelS version</li>
+<li>platform information (CPU architecture, operating system, ...)</li>
+<li>Python version</li>
+<li>stack trace</li>
+<li>input file name</li>
+<li>input file content</li>
+<li>parameter file name</li>
+<li>parameter file content</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>inputFileName</strong> &#8211; relative location of the input file</li>
+<li><strong>parameterFileName</strong> &#8211; relative location of the parameter file</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.crashReport.CrashReport.createUnknownErrorMessage">
+<code class="descname">createUnknownErrorMessage</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/crashReport.html#CrashReport.createUnknownErrorMessage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.crashReport.CrashReport.createUnknownErrorMessage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a message for an unknown error.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.crashReport.createStackTrace">
+<code class="descname">createStackTrace</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/crashReport.html#createStackTrace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.crashReport.createStackTrace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the stack trace.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.crashReport.readCrashReportFile">
+<code class="descname">readCrashReportFile</code><span class="sig-paren">(</span><em>crashReportFileName</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/crashReport.html#readCrashReportFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.crashReport.readCrashReportFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a crash report file to use its input and parameter file sections for a
+SModelS run.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>crashReportFileName</strong> &#8211; relative location of the crash report file</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-tools.databaseBrowser">
+<span id="tools-databasebrowser-module"></span><h2>tools.databaseBrowser module<a class="headerlink" href="#module-tools.databaseBrowser" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-databaseBrowser"></span><dl class="class">
+<dt id="tools.databaseBrowser.Browser">
+<em class="property">class </em><code class="descname">Browser</code><span class="sig-paren">(</span><em>database</em>, <em>force_txt=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/databaseBrowser.html#Browser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.databaseBrowser.Browser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Browses the database, exits if given path does not point to a valid
+smodels-database. Browser can be restricted to specified run or experiment.
+Verbosity can be set to specified level.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>database</strong> &#8211; Database object holding all the database information</li>
+<li><strong>_selectedExpResults</strong> &#8211; list of experimental results loaded in the browser.
+Can be used to hold a subset of results in the database.
+By default all results are loaded.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="tools.databaseBrowser.Browser.getAttributes">
+<code class="descname">getAttributes</code><span class="sig-paren">(</span><em>showPrivate=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/databaseBrowser.html#Browser.getAttributes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.databaseBrowser.Browser.getAttributes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks for all the fields/attributes it contains as well as the
+attributes of its objects if they belong to smodels.experiment.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>showPrivate</strong> &#8211; if True, also returns the protected fields (_field)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">list of field names (strings)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.databaseBrowser.Browser.getEfficiencyFor">
+<code class="descname">getEfficiencyFor</code><span class="sig-paren">(</span><em>expid</em>, <em>dataset</em>, <em>txname</em>, <em>massarray</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/databaseBrowser.html#Browser.getEfficiencyFor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.databaseBrowser.Browser.getEfficiencyFor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get an efficiency for the given experimental id, 
+the dataset name, the txname, and the massarray.
+Can only be used for EfficiencyMap-type experimental results.
+Interpolation is done, if necessary.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>expid</strong> &#8211; experimental id (string)</li>
+<li><strong>dataset</strong> &#8211; dataset name (string)</li>
+<li><strong>txname</strong> &#8211; txname (string).</li>
+<li><strong>massarray</strong> &#8211; list of masses with units, e.g.
+[[ 400.*GeV, 100.*GeV],[400.*GeV, 100.*GeV]]</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">efficiency</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.databaseBrowser.Browser.getULFor">
+<code class="descname">getULFor</code><span class="sig-paren">(</span><em>expid</em>, <em>txname</em>, <em>massarray</em>, <em>expected=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/databaseBrowser.html#Browser.getULFor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.databaseBrowser.Browser.getULFor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get an upper limit for the given experimental id, the txname, 
+and the massarray.
+Can only be used for UL experimental results.
+Interpolation is done, if necessary.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>expid</strong> &#8211; experimental id (string)</li>
+<li><strong>txname</strong> &#8211; txname (string). ONLY required for upper limit results</li>
+<li><strong>massarray</strong> &#8211; list of masses with units, e.g.
+[[ 400.*GeV, 100.*GeV],[400.*GeV, 100.*GeV]]</li>
+<li><strong>expected</strong> &#8211; If true, return expected upper limit, otherwise
+return observed upper limit.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">upper limit [fb]</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.databaseBrowser.Browser.getULForSR">
+<code class="descname">getULForSR</code><span class="sig-paren">(</span><em>expid</em>, <em>datasetID</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/databaseBrowser.html#Browser.getULForSR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.databaseBrowser.Browser.getULForSR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get an upper limit for the given experimental id and dataset (signal region).
+Can only be used for efficiency-map results.
+:param expid: experimental id (string)
+:param datasetID: string defining the dataset id, e.g. ANA5-CUT3.
+:return: upper limit [fb]</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.databaseBrowser.Browser.getValuesFor">
+<code class="descname">getValuesFor</code><span class="sig-paren">(</span><em>attribute=None</em>, <em>expResult=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/databaseBrowser.html#Browser.getValuesFor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.databaseBrowser.Browser.getValuesFor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list for the possible values appearing in the database
+for the required attribute (sqrts,id,constraint,...).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>attribute</strong> &#8211; name of a field in the database (string). If not defined
+it will return a dictionary with all fields and their respective
+values</li>
+<li><strong>expResult</strong> &#8211; if defined, restricts the list to the corresponding expResult.
+Must be an ExpResult object.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list of values</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.databaseBrowser.Browser.loadAllResults">
+<code class="descname">loadAllResults</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/databaseBrowser.html#Browser.loadAllResults"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.databaseBrowser.Browser.loadAllResults" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves all the results from database to the _selectedExpResults.
+Can be used to restore all results to _selectedExpResults.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.databaseBrowser.Browser.selectExpResultsWith">
+<code class="descname">selectExpResultsWith</code><span class="sig-paren">(</span><em>**restrDict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/databaseBrowser.html#Browser.selectExpResultsWith"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.databaseBrowser.Browser.selectExpResultsWith" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads the list of the experimental results (pair of InfoFile and DataFile)
+satisfying the restrictions to the _selectedExpResults.
+The restrictions specified as a dictionary.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>restrDict</strong> &#8211; selection fields and their allowed values.
+E.g. lumi = [19.4/fb, 20.3/fb], txName = &#8216;T1&#8217;,....}
+The values can be single entries or a list of values.
+For the fields not listed, all values are assumed to be allowed.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.databaseBrowser.main">
+<code class="descname">main</code><span class="sig-paren">(</span><em>args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/databaseBrowser.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.databaseBrowser.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>IPython interface for browsing the Database.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-tools.externalNllFast">
+<span id="tools-externalnllfast-module"></span><h2>tools.externalNllFast module<a class="headerlink" href="#module-tools.externalNllFast" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-externalNllFast"></span><dl class="class">
+<dt id="tools.externalNllFast.ExternalNllFast">
+<em class="property">class </em><code class="descname">ExternalNllFast</code><span class="sig-paren">(</span><em>sqrts</em>, <em>nllfastVersion</em>, <em>testParams</em>, <em>testCondition</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/externalNllFast.html#ExternalNllFast"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalNllFast.ExternalNllFast" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">smodels.tools.externalTool.ExternalTool</span></code></p>
+<p>An instance of this class represents the installation of nllfast.</p>
+<dl class="method">
+<dt id="tools.externalNllFast.ExternalNllFast.checkInstallation">
+<code class="descname">checkInstallation</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/externalNllFast.html#ExternalNllFast.checkInstallation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalNllFast.ExternalNllFast.checkInstallation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if installation of tool is valid by looking for executable and
+executing it.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.externalNllFast.ExternalNllFast.compile">
+<code class="descname">compile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/externalNllFast.html#ExternalNllFast.compile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalNllFast.ExternalNllFast.compile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Try to compile nllfast.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.externalNllFast.ExternalNllFast.fetch">
+<code class="descname">fetch</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/externalNllFast.html#ExternalNllFast.fetch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalNllFast.ExternalNllFast.fetch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch and unpack tarball.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.externalNllFast.ExternalNllFast.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>process</em>, <em>pdf</em>, <em>squarkmass</em>, <em>gluinomass</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/externalNllFast.html#ExternalNllFast.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalNllFast.ExternalNllFast.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute nllfast.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Params process:</th><td class="field-body">which process: st, sb, gg, gdcpl, sdcpl, ss, sg, tot</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Params pdf:</th><td class="field-body">cteq=cteq6, mstw2008</td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2">Params squarkmass:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body">squarkmass, None if squark decoupled</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Params gluinomass:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body">gluinomass, None if gluino decoupled</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">stdout and stderr, or error message</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.externalNllFast.ExternalNllFast.run_">
+<code class="descname">run_</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/externalNllFast.html#ExternalNllFast.run_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalNllFast.ExternalNllFast.run_" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute nllfast7.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Params params:</th><td class="field-body">parameters used (e.g. gg cteq5 .... )</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">stdout and stderr, or error message</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.externalNllFast.ExternalNllFast.unlink">
+<code class="descname">unlink</code><span class="sig-paren">(</span><em>inputFile</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/externalNllFast.html#ExternalNllFast.unlink"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalNllFast.ExternalNllFast.unlink" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove inputFile.out</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tools.externalNllFast.ExternalNllFast13">
+<em class="property">class </em><code class="descname">ExternalNllFast13</code><a class="reference internal" href="_modules/tools/externalNllFast.html#ExternalNllFast13"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalNllFast.ExternalNllFast13" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#tools.externalNllFast.ExternalNllFast" title="tools.externalNllFast.ExternalNllFast"><code class="xref py py-class docutils literal"><span class="pre">tools.externalNllFast.ExternalNllFast</span></code></a></p>
+<p>An instance of this class represents the installation of nllfast 8.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="tools.externalNllFast.ExternalNllFast7">
+<em class="property">class </em><code class="descname">ExternalNllFast7</code><a class="reference internal" href="_modules/tools/externalNllFast.html#ExternalNllFast7"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalNllFast.ExternalNllFast7" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#tools.externalNllFast.ExternalNllFast" title="tools.externalNllFast.ExternalNllFast"><code class="xref py py-class docutils literal"><span class="pre">tools.externalNllFast.ExternalNllFast</span></code></a></p>
+<p>An instance of this class represents the installation of nllfast 7.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="tools.externalNllFast.ExternalNllFast8">
+<em class="property">class </em><code class="descname">ExternalNllFast8</code><a class="reference internal" href="_modules/tools/externalNllFast.html#ExternalNllFast8"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalNllFast.ExternalNllFast8" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#tools.externalNllFast.ExternalNllFast" title="tools.externalNllFast.ExternalNllFast"><code class="xref py py-class docutils literal"><span class="pre">tools.externalNllFast.ExternalNllFast</span></code></a></p>
+<p>An instance of this class represents the installation of nllfast 8.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-tools.externalPythia6">
+<span id="tools-externalpythia6-module"></span><h2>tools.externalPythia6 module<a class="headerlink" href="#module-tools.externalPythia6" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-externalPythia6"></span><dl class="class">
+<dt id="tools.externalPythia6.ExternalPythia6">
+<em class="property">class </em><code class="descname">ExternalPythia6</code><span class="sig-paren">(</span><em>configFile='&lt;install&gt;/etc/pythia.card'</em>, <em>executablePath='&lt;install&gt;/lib/pythia6/pythia_lhe'</em>, <em>srcPath='&lt;install&gt;/lib/pythia6/'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/externalPythia6.html#ExternalPythia6"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalPythia6.ExternalPythia6" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">smodels.tools.externalTool.ExternalTool</span></code></p>
+<p>An instance of this class represents the installation of pythia6.</p>
+<dl class="method">
+<dt id="tools.externalPythia6.ExternalPythia6.checkFileExists">
+<code class="descname">checkFileExists</code><span class="sig-paren">(</span><em>inputFile</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/externalPythia6.html#ExternalPythia6.checkFileExists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalPythia6.ExternalPythia6.checkFileExists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if file exists, raise an IOError if it does not.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">absolute file name if file exists.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.externalPythia6.ExternalPythia6.checkInstallation">
+<code class="descname">checkInstallation</code><span class="sig-paren">(</span><em>fix=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/externalPythia6.html#ExternalPythia6.checkInstallation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalPythia6.ExternalPythia6.checkInstallation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if installation of tool is correct by looking for executable and
+running it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fix</strong> &#8211; should it try to fix the situation, if something is wrong?</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True, if everything is ok</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.externalPythia6.ExternalPythia6.chmod">
+<code class="descname">chmod</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/externalPythia6.html#ExternalPythia6.chmod"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalPythia6.ExternalPythia6.chmod" title="Permalink to this definition">¶</a></dt>
+<dd><p>chmod 755 on pythia executable, if it exists.
+Do nothing, if it doesnt exist.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.externalPythia6.ExternalPythia6.compile">
+<code class="descname">compile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/externalPythia6.html#ExternalPythia6.compile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalPythia6.ExternalPythia6.compile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compile pythia_lhe.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.externalPythia6.ExternalPythia6.complain">
+<code class="descname">complain</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/externalPythia6.html#ExternalPythia6.complain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalPythia6.ExternalPythia6.complain" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tools.externalPythia6.ExternalPythia6.fetch">
+<code class="descname">fetch</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/externalPythia6.html#ExternalPythia6.fetch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalPythia6.ExternalPythia6.fetch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch and unpack tarball.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.externalPythia6.ExternalPythia6.replaceInCfgFile">
+<code class="descname">replaceInCfgFile</code><span class="sig-paren">(</span><em>replacements={'SQRTS': 8000</em>, <em>'NEVENTS': 10000}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/externalPythia6.html#ExternalPythia6.replaceInCfgFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalPythia6.ExternalPythia6.replaceInCfgFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replace strings in the config file by other strings, similar to
+setParameter.</p>
+<p>This is introduced as a simple mechanism to make changes to the
+parameter file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>replacements</strong> &#8211; dictionary of strings and values; the strings will
+be replaced with the values; the dictionary keys 
+must be strings present in the config file</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.externalPythia6.ExternalPythia6.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>slhaFile</em>, <em>cfgfile=None</em>, <em>do_unlink=True</em>, <em>do_compile=False</em>, <em>do_check=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/externalPythia6.html#ExternalPythia6.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalPythia6.ExternalPythia6.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run Pythia.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>slhaFile</strong> &#8211; SLHA file</li>
+<li><strong>cfgfile</strong> &#8211; optionally supply a new config file; if not supplied,
+use the one supplied at construction time; 
+this config file will not be touched or copied;  
+it will be taken as is</li>
+<li><strong>do_unlink</strong> &#8211; clean up temporary files after run?</li>
+<li><strong>do_compile</strong> &#8211; if true, we try to compile binary if it isnt installed.</li>
+<li><strong>do_check</strong> &#8211; check installation, before running</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">stdout and stderr, or error message</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.externalPythia6.ExternalPythia6.setParameter">
+<code class="descname">setParameter</code><span class="sig-paren">(</span><em>param='MSTP(163)'</em>, <em>value=6</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/externalPythia6.html#ExternalPythia6.setParameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalPythia6.ExternalPythia6.setParameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Modifies the config file, similar to .replaceInCfgFile.</p>
+<p>It will set param to value, overwriting possible old values.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.externalPythia6.ExternalPythia6.unlink">
+<code class="descname">unlink</code><span class="sig-paren">(</span><em>unlinkdir=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/externalPythia6.html#ExternalPythia6.unlink"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalPythia6.ExternalPythia6.unlink" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove temporary files.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>unlinkdir</strong> &#8211; remove temp directory completely</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-tools.externalPythonTools">
+<span id="tools-externalpythontools-module"></span><h2>tools.externalPythonTools module<a class="headerlink" href="#module-tools.externalPythonTools" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-externalPythonTools"></span><dl class="class">
+<dt id="tools.externalPythonTools.ExternalPythonTool">
+<em class="property">class </em><code class="descname">ExternalPythonTool</code><span class="sig-paren">(</span><em>importname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/externalPythonTools.html#ExternalPythonTool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalPythonTools.ExternalPythonTool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>An instance of this class represents the installation of unum.
+As it is python-only, we need this only for installation,
+not for running (contrary to nllfast or pythia).</p>
+<dl class="method">
+<dt id="tools.externalPythonTools.ExternalPythonTool.checkInstallation">
+<code class="descname">checkInstallation</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/externalPythonTools.html#ExternalPythonTool.checkInstallation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalPythonTools.ExternalPythonTool.checkInstallation" title="Permalink to this definition">¶</a></dt>
+<dd><p>The check is basically done in the constructor</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.externalPythonTools.ExternalPythonTool.installDirectory">
+<code class="descname">installDirectory</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/externalPythonTools.html#ExternalPythonTool.installDirectory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalPythonTools.ExternalPythonTool.installDirectory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Just returns the pythonPath variable</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.externalPythonTools.ExternalPythonTool.pathOfExecutable">
+<code class="descname">pathOfExecutable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/externalPythonTools.html#ExternalPythonTool.pathOfExecutable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalPythonTools.ExternalPythonTool.pathOfExecutable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Just returns the pythonPath variable</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-tools.externalTool">
+<span id="tools-externaltool-module"></span><h2>tools.externalTool module<a class="headerlink" href="#module-tools.externalTool" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-externalTool"></span><dl class="class">
+<dt id="tools.externalTool.ExternalTool">
+<em class="property">class </em><code class="descname">ExternalTool</code><a class="reference internal" href="_modules/tools/externalTool.html#ExternalTool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalTool.ExternalTool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>An instance of this class represents the installation of an external tool.</p>
+<p>An external tool encapsulates a tool that is executed via
+commands.getoutput. It defines how the tool is tested for proper
+installation and how the tool is executed.</p>
+<dl class="method">
+<dt id="tools.externalTool.ExternalTool.absPath">
+<code class="descname">absPath</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/externalTool.html#ExternalTool.absPath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalTool.ExternalTool.absPath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the absolute path of &lt;path&gt;, replacing &lt;install&gt; with the
+installation directory.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.externalTool.ExternalTool.basePath">
+<code class="descname">basePath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/externalTool.html#ExternalTool.basePath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalTool.ExternalTool.basePath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the base installation path.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.externalTool.ExternalTool.installDirectory">
+<code class="descname">installDirectory</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/externalTool.html#ExternalTool.installDirectory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalTool.ExternalTool.installDirectory" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the installation directory of the tool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.externalTool.ExternalTool.pathOfExecutable">
+<code class="descname">pathOfExecutable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/externalTool.html#ExternalTool.pathOfExecutable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalTool.ExternalTool.pathOfExecutable" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">path of executable</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.externalTool.ExternalTool.tempDirectory">
+<code class="descname">tempDirectory</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/externalTool.html#ExternalTool.tempDirectory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalTool.ExternalTool.tempDirectory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the temporary directory name.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.externalTool.ok">
+<code class="descname">ok</code><span class="sig-paren">(</span><em>b</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/externalTool.html#ok"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.externalTool.ok" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">&#8216;ok&#8217; if b is True, else, return &#8216;error&#8217;.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-tools.ioObjects">
+<span id="tools-ioobjects-module"></span><h2>tools.ioObjects module<a class="headerlink" href="#module-tools.ioObjects" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-ioObjects"></span><dl class="class">
+<dt id="tools.ioObjects.FileStatus">
+<em class="property">class </em><code class="descname">FileStatus</code><a class="reference internal" href="_modules/tools/ioObjects.html#FileStatus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.FileStatus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Object to run several checks on the input file.
+It holds an LheStatus (SlhaStatus) object if inputType = lhe (slha)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>inputType</strong> &#8211; specify input type as SLHA or LHE</li>
+<li><strong>inputFile</strong> &#8211; path to input file</li>
+<li><strong>sigmacut</strong> &#8211; sigmacut in fb</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="tools.ioObjects.FileStatus.checkFile">
+<code class="descname">checkFile</code><span class="sig-paren">(</span><em>inputType</em>, <em>inputFile</em>, <em>sigmacut=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#FileStatus.checkFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.FileStatus.checkFile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tools.ioObjects.LheStatus">
+<em class="property">class </em><code class="descname">LheStatus</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#LheStatus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.LheStatus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Object to check if input lhe file contains errors.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><a class="reference internal" href="#tools.printer.BasicPrinter.filename" title="tools.printer.BasicPrinter.filename"><strong>filename</strong></a> &#8211; path to input LHE file</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="tools.ioObjects.LheStatus.evaluateStatus">
+<code class="descname">evaluateStatus</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#LheStatus.evaluateStatus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.LheStatus.evaluateStatus" title="Permalink to this definition">¶</a></dt>
+<dd><p>run status check</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tools.ioObjects.OutputStatus">
+<em class="property">class </em><code class="descname">OutputStatus</code><span class="sig-paren">(</span><em>status</em>, <em>inputFile</em>, <em>parameters</em>, <em>databaseVersion</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#OutputStatus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.OutputStatus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Object that holds all status information and has a predefined printout.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>status</strong> &#8211; status of input file</li>
+<li><strong>inputFile</strong> &#8211; input file name</li>
+<li><strong>parameters</strong> &#8211; input parameters</li>
+<li><a class="reference internal" href="experiment.html#experiment.databaseObj.Database.databaseVersion" title="experiment.databaseObj.Database.databaseVersion"><strong>databaseVersion</strong></a> &#8211; database version (string)</li>
+<li><strong>outputfile</strong> &#8211; path to outputfile</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="tools.ioObjects.OutputStatus.addWarning">
+<code class="descname">addWarning</code><span class="sig-paren">(</span><em>warning</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#OutputStatus.addWarning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.OutputStatus.addWarning" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append warning to warnings.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>warning</strong> &#8211; warning to be appended</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.ioObjects.OutputStatus.updateSLHAStatus">
+<code class="descname">updateSLHAStatus</code><span class="sig-paren">(</span><em>status</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#OutputStatus.updateSLHAStatus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.OutputStatus.updateSLHAStatus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update SLHA status.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>status</strong> &#8211; new SLHA status flag</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.ioObjects.OutputStatus.updateStatus">
+<code class="descname">updateStatus</code><span class="sig-paren">(</span><em>status</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#OutputStatus.updateStatus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.OutputStatus.updateStatus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update status.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>status</strong> &#8211; new status flag</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tools.ioObjects.Qnumbers">
+<em class="property">class </em><code class="descname">Qnumbers</code><span class="sig-paren">(</span><em>pid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#Qnumbers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.Qnumbers" title="Permalink to this definition">¶</a></dt>
+<dd><p>An instance of this class represents quantum numbers.</p>
+<p>Get quantum numbers (spin*2, electrical charge*3, color dimension) from qNumbers.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="tools.ioObjects.ResultList">
+<em class="property">class </em><code class="descname">ResultList</code><span class="sig-paren">(</span><em>theoPredictionsList=[]</em>, <em>maxcond=1.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#ResultList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.ResultList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Class that collects a list of theory predictions plus the corresponding upper limits.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><strong>theoryPredictions</strong> &#8211; list of TheoryPrediction objects</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="tools.ioObjects.ResultList.addTheoPrediction">
+<code class="descname">addTheoPrediction</code><span class="sig-paren">(</span><em>theoPred</em>, <em>maxcond</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#ResultList.addTheoPrediction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.ResultList.addTheoPrediction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a result to the theoryPredictions, unless it violates maxcond.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>theoPred</strong> &#8211; a Theory Prediction object to be added to ResultList</li>
+<li><strong>maxcond</strong> &#8211; maximum condition violation</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.ioObjects.ResultList.getBestExpected">
+<code class="descname">getBestExpected</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#ResultList.getBestExpected"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.ResultList.getBestExpected" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find EM result with the highest expected R vaue.
+:returns: Theory Prediction object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.ioObjects.ResultList.getR">
+<code class="descname">getR</code><span class="sig-paren">(</span><em>theoPred</em>, <em>expected=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#ResultList.getR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.ResultList.getR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate R value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>theoPred</strong> (<em>theoPredr</em>) &#8211; Theory Prediction object</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">R value = weight / upper limit</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.ioObjects.ResultList.isEmpty">
+<code class="descname">isEmpty</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#ResultList.isEmpty"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.ResultList.isEmpty" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if outputarray is empty.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.ioObjects.ResultList.sort">
+<code class="descname">sort</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#ResultList.sort"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.ResultList.sort" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reverse sort theoryPredictions by R value.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tools.ioObjects.SlhaStatus">
+<em class="property">class </em><code class="descname">SlhaStatus</code><span class="sig-paren">(</span><em>filename, maxDisplacement=0.01, sigmacut=3.00E-02 [fb], checkLSP=True, findMissingDecayBlocks=True, findIllegalDecays=False, checkXsec=True, findLonglived=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#SlhaStatus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.SlhaStatus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>An instance of this class represents the status of an SLHA file.
+The output status is:
+= 0 : the file is not checked,
+= 1: the check is ok
+= -1: case of a physical problem, e.g. charged LSP,
+= -2: case of formal problems, e.g. no cross sections</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><a class="reference internal" href="#tools.printer.BasicPrinter.filename" title="tools.printer.BasicPrinter.filename"><strong>filename</strong></a> &#8211; path to input SLHA file</li>
+<li><strong>maxDisplacement</strong> &#8211; maximum c*tau for promt decays in meters</li>
+<li><strong>sigmacut</strong> &#8211; sigmacut in fb</li>
+<li><strong>checkLSP</strong> &#8211; if True check if LSP is neutral</li>
+<li><a class="reference internal" href="#tools.ioObjects.SlhaStatus.findMissingDecayBlocks" title="tools.ioObjects.SlhaStatus.findMissingDecayBlocks"><strong>findMissingDecayBlocks</strong></a> &#8211; if True add a warning for missing decay blocks</li>
+<li><strong>findIllegalDecays</strong> &#8211; if True check if all decays are kinematically allowed</li>
+<li><strong>checkXsec</strong> &#8211; if True check if SLHA file contains cross sections</li>
+<li><strong>findLonglived</strong> &#8211; if True find stable charged particles and displaced vertices</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="tools.ioObjects.SlhaStatus.degenerateChi">
+<code class="descname">degenerateChi</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#SlhaStatus.degenerateChi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.SlhaStatus.degenerateChi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if chi01 is lsp and chipm1 is NLSP. If so, check mass splitting.
+This function is not used, the limit is arbitrary.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.ioObjects.SlhaStatus.deltaMass">
+<code class="descname">deltaMass</code><span class="sig-paren">(</span><em>pid1</em>, <em>pid2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#SlhaStatus.deltaMass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.SlhaStatus.deltaMass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate mass splitting between particles with pid1 and pid2.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">mass difference</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.ioObjects.SlhaStatus.emptyDecay">
+<code class="descname">emptyDecay</code><span class="sig-paren">(</span><em>pid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#SlhaStatus.emptyDecay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.SlhaStatus.emptyDecay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if any decay is listed for the particle with pid</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pid</strong> &#8211; PID number of particle to be checked</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the decay block is missing or if it is empty, None otherwise</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.ioObjects.SlhaStatus.evaluateStatus">
+<code class="descname">evaluateStatus</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#SlhaStatus.evaluateStatus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.SlhaStatus.evaluateStatus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get status summary from all performed checks.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a status flag and a message for explanation</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.ioObjects.SlhaStatus.findIllegalDecay">
+<code class="descname">findIllegalDecay</code><span class="sig-paren">(</span><em>findIllegal</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#SlhaStatus.findIllegalDecay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.SlhaStatus.findIllegalDecay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find decays for which the sum of daughter masses excels the mother mass</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>findIllegal</strong> &#8211; True if check should be run</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">status flag and message</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.ioObjects.SlhaStatus.findLSP">
+<code class="descname">findLSP</code><span class="sig-paren">(</span><em>returnmass=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#SlhaStatus.findLSP"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.SlhaStatus.findLSP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find lightest particle (not in rEven).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">pid, mass of the lsp, if returnmass == True</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.ioObjects.SlhaStatus.findLonglivedParticles">
+<code class="descname">findLonglivedParticles</code><span class="sig-paren">(</span><em>findLonglived</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#SlhaStatus.findLonglivedParticles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.SlhaStatus.findLonglivedParticles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find meta-stable particles that decay to visible particles
+and stable charged particles.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">status flag, message</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.ioObjects.SlhaStatus.findMissingDecayBlocks">
+<code class="descname">findMissingDecayBlocks</code><span class="sig-paren">(</span><em>findMissingBlocks</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#SlhaStatus.findMissingDecayBlocks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.SlhaStatus.findMissingDecayBlocks" title="Permalink to this definition">¶</a></dt>
+<dd><p>For all non-rEven particles listed in mass block, check if decay block is written</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">status flag and message</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.ioObjects.SlhaStatus.findNLSP">
+<code class="descname">findNLSP</code><span class="sig-paren">(</span><em>returnmass=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#SlhaStatus.findNLSP"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.SlhaStatus.findNLSP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find second lightest particle (not in rEven).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">pid ,mass of the NLSP, if returnmass == True</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.ioObjects.SlhaStatus.getDecayWidth">
+<code class="descname">getDecayWidth</code><span class="sig-paren">(</span><em>pid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#SlhaStatus.getDecayWidth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.SlhaStatus.getDecayWidth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the decay-width for particle with pid, if it exists.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.ioObjects.SlhaStatus.getDecayWidths">
+<code class="descname">getDecayWidths</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#SlhaStatus.getDecayWidths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.SlhaStatus.getDecayWidths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all decay-widths as a dictionary {pid: width}.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.ioObjects.SlhaStatus.getLifetime">
+<code class="descname">getLifetime</code><span class="sig-paren">(</span><em>pid</em>, <em>ctau=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#SlhaStatus.getLifetime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.SlhaStatus.getLifetime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute lifetime from decay-width for a particle with pid.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>pid</strong> &#8211; PID of particle</li>
+<li><strong>ctau</strong> &#8211; set True to multiply lifetime by c</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">lifetime</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.ioObjects.SlhaStatus.hasXsec">
+<code class="descname">hasXsec</code><span class="sig-paren">(</span><em>checkXsec</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#SlhaStatus.hasXsec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.SlhaStatus.hasXsec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if XSECTION table is present in the slha file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>checkXsec</strong> &#8211; set True to run the check</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">status flag, message</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.ioObjects.SlhaStatus.massDiffLSPandNLSP">
+<code class="descname">massDiffLSPandNLSP</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#SlhaStatus.massDiffLSPandNLSP"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.SlhaStatus.massDiffLSPandNLSP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the mass difference between the lsp and the nlsp.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.ioObjects.SlhaStatus.read">
+<code class="descname">read</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#SlhaStatus.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.SlhaStatus.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get pyslha output object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.ioObjects.SlhaStatus.sumBR">
+<code class="descname">sumBR</code><span class="sig-paren">(</span><em>pid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#SlhaStatus.sumBR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.SlhaStatus.sumBR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the sum of all branching ratios for particle with pid.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pid</strong> &#8211; PID of particle</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">sum of branching ratios as given in the decay table for pid</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.ioObjects.SlhaStatus.testLSP">
+<code class="descname">testLSP</code><span class="sig-paren">(</span><em>checkLSP</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#SlhaStatus.testLSP"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.SlhaStatus.testLSP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if LSP is charged.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>checkLSP</strong> &#8211; set True to run the check</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">status flag, message</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.ioObjects.SlhaStatus.visible">
+<code class="descname">visible</code><span class="sig-paren">(</span><em>pid</em>, <em>decay=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/ioObjects.html#SlhaStatus.visible"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.ioObjects.SlhaStatus.visible" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if pid is detectable.
+If pid is not known, consider it as visible.
+If pid not SM particle and decay = True, check if particle or decay products are visible.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-tools.lheChecks">
+<span id="tools-lhechecks-module"></span><h2>tools.lheChecks module<a class="headerlink" href="#module-tools.lheChecks" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-lheChecks"></span><dl class="function">
+<dt id="tools.lheChecks.main">
+<code class="descname">main</code><span class="sig-paren">(</span><em>args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/lheChecks.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.lheChecks.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-tools.modelTester">
+<span id="tools-modeltester-module"></span><h2>tools.modelTester module<a class="headerlink" href="#module-tools.modelTester" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-tools.modelTester"></span><dl class="function">
+<dt id="tools.modelTester.getAllInputFiles">
+<code class="descname">getAllInputFiles</code><span class="sig-paren">(</span><em>inFile</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/modelTester.html#getAllInputFiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.modelTester.getAllInputFiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given inFile, return list of all input files</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>inFile</strong> &#8211; Path to input file or directory containing input files</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of all input files</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.modelTester.getParameters">
+<code class="descname">getParameters</code><span class="sig-paren">(</span><em>parameterFile</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/modelTester.html#getParameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.modelTester.getParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read parameter file, exit in case of errors</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>parameterFile</strong> &#8211; Path to parameter File</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">ConfigParser read from parameterFile</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.modelTester.loadDatabase">
+<code class="descname">loadDatabase</code><span class="sig-paren">(</span><em>parser</em>, <em>db</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/modelTester.html#loadDatabase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.modelTester.loadDatabase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load database</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>parser</strong> &#8211; ConfigParser with path to database</li>
+<li><strong>db</strong> &#8211; binary database object. If None, then database is loaded,
+according to databasePath. If True, then database is loaded,
+and text mode is forced.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">database object, database version</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.modelTester.loadDatabaseResults">
+<code class="descname">loadDatabaseResults</code><span class="sig-paren">(</span><em>parser</em>, <em>database</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/modelTester.html#loadDatabaseResults"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.modelTester.loadDatabaseResults" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load database entries specified in parser</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>parser</strong> &#8211; ConfigParser, containing analysis and txnames selection</li>
+<li><strong>database</strong> &#8211; Database object</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">List of experimental results</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.modelTester.runSetOfFiles">
+<code class="descname">runSetOfFiles</code><span class="sig-paren">(</span><em>inputFiles</em>, <em>outputDir</em>, <em>parser</em>, <em>databaseVersion</em>, <em>listOfExpRes</em>, <em>timeout</em>, <em>development</em>, <em>parameterFile</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/modelTester.html#runSetOfFiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.modelTester.runSetOfFiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loop over all input files in inputFiles with testPoint</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>inputFiles</strong> &#8211; list of input files to be tested</li>
+<li><strong>outputDir</strong> &#8211; path to directory where output is be stored</li>
+<li><strong>parser</strong> &#8211; ConfigParser storing information from parameter.ini file</li>
+<li><strong>databaseVersion</strong> &#8211; Database version (printed to output file)</li>
+<li><strong>listOfExpRes</strong> &#8211; list of ExpResult objects to be considered</li>
+<li><strong>development</strong> &#8211; turn on development mode (e.g. no crash report)</li>
+<li><strong>parameterFile</strong> &#8211; parameter file, for crash reports</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">printers output</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.modelTester.runSingleFile">
+<code class="descname">runSingleFile</code><span class="sig-paren">(</span><em>inputFile</em>, <em>outputDir</em>, <em>parser</em>, <em>databaseVersion</em>, <em>listOfExpRes</em>, <em>timeout</em>, <em>development</em>, <em>parameterFile</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/modelTester.html#runSingleFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.modelTester.runSingleFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call testPoint on inputFile, write crash report in case of problems</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>inputFile</strong> &#8211; path to input file</li>
+<li><strong>outputDir</strong> &#8211; path to directory where output is be stored</li>
+<li><strong>parser</strong> &#8211; ConfigParser storing information from parameter.ini file</li>
+<li><strong>databaseVersion</strong> &#8211; Database version (printed to output file)</li>
+<li><strong>listOfExpRes</strong> &#8211; list of ExpResult objects to be considered</li>
+<li><strong>crashReport</strong> &#8211; if True, write crash report in case of problems</li>
+<li><strong>timeout</strong> &#8211; set a timeout for one model point (0 means no timeout)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">output of printers</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.modelTester.testPoint">
+<code class="descname">testPoint</code><span class="sig-paren">(</span><em>inputFile</em>, <em>outputDir</em>, <em>parser</em>, <em>databaseVersion</em>, <em>listOfExpRes</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/modelTester.html#testPoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.modelTester.testPoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test model point defined in input file (running decomposition, check
+results, test coverage)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>inputFile</strong> &#8211; path to input file</li>
+<li><strong>outputDir</strong> &#8211; path to directory where output is be stored</li>
+<li><strong>parser</strong> &#8211; ConfigParser storing information from parameters file</li>
+<li><strong>databaseVersion</strong> &#8211; Database version (printed to output file)</li>
+<li><strong>listOfExpRes</strong> &#8211; list of ExpResult objects to be considered</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">output of printers</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.modelTester.testPoints">
+<code class="descname">testPoints</code><span class="sig-paren">(</span><em>fileList</em>, <em>inDir</em>, <em>outputDir</em>, <em>parser</em>, <em>databaseVersion</em>, <em>listOfExpRes</em>, <em>timeout</em>, <em>development</em>, <em>parameterFile</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/modelTester.html#testPoints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.modelTester.testPoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loop over all input files in fileList with testPoint, using ncpus CPUs
+defined in parser</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>fileList</strong> &#8211; list of input files to be tested</li>
+<li><strong>inDir</strong> &#8211; path to directory where input files are stored</li>
+<li><strong>outputDir</strong> &#8211; path to directory where output is stored</li>
+<li><strong>parser</strong> &#8211; ConfigParser storing information from parameter.ini file</li>
+<li><strong>databaseVersion</strong> &#8211; Database version (printed to output files)</li>
+<li><strong>listOfExpRes</strong> &#8211; list of ExpResult objects to be considered</li>
+<li><strong>timeout</strong> &#8211; set a timeout for one model point (0 means no timeout)</li>
+<li><strong>development</strong> &#8211; turn on development mode (e.g. no crash report)</li>
+<li><strong>parameterFile</strong> &#8211; parameter file, for crash reports</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">printer(s) output, if not run in parallel mode</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-tools.nllFast">
+<span id="tools-nllfast-module"></span><h2>tools.nllFast module<a class="headerlink" href="#module-tools.nllFast" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-nllFast"></span><dl class="function">
+<dt id="tools.nllFast.getDecoupledKfactors">
+<code class="descname">getDecoupledKfactors</code><span class="sig-paren">(</span><em>nllpath</em>, <em>process</em>, <em>energy</em>, <em>pdf</em>, <em>mass</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/nllFast.html#getDecoupledKfactors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.nllFast.getDecoupledKfactors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute k-factors in the decoupled (squark or gluino) regime for the process.
+If a decoupled grid does not exist for the process, return None</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.nllFast.getKfactorsFor">
+<code class="descname">getKfactorsFor</code><span class="sig-paren">(</span><em>pIDs</em>, <em>sqrts</em>, <em>slhafile</em>, <em>pdf='cteq'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/nllFast.html#getKfactorsFor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.nllFast.getKfactorsFor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the NLLfast grid and returns a pair of k-factors (NLO and NLL) for the
+pair.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">k-factors = None, if NLLfast does not contain the process; uses
+the slhafile to obtain the SUSY spectrum.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.nllFast.getKfactorsFrom">
+<code class="descname">getKfactorsFrom</code><span class="sig-paren">(</span><em>output</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/nllFast.html#getKfactorsFrom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.nllFast.getKfactorsFrom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read NLLfast output and return the k-factors.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.nllFast.getProcessName">
+<code class="descname">getProcessName</code><span class="sig-paren">(</span><em>pIDs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/nllFast.html#getProcessName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.nllFast.getProcessName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the process name (in NLLfast notation) for the pair production of
+pIDs.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None, if the particle ID pair is not contained in NLLfast</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.nllFast.interpolateKfactors">
+<code class="descname">interpolateKfactors</code><span class="sig-paren">(</span><em>kFacsVector</em>, <em>xval</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/nllFast.html#interpolateKfactors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.nllFast.interpolateKfactors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpolate a list of k-factor  values from
+kFacsVector = [[x0,[k1,k2,..]], [x1,[k1,k2,..],...].</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of interpolated k-factor values at x-value xval</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.nllFast.runNLLfast">
+<code class="descname">runNLLfast</code><span class="sig-paren">(</span><em>nll_run</em>, <em>nllpath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/nllFast.html#runNLLfast"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.nllFast.runNLLfast" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute NLLfast with command nll_run at nllpath.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">NLLfast output as a string</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-tools.physicsUnits">
+<span id="tools-physicsunits-module"></span><h2>tools.physicsUnits module<a class="headerlink" href="#module-tools.physicsUnits" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-physicsUnits"></span></div>
+<div class="section" id="module-tools.printer">
+<span id="tools-printer-module"></span><h2>tools.printer module<a class="headerlink" href="#module-tools.printer" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-printer"></span><dl class="class">
+<dt id="tools.printer.BasicPrinter">
+<em class="property">class </em><code class="descname">BasicPrinter</code><span class="sig-paren">(</span><em>output</em>, <em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/printer.html#BasicPrinter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.printer.BasicPrinter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Super class to handle the basic printing methods</p>
+<dl class="method">
+<dt id="tools.printer.BasicPrinter.addObj">
+<code class="descname">addObj</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/printer.html#BasicPrinter.addObj"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.printer.BasicPrinter.addObj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds object to the Printer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>obj</strong> &#8211; A object to be printed. Must match one of the types defined in formatObj</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the object has been added to the output. If the object does not belong
+to the pre-defined printing list toPrint, returns False.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tools.printer.BasicPrinter.filename">
+<code class="descname">filename</code><a class="headerlink" href="#tools.printer.BasicPrinter.filename" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tools.printer.BasicPrinter.flush">
+<code class="descname">flush</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/printer.html#BasicPrinter.flush"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.printer.BasicPrinter.flush" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format the objects added to the output, print them to the screen
+or file and remove them from the printer.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.printer.BasicPrinter.mkdir">
+<code class="descname">mkdir</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/printer.html#BasicPrinter.mkdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.printer.BasicPrinter.mkdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>create directory to file, if necessary</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.printer.BasicPrinter.openOutFile">
+<code class="descname">openOutFile</code><span class="sig-paren">(</span><em>filename</em>, <em>mode</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/printer.html#BasicPrinter.openOutFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.printer.BasicPrinter.openOutFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>creates and opens a data sink, 
+creates path if needed</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.printer.BasicPrinter.setOptions">
+<code class="descname">setOptions</code><span class="sig-paren">(</span><em>options</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/printer.html#BasicPrinter.setOptions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.printer.BasicPrinter.setOptions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Store the printer specific options to control the output of each printer.
+Each option is stored as a printer attribute.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>options</strong> &#8211; a list of (option,value) for the printer.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tools.printer.MPrinter">
+<em class="property">class </em><code class="descname">MPrinter</code><a class="reference internal" href="_modules/tools/printer.html#MPrinter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.printer.MPrinter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Master Printer class to handle the Printers (one printer/output type)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><strong>printerList</strong> &#8211; list</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="tools.printer.MPrinter.addObj">
+<code class="descname">addObj</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/printer.html#MPrinter.addObj"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.printer.MPrinter.addObj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the object to all its Printers:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>obj</strong> &#8211; An object which can be handled by the Printers.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.printer.MPrinter.flush">
+<code class="descname">flush</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/printer.html#MPrinter.flush"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.printer.MPrinter.flush" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ask all printers to write the output and clear their cache.
+If the printers return anything other than None, 
+we pass it on.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.printer.MPrinter.setOutPutFiles">
+<code class="descname">setOutPutFiles</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/printer.html#MPrinter.setOutPutFiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.printer.MPrinter.setOutPutFiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the basename for the output files. Each printer will
+use this file name appended of the respective extension 
+(i.e. .py for a python printer, .smodels for a summary printer,...)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> &#8211; Input file name</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.printer.MPrinter.setPrinterOptions">
+<code class="descname">setPrinterOptions</code><span class="sig-paren">(</span><em>parser</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/printer.html#MPrinter.setPrinterOptions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.printer.MPrinter.setPrinterOptions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define the printer types and their options.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>parser</strong> &#8211; ConfigParser storing information from the parameters file</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tools.printer.PyPrinter">
+<em class="property">class </em><code class="descname">PyPrinter</code><span class="sig-paren">(</span><em>output='stdout'</em>, <em>filename=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/printer.html#PyPrinter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.printer.PyPrinter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#tools.printer.BasicPrinter" title="tools.printer.BasicPrinter"><code class="xref py py-class docutils literal"><span class="pre">tools.printer.BasicPrinter</span></code></a></p>
+<p>Printer class to handle the printing of one single pythonic output</p>
+<dl class="method">
+<dt id="tools.printer.PyPrinter.flush">
+<code class="descname">flush</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/printer.html#PyPrinter.flush"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.printer.PyPrinter.flush" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the python dictionaries generated by the object formatting
+to the defined output</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.printer.PyPrinter.setOutPutFile">
+<code class="descname">setOutPutFile</code><span class="sig-paren">(</span><em>filename</em>, <em>overwrite=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/printer.html#PyPrinter.setOutPutFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.printer.PyPrinter.setOutPutFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the basename for the text printer. The output filename will be
+filename.py.
+:param filename: Base filename
+:param overwrite: If True and the file already exists, it will be removed.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tools.printer.SummaryPrinter">
+<em class="property">class </em><code class="descname">SummaryPrinter</code><span class="sig-paren">(</span><em>output='stdout'</em>, <em>filename=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/printer.html#SummaryPrinter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.printer.SummaryPrinter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#tools.printer.TxTPrinter" title="tools.printer.TxTPrinter"><code class="xref py py-class docutils literal"><span class="pre">tools.printer.TxTPrinter</span></code></a></p>
+<p>Printer class to handle the printing of one single summary output.
+It uses the facilities of the TxTPrinter.</p>
+<dl class="method">
+<dt id="tools.printer.SummaryPrinter.setOutPutFile">
+<code class="descname">setOutPutFile</code><span class="sig-paren">(</span><em>filename</em>, <em>overwrite=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/printer.html#SummaryPrinter.setOutPutFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.printer.SummaryPrinter.setOutPutFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the basename for the text printer. The output filename will be
+filename.smodels.
+:param filename: Base filename
+:param overwrite: If True and the file already exists, it will be removed.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tools.printer.TxTPrinter">
+<em class="property">class </em><code class="descname">TxTPrinter</code><span class="sig-paren">(</span><em>output='stdout'</em>, <em>filename=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/printer.html#TxTPrinter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.printer.TxTPrinter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#tools.printer.BasicPrinter" title="tools.printer.BasicPrinter"><code class="xref py py-class docutils literal"><span class="pre">tools.printer.BasicPrinter</span></code></a></p>
+<p>Printer class to handle the printing of one single text output</p>
+<dl class="method">
+<dt id="tools.printer.TxTPrinter.setOutPutFile">
+<code class="descname">setOutPutFile</code><span class="sig-paren">(</span><em>filename</em>, <em>overwrite=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/printer.html#TxTPrinter.setOutPutFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.printer.TxTPrinter.setOutPutFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the basename for the text printer. The output filename will be
+filename.log.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>filename</strong> &#8211; Base filename</li>
+<li><strong>overwrite</strong> &#8211; If True and the file already exists, it will be removed.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tools.printer.XmlPrinter">
+<em class="property">class </em><code class="descname">XmlPrinter</code><span class="sig-paren">(</span><em>output='stdout'</em>, <em>filename=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/printer.html#XmlPrinter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.printer.XmlPrinter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#tools.printer.PyPrinter" title="tools.printer.PyPrinter"><code class="xref py py-class docutils literal"><span class="pre">tools.printer.PyPrinter</span></code></a></p>
+<p>Printer class to handle the printing of one single XML output</p>
+<dl class="method">
+<dt id="tools.printer.XmlPrinter.convertToElement">
+<code class="descname">convertToElement</code><span class="sig-paren">(</span><em>pyObj</em>, <em>parent</em>, <em>tag=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/printer.html#XmlPrinter.convertToElement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.printer.XmlPrinter.convertToElement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a python object (list,dict,string,...)
+to a nested XML element tree.
+:param pyObj: python object (list,dict,string...)
+:param parent: XML Element parent
+:param tag: tag for the daughter element</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.printer.XmlPrinter.flush">
+<code class="descname">flush</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/printer.html#XmlPrinter.flush"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.printer.XmlPrinter.flush" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the python dictionaries generated by the object formatting
+to the defined output and convert to XML</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.printer.XmlPrinter.setOutPutFile">
+<code class="descname">setOutPutFile</code><span class="sig-paren">(</span><em>filename</em>, <em>overwrite=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/printer.html#XmlPrinter.setOutPutFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.printer.XmlPrinter.setOutPutFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the basename for the text printer. The output filename will be
+filename.xml.
+:param filename: Base filename
+:param overwrite: If True and the file already exists, it will be removed.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-tools.runtime">
+<span id="tools-runtime-module"></span><h2>tools.runtime module<a class="headerlink" href="#module-tools.runtime" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-runtime"></span><dl class="function">
+<dt id="tools.runtime.nCPUs">
+<code class="descname">nCPUs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/runtime.html#nCPUs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.runtime.nCPUs" title="Permalink to this definition">¶</a></dt>
+<dd><p>obtain the number of CPU cores on the machine, for several
+platforms and python versions.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-tools.slhaChecks">
+<span id="tools-slhachecks-module"></span><h2>tools.slhaChecks module<a class="headerlink" href="#module-tools.slhaChecks" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-slhaChecks"></span><dl class="function">
+<dt id="tools.slhaChecks.main">
+<code class="descname">main</code><span class="sig-paren">(</span><em>args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/slhaChecks.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.slhaChecks.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-tools.smodelsLogging">
+<span id="tools-smodelslogging-module"></span><h2>tools.smodelsLogging module<a class="headerlink" href="#module-tools.smodelsLogging" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-smodelsLogging"></span><dl class="function">
+<dt id="tools.smodelsLogging.setLogLevel">
+<code class="descname">setLogLevel</code><span class="sig-paren">(</span><em>level</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/smodelsLogging.html#setLogLevel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.smodelsLogging.setLogLevel" title="Permalink to this definition">¶</a></dt>
+<dd><p>set the log level of the central logger. 
+can either be directly an integer ( e.g. logging.DEBUG ),
+or &#8220;debug&#8221;, &#8220;info&#8221;, &#8220;warning&#8221;, or &#8220;error&#8221;.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-tools.statistics">
+<span id="tools-statistics-module"></span><h2>tools.statistics module<a class="headerlink" href="#module-tools.statistics" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-statistics"></span><dl class="function">
+<dt id="tools.statistics.CLs">
+<code class="descname">CLs</code><span class="sig-paren">(</span><em>NumObserved</em>, <em>ExpectedBG</em>, <em>BGError</em>, <em>SigHypothesis</em>, <em>NumToyExperiments</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/statistics.html#CLs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.statistics.CLs" title="Permalink to this definition">¶</a></dt>
+<dd><p>this method has been taken from MadAnalysis5, see
+Official website: &lt;<a class="reference external" href="https://launchpad.net/madanalysis5">https://launchpad.net/madanalysis5</a>&gt;</p>
+<p>Thanks to the MadAnalysis for granting us the permission to use
+the code here!</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="tools.statistics.UpperLimitComputer">
+<em class="property">class </em><code class="descname">UpperLimitComputer</code><span class="sig-paren">(</span><em>numberoftoys</em>, <em>lumi</em>, <em>cl=0.95</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/statistics.html#UpperLimitComputer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.statistics.UpperLimitComputer" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="tools.statistics.UpperLimitComputer.compute">
+<code class="descname">compute</code><span class="sig-paren">(</span><em>nev</em>, <em>xbg</em>, <em>sbg</em>, <em>upto=5.0</em>, <em>return_nan=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/statistics.html#UpperLimitComputer.compute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.statistics.UpperLimitComputer.compute" title="Permalink to this definition">¶</a></dt>
+<dd><p>upper limit obtained via mad analysis 5 code
+:param nev: number of observed events
+:param sac: relative uncertainty in acceptance
+:param xbg: expected bg
+:param sbg: uncertainty in background
+:param upto: defines the interval to be probed</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.statistics.UpperLimitComputer.f">
+<code class="descname">f</code><span class="sig-paren">(</span><em>sig</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/statistics.html#UpperLimitComputer.f"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.statistics.UpperLimitComputer.f" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.statistics.chi2">
+<code class="descname">chi2</code><span class="sig-paren">(</span><em>nsig</em>, <em>nobs</em>, <em>nb</em>, <em>deltab</em>, <em>deltas=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/statistics.html#chi2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.statistics.chi2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the chi2 for a given number of observed events nobs
+given the predicted background nb, error on this background deltab,
+expected number of signal events nsig and, if given, the error on signal (deltas).
+If deltas is not given, assume an error of 20% on the signal.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>nsig</strong> &#8211; predicted signal (float)</li>
+<li><strong>nobs</strong> &#8211; number of observed events (float)</li>
+<li><strong>nb</strong> &#8211; predicted background (float)</li>
+<li><strong>deltab</strong> &#8211; uncertainty in background (float)</li>
+<li><strong>deltas</strong> &#8211; uncertainty in signal acceptance (float)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">chi2 (float)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.statistics.likelihood">
+<code class="descname">likelihood</code><span class="sig-paren">(</span><em>nsig</em>, <em>nobs</em>, <em>nb</em>, <em>deltab</em>, <em>deltas</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/statistics.html#likelihood"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.statistics.likelihood" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the likelihood to observe nobs events given the
+predicted background nb, error on this background (deltab),
+expected number of signal events nsig and the error on the signal (deltas).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>nsig</strong> &#8211; predicted signal (float)</li>
+<li><strong>nobs</strong> &#8211; number of observed events (float)</li>
+<li><strong>nb</strong> &#8211; predicted background (float)</li>
+<li><strong>deltab</strong> &#8211; uncertainty on background (float)</li>
+<li><strong>deltas</strong> &#8211; uncertainty on signal (float)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">likelihood to observe nobs events (float)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.statistics.upperLimit">
+<code class="descname">upperLimit</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/statistics.html#upperLimit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.statistics.upperLimit" title="Permalink to this definition">¶</a></dt>
+<dd><p>computes the 95% CL upper limit on the production cross section</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-tools.stringTools">
+<span id="tools-stringtools-module"></span><h2>tools.stringTools module<a class="headerlink" href="#module-tools.stringTools" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-stringTools"></span><dl class="function">
+<dt id="tools.stringTools.concatenateLines">
+<code class="descname">concatenateLines</code><span class="sig-paren">(</span><em>oldcontent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/stringTools.html#concatenateLines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.stringTools.concatenateLines" title="Permalink to this definition">¶</a></dt>
+<dd><p>of all lines in the list &#8220;oldcontent&#8221;, concatenate the ones
+that end with  or ,</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-tools.timeOut">
+<span id="tools-timeout-module"></span><h2>tools.timeOut module<a class="headerlink" href="#module-tools.timeOut" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-timeOut"></span><dl class="exception">
+<dt id="tools.timeOut.NoTime">
+<em class="property">exception </em><code class="descname">NoTime</code><span class="sig-paren">(</span><em>value=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/timeOut.html#NoTime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.timeOut.NoTime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+<p>The time out exception. Raised when the running time exceeds timeout</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="tools.timeOut.Timeout">
+<em class="property">class </em><code class="descname">Timeout</code><span class="sig-paren">(</span><em>sec</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/timeOut.html#Timeout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.timeOut.Timeout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Timeout class using ALARM signal.</p>
+<dl class="method">
+<dt id="tools.timeOut.Timeout.raise_timeout">
+<code class="descname">raise_timeout</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/timeOut.html#Timeout.raise_timeout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.timeOut.Timeout.raise_timeout" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-tools.toolBox">
+<span id="tools-toolbox-module"></span><h2>tools.toolBox module<a class="headerlink" href="#module-tools.toolBox" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-toolBox"></span><dl class="class">
+<dt id="tools.toolBox.ToolBox">
+<em class="property">class </em><code class="descname">ToolBox</code><a class="reference internal" href="_modules/tools/toolBox.html#ToolBox"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.toolBox.ToolBox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>A singleton-like class that keeps track of all external tools.
+Intended to make installation and deployment easier.</p>
+<dl class="method">
+<dt id="tools.toolBox.ToolBox.add">
+<code class="descname">add</code><span class="sig-paren">(</span><em>instance</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/toolBox.html#ToolBox.add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.toolBox.ToolBox.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a tool by passing an instance to this method.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.toolBox.ToolBox.checkInstallation">
+<code class="descname">checkInstallation</code><span class="sig-paren">(</span><em>colors=True</em>, <em>make=False</em>, <em>printit=True</em>, <em>long=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/toolBox.html#ToolBox.checkInstallation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.toolBox.ToolBox.checkInstallation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if all tools listed are installed properly, 
+returns True if everything is ok, False otherwise.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.toolBox.ToolBox.compile">
+<code class="descname">compile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/toolBox.html#ToolBox.compile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.toolBox.ToolBox.compile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tries to compile and install tools that are not yet marked
+as &#8216;installed&#8217;.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.toolBox.ToolBox.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>tool</em>, <em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/toolBox.html#ToolBox.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.toolBox.ToolBox.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets instance of tool from the toolbox.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.toolBox.ToolBox.initSingleton">
+<code class="descname">initSingleton</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/toolBox.html#ToolBox.initSingleton"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.toolBox.ToolBox.initSingleton" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes singleton instance (done only once for the entire class).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.toolBox.ToolBox.installationOk">
+<code class="descname">installationOk</code><span class="sig-paren">(</span><em>ok</em>, <em>colors</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/toolBox.html#ToolBox.installationOk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.toolBox.ToolBox.installationOk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns color coded string to signal installation issues.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tools.toolBox.ToolBox.listOfTools">
+<code class="descname">listOfTools</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/toolBox.html#ToolBox.listOfTools"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.toolBox.ToolBox.listOfTools" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a simple list with the tool names.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-tools.xsecComputer">
+<span id="tools-xseccomputer-module"></span><h2>tools.xsecComputer module<a class="headerlink" href="#module-tools.xsecComputer" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-xsecComputer"></span><dl class="function">
+<dt id="tools.xsecComputer.addXSecToFile">
+<code class="descname">addXSecToFile</code><span class="sig-paren">(</span><em>xsecs</em>, <em>slhafile</em>, <em>comment=None</em>, <em>complain=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/xsecComputer.html#addXSecToFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.xsecComputer.addXSecToFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write cross sections to an SLHA file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>xsecs</strong> &#8211; a XSectionList object containing the cross sections</li>
+<li><strong>slhafile</strong> &#8211; target file for writing the cross sections in SLHA format</li>
+<li><strong>comment</strong> &#8211; optional comment to be added to each cross section block</li>
+<li><strong>complain</strong> &#8211; complain if there are already cross sections in file</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.xsecComputer.checkAllowedSqrtses">
+<code class="descname">checkAllowedSqrtses</code><span class="sig-paren">(</span><em>order</em>, <em>sqrtses</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/xsecComputer.html#checkAllowedSqrtses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.xsecComputer.checkAllowedSqrtses" title="Permalink to this definition">¶</a></dt>
+<dd><p>check if the sqrtses are &#8216;allowed&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.xsecComputer.computeForBunch">
+<code class="descname">computeForBunch</code><span class="sig-paren">(</span><em>sqrtses</em>, <em>order</em>, <em>nevents</em>, <em>inputFiles</em>, <em>unlink</em>, <em>lOfromSLHA</em>, <em>tofile</em>, <em>pythiacard=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/xsecComputer.html#computeForBunch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.xsecComputer.computeForBunch" title="Permalink to this definition">¶</a></dt>
+<dd><p>compute xsecs for a bunch of slha files</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.xsecComputer.computeForOneFile">
+<code class="descname">computeForOneFile</code><span class="sig-paren">(</span><em>sqrtses</em>, <em>order</em>, <em>nevents</em>, <em>inputFile</em>, <em>unlink</em>, <em>lOfromSLHA</em>, <em>tofile</em>, <em>pythiacard=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/xsecComputer.html#computeForOneFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.xsecComputer.computeForOneFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>compute the cross sections for one file</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.xsecComputer.computeXSec">
+<code class="descname">computeXSec</code><span class="sig-paren">(</span><em>sqrts</em>, <em>maxOrder</em>, <em>nevts</em>, <em>slhafile</em>, <em>lhefile=None</em>, <em>unlink=True</em>, <em>loFromSlha=None</em>, <em>pythiacard=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/xsecComputer.html#computeXSec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.xsecComputer.computeXSec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run pythia and compute SUSY cross sections for the input SLHA file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>sqrts</strong> &#8211; sqrt{s} to run Pythia, given as a unum (e.g. 7.*TeV)</li>
+<li><strong>maxOrder</strong> &#8211; maximum order to compute the cross section, given as an integer
+if maxOrder == 0, compute only LO pythia xsecs
+if maxOrder == 1, apply NLO K-factors from NLLfast (if available)
+if maxOrder == 2, apply NLO+NLL K-factors from NLLfast (if available)</li>
+<li><strong>nevts</strong> &#8211; number of events for pythia run</li>
+<li><strong>slhafile</strong> &#8211; SLHA file</li>
+<li><strong>lhefile</strong> &#8211; LHE file. If None, do not write pythia output to file. If
+file does not exist, write pythia output to this file name. If
+file exists, read LO xsecs from this file (does not run pythia).</li>
+<li><strong>unlink</strong> &#8211; Clean up temp directory after running pythia</li>
+<li><strong>loFromSlha</strong> &#8211; If True, uses the LO xsecs from the SLHA file to compute the
+higher order xsecs</li>
+<li><strong>pythiaCard</strong> &#8211; Optional path to pythia.card. If None, uses /etc/pythia.card</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">XSectionList object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.xsecComputer.getInputFiles">
+<code class="descname">getInputFiles</code><span class="sig-paren">(</span><em>args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/xsecComputer.html#getInputFiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.xsecComputer.getInputFiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>geth the names of the slha files to run over</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.xsecComputer.getOrder">
+<code class="descname">getOrder</code><span class="sig-paren">(</span><em>args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/xsecComputer.html#getOrder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.xsecComputer.getOrder" title="Permalink to this definition">¶</a></dt>
+<dd><p>retrieve the order in perturbation theory from argument list</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.xsecComputer.getSqrtses">
+<code class="descname">getSqrtses</code><span class="sig-paren">(</span><em>args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/xsecComputer.html#getSqrtses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.xsecComputer.getSqrtses" title="Permalink to this definition">¶</a></dt>
+<dd><p>extract the sqrtses from argument list</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.xsecComputer.main">
+<code class="descname">main</code><span class="sig-paren">(</span><em>args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/xsecComputer.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.xsecComputer.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="tools.xsecComputer.queryCrossSections">
+<code class="descname">queryCrossSections</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/xsecComputer.html#queryCrossSections"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.xsecComputer.queryCrossSections" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="tools.xsecComputer.runPythia">
+<code class="descname">runPythia</code><span class="sig-paren">(</span><em>slhafile</em>, <em>nevts</em>, <em>sqrts</em>, <em>lhefile=None</em>, <em>unlink=True</em>, <em>pythiacard=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/xsecComputer.html#runPythia"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.xsecComputer.runPythia" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute pythia_lhe with n events, at sqrt(s)=sqrts.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>slhafile</strong> &#8211; input SLHA file</li>
+<li><strong>nevts</strong> &#8211; number of events to be generated</li>
+<li><strong>sqrts</strong> &#8211; center of mass sqrt{s} (in TeV)</li>
+<li><strong>lhefile</strong> &#8211; option to write LHE output to file; ff None, do not write
+output to disk.</li>
+<li><strong>unlink</strong> &#8211; Clean up temp directory after running pythia</li>
+<li><strong>pythiaCard</strong> &#8211; Optional path to pythia.card. If None, uses /etc/pythia.card</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">file object with the LHE events</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="tools.xsecComputer.xsecToBlock">
+<code class="descname">xsecToBlock</code><span class="sig-paren">(</span><em>xsec, inPDGs=(2212, 2212), comment=None, xsecUnit=1.00E+00 [pb]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tools/xsecComputer.html#xsecToBlock"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tools.xsecComputer.xsecToBlock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a string for a XSECTION block in the SLHA format from a XSection
+object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>inPDGs</strong> &#8211; defines the PDGs of the incoming states
+(default = 2212,2212)</li>
+<li><strong>comment</strong> &#8211; is added at the end of the header as a comment</li>
+<li><strong>xsecUnit</strong> &#8211; unit of cross sections to be written (default is pb). Must be a Unum unit.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-tools">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-tools" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-tools.__init__"></span></div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="experiment.html" class="btn btn-neutral" title="experiment package" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, &lt;function authors at 0x7f73f74eb500&gt;.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.1.0patch1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

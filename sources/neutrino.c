@@ -48,11 +48,11 @@ static double r3Integrand(double r3)
 {
   double  r,vescQ,rhoGeVcm3,mfrac,w2rate;
   r=pow(r3,0.333333333333333);
-  vescQ=2*polint2(r/Rcm,nTab,rTab,phiTab);
+  vescQ=2*polint1(r/Rcm,nTab,rTab,phiTab);
   w2rate= vescQ-v_stat*v_stat*muX;
   if(w2rate<=0) return 0;
-  rhoGeVcm3=polint2(r/Rcm,nTab,rTab,rhoTab)/mp_g;   // in proton mass units
-  mfrac=polint2(r/Rcm,nTab,rTab,aFraction);
+  rhoGeVcm3=polint1(r/Rcm,nTab,rTab,rhoTab)/mp_g;   // in proton mass units
+  mfrac=polint1(r/Rcm,nTab,rTab,aFraction);
   if(FFalpha==0) return rhoGeVcm3*mfrac*w2rate; 
   else  return  rhoGeVcm3*mfrac*(1+muX)*( exp(-v_stat*v_stat*FFalpha) - exp(-(v_stat*v_stat+vescQ)*FFalpha/(1+muX)))/FFalpha;
 }
@@ -66,7 +66,7 @@ static double vIntegrand(double v)
   phiv=muX*v_stat*v_stat/2;
 
   if(phiv> phiTab[0]) return 0;
-  if(phiv <= phiTab[nTab-1]) Rmax=Rcm; else   Rmax=Rcm*polint2(phiv,nTab,phiTab,rTab); 
+  if(phiv <= phiTab[nTab-1]) Rmax=Rcm; else   Rmax=Rcm*polint1(phiv,nTab,phiTab,rTab); 
   return u*(4*M_PI/3.)*simpson(r3Integrand,0,Rmax*Rmax*Rmax,1.E-4)*Vlight*Vlight*1.E-1; // in cm
 }
 
@@ -76,14 +76,14 @@ static double sIntegrand(double r3)
 {
   double  r,rhoGeVcm3,mfrac;
   r=pow(r3,0.333333333333333);
-  rhoGeVcm3=polint2(r/Rcm,nTab,rTab,rhoTab)/mp_g;   // in proton mass units
-  mfrac=polint2(r/Rcm,nTab,rTab,aFraction);
+  rhoGeVcm3=polint1(r/Rcm,nTab,rTab,rhoTab)/mp_g;   // in proton mass units
+  mfrac=polint1(r/Rcm,nTab,rTab,aFraction);
   return rhoGeVcm3*mfrac;   
 }
 
 static void derivePhi(double r, double *x, double *dx)
 {  double r2=r*r;
-   dx[0]=4*M_PI*r2*polint2(r/Rcm,nTab,rTab,rhoTab);
+   dx[0]=4*M_PI*r2*polint1(r/Rcm,nTab,rTab,rhoTab);
    dx[1]=Gconst*100*x[0]/r2;
 //printf(" r=%E dx[0]=%e dx[1]=%E\n", r,dx[0],dx[1]);    
 }
@@ -250,7 +250,7 @@ static double sigmaSun(double M_cdm,double pA0, double nA0, double pA5, double n
 
 #define RE 6378E5   /* cm */
 
-static double rhoFun(double r) { return polint2(r,nTab,rTab,rhoTab);}
+static double rhoFun(double r) { return polint1(r,nTab,rTab,rhoTab);}
 
 static int readEarthData(void)
 {
@@ -282,7 +282,7 @@ static int readEarthData(void)
   return 0;
 }
 
-//double fracFun(double r){ return polint2(r,nTab, rTab,aFraction);}
+//double fracFun(double r){ return polint1(r,nTab, rTab,aFraction);}
 
 
 static double captureEarth(double(*vfv)(double),double M_cdm,  double pA0, double nA0, double pA5, double nA5)
@@ -549,7 +549,7 @@ static int  nuTabInterpolation(nuTableStr*T,double Mass,int pdgN,int pol, int sm
 //  for(i=0;i<T->nX;i++) printf("x=%e  Y=%e\n", T->x[i], T->buff[i]);
   for(i=1;i<NZ;i++)
   { double x=exp(Zi(i));
-    tab[i]=smooth?  x*polint3(x,T->nX, T->x ,T->buff): x*polint2(x,T->nX, T->x ,T->buff);
+    tab[i]=smooth?  x*polint3(x,T->nX, T->x ,T->buff): x*polint1(x,T->nX, T->x ,T->buff);
   }
   
   
@@ -621,6 +621,7 @@ int basicNuSpectra(int forSun, double Mass, int pdgN, int pol, double*nu, double
     nuTableStr*T=allTab[pkgN][forSun][0];
     if(Mass<T->m[0] || Mass>T->m[T->nM-1]) return 1;
   }  
+  err=0;
   if(nu)  err=  nuTabInterpolation(allTab[pkgN][forSun][1],Mass,pdgN, pol , pkgN!=2, nu);
   if(nuB) err=  nuTabInterpolation(allTab[pkgN][forSun][0],Mass,pdgN, pol , pkgN!=2, nuB);  
   return err;
@@ -689,7 +690,7 @@ static void getSpectrum(int forSun, double M, double m1,double m2,char*n1,char*n
         numout * d2Proc;
         int l; 
         char* n[4];
-        double m[4];
+        REAL m[4];
         double tab_p[NZ];
         char process[40],plib[40];
         int ntot;
@@ -823,7 +824,7 @@ static double calcSpectrum0(char *name1, char*name2, int forSun, double *Spectra
    
   for(k=0;k<ntot ;k++) if(v_cs[k]>0)
   { char * N[4];
-    double m[4];
+    REAL m[4];
     int l,pdg[2];
     int PlusAok=0;
     double tab2[NZ];
@@ -916,15 +917,15 @@ int neutrinoFlux(double (* fvf)(double), int forSun, double* nu, double * Nu)
   { 
      double r_,v_,r095,S,ph,Veff1;
      for(i=0,r_=0;i<10;i++) 
-     { T=polint2(r_/Rcm,nTab,rTab,tTab)*KelvinEv*1E-9;
-       rho= polint2(r_/Rcm,nTab,rTab,rhoTab);
+     { T=polint1(r_/Rcm,nTab,rTab,tTab)*KelvinEv*1E-9;
+       rho= polint1(r_/Rcm,nTab,rTab,rhoTab);
        r_= sqrt(6*T/(Gconst*100*rho*M_cdm))/M_PI;
        if(r_>Rcm) r_=Rcm;
      }
 
-     rho=polint2(r_/Rcm,nTab,rTab,rhoTab);
-     T=polint2(r_/Rcm,nTab,rTab,tTab);
-     r095=polint2(T*0.95,nTab,tTab,rTab);
+     rho=polint1(r_/Rcm,nTab,rTab,rhoTab);
+     T=polint1(r_/Rcm,nTab,rTab,tTab);
+     r095=polint1(T*0.95,nTab,tTab,rTab);
      if(r095>1) r095=1;
      T*=KelvinEv*1E-9;
      r095*=Rcm;
@@ -1002,7 +1003,7 @@ static double cosFi_stat=0.1;//   0.34;
 // ========================== Earth Attenuation =====================
 
 
-static double inte_grand(double x){ return polint2(sqrt(1+x*x-2*x*cosFi_stat) ,EARTHPOINTS,rEarth,rhoEarth); }
+static double inte_grand(double x){ return polint1(sqrt(1+x*x-2*x*cosFi_stat) ,EARTHPOINTS,rEarth,rhoEarth); }
 
 void makeTabl(void)
 { int i;
@@ -1058,7 +1059,7 @@ static int inNu=1; /* neutrino; -1 for anti-neutrino */
 
 
 static double dSigmadE_nu2mu(int inNu,  double Enu,double Emu)   /*result in   1/cm^2/GeV */ 
-{  double GF=1.16637E-5;  /* GeV^(−2) */
+{  double GF=1.16637E-5;  /* GeV^(-2) */
    double GeVcm=0.50677E14;
    double C=GF*GF*mp_gev/M_PI/GeVcm/GeVcm;
    double ap=0,an=0,bp=0,bn=0;
@@ -1151,6 +1152,74 @@ void muonUpward(double*nu, double*Nu, double*mu)
       } else { if(sigma) sigma[i]=sigma_mem*Emu_stat;}  
    }
 }
+
+#define QQ
+#ifdef QQ
+
+static double integrandX_I(double Emu_prim)
+{  double g=alpha_stat/beta_stat;  
+   double q= (0.10566 /* muon mass*/)/(6665865.4 /* (muon_life_time)*c in cm */)/alpha_stat;
+   double Psurv=pow(Emu_stat*(Emu_prim+g)/(Emu_prim*(Emu_stat+g)),q);
+
+   return  dSigmadE_nu2mu(inNu,  Enu_stat, Emu_prim )*Psurv; 
+} 
+
+
+static double integrandEnuUpward_I(double E)
+{ 
+
+  Enu_stat=E;   
+  
+  return  nuSpectrum(E)*simpson(integrandX_I,Emu_stat,E,1.E-4);
+}
+
+
+
+void muonUpward_I(double*nu, double*Nu, double*mu)
+{
+   int i,k,l;
+   double C;
+   double  NA=6.002141E23 /* mol-1*/;
+   double*Sp[2]={nu,Nu};
+   double rho,M;
+   double *sigma=NULL;
+   if(nu && Nu) M=nu[0]>Nu[0]?nu[0]:Nu[0];
+   else if(nu) M=nu[0]; else if(Nu) M=Nu[0]; else return;
+          
+   
+   if(forRocks)   
+   {   rho=2.6;
+      alpha_stat=0.002*rho;
+      beta_stat=3.0E-6*rho;
+   }   
+   else      
+   {
+      rho=1;  
+      alpha_stat=0.00262*rho;
+      beta_stat=3.5E-6*rho;
+   }
+   nuSpectrum=tabNuSpectrum;  
+
+   mu[0]=M;
+   mu[1]=0;
+   for(i=2;i<NZ;i++) 
+   {  double sigma_mem;
+      Emu_stat=M*exp(Zi(i));
+      mu[i]=0;
+      if(Emu_stat>0.01)
+      {  for(k=0;k<2;k++) if(Sp[k])
+         {
+           inNu=1-2*k;
+           SpN_stat=Sp[k];
+           mu[i]+=simpson(integrandEnuUpward_I,Emu_stat,M,1.E-4)/(alpha_stat+beta_stat*Emu_stat); 
+         }    
+         mu[i]*=rho*NA*Emu_stat;        
+      } 
+   }
+}
+
+
+#endif 
 
 
 
@@ -1324,7 +1393,7 @@ double atmNuFlux(int nu,double cs, double E)
   
   alpha= (log(data->E[i+1])-log(E) )/(log(data->E[i+1])-log(data->E[i]));
 
-  return   1.E6*365*24*60*60*pow(polint2(cs, 10,cstab,data->data[i]),alpha)*pow(polint2(cs, 10,cstab,data->data[i+1]),1-alpha);    
+  return   1.E6*365*24*60*60*pow(polint1(cs, 10,cstab,data->data[i]),alpha)*pow(polint1(cs, 10,cstab,data->data[i+1]),1-alpha);    
 }  
 
  

@@ -1,0 +1,22 @@
+<!--
+CMS result for mu(ttH, bb) at mH = 125. GeV
+https://twiki.cern.ch/twiki/bin/view/CMSPublic/Hig14010TWiki
+ -->
+
+<expmu decay="bb" dim="1" type="n">
+  <experiment>CMS</experiment>
+  <source type="preliminary">HIG-14-010</source>
+  <sqrts>8</sqrts>
+  <mass>125.7</mass>
+
+
+  <eff prod="ttH">1.</eff>
+
+  <bestfit>0.65</bestfit>
+  
+  <param>
+    <uncertainty side="left">-1.33</uncertainty>
+    <uncertainty side="right">1.35</uncertainty>
+    <!-- if not needed, just <uncertainty></uncertainty> -->
+  </param>
+</expmu>

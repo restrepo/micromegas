@@ -19,6 +19,7 @@
         difference, phi_12 - azimuth angle difference.   
   J  - Delta R jet separation = sqrt(|eta_12|^2 +|phi_12|^2)
   K  - |eta_12|
+  F  - azimuth angle[rad]  between 2 particles
   E  - Energy of the particle set
   M  - Mass of the particle set
   P  - Cosine of the angle between the first particle in the list and 

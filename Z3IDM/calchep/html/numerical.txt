@@ -1,0 +1,8 @@
+	CalcHEP Numerical Details
+
+	Done!
+
+Scans               sigma (fb)     Running   Finished   Time (hr)   N events
+Single              3.0940e-05       0/13     13/13     0.01        10000
+                                                        0.01
+

@@ -54,7 +54,8 @@ void  fillHists(double w,double*V)
     hists->nPoints++;
     p=hists->pList[0];
     if(!w || !p) continue;
-    for(n0=0 ;p;p=p->next,n0++)  z0[n0]=calcPhysVal(hists->key[0][0],p->pstr,V);
+    for(n0=0 ;p;p=p->next,n0++) z0[n0]=calcPhysVal(hists->key[0][0],p->pstr,V);
+       
     switch(hists->key[0][1])
     { case '^':
         for(k=1;k<n0;k++) if(z0[0]<z0[k]) z0[0]=z0[k];
@@ -68,9 +69,9 @@ void  fillHists(double w,double*V)
      
     if(hists->key[1][0]=='0')      
     { for(k=0;k<n0;k++)
-      { 
-        i=300*(z0[k] - hists->hMin[0])/(hists->hMax[0] - hists->hMin[0]);
-        if(i<0 || i>=300) continue;
+      { double id=300*(z0[k] - hists->hMin[0])/(hists->hMax[0] - hists->hMin[0]);
+        if(!isfinite(id) || id <0 || id>=300) continue;
+        i=id;
         hists->f[i]+=w;
         hists->ff[i]+=w*w;
       }
@@ -92,11 +93,13 @@ void  fillHists(double w,double*V)
     }  
     
     for(k0=0;k0<n0;k0++)
-    { i0=30*(z0[k0]-hists->hMin[0])/(hists->hMax[0]-hists->hMin[0]);
-      if(i0<0 || i0>=30) continue;
+    { double di0=30*(z0[k0]-hists->hMin[0])/(hists->hMax[0]-hists->hMin[0]);
+      if(!isfinite(di0) ||di0<0 || di0>=30) continue;
+      i0=di0;
       for(k1=0;k1<n1;k1++)
-      { i1=30*(z1[k1]-hists->hMin[1])/(hists->hMax[1]-hists->hMin[1]);
-        if(i1<0 || i1>=30) continue;
+      { double di1=30*(z1[k1]-hists->hMin[1])/(hists->hMax[1]-hists->hMin[1]);
+        if(!isfinite(di1)||  di1<0 || di1>=30) continue;
+        i1=di1;
         hists->f[30*i0+i1]+=w;
         hists->ff[30*i0+i1]+=w*w;
       }
@@ -175,7 +178,7 @@ int correctHistList(void)
          && approxEq(hptr->hMax[1],rMax[1]) 
          ) { int ok=0;
              cleanPVlist(hptr->pList[0]);
-             cleanPVlist(hptr->pList[1]); 
+             cleanPVlist(hptr->pList[1]);
              ok=checkPhysValN(histStr[0],hptr->key[0],hptr->pList); 
              if(strlen(histStr[1]))ok=ok&checkPhysValN(histStr[1],hptr->key[1],hptr->pList+1);
              else { strcpy(hptr->key[1],"0"); hptr->pList[1]=NULL;}

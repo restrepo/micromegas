@@ -1,0 +1,18 @@
+txName: T6bbWWoff
+conditionDescription: None
+condition: None
+constraint: 9.18*([[['b'],['L-','nu']],[['b'],['L+','nu']]])
+figureUrl: https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/CONFNOTES/ATLAS-CONF-2013-048/fig_13e.png;https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/CONFNOTES/ATLAS-CONF-2013-048/fig_13b.png;https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/CONFNOTES/ATLAS-CONF-2013-048/fig_13c.png
+dataUrl: https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/CONFNOTES/ATLAS-CONF-2013-048/fig_13e_PRELIMINARY.data;https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/CONFNOTES/ATLAS-CONF-2013-048/fig_13b_PRELIMINARY.data
+validated: True
+axes: 2*Eq(mother,x)_Eq(inter0,1.5e+2)_Eq(lsp,y);2*Eq(mother,x)_Eq(inter0,2.0*y)_Eq(lsp,y);2*Eq(mother,x)_Eq(inter0,x-10.0)_Eq(lsp,y)
+publishedData: True
+upperLimits: [[[[180.0*GeV, 150.0*GeV, 75.0*GeV], [180.0*GeV, 150.0*GeV, 75.0*GeV]], 75.753*pb],
+[[[250.0*GeV, 150.0*GeV, 75.0*GeV], [250.0*GeV, 150.0*GeV, 75.0*GeV]], 103.23*pb],
+[[[280.0*GeV, 150.0*GeV, 75.0*GeV], [280.0*GeV, 150.0*GeV, 75.0*GeV]], 72.17*pb],
+[[[350.0*GeV, 150.0*GeV, 75.0*GeV], [350.0*GeV, 150.0*GeV, 75.0*GeV]], 17.995*pb],
+[[[170.0*GeV, 145.0*GeV, 72.5*GeV], [170.0*GeV, 145.0*GeV, 72.5*GeV]], 76.002*pb],
+[[[250.0*GeV, 105.0*GeV, 52.5*GeV], [250.0*GeV, 105.0*GeV, 52.5*GeV]], 133.35*pb],
+[[[280.0*GeV, 105.0*GeV, 52.5*GeV], [280.0*GeV, 105.0*GeV, 52.5*GeV]], 946.89*pb],
+[[[200.0*GeV, 190.0*GeV, 130.0*GeV], [200.0*GeV, 190.0*GeV, 130.0*GeV]], 75.578*pb],
+[[[250.0*GeV, 240.0*GeV, 180.0*GeV], [250.0*GeV, 240.0*GeV, 180.0*GeV]], 77.688*pb]]

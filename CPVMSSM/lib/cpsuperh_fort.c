@@ -1,4 +1,4 @@
-#include"../../sources/micromegas_aux.h"
+#include"../../include/micromegas_aux.h"
 #include"pmodel_f.h"
 #include"pmodel.h"
 

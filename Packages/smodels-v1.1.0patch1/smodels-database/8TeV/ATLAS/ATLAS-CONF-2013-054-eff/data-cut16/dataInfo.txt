@@ -1,0 +1,7 @@
+dataType: efficiencyMap
+dataId: 9j50 MJ 420
+observedN: 9
+expectedBG: 11.0
+bgError: 5.0
+upperLimit: 0.5*fb
+expectedUpperLimit: 0.601*fb

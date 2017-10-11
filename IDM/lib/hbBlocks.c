@@ -1,17 +1,17 @@
-#include"../../sources/micromegas.h"
-#include"../../sources/micromegas_aux.h"
+#include"../../include/micromegas.h"
+#include"../../include/micromegas_aux.h"
 #include "pmodel.h"
 
 #define SQR(x) (x)*(x)
-int  HBblocks(char * fname)
+
+int  hbBlocksMDL(char*fname, int * nHch)
 { FILE * f=fopen(fname,"w");
   double tb,sb,cb;
-  if(!f) return 1;
+  if(!f) return 0;
 
   fprintf(f,"Block Mass\n 25  %E # Higgs Mass\n\n",findValW("Mh"));
   
   slhaDecayPrint("h",0,f);
-  slhaDecayPrint("H",0,f);
   slhaDecayPrint("t",0,f);
   slhaDecayPrint("~H+",0,f);
 
@@ -39,17 +39,17 @@ int  HBblocks(char * fname)
   fprintf(f," %12.4E   %12.4E   3    25    15   15 # higgs-tau-tau \n",1.,0.);
   
   fclose(f);
-   
-  return 0;
+  if(nHch) *nHch=1; 
+  return 1;
 }
 
-int  hbblocks_(char * fname,int len)
-{
+int  hbblocksmdl_(char *fname, int * nHch,int len) 
+{ 
   char * cname=malloc(len+2);
-  int err;
+  int nHiggs;
   fName2c(fname,cname,len);
-  err=HBblocks(cname);
+  nHiggs= hbBlocksMDL(cname,nHch);
   free(cname);
-  return err; 
+  return nHiggs;
 }
 

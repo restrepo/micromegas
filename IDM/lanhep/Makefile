@@ -1,4 +1,9 @@
 
 .PHONY: all
-all: *.lhp 
-	lhep -ca -evl 2 idublet.lhp
+
+all: *.lhp ../../Packages/LanHEP/lhep
+	../../Packages/LanHEP/lhep -ca -evl 2 idublet.lhp
+
+../../Packages/LanHEP/lhep:
+	$(MAKE) -C ../../Packages/LanHEP
+	

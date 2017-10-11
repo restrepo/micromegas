@@ -26,6 +26,7 @@
 static  polyvars  varsInfo={0,NULL};
 
 
+int noPict=1;
 
 int readSize;
 poly readBuff=NULL;

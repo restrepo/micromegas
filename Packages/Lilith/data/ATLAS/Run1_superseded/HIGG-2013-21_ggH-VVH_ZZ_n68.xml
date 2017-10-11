@@ -1,0 +1,28 @@
+<!--
+parametrization of a 2D Gaussian fitted from the 68% CL contour
+in the plane mu(gg+ttH, ZZ) vs. mu(VBF+VH, ZZ)
+at mH = 125.36 GeV, shown in HIGG-2013-21, Fig. 20a
+https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/PAPERS/HIGG-2013-21/
+-->
+
+<expmu dim="2" type="n" decay="ZZ">
+  <experiment>ATLAS</experiment>
+  <source type="published">HIGG-2013-21</source>
+  <sqrts>7+8</sqrts>
+  <mass>125.36</mass>
+  <CL>68%</CL>
+
+  <eff axis="x" prod="ggH">1.0</eff>
+  <eff axis="y" prod="VVH">1.0</eff>
+  
+  <bestfit>
+    <x>1.63863</x>
+    <y>0.810441</y>
+  </bestfit>
+  
+  <param>
+    <a>6.97222</a>
+    <b>1.11313</b>
+    <c>0.70812</c>
+  </param>
+</expmu>

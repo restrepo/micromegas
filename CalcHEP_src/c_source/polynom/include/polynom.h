@@ -1,9 +1,9 @@
 #ifndef __POLYNOM_
 #define __POLYNOM_
 
+#include"../../../include/VandP_size.h"
 #include"lnum.h"
 
-#define VAR_NAME_SIZE 12
 
 #define poly struct monom *
 typedef struct monom

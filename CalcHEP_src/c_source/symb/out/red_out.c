@@ -139,7 +139,7 @@ static void  emitexpression(catrec* cr)
 static void startReduce(int nsub,int* prtclNum,int ncalc)
 {  
    outputLanguage='R';
-   initvararray(nsub,outputLanguage,3);
+   initvararray(nsub,outputLanguage,NULL);
    outFileOpen("%sresults%csymb%d.red",pathtouser,f_slash,nsub);
    writeLabel('%');
    writeprocessname(prtclNum);
@@ -161,7 +161,7 @@ static void diagramReduce( vcsect * vcs,  catrec * cr )
    writeF("\n");
    writeF("DiagrNumber:=\"%d_%d\"$\n",cr->nsub_,cr->ndiagr_);
    writeF("\n");
-   if (vcs)  DiagramToOutFile(vcs,0,'%');
+   if (vcs && !noPict)  DiagramToOutFile(vcs,0,'%');
    emitexpression(cr);
    writeF("\n\n");
    writeF("addToSum()$\n");

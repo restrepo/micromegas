@@ -1,0 +1,37 @@
+Number of points:                  
+
+  scanned                                 100
+  mu = 0                                    0
+  no electroweak symmetry breaking          0
+  with mh1^2 or ma1^2 or mhc^2 < 0          1
+  with m_sfermion^2 < 0                     0
+  violating  constraints                   77
+  RGE integration problem                   1
+  convergence problem                      12
+
+Remaining good points                       9
+
+
+Contraints taken into account:                    
+ - Landau poles and false minima                  
+ - LEP/Tevatron Higgs+sparticle                   
+ - Upsilon, B and K decays                        
+
+
+Parameter ranges for good points:                 
+
+   LAMBDA:      0.5013E+00     0.6449E+00     0.1253E+00
+     TANB:      0.2295E+01     0.2704E+01     0.8183E-01
+       M0:      0.5500E+03     0.5500E+03     0.0000E+00
+      M12:      0.5000E+03     0.5000E+03     0.0000E+00
+       A0:     -0.3900E+03    -0.3900E+03     0.0000E+00
+  ALAMBDA:     -0.5219E-03     0.2348E-03     0.1000E+01
+   AKAPPA:     -0.3738E-03     0.1791E-03     0.1000E+01
+    KAPPA:      0.3100E+00     0.3100E+00     0.0000E+00
+      MHD:      0.8828E+05     0.6809E+06     0.7705E+00
+     (MHD is not an input parameter)
+      MHU:      0.1503E+07     0.2298E+07     0.2091E+00
+     (MHU is not an input parameter)
+       MS:      0.3818E+06     0.2437E+07     0.7291E+00
+      (MS is not an input parameter)
+    MUEFF:      0.1210E+03     0.1210E+03     0.0000E+00

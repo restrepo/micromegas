@@ -18,6 +18,7 @@ do
     nSub=`grep \#Subprocess  session.dat |cut -f2 -d" "`
     if(test $run -eq 1) then
        Wi=`$1/run_vegas`
+       Wi=`echo $Wi | cut  -f1 -d" "`
 echo Wi=$Wi  
        if(test "$Wi" != "0.0E+0"  ) then
           Wt=`$1/calc "$Wt + ($Wi)"`
@@ -37,7 +38,7 @@ echo Wi=$Wi
               mess="`grep \#Subprocess  session.dat` width=$Wi Br=`$1/calc $Wi/\($Wt\)`"
               if(test $2 -ne 0) then 
                   Nevents=`$1/calc "1+floor($2*($Wi)/($Wt))"`
-                  ./n_calchep -blind "[[[[[[[[[{[[[[[[[[[{{$Nevents{[{0" 1>/dev/null 2>/dev/null
+                  ./n_calchep -blind "[[[[[[[[[{[[[[[[[[[{$Nevents{[{0" 1>/dev/null 2>/dev/null
                   mess="$mess Nevents=  $Nevents"
               fi
            else 

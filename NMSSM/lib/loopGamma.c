@@ -1,5 +1,5 @@
-#include"../../sources/micromegas.h"
-#include"../../sources/micromegas_aux.h"
+#include"../../include/micromegas.h"
+#include"../../include/micromegas_aux.h"
 #include"pmodel.h"
 #include"lpath.h"
 
@@ -21,10 +21,10 @@ int loopGamma(double * csAA, double *csAZ)
 
   if(!access(FOUT,R_OK)) unlink(FOUT);
   
-  sprintf(buff, LPATH "/nngg/lGamma.exe");
+  sprintf(buff, LPATH "/nngg-nm4b/lGamma.exe");
   if(access( buff,X_OK))
   { char buf[2000]; 
-    sprintf(buf, "make -C " LPATH "/nngg");
+    sprintf(buf, "dir=%s/nngg-nm4b;  which  gmake; if(test $? -eq 0) then  gmake -C $dir; else make -C $dir; fi",LPATH);
     system(buf);
   } 
   if(access( buff,X_OK)) 
@@ -34,6 +34,7 @@ int loopGamma(double * csAA, double *csAZ)
   }  
 
   sprintf(buff+strlen(buff)," %E", Vrot/299792.*1.5957691);
+
   err=System(buff);   
 
   if(err>=0) 

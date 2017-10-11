@@ -1,8 +1,8 @@
-#include"../../sources/micromegas.h"
-#include"../../sources/micromegas_aux.h"
+#include"../../include/micromegas.h"
+#include"../../include/micromegas_aux.h"
 #include "pmodel.h"
 
-int LiLithF(char*fname)
+int LilithMDL(char*fname)
 {
   unsigned int i, npart=0;
 
@@ -39,9 +39,7 @@ int LiLithF(char*fname)
 
   for(i=0; i<3; i++) {
     double mass = pMass(parts[i]);
-    if(mass < 123. || mass > 128.) {
-      continue;
-    }
+    if(mass < 123 || mass > 128) continue;
     ++npart;
 
     // compute invisible and undetected branching ratios
@@ -86,8 +84,8 @@ int LiLithF(char*fname)
       Cb = tb*(MbH3/MbSM);
       Ctau = tb;
       CV = 0.;
-      Cgamma = 0.5*findValW("LAAH3")/LAASM;
-      Cg = 0.5*findValW("LGGH3")/LGGSM;
+      Cgamma = 2*findValW("LAAH3")/LAASM;
+      Cg = 2*findValW("LGGH3")/LGGSM;
     }
 
 
@@ -114,3 +112,4 @@ int LiLithF(char*fname)
   return npart;
 }
 
+ 

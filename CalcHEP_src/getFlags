@@ -567,7 +567,7 @@ testCC;  if(test $? -ne 0  ) then  exit 1; fi
 testSO;  if(test $? -ne 0  ) then  exit 1; fi
 
 if(test -z "$LX11") then 
-  echo You have empty LX11 paremeter that means that 
+  echo You have empty LX11 parameter that means that 
   echo calchep will be compiled for  "Blind" job only.  
   echo"
   If you  would like to use CalcHEP in interactive

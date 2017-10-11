@@ -63,7 +63,7 @@ int sortoddparticles_(char * f_name, int len)
   return err;  
 }
 
-void nextodd_(int *n, char * pName, double *pMass,int len)
+void nextodd_(char * pName,int *n, double *pMass,int len)
 { 
   char * pm;
   pm=nextOdd(*n,pMass);
@@ -71,7 +71,7 @@ void nextodd_(int *n, char * pName, double *pMass,int len)
   cName2f(pm,pName,len);         
 }
 
-void pdg2name_(int * pdg, char * name,int len)
+void pdg2name_(char * name,int * pdg,int len)
 { 
   char *pn;
   pn=pdg2name(*pdg);
@@ -93,6 +93,16 @@ int qnumbers_(char*pname, int *spin2,int*charge3,int*cdim,int len)
    pdg=qNumbers(cName, spin2, charge3, cdim);
    return pdg;
 }
+
+void antiparticle_(char*aname,char*name,int alen,int len)
+{ 
+   int i;
+   char cName[20];
+   fName2c(name,cName,len);
+   strcpy(aname,antiParticle(cName));
+   for(i=strlen(aname);i<alen;i++) aname[i]=' ';
+}
+
                                                                                                    
 double darkomega_(double * Xf,int*Fast,double *Beps){return darkOmega(Xf,*Fast,*Beps);}
 double darkomegafo_(double*Xf,int*fast,double*Beps){return darkOmegaFO(Xf,*fast,*Beps);}

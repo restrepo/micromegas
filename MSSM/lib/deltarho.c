@@ -10,7 +10,7 @@ c  OUTPUT: drho = rho-1
 c--------------------------------------------------
 */
 
-#include"../../sources/micromegas.h"
+#include"../../include/micromegas.h"
 #include<math.h>
 #define   su_fr(x,y)  ((x)+(y)-2*(x)*(y)/((x)-(y))*log((x)/(y)))
 

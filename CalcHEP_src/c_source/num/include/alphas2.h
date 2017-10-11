@@ -10,7 +10,7 @@ extern int w_Scales(FILE *mode);
 extern int r_Scales(FILE *mode);
 extern void i_Scales(void);
 
-extern void Scale(double*pv,double*qF,double*qR);
-extern double (*sf_alpha)(double);
+//extern void Scale(double*pv,double*qR,double*qF1,double*qF2);
+extern double (*sf_alpha[2])(double);
 extern double  alpha_2(double Q);
 #endif

@@ -1,0 +1,762 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>experiment.databaseObj &mdash; SModelS 1.1.0patch1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="SModelS 1.1.0patch1 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> SModelS
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.1.0patch1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../theory.html">theory package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../experiment.html">experiment package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tools.html">tools package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">SModelS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>experiment.databaseObj</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for experiment.databaseObj</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: databaseObj</span>
+<span class="sd">   :synopsis: Contains Database class that represents the database of experimental results.</span>
+
+<span class="sd">.. moduleauthor:: Veronika Magerl &lt;v.magerl@gmx.at&gt;</span>
+<span class="sd">.. moduleauthor:: Andre Lessa &lt;lessa.a.p@gmail.com&gt;</span>
+<span class="sd">.. moduleauthor:: Wolfgang Waltenberger &lt;wolfgang.waltenberger@gmail.com&gt;</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">smodels.experiment</span> <span class="kn">import</span> <span class="n">datasetObj</span>
+<span class="kn">from</span> <span class="nn">smodels.experiment.expResultObj</span> <span class="kn">import</span> <span class="n">ExpResult</span>
+<span class="kn">from</span> <span class="nn">smodels.experiment.exceptions</span> <span class="kn">import</span> <span class="n">DatabaseNotFoundException</span>
+<span class="kn">from</span> <span class="nn">smodels.tools.physicsUnits</span> <span class="kn">import</span> <span class="n">fb</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">cPickle</span> <span class="kn">as</span> <span class="nn">serializer</span>
+<span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">pickle</span> <span class="kn">as</span> <span class="nn">serializer</span>
+
+<span class="kn">from</span> <span class="nn">smodels.tools.smodelsLogging</span> <span class="kn">import</span> <span class="n">logger</span><span class="p">,</span> <span class="n">setLogLevel</span>
+
+<div class="viewcode-block" id="Database"><a class="viewcode-back" href="../../experiment.html#experiment.databaseObj.Database">[docs]</a><span class="k">class</span> <span class="nc">Database</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Database object. Holds a list of ExpResult objects.</span>
+<span class="sd">    </span>
+<span class="sd">    :ivar base: path to the database (string)</span>
+<span class="sd">    :ivar force_load: force loading the text database (&quot;txt&quot;),</span>
+<span class="sd">        or binary database (&quot;pcl&quot;), dont force anything if None</span>
+<span class="sd">    :ivar expResultList: list of ExpResult objects </span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">force_load</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="bp">None</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param force_load: force loading the text database (&quot;txt&quot;),</span>
+<span class="sd">            or binary database (&quot;pcl&quot;), dont force anything if None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">force_load</span> <span class="o">=</span> <span class="n">force_load</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pclfilename</span> <span class="o">=</span> <span class="s2">&quot;database.pcl&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hasFastLim</span> <span class="o">=</span> <span class="bp">False</span> <span class="c1"># True if any ExpResult is from fastlim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validateBase</span><span class="p">(</span><span class="n">base</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_verbosity</span> <span class="o">=</span> <span class="n">verbosity</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">_databaseVersion</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expResultList</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txt_mtime</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pcl_mtime</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pcl_db</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sw_format_version</span> <span class="o">=</span> <span class="s2">&quot;115&quot;</span> <span class="c1">## what format does the software support?</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pcl_format_version</span> <span class="o">=</span> <span class="bp">None</span> <span class="c1">## what format is in the binary file?</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">binfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pclfilename</span> <span class="p">)</span>
+        <span class="n">setLogLevel</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verbosity</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">force_load</span><span class="o">==</span><span class="s2">&quot;txt&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loadTextDatabase</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printFastlimBanner</span><span class="p">()</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">force_load</span><span class="o">==</span><span class="s2">&quot;pcl&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loadBinaryFile</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printFastlimBanner</span><span class="p">()</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">force_load</span> <span class="ow">in</span> <span class="p">[</span> <span class="bp">None</span><span class="p">,</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span> <span class="s2">&quot;None&quot;</span> <span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loadDatabase</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printFastlimBanner</span><span class="p">()</span>
+            <span class="k">return</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span> <span class="p">(</span> <span class="s2">&quot;when initialising database: force_load=</span><span class="si">%s</span><span class="s2"> is not &quot;</span> \
+                       <span class="s2">&quot;recognized. Valid values are: pcl, txt, None.&quot;</span> <span class="o">%</span> <span class="n">force_load</span> <span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Database.printFastlimBanner"><a class="viewcode-back" href="../../experiment.html#experiment.databaseObj.Database.printFastlimBanner">[docs]</a>    <span class="k">def</span> <span class="nf">printFastlimBanner</span> <span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; check if fastlim appears in data.</span>
+<span class="sd">            If yes, print a statement to stdout. &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasFastLim</span><span class="p">:</span> <span class="k">return</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span> <span class="p">(</span> <span class="s2">&quot;FastLim v1.1 efficiencies loaded. Please cite: arXiv:1402.0492, EPJC74 (2014) 11&quot;</span> <span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__eq__</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; compare two databases</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">databaseVersion</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">databaseVersion</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">expResultList</span> <span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span> <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">expResultList</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">for</span> <span class="p">(</span> <span class="n">myres</span><span class="p">,</span> <span class="n">otherres</span> <span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">expResultList</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">expResultList</span> <span class="p">):</span>
+            <span class="k">if</span> <span class="n">myres</span> <span class="o">!=</span> <span class="n">otherres</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="bp">True</span>
+
+<div class="viewcode-block" id="Database.loadDatabase"><a class="viewcode-back" href="../../experiment.html#experiment.databaseObj.Database.loadDatabase">[docs]</a>    <span class="k">def</span> <span class="nf">loadDatabase</span> <span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; if no binary file is available, then </span>
+<span class="sd">            load the database and create the binary file.</span>
+<span class="sd">            if binary file is available, then check if</span>
+<span class="sd">            it needs update, create new binary file, in</span>
+<span class="sd">            case it does need an update.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">binfile</span> <span class="p">):</span>
+<span class="c1">#             self.loadTextDatabase()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">createBinaryFile</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">needsUpdate</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">createBinaryFile</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">loadBinaryFile</span><span class="p">(</span> <span class="n">lastm_only</span> <span class="o">=</span> <span class="bp">False</span> <span class="p">)</span></div>
+
+<div class="viewcode-block" id="Database.loadTextDatabase"><a class="viewcode-back" href="../../experiment.html#experiment.databaseObj.Database.loadTextDatabase">[docs]</a>    <span class="k">def</span> <span class="nf">loadTextDatabase</span> <span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; simply loads the textdabase &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_databaseVersion</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">expResultList</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span> <span class="p">(</span> <span class="s2">&quot;Asked to load database, but has already been loaded. Ignore.&quot;</span> <span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span> <span class="p">(</span> <span class="s2">&quot;Parsing text database at </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_databaseVersion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getDatabaseVersion</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expResultList</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadExpResults</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Database.lastModifiedDir"><a class="viewcode-back" href="../../experiment.html#experiment.databaseObj.Database.lastModifiedDir">[docs]</a>    <span class="k">def</span> <span class="nf">lastModifiedDir</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">lastm</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the last modified timestamp of dirname, working recursively</span>
+<span class="sd">         </span>
+<span class="sd">        :param dirname: directory name that is checked</span>
+<span class="sd">        :param lastm: the most recent timestamp so far</span>
+<span class="sd">        :returns: the most recent timestamp, and the number of files</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">lastm</span>
+        <span class="n">ctr</span><span class="o">=</span><span class="mi">0</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span> <span class="p">(</span> <span class="n">dirname</span> <span class="p">):</span>
+            <span class="k">if</span> <span class="n">f</span> <span class="ow">in</span> <span class="p">[</span> <span class="s2">&quot;orig&quot;</span><span class="p">,</span> <span class="s2">&quot;sms.root&quot;</span><span class="p">,</span> <span class="s2">&quot;validation&quot;</span> <span class="p">]:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">f</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:]</span><span class="o">==</span><span class="s2">&quot;~&quot;</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;.&quot;</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">f</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span><span class="o">==</span><span class="s2">&quot;.py&quot;</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">lf</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span> <span class="p">(</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">f</span> <span class="p">)</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span> <span class="p">(</span> <span class="n">lf</span> <span class="p">):</span>
+                <span class="p">(</span><span class="n">ret</span><span class="p">,</span><span class="n">tctr</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lastModifiedDir</span> <span class="p">(</span> <span class="n">lf</span><span class="p">,</span> <span class="n">ret</span> <span class="p">)</span>
+                <span class="n">ctr</span><span class="o">+=</span><span class="n">tctr</span><span class="o">+</span><span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ctr</span><span class="o">+=</span><span class="mi">1</span>
+                <span class="n">tmp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span> <span class="p">(</span> <span class="n">lf</span> <span class="p">)</span><span class="o">.</span><span class="n">st_mtime</span>
+                <span class="k">if</span> <span class="n">tmp</span> <span class="o">&gt;</span> <span class="n">ret</span><span class="p">:</span>
+                    <span class="n">ret</span> <span class="o">=</span> <span class="n">tmp</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">ret</span><span class="p">,</span><span class="n">ctr</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Database.lastModifiedAndFileCount"><a class="viewcode-back" href="../../experiment.html#experiment.databaseObj.Database.lastModifiedAndFileCount">[docs]</a>    <span class="k">def</span> <span class="nf">lastModifiedAndFileCount</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">txt_mtime</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="c1">## already evaluated</span>
+            <span class="k">return</span>
+        <span class="n">versionfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span> <span class="p">)</span> 
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span> <span class="p">(</span> <span class="n">versionfile</span> <span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> does not exist.&quot;</span> <span class="o">%</span> <span class="n">versionfile</span> <span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+        <span class="n">lastm</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">versionfile</span><span class="p">)</span><span class="o">.</span><span class="n">st_mtime</span>
+        <span class="n">count</span><span class="o">=</span><span class="mi">1</span>
+        <span class="n">topdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base</span> <span class="p">)</span>
+        <span class="k">for</span> <span class="n">File</span> <span class="ow">in</span> <span class="n">topdir</span><span class="p">:</span>
+            <span class="n">subdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base</span><span class="p">,</span> <span class="n">File</span> <span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span> <span class="p">(</span> <span class="n">subdir</span> <span class="p">)</span> <span class="ow">or</span> <span class="n">File</span> <span class="ow">in</span> <span class="p">[</span> <span class="s2">&quot;.git&quot;</span> <span class="p">]:</span>
+                <span class="k">continue</span>
+            <span class="p">(</span><span class="n">lastm</span><span class="p">,</span><span class="n">tcount</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lastModifiedDir</span> <span class="p">(</span> <span class="n">subdir</span><span class="p">,</span> <span class="n">lastm</span> <span class="p">)</span>
+            <span class="n">count</span><span class="o">+=</span><span class="n">tcount</span><span class="o">+</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txt_mtime</span> <span class="o">=</span> <span class="n">lastm</span><span class="p">,</span> <span class="n">count</span></div>
+
+<div class="viewcode-block" id="Database.loadBinaryFile"><a class="viewcode-back" href="../../experiment.html#experiment.databaseObj.Database.loadBinaryFile">[docs]</a>    <span class="k">def</span> <span class="nf">loadBinaryFile</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">lastm_only</span> <span class="o">=</span> <span class="bp">False</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load a binary database, returning last modified, file count, database.</span>
+<span class="sd">        </span>
+<span class="sd">        :param lastm_only: if true, the database itself is not read.</span>
+<span class="sd">        :returns: database object, or None, if lastm_only == True.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">lastm_only</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">pcl_mtime</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="c1">## doesnt need to load database, and mtime is already</span>
+            <span class="c1">## loaded</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pcl_db</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pcl_db</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">binfile</span> <span class="p">):</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">binfile</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span> <span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">t0</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pcl_python</span> <span class="o">=</span> <span class="n">serializer</span><span class="o">.</span><span class="n">load</span> <span class="p">(</span> <span class="n">f</span> <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pcl_format_version</span> <span class="o">=</span> <span class="n">serializer</span><span class="o">.</span><span class="n">load</span> <span class="p">(</span> <span class="n">f</span> <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pcl_mtime</span> <span class="o">=</span> <span class="n">serializer</span><span class="o">.</span><span class="n">load</span> <span class="p">(</span> <span class="n">f</span> <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_databaseVersion</span> <span class="o">=</span> <span class="n">serializer</span><span class="o">.</span><span class="n">load</span> <span class="p">(</span> <span class="n">f</span> <span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">lastm_only</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pcl_python</span> <span class="o">!=</span> <span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span> <span class="p">(</span> <span class="s2">&quot;binary file was written with a different &quot;</span>
+                                         <span class="s2">&quot;python version. Regenerating.&quot;</span> <span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">createBinaryFile</span><span class="p">()</span>
+                        <span class="k">return</span> <span class="bp">self</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pcl_format_version</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sw_format_version</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span> <span class="p">(</span> <span class="s2">&quot;binary file format (</span><span class="si">%s</span><span class="s2">) and format &quot;</span> 
+                                         <span class="s2">&quot;supported by software (</span><span class="si">%s</span><span class="s2">) disagree.&quot;</span> <span class="o">%</span> 
+                           <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">pcl_format_version</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sw_format_version</span> <span class="p">)</span> <span class="p">)</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span> <span class="p">(</span> <span class="s2">&quot;will recreate binary.&quot;</span> <span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">createBinaryFile</span><span class="p">()</span>
+                        <span class="k">return</span> <span class="bp">self</span>
+
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span> <span class="p">(</span> <span class="s2">&quot;loading binary db file </span><span class="si">%s</span><span class="s2"> format version </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> 
+                            <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">binfile</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pcl_format_version</span> <span class="p">)</span> <span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">hasFastLim</span> <span class="o">=</span> <span class="n">serializer</span><span class="o">.</span><span class="n">load</span> <span class="p">(</span> <span class="n">f</span> <span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">expResultList</span> <span class="o">=</span> <span class="n">serializer</span><span class="o">.</span><span class="n">load</span> <span class="p">(</span> <span class="n">f</span> <span class="p">)</span>
+                    <span class="n">t1</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">t0</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span> <span class="p">(</span> <span class="s2">&quot;Loaded database from </span><span class="si">%s</span><span class="s2"> in </span><span class="si">%.1f</span><span class="s2"> secs.&quot;</span> <span class="o">%</span> \
+                            <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">binfile</span><span class="p">,</span> <span class="n">t1</span> <span class="p">)</span> <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">EOFError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">unlink</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">binfile</span> <span class="p">)</span>
+            <span class="k">if</span> <span class="n">lastm_only</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pcl_format_version</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pcl_mtime</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">return</span> <span class="bp">self</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span> <span class="p">(</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is not a binary database file! recreate it!&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">binfile</span> <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">createBinaryFile</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="Database.checkBinaryFile"><a class="viewcode-back" href="../../experiment.html#experiment.databaseObj.Database.checkBinaryFile">[docs]</a>    <span class="k">def</span> <span class="nf">checkBinaryFile</span> <span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
+        <span class="n">nu</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">needsUpdate</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span> <span class="p">(</span> <span class="s2">&quot;Checking binary db file.&quot;</span> <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span> <span class="p">(</span> <span class="s2">&quot;Binary file dates to </span><span class="si">%s</span><span class="s2">(</span><span class="si">%d</span><span class="s2">)&quot;</span> <span class="o">%</span> \
+                      <span class="p">(</span> <span class="n">time</span><span class="o">.</span><span class="n">ctime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pcl_mtime</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span><span class="bp">self</span><span class="o">.</span><span class="n">pcl_mtime</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">)</span> <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span> <span class="p">(</span> <span class="s2">&quot;Database dates to </span><span class="si">%s</span><span class="s2">(</span><span class="si">%d</span><span class="s2">)&quot;</span> <span class="o">%</span> \
+                      <span class="p">(</span> <span class="n">time</span><span class="o">.</span><span class="n">ctime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">txt_mtime</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span><span class="bp">self</span><span class="o">.</span><span class="n">txt_mtime</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">)</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="n">nu</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span> <span class="p">(</span> <span class="s2">&quot;Binary db file needs an update.&quot;</span> <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span> <span class="p">(</span> <span class="s2">&quot;Binary db file does not need an update.&quot;</span> <span class="p">)</span>
+        <span class="k">return</span> <span class="n">nu</span></div>
+
+<div class="viewcode-block" id="Database.needsUpdate"><a class="viewcode-back" href="../../experiment.html#experiment.databaseObj.Database.needsUpdate">[docs]</a>    <span class="k">def</span> <span class="nf">needsUpdate</span> <span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; does the binary db file need an update? &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># logger.debug ( &quot;needsUpdate?&quot; )</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lastModifiedAndFileCount</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loadBinaryFile</span> <span class="p">(</span> <span class="n">lastm_only</span> <span class="o">=</span> <span class="bp">True</span> <span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">txt_mtime</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">pcl_mtime</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> \
+                     <span class="bp">self</span><span class="o">.</span><span class="n">txt_mtime</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pcl_mtime</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="ow">or</span> \
+                     <span class="bp">self</span><span class="o">.</span><span class="n">sw_format_version</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pcl_format_version</span>
+                <span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">IOError</span><span class="p">,</span><span class="n">DatabaseNotFoundException</span><span class="p">,</span><span class="ne">TypeError</span><span class="p">,</span><span class="ne">ValueError</span><span class="p">):</span>
+            <span class="c1"># if we encounter a problem, we rebuild the database.</span>
+            <span class="k">return</span> <span class="bp">True</span></div>
+
+
+<div class="viewcode-block" id="Database.createBinaryFile"><a class="viewcode-back" href="../../experiment.html#experiment.databaseObj.Database.createBinaryFile">[docs]</a>    <span class="k">def</span> <span class="nf">createBinaryFile</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="bp">None</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; create a pcl file from the text database,</span>
+<span class="sd">            potentially overwriting an old pcl file. &quot;&quot;&quot;</span>
+        <span class="n">t0</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span> <span class="p">(</span> <span class="s2">&quot;Creating binary database &quot;</span> <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span> <span class="p">(</span> <span class="s2">&quot;(this may take a few minutes, but it&#39;s done only once!)&quot;</span> <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span> <span class="p">(</span> <span class="s2">&quot; * compute last modified timestamp.&quot;</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lastModifiedAndFileCount</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span> <span class="p">(</span>  <span class="s2">&quot; * compute timestamp: </span><span class="si">%s</span><span class="s2"> filecount: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> \
+                <span class="p">(</span> <span class="n">time</span><span class="o">.</span><span class="n">ctime</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">txt_mtime</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">txt_mtime</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">)</span> <span class="p">)</span>
+        <span class="n">binfile</span> <span class="o">=</span> <span class="n">filename</span>
+        <span class="k">if</span> <span class="n">binfile</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">binfile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">binfile</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span> <span class="p">(</span>  <span class="s2">&quot; * create </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">binfile</span> <span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span> <span class="p">(</span> <span class="n">binfile</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span> <span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span> <span class="p">(</span>  <span class="s2">&quot; * load text database&quot;</span> <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loadTextDatabase</span><span class="p">()</span> 
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span> <span class="p">(</span>  <span class="s2">&quot; * write </span><span class="si">%s</span><span class="s2"> version </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">binfile</span><span class="p">,</span>
+                       <span class="bp">self</span><span class="o">.</span><span class="n">sw_format_version</span> <span class="p">)</span> <span class="p">)</span>
+            <span class="n">ptcl</span> <span class="o">=</span> <span class="n">serializer</span><span class="o">.</span><span class="n">HIGHEST_PROTOCOL</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pcl_python</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">version</span>
+            <span class="n">serializer</span><span class="o">.</span><span class="n">dump</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">pcl_python</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="n">ptcl</span> <span class="p">)</span>
+            <span class="n">serializer</span><span class="o">.</span><span class="n">dump</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">sw_format_version</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="n">ptcl</span> <span class="p">)</span>
+            <span class="n">serializer</span><span class="o">.</span><span class="n">dump</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">txt_mtime</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="n">ptcl</span> <span class="p">)</span>
+            <span class="n">serializer</span><span class="o">.</span><span class="n">dump</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_databaseVersion</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="n">ptcl</span> <span class="p">)</span>
+            <span class="n">serializer</span><span class="o">.</span><span class="n">dump</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasFastLim</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="n">ptcl</span> <span class="p">)</span>
+            <span class="n">serializer</span><span class="o">.</span><span class="n">dump</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">expResultList</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="n">ptcl</span> <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span> <span class="p">(</span>  <span class="s2">&quot; * done writing </span><span class="si">%s</span><span class="s2"> in </span><span class="si">%.1f</span><span class="s2"> secs.&quot;</span> <span class="o">%</span> \
+                    <span class="p">(</span> <span class="n">binfile</span><span class="p">,</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">t0</span> <span class="p">)</span> <span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">databaseVersion</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The version of the database, read from the &#39;version&#39; file.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_databaseVersion</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">base</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This is the path to the base directory where to find the database.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base</span>
+
+
+    <span class="k">def</span> <span class="nf">_validateBase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validates the base directory to locate the database. </span>
+<span class="sd">        Raises an exception if something is wrong with the path.</span>
+<span class="sd">    </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Try to set the path for the database to: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span> <span class="p">(</span> <span class="n">tmp</span> <span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_base</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span> <span class="p">(</span> <span class="n">tmp</span> <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">force_load</span> <span class="o">=</span> <span class="s2">&quot;pcl&quot;</span> 
+            <span class="bp">self</span><span class="o">.</span><span class="n">pclfilename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span> <span class="p">(</span> <span class="n">tmp</span> <span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="n">tmp</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span><span class="o">==</span><span class="s2">&quot;.pcl&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span> <span class="p">(</span> <span class="n">tmp</span> <span class="p">):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span> <span class="p">(</span> <span class="s2">&quot;File not found: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">tmp</span> <span class="p">)</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span> <span class="p">(</span> <span class="s2">&quot;Supplied a pcl filename, but </span><span class="si">%s</span><span class="s2"> is not a file.&quot;</span> <span class="o">%</span> <span class="n">tmp</span> <span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+
+        <span class="n">path</span> <span class="o">=</span> <span class="n">tmp</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> is no valid path!&#39;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">DatabaseNotFoundException</span><span class="p">(</span><span class="s2">&quot;Database not found&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_base</span> <span class="o">=</span> <span class="n">path</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">idList</span> <span class="o">=</span> <span class="s2">&quot;Database version: &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">databaseVersion</span>
+        <span class="n">idList</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">idList</span> <span class="o">+=</span> <span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">idList</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">expResultList</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">idList</span> <span class="o">+=</span> <span class="s2">&quot;no experimental results available! &quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">expRes</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">expResultList</span><span class="p">:</span>
+                <span class="n">idList</span> <span class="o">+=</span> <span class="n">expRes</span><span class="o">.</span><span class="n">globalInfo</span><span class="o">.</span><span class="n">getInfo</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;, &#39;</span>
+        <span class="n">idList</span> <span class="o">=</span> <span class="n">idList</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="k">return</span> <span class="n">idList</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_getDatabaseVersion</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieves the version of the database using the version file.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">vfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span> <span class="p">)</span>
+            <span class="n">versionFile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span> <span class="n">vfile</span> <span class="p">)</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="n">versionFile</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+            <span class="n">versionFile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">content</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Found version file </span><span class="si">%s</span><span class="s2"> with content ``</span><span class="si">%s</span><span class="s2">&#39;&#39;&quot;</span> \
+                   <span class="o">%</span> <span class="p">(</span> <span class="n">vfile</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span> <span class="p">)</span>
+            <span class="k">return</span> <span class="n">line</span>
+
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;There is no version file </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">vfile</span> <span class="p">)</span>
+            <span class="k">return</span> <span class="s1">&#39;unknown version&#39;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">verbosity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Tells the level the logger is set to.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verbosity</span>
+
+
+    <span class="nd">@verbosity.setter</span>
+    <span class="k">def</span> <span class="nf">verbosity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the logger to specified level.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">level</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validateLevel</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_verbosity</span> <span class="o">=</span> <span class="n">level</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setLogLevel</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_validateLevel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validates given level for Python&#39;s logger module.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">level</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;debug&#39;</span><span class="p">,</span> <span class="s1">&#39;info&#39;</span><span class="p">,</span> <span class="s1">&#39;warning&#39;</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">]:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;No valid level for verbosity: </span><span class="si">%s</span><span class="s1">! Browser will &#39;</span> <span class="o">+</span>
+                         <span class="s1">&#39;use default setting!&#39;</span> <span class="o">%</span> <span class="n">level</span><span class="p">)</span>
+            <span class="k">return</span> <span class="s1">&#39;error&#39;</span>
+        <span class="k">return</span> <span class="n">level</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_loadExpResults</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks the database folder and generates a list of ExpResult objects for</span>
+<span class="sd">        each (globalInfo.txt,sms.py) pair.</span>
+<span class="sd">       </span>
+<span class="sd">        :returns: list of ExpResult objects </span>
+<span class="sd">  </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">folders</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_base</span><span class="p">):</span>
+            <span class="n">folders</span><span class="o">.</span><span class="n">append</span> <span class="p">(</span> <span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">files</span><span class="p">)</span> <span class="p">)</span>
+        <span class="n">folders</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+        <span class="n">roots</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">root</span><span class="p">,</span><span class="n">files</span> <span class="ow">in</span> <span class="n">folders</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;/.git/&quot;</span> <span class="ow">in</span> <span class="n">root</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">root</span><span class="p">[</span><span class="o">-</span><span class="mi">11</span><span class="p">:]</span> <span class="o">==</span> <span class="s2">&quot;/validation&quot;</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">root</span><span class="p">[</span><span class="o">-</span><span class="mi">5</span><span class="p">:]</span> <span class="o">==</span> <span class="s2">&quot;/orig&quot;</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;globalInfo.txt&#39;</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+          <span class="c1">#      logger.debug(&quot;Missing globalInfo.txt in %s&quot;, root)</span>
+                <span class="k">continue</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">roots</span><span class="o">.</span><span class="n">append</span> <span class="p">(</span> <span class="n">root</span> <span class="p">)</span>
+
+        <span class="n">resultsList</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">root</span> <span class="ow">in</span> <span class="n">roots</span><span class="p">:</span>
+            <span class="n">expres</span> <span class="o">=</span> <span class="n">ExpResult</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">expres</span><span class="p">:</span>
+                <span class="n">resultsList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">expres</span><span class="p">)</span>
+                <span class="n">contact</span> <span class="o">=</span> <span class="n">expres</span><span class="o">.</span><span class="n">globalInfo</span><span class="o">.</span><span class="n">getInfo</span><span class="p">(</span><span class="s2">&quot;contact&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">contact</span> <span class="ow">and</span> <span class="s2">&quot;fastlim&quot;</span> <span class="ow">in</span> <span class="n">contact</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">hasFastLim</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">resultsList</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Zero results loaded.&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">resultsList</span>
+
+
+<div class="viewcode-block" id="Database.getExpResults"><a class="viewcode-back" href="../../experiment.html#experiment.databaseObj.Database.getExpResults">[docs]</a>    <span class="k">def</span> <span class="nf">getExpResults</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">analysisIDs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;all&#39;</span><span class="p">],</span> <span class="n">datasetIDs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;all&#39;</span><span class="p">],</span> <span class="n">txnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;all&#39;</span><span class="p">],</span>
+                    <span class="n">dataTypes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;all&#39;</span><span class="p">],</span> <span class="n">useSuperseded</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">useNonValidated</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a list of ExpResult objects.</span>
+<span class="sd">        </span>
+<span class="sd">        Each object refers to an analysisID containing one (for UL) or more</span>
+<span class="sd">        (for Efficiency maps) dataset (signal region) and each dataset</span>
+<span class="sd">        containing one or more TxNames.  If analysisIDs is defined, returns</span>
+<span class="sd">        only the results matching one of the IDs in the list.  If dataTypes is</span>
+<span class="sd">        defined, returns only the results matching a dataType in the list.  If</span>
+<span class="sd">        datasetIDs is defined, returns only the results matching one of the IDs</span>
+<span class="sd">        in the list.  If txname is defined, returns only the results matching</span>
+<span class="sd">        one of the Tx names in the list.</span>
+<span class="sd">        </span>
+<span class="sd">        :param analysisID: list of analysis ids ([CMS-SUS-13-006,...])</span>
+<span class="sd">        :param dataType: dataType of the analysis (all, efficiencyMap or upperLimit)</span>
+<span class="sd">        :param datasetIDs: list of dataset ids ([ANA-CUT0,...])</span>
+<span class="sd">        :param txnames: list of txnames ([TChiWZ,...])</span>
+<span class="sd">        :param useSuperseded: If False, the supersededBy results will not be included</span>
+<span class="sd">        :param useNonValidated: If False, the results with validated = False </span>
+<span class="sd">                                will not be included</span>
+<span class="sd">        :returns: list of ExpResult objects or the ExpResult object if the list</span>
+<span class="sd">                  contains only one result</span>
+<span class="sd">                   </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">expResultList</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">expResult</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">expResultList</span><span class="p">:</span>
+            <span class="n">superseded</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">expResult</span><span class="o">.</span><span class="n">globalInfo</span><span class="p">,</span><span class="s1">&#39;supersededBy&#39;</span><span class="p">):</span>
+                <span class="n">superseded</span> <span class="o">=</span> <span class="n">expResult</span><span class="o">.</span><span class="n">globalInfo</span><span class="o">.</span><span class="n">supersededBy</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">superseded</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">useSuperseded</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">ID</span> <span class="o">=</span> <span class="n">expResult</span><span class="o">.</span><span class="n">globalInfo</span><span class="o">.</span><span class="n">getInfo</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
+            <span class="c1"># Skip analysis not containing any of the required ids:</span>
+            <span class="k">if</span> <span class="n">analysisIDs</span> <span class="o">!=</span> <span class="p">[</span><span class="s1">&#39;all&#39;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">ID</span> <span class="ow">in</span> <span class="n">analysisIDs</span><span class="p">:</span>
+                    <span class="k">continue</span>              
+            <span class="n">newExpResult</span> <span class="o">=</span> <span class="n">ExpResult</span><span class="p">()</span>
+            <span class="n">newExpResult</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">expResult</span><span class="o">.</span><span class="n">path</span>
+            <span class="n">newExpResult</span><span class="o">.</span><span class="n">globalInfo</span> <span class="o">=</span> <span class="n">expResult</span><span class="o">.</span><span class="n">globalInfo</span>
+            <span class="n">newExpResult</span><span class="o">.</span><span class="n">datasets</span> <span class="o">=</span> <span class="p">[]</span>            
+            <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="n">expResult</span><span class="o">.</span><span class="n">datasets</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">dataTypes</span> <span class="o">!=</span> <span class="p">[</span><span class="s1">&#39;all&#39;</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">dataset</span><span class="o">.</span><span class="n">dataInfo</span><span class="o">.</span><span class="n">dataType</span> <span class="ow">in</span> <span class="n">dataTypes</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">datasetIDs</span> <span class="o">!=</span> <span class="p">[</span><span class="s1">&#39;all&#39;</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">dataset</span><span class="o">.</span><span class="n">dataInfo</span><span class="o">.</span><span class="n">dataId</span> <span class="ow">in</span> <span class="n">datasetIDs</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                <span class="n">newDataSet</span> <span class="o">=</span> <span class="n">datasetObj</span><span class="o">.</span><span class="n">DataSet</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">dataset</span><span class="o">.</span><span class="n">globalInfo</span><span class="p">,</span><span class="bp">False</span><span class="p">)</span>
+                <span class="n">newDataSet</span><span class="o">.</span><span class="n">dataInfo</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">dataInfo</span>
+                <span class="n">newDataSet</span><span class="o">.</span><span class="n">txnameList</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">txname</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">txnameList</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">txname</span><span class="o">.</span><span class="n">validated</span> <span class="ow">is</span> <span class="bp">False</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">useNonValidated</span><span class="p">):</span>
+                        <span class="k">continue</span>
+                    <span class="k">if</span> <span class="n">txnames</span> <span class="o">!=</span> <span class="p">[</span><span class="s1">&#39;all&#39;</span><span class="p">]:</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">txname</span><span class="o">.</span><span class="n">txName</span> <span class="ow">in</span> <span class="n">txnames</span><span class="p">:</span>
+                            <span class="k">continue</span>
+                    <span class="n">newDataSet</span><span class="o">.</span><span class="n">txnameList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">txname</span><span class="p">)</span>
+                <span class="c1"># Skip data set not containing any of the required txnames:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">newDataSet</span><span class="o">.</span><span class="n">txnameList</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">newExpResult</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newDataSet</span><span class="p">)</span>
+            <span class="c1"># Skip analysis not containing any of the required txnames:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">newExpResult</span><span class="o">.</span><span class="n">getTxNames</span><span class="p">():</span>
+                <span class="k">continue</span>
+            <span class="n">expResultList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newExpResult</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">expResultList</span></div>
+
+<div class="viewcode-block" id="Database.updateBinaryFile"><a class="viewcode-back" href="../../experiment.html#experiment.databaseObj.Database.updateBinaryFile">[docs]</a>    <span class="k">def</span> <span class="nf">updateBinaryFile</span> <span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; write a binar db file, but only if </span>
+<span class="sd">            necessary. &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">needsUpdate</span><span class="p">():</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span> <span class="p">(</span> <span class="s2">&quot;Binary db file needs an update.&quot;</span> <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">createBinaryFile</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span> <span class="p">(</span> <span class="s2">&quot;Binary db file does not need an update.&quot;</span> <span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="ExpResultList"><a class="viewcode-back" href="../../experiment.html#experiment.databaseObj.ExpResultList">[docs]</a><span class="k">class</span> <span class="nc">ExpResultList</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Holds a list of ExpResult objects for printout.</span>
+<span class="sd">    </span>
+<span class="sd">    :ivar expResultList: list of ExpResult objects </span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expResList</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expResultList</span> <span class="o">=</span> <span class="n">expResList</span></div>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">argparse</span>
+    <span class="sd">&quot;&quot;&quot; Run as a script, this checks and/or writes database.pcl files &quot;&quot;&quot;</span>
+    <span class="n">argparser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;simple script to check </span><span class="se">\</span>
+<span class="s1">            and/or write database.pcl files&#39;</span><span class="p">)</span>
+    <span class="n">argparser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-c&#39;</span><span class="p">,</span> <span class="s1">&#39;--check&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;check binary db file&#39;</span><span class="p">,</span>
+                           <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">)</span>
+    <span class="n">argparser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-t&#39;</span><span class="p">,</span> <span class="s1">&#39;--time&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;time reading db&#39;</span><span class="p">,</span>
+                           <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">)</span>
+    <span class="n">argparser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-r&#39;</span><span class="p">,</span> <span class="s1">&#39;--read&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;read binary db file&#39;</span><span class="p">,</span>
+                           <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">)</span>
+    <span class="n">argparser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-w&#39;</span><span class="p">,</span> <span class="s1">&#39;--write&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;force writing binary db file&#39;</span><span class="p">,</span>
+                           <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">)</span>
+    <span class="n">argparser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-u&#39;</span><span class="p">,</span> <span class="s1">&#39;--update&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;update binary db file, if necessary&#39;</span><span class="p">,</span>
+                           <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">)</span>
+    <span class="n">argparser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-d&#39;</span><span class="p">,</span> <span class="s1">&#39;--debug&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;debug mode&#39;</span><span class="p">,</span>
+                           <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">)</span>
+    <span class="n">argparser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-D&#39;</span><span class="p">,</span> <span class="s1">&#39;--database&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;directory name of database&#39;</span><span class="p">,</span> 
+                            <span class="n">default</span><span class="o">=</span><span class="s2">&quot;../../../smodels-database/&quot;</span> <span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">argparser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span> <span class="p">)</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span> <span class="p">)</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">write</span><span class="p">:</span>
+        <span class="n">db</span> <span class="o">=</span> <span class="n">Database</span> <span class="p">(</span> <span class="n">args</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">force_load</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">verbosity</span> <span class="o">=</span> <span class="s2">&quot;debug&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span> <span class="p">(</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">db</span> <span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">createBinaryFile</span><span class="p">()</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">Database</span> <span class="p">(</span> <span class="n">args</span><span class="o">.</span><span class="n">database</span> <span class="p">)</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">verbosity</span> <span class="o">=</span> <span class="s2">&quot;debug&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span> <span class="p">(</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">db</span> <span class="p">)</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">update</span><span class="p">:</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">updateBinaryFile</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">check</span><span class="p">:</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">checkBinaryFile</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">time</span><span class="p">:</span>
+        <span class="n">t0</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">expResult</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">loadBinaryFile</span> <span class="p">(</span> <span class="n">lastm_only</span> <span class="o">=</span> <span class="bp">False</span> <span class="p">)</span>
+        <span class="n">t1</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="k">print</span> <span class="p">(</span> <span class="s2">&quot;Time it took reading binary db file: </span><span class="si">%.1f</span><span class="s2"> s.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">t1</span><span class="o">-</span><span class="n">t0</span><span class="p">)</span> <span class="p">)</span>
+        <span class="n">txtdb</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">loadTextDatabase</span><span class="p">()</span>
+        <span class="n">t2</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="k">print</span> <span class="p">(</span> <span class="s2">&quot;Time it took reading text   file: </span><span class="si">%.1f</span><span class="s2"> s.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">t2</span><span class="o">-</span><span class="n">t1</span><span class="p">)</span> <span class="p">)</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">read</span><span class="p">:</span>
+        <span class="n">db</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">loadBinaryFile</span> <span class="p">(</span> <span class="n">lastm_only</span> <span class="o">=</span> <span class="bp">False</span> <span class="p">)</span>
+        <span class="n">listOfExpRes</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">getExpResults</span><span class="p">()</span> 
+        <span class="k">for</span> <span class="n">expResult</span> <span class="ow">in</span> <span class="n">listOfExpRes</span><span class="p">:</span>
+            <span class="k">print</span> <span class="p">(</span><span class="n">expResult</span><span class="p">)</span>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, &lt;function authors at 0x7f73f74eb500&gt;.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.1.0patch1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

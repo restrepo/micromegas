@@ -1,0 +1,7 @@
+dataType: efficiencyMap
+dataId: GtGrid_SR_8ij80_2ibjet
+observedN: 3
+expectedBG: 3.3
+bgError: 2.2
+upperLimit: 0.297558360258*fb
+expectedUpperLimit: 0.297024501531*fb

@@ -504,7 +504,7 @@ int slhaBasicReader( int mode, int (*getLnPar)(int, char*), int *anydate,char * 
       }
 
       *anydate=1;           
-      if(m4)
+      if(m4 || pNum==23 || abs(pNum)==24)
       { 
         for(;;)
         { double x;
@@ -1081,7 +1081,7 @@ int slhaWrite(char *fname)
     fprintf(f,"DECAY %d %E # %s\n" ,pdg,width,slhaComment); 
     for(l=1;;l++)
     {  if(0==allDecays(k,l, &pdg, &len, out, &width, &br))break;
-       fprintf(f," %16E  %2d ", br,len);
+       fprintf(f,"   %16E  %2d ", br,len);
        for(i=0;i<len; i++) fprintf(f," %10d",out[i]);
               fprintf(f," # %s\n",slhaComment);
     }            

@@ -1,0 +1,98 @@
+BLOCK SModelS_Settings
+ 0 v1.1.0patch1              #SModelS version
+ 1 1.1.0patch1               #database version
+ 2 0.2                       #maximum condition violation
+ 3 1                         #compression (0 off, 1 on)
+ 4 5.0                       #minimum mass gap for mass compression [GeV]
+ 5 0.03                      #sigmacut [fb]
+
+BLOCK SModelS_Exclusion
+ 0 0 1                              #output status (-1 not tested, 0 not excluded, 1 excluded)
+ 1 0 T1                             #txname 
+ 1 1 2.570E+01                      #r value
+ 1 2 N/A                            #expected r value
+ 1 3 0.00                           #condition violation
+ 1 4 CMS-PAS-SUS-15-002             #analysis
+ 1 5 (UL)                           #signal region 
+ 1 6 N/A                            #Chi2
+ 1 7 N/A                            #Likelihood
+
+ 2 0 T1                             #txname 
+ 2 1 1.731E+01                      #r value
+ 2 2 1.559E+01                      #expected r value
+ 2 3 0.00                           #condition violation
+ 2 4 ATLAS-SUSY-2013-02             #analysis
+ 2 5 SR5j                           #signal region 
+ 2 6 2.847E+01                      #Chi2
+ 2 7 1.534E-08                      #Likelihood
+
+ 3 0 T1                             #txname 
+ 3 1 1.500E+01                      #r value
+ 3 2 N/A                            #expected r value
+ 3 3 0.00                           #condition violation
+ 3 4 ATLAS-SUSY-2013-02             #analysis
+ 3 5 (UL)                           #signal region 
+ 3 6 N/A                            #Chi2
+ 3 7 N/A                            #Likelihood
+
+ 4 0 T1                             #txname 
+ 4 1 1.346E+01                      #r value
+ 4 2 1.665E+01                      #expected r value
+ 4 3 0.00                           #condition violation
+ 4 4 CMS-SUS-13-012                 #analysis
+ 4 5 (UL)                           #signal region 
+ 4 6 N/A                            #Chi2
+ 4 7 N/A                            #Likelihood
+
+ 5 0 T1                             #txname 
+ 5 1 1.116E+01                      #r value
+ 5 2 N/A                            #expected r value
+ 5 3 0.00                           #condition violation
+ 5 4 CMS-SUS-13-019                 #analysis
+ 5 5 (UL)                           #signal region 
+ 5 6 N/A                            #Chi2
+ 5 7 N/A                            #Likelihood
+
+ 6 0 T1                             #txname 
+ 6 1 7.508E+00                      #r value
+ 6 2 1.149E+01                      #expected r value
+ 6 3 0.00                           #condition violation
+ 6 4 CMS-SUS-12-028                 #analysis
+ 6 5 (UL)                           #signal region 
+ 6 6 N/A                            #Chi2
+ 6 7 N/A                            #Likelihood
+
+ 7 0 T1                             #txname 
+ 7 1 6.195E+00                      #r value
+ 7 2 1.028E+01                      #expected r value
+ 7 3 0.00                           #condition violation
+ 7 4 ATLAS-CONF-2013-047            #analysis
+ 7 5 E_Tight                        #signal region 
+ 7 6 2.256E+01                      #Chi2
+ 7 7 1.688E-06                      #Likelihood
+
+ 8 0 T1                             #txname 
+ 8 1 4.608E+00                      #r value
+ 8 2 6.534E+00                      #expected r value
+ 8 3 0.00                           #condition violation
+ 8 4 CMS-SUS-13-012                 #analysis
+ 8 5 6NJet8_1000HT1250_450MHTinf    #signal region 
+ 8 6 1.594E+01                      #Chi2
+ 8 7 3.633E-05                      #Likelihood
+
+ 9 0 T1                             #txname 
+ 9 1 3.156E+00                      #r value
+ 9 2 3.408E+00                      #expected r value
+ 9 3 0.00                           #condition violation
+ 9 4 ATLAS-CONF-2013-054            #analysis
+ 9 5 7j80_flavor_0_b-jets           #signal region 
+ 9 6 1.552E+01                      #Chi2
+ 9 7 4.105E-05                      #Likelihood
+
+BLOCK SModelS_Missing_Topos #sqrts[TeV] weight[fb] description
+
+BLOCK SModelS_Outside_Grid #sqrts[TeV] weight[fb] description
+
+BLOCK SModelS_Long_Cascade #Mother1 Mother2 Weight[fb] allMothers
+
+BLOCK SModelS_Asymmetric_Branches #Mother1 Mother2 Weight[fb] allMothers

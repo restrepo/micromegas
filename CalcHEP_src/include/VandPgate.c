@@ -9,35 +9,49 @@ double usrfun_(char * name,int n_in, int n_out,double * pvect,char**pnames,int*p
 { return  usrfun(name,n_in,n_out,pvect,pnames,pdg);}
 
 
-extern double  alphaspdf_(double *Q );
 extern void   getdatapath_(char* dirpath, int len);
-
 extern void  initpdfsetbynamem_(int *P,char *name, int len);
-extern void  evolvepdfm_(int* P,double *x,double *Q,double *f);
+extern void  getlhapdfversion_(char* s, size_t len);
+extern void  evolvepdfphotonm_(int* P,double *x,double *Q,double *f,double *fph);
 extern void  initpdfm_(int* P,int * nSet );
 extern void  numberpdfm_(int* P,int * nMax);
 extern double   alphaspdfm_(int*,double*);
+extern void getxmaxm_(int*,int*,double *);
+extern void getxminm_(int*,int*,double *);
+extern void getq2maxm_(int*,int*,double *);                     
+extern void getq2minm_(int*,int*,double *);
+extern int has_photon_(void);
+extern void  evolvepdfm_(int*P,double* x, double*q, double*fxq);
 
 double alphaspdfm(int*S,double*Q){ return alphaspdfm_(S,Q);}
 
+static int photon[5];
 void   getdatapath(char* dirpath, int len){ getdatapath_(dirpath, len);}
-void   initpdfsetbynamem(int *P,char *name, int len){ initpdfsetbynamem_(P,name,len);}
-void  evolvepdfm(int* P,double *x,double *Q,double *f){evolvepdfm_(P,x,Q,f) ;}
-void  initpdfm(int* P,int * nSet,double*xMin,double*xMax,double*qMin,double*qMax)
-{
-  extern void getxmaxm_(int*,int*,double *);
-  extern void getxminm_(int*,int*,double *);
-  extern void getq2maxm_(int*,int*,double *);                     
-  extern void getq2minm_(int*,int*,double *);
+void   initpdfsetbynamem(int *P,char *name, int len)
+       { initpdfsetbynamem_(P,name,len);
+         photon[*P]=has_photon_();
+       
+       }
+void   getlhapdfversion(char* s, size_t len){ getlhapdfversion_(s,len);}
+void   evolvePDFm(int P,double x,double Q,double *f)
+       {  if(photon[P]) { double fph; evolvepdfphotonm_(&P,&x,&Q,f,&fph); f[13]=fph;}
+          else { evolvepdfm_(&P,&x,&Q,f); f[13]=0; }  
+       }
 
+void   initpdfm(int* P,int * nSet,double*xMin,double*xMax,double*qMin,double*qMax)
+{
   initpdfm_(P,nSet ) ;
   getxmaxm_(P,nSet,xMax); 
   getxminm_(P,nSet,xMin);
   getq2maxm_(P,nSet,qMax);  *qMax=sqrt(fabs(*qMax));
   getq2minm_(P,nSet,qMin);  *qMin=sqrt(fabs(*qMin));
+  double x=0.1, q=100, f[15],fph;
+  evolvepdfphotonm_(P,&x,&q,f,&fph);
+  alphaspdfm_(P,&q);
+//  printf("evolvepdfphotonm_ ok\n");
 //  printf("limits: %E %E %E %E\n", *xMin,*xMax,*qMin,*qMax);
 }
-
+int has_photon(void) { return has_photon_();}
 void  numberpdfm(int* P,int * nMax){ numberpdfm_(P,nMax);}
 
 extern int findval(char *name,double *val);

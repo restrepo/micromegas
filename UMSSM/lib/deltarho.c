@@ -11,13 +11,13 @@ c--------------------------------------------------
 */
 
 #include "pmodel.h"
-#include "../../sources/micromegas.h"
+#include "../../include/micromegas.h"
 #include <math.h>
 #define   su_fr(x,y)  ((x)+(y)-2*(x)*(y)/((x)-(y))*log((x)/(y)))
 
 static double sq(double x) {return x*x;}
 
-double  deltarho(void)
+double  deltarho_(void)
 {
 
       double mt,msn,thetat,thetab,thel;

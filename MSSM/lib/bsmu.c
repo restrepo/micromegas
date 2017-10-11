@@ -3,7 +3,7 @@
 Notation of Bobeth et al. hep-ph/0104284
 */
 
-#include "../../sources/micromegas.h"
+#include "../../include/micromegas.h"
 #include "pmodel.h"
 #include "pmodel_aux.h"
 

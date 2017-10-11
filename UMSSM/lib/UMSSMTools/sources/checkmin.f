@@ -22,7 +22,7 @@
       DOUBLE PRECISION LQ,KQ,ALQ,AKQ,MUEFFQ,NUQ 
       DOUBLE PRECISION UPARF,SAZZ,CAZZ,VEV,NCP,VEVS,G1P
       DOUBLE PRECISION QD,QU,QS,QQ,QUP,QDOW,QL,QE,QN
-      DOUBLE PRECISION TANB,AU,AD,MU,M2
+      DOUBLE PRECISION TANB,AU,AD,M2
       DOUBLE PRECISION SST,SSB,LAMBDA,AL,ATAU
       DOUBLE PRECISION la1,la2,la3,la4,la5,la6,la7
       DOUBLE PRECISION aa5,la1s,la2s,cosb,sinb
@@ -33,7 +33,7 @@
       COMMON/RENSCALE/Q2
       COMMON/QNMPAR/LQ,KQ,ALQ,AKQ,MUEFFQ,NUQ  
       COMMON/UMSSM/SAZZ,CAZZ,VEV,NCP,QD,QU,QS,VEVS,G1P,QQ,
-     .		QUP,QDOW,QL,QE,QN
+     .      QUP,QDOW,QL,QE,QN
       COMMON/NOBUG/TANB,AU,AD,M2,SST,SSB,LAMBDA,AL,ATAU
 
       pi=4d0*DATAN(1d0)
@@ -43,22 +43,22 @@
 
 *   Soft masses
 
-      MH1Q=UPARF(345)
-      MH2Q=UPARF(346)
-      MSQ=UPARF(347)
+      MH1Q=UPARF(285)
+      MH2Q=UPARF(286)
+      MSQ=UPARF(287)
 
 *   Effective couplings
 
-      la1=UPARF(348)
-      la2=UPARF(349)
-      la3=UPARF(350)
-      la4=UPARF(351)
-      la5=UPARF(352)
-      la6=UPARF(353)
-      la7=UPARF(354)
-      aa5=UPARF(355)
-      la1s=UPARF(356)
-      la2s=UPARF(357)
+      la1=UPARF(288)
+      la2=UPARF(289)
+      la3=UPARF(290)
+      la4=UPARF(291)
+      la5=UPARF(292)
+      la6=UPARF(293)
+      la7=UPARF(294)
+      aa5=UPARF(295)
+      la1s=UPARF(296)
+      la2s=UPARF(297)
 
 *   Physical minimum
 
@@ -126,6 +126,6 @@
 
       PROB(29)=DDIM(MAX(DABS(MH1Q),DABS(MH2Q))/Q2,10d0)
       
- 121  FORMAT(A,E20.3)
+* 121  FORMAT(A,E20.3)
 
       END

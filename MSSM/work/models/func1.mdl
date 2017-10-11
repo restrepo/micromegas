@@ -10,7 +10,7 @@ VEV    |2*MW*SW/EE
 GF     |EE^2/(2*SW*MW)^2/Sqrt2 %  Fermi constant/ 1.166379E-5
 Lqcd   |initQCD5(alfSMZ, McMc, MbMb, Mtp)
 pi     |acos(-1)
-Mbp    |MbMb*(1+4/3*alphaQCD(MbMb)/pi)
+Mbp    |bPoleMass()
 Mcp    |McMc*(1+4/3*alphaQCD(McMc)/pi)
 tB     |slhaVal("HMIX", 0, 1, 2)
 sb     |tB/sqrt(1+tB^2) % Sine beta

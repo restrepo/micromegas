@@ -1,0 +1,643 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>theory.clusterTools &mdash; SModelS 1.1.0patch1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="SModelS 1.1.0patch1 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> SModelS
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.1.0patch1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../theory.html">theory package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../experiment.html">experiment package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tools.html">tools package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">SModelS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>theory.clusterTools</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for theory.clusterTools</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: clusterTools</span>
+<span class="sd">   :synopsis: Module holding the ElementCluster class and cluster methods used to combine similar elements according</span>
+<span class="sd">      to the analysis.</span>
+<span class="sd">        </span>
+<span class="sd">.. moduleauthor:: Andre Lessa &lt;lessa.a.p@gmail.com&gt;</span>
+<span class="sd">        </span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">smodels.theory</span> <span class="kn">import</span> <span class="n">crossSection</span>
+<span class="kn">from</span> <span class="nn">smodels.theory.auxiliaryFunctions</span> <span class="kn">import</span> <span class="n">massAvg</span><span class="p">,</span> <span class="n">massPosition</span><span class="p">,</span> <span class="n">distance</span>
+<span class="kn">from</span> <span class="nn">smodels.tools.physicsUnits</span> <span class="kn">import</span> <span class="n">fb</span><span class="p">,</span> <span class="n">MeV</span>
+<span class="kn">from</span> <span class="nn">smodels.theory.exceptions</span> <span class="kn">import</span> <span class="n">SModelSTheoryError</span> <span class="k">as</span> <span class="n">SModelSError</span>
+
+<span class="kn">from</span> <span class="nn">smodels.tools.smodelsLogging</span> <span class="kn">import</span> <span class="n">logger</span>
+
+
+<div class="viewcode-block" id="ElementCluster"><a class="viewcode-back" href="../../theory.html#theory.clusterTools.ElementCluster">[docs]</a><span class="k">class</span> <span class="nc">ElementCluster</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An instance of this class represents a cluster.    </span>
+<span class="sd">    This class is used to store the relevant information about a cluster of</span>
+<span class="sd">    elements and to manipulate this information.</span>
+<span class="sd">    </span>
+<span class="sd">    :ivar elements: list of elements in the cluster (Element objects)    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iel</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">[</span><span class="n">iel</span><span class="p">]</span>
+
+<div class="viewcode-block" id="ElementCluster.getTotalXSec"><a class="viewcode-back" href="../../theory.html#theory.clusterTools.ElementCluster.getTotalXSec">[docs]</a>    <span class="k">def</span> <span class="nf">getTotalXSec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the sum over the cross sections of all elements belonging to</span>
+<span class="sd">        the cluster.</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: sum of weights of all the elements in the cluster (XSectionList object)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">totxsec</span> <span class="o">=</span> <span class="n">crossSection</span><span class="o">.</span><span class="n">XSectionList</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">:</span>
+            <span class="n">totxsec</span><span class="o">.</span><span class="n">combineWith</span><span class="p">(</span><span class="n">el</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">totxsec</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Cluster total cross section should have a single value&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">totxsec</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="ElementCluster.getAvgMass"><a class="viewcode-back" href="../../theory.html#theory.clusterTools.ElementCluster.getAvgMass">[docs]</a>    <span class="k">def</span> <span class="nf">getAvgMass</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the average mass of all elements belonging to the cluster.</span>
+<span class="sd">        If the cluster does not refer to a TxName (i.e. in efficiency map results)</span>
+<span class="sd">        AND the cluster contains more than one element (assuming they differ in</span>
+<span class="sd">        the masses), returns None.</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: average mass array         </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">similar</span> <span class="p">(</span> <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span> <span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">a1</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">a2</span><span class="p">):</span>
+                <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">for</span> <span class="n">l1</span><span class="p">,</span><span class="n">l2</span> <span class="ow">in</span> <span class="nb">zip</span> <span class="p">(</span> <span class="n">a1</span><span class="p">,</span><span class="n">a2</span> <span class="p">):</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">l1</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">l2</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="bp">False</span>
+                <span class="k">for</span> <span class="n">e1</span><span class="p">,</span> <span class="n">e2</span> <span class="ow">in</span> <span class="nb">zip</span> <span class="p">(</span><span class="n">l1</span><span class="p">,</span><span class="n">l2</span> <span class="p">):</span>
+                    <span class="n">d</span><span class="o">=</span><span class="nb">abs</span> <span class="p">(</span> <span class="p">(</span><span class="n">e1</span><span class="o">-</span><span class="n">e2</span><span class="p">)</span><span class="o">.</span><span class="n">asNumber</span><span class="p">(</span><span class="n">MeV</span><span class="p">)</span> <span class="p">)</span>
+                    <span class="k">if</span> <span class="n">d</span><span class="o">&gt;.</span><span class="mi">1</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">getDataType</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;efficiencyMap&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span> 
+                <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">getMasses</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">similar</span> <span class="p">(</span> <span class="n">i</span><span class="o">.</span><span class="n">getMasses</span><span class="p">(),</span> <span class="n">ret</span> <span class="p">):</span>
+                        <span class="k">return</span> <span class="bp">None</span>
+                <span class="k">return</span> <span class="n">ret</span>
+            <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">getMasses</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">getDataType</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;upperLimit&#39;</span><span class="p">:</span>
+            <span class="n">massList</span> <span class="o">=</span> <span class="p">[</span><span class="n">el</span><span class="o">.</span><span class="n">getMasses</span><span class="p">()</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">]</span>
+            <span class="n">weights</span> <span class="o">=</span> <span class="p">[</span><span class="n">el</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">getMaxXsec</span><span class="p">()</span> <span class="o">/</span> <span class="n">fb</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">]</span>        
+            <span class="k">return</span> <span class="n">massAvg</span><span class="p">(</span><span class="n">massList</span><span class="p">,</span><span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ElementCluster.getPIDs"><a class="viewcode-back" href="../../theory.html#theory.clusterTools.ElementCluster.getPIDs">[docs]</a>    <span class="k">def</span> <span class="nf">getPIDs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the list of all PIDs appearing in all elements in the cluster,</span>
+<span class="sd">        i.e. [ [[pdg1, pdg2,...],[pdg3,pdg4,...]], [[pdg1&#39;, pdg2&#39;,...],[pdg3&#39;,pdg4&#39;,...]] </span>
+<span class="sd">        </span>
+<span class="sd">        :returns: list of PIDs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">PIDs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">pidList</span> <span class="ow">in</span> <span class="n">el</span><span class="o">.</span><span class="n">getPIDs</span><span class="p">():</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">pidList</span> <span class="ow">in</span> <span class="n">PIDs</span><span class="p">:</span> <span class="n">PIDs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pidList</span><span class="p">)</span>
+            
+        <span class="k">return</span> <span class="n">PIDs</span></div>
+    
+<div class="viewcode-block" id="ElementCluster.getIDs"><a class="viewcode-back" href="../../theory.html#theory.clusterTools.ElementCluster.getIDs">[docs]</a>    <span class="k">def</span> <span class="nf">getIDs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return list of all element IDs appearing in the cluster</span>
+<span class="sd">        :return: list of element IDs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">IDs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">el</span><span class="o">.</span><span class="n">elID</span> <span class="ow">in</span> <span class="n">IDs</span><span class="p">:</span> <span class="n">IDs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="o">.</span><span class="n">elID</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">IDs</span></div>
+
+<div class="viewcode-block" id="ElementCluster.getDataType"><a class="viewcode-back" href="../../theory.html#theory.clusterTools.ElementCluster.getDataType">[docs]</a>    <span class="k">def</span> <span class="nf">getDataType</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks to which type of data (efficiency map or upper limit)</span>
+<span class="sd">        the cluster refers to. It uses the cluster.txnames attribute.</span>
+<span class="sd">        If not defined, returns None </span>
+<span class="sd">        :return: upperLimits or efficiencyMap (string)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;txnames&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">txnames</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1">#Check the data types</span>
+            <span class="c1">#for txname in self.txnames:                </span>
+            <span class="c1">#    if not txname.txnameData._data:</span>
+            <span class="c1">#        txname.txnameData.loadData()  #Make sure the _data is loaded</span>
+                    
+            <span class="n">dataTag</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">txname</span><span class="o">.</span><span class="n">txnameData</span><span class="o">.</span><span class="n">dataTag</span> <span class="k">for</span> <span class="n">txname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">txnames</span><span class="p">]))</span>            
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataTag</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;A single cluster contain mixed data types!&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="s1">&#39;upperLimit&#39;</span> <span class="ow">in</span> <span class="n">dataTag</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="s1">&#39;upperLimit&#39;</span>
+            <span class="k">elif</span> <span class="s1">&#39;efficiencyMap&#39;</span> <span class="ow">in</span> <span class="n">dataTag</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="s1">&#39;efficiencyMap&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unknown data type </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dataTag</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+                <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="IndexCluster"><a class="viewcode-back" href="../../theory.html#theory.clusterTools.IndexCluster">[docs]</a><span class="k">class</span> <span class="nc">IndexCluster</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An instance of this class represents a cluster storing element indices.    </span>
+<span class="sd">    This auxiliary class is used to store element indices and positions in</span>
+<span class="sd">    upper limit space. It is only used by the clustering algorithm.</span>
+<span class="sd">    </span>
+<span class="sd">    :ivar indices: list of integers mapping the cluster elements to their position in the list</span>
+<span class="sd">                   (1st element -&gt; index 0, 2nd element -&gt; index 1,...)</span>
+<span class="sd">    :ivar avgPosition: position in upper limit space for the cluster average mass</span>
+<span class="sd">    :ivar massMap: dictionary with indices as keys and the corresponding element mass as values</span>
+<span class="sd">    :ivar positionMap: dictionary with indices as keys and the corresponding element position</span>
+<span class="sd">                        in upper limit space as values</span>
+<span class="sd">    :ivar weightMap: dictionary with indices as keys and the corresponding element weight</span>
+<span class="sd">                     as values</span>
+<span class="sd">    :ivar txdata: TxNameData object to be used for computing distances in UL space</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">massMap</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">posMap</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">wMap</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">indices</span><span class="o">=</span><span class="nb">set</span><span class="p">([]),</span> <span class="n">txdata</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">indices</span> <span class="o">=</span> <span class="n">indices</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">avgPosition</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">massMap</span> <span class="o">=</span> <span class="n">massMap</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">positionMap</span> <span class="o">=</span> <span class="n">posMap</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weightMap</span> <span class="o">=</span> <span class="n">wMap</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txdata</span> <span class="o">=</span> <span class="n">txdata</span>
+
+
+        <span class="k">if</span> <span class="n">massMap</span> <span class="ow">and</span> <span class="n">posMap</span> <span class="ow">and</span> <span class="n">wMap</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">avgPosition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getAvgPosition</span><span class="p">()</span>
+
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">elif</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">set</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">indices</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+
+
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">))</span>
+
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iel</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">)[</span><span class="n">iel</span><span class="p">]</span>
+    
+<div class="viewcode-block" id="IndexCluster.copy"><a class="viewcode-back" href="../../theory.html#theory.clusterTools.IndexCluster.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a copy of the index cluster (faster than deepcopy).</span>
+<span class="sd">        &quot;&quot;&quot;</span>    
+      
+        <span class="n">newcluster</span> <span class="o">=</span> <span class="n">IndexCluster</span><span class="p">()</span>
+        <span class="n">newcluster</span><span class="o">.</span><span class="n">indices</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">)[:])</span>
+        <span class="n">newcluster</span><span class="o">.</span><span class="n">avgPosition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">avgPosition</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">positionMap</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="nb">dict</span><span class="p">()):</span>
+            <span class="n">newcluster</span><span class="o">.</span><span class="n">positionMap</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">positionMap</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span> <span class="n">newcluster</span><span class="o">.</span><span class="n">positionMap</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">massMap</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="nb">dict</span><span class="p">()):</span>
+            <span class="n">newcluster</span><span class="o">.</span><span class="n">massMap</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">massMap</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span> <span class="n">newcluster</span><span class="o">.</span><span class="n">massMap</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weightMap</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="nb">dict</span><span class="p">()):</span>
+            <span class="n">newcluster</span><span class="o">.</span><span class="n">weightMap</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weightMap</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span> <span class="n">newcluster</span><span class="o">.</span><span class="n">weightMap</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">newcluster</span><span class="o">.</span><span class="n">txdata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">txdata</span>
+      
+        <span class="k">return</span> <span class="n">newcluster</span></div>
+
+
+<div class="viewcode-block" id="IndexCluster.add"><a class="viewcode-back" href="../../theory.html#theory.clusterTools.IndexCluster.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iels</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add an index or a list of indices to the list of indices and update</span>
+<span class="sd">        the avgPosition value.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">iels</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="nb">int</span><span class="p">()):</span>
+            <span class="n">ilist</span> <span class="o">=</span> <span class="p">[</span><span class="n">iels</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ilist</span> <span class="o">=</span> <span class="n">iels</span>
+
+        <span class="n">indices</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">)</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">ilist</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">indices</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">avgPosition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getAvgPosition</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="IndexCluster.remove"><a class="viewcode-back" href="../../theory.html#theory.clusterTools.IndexCluster.remove">[docs]</a>    <span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iels</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Remove an index or a list of indices to the list of indices and</span>
+<span class="sd">        update the avgPosition value.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">iels</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="nb">int</span><span class="p">()):</span>
+            <span class="n">ilist</span> <span class="o">=</span> <span class="p">[</span><span class="n">iels</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ilist</span> <span class="o">=</span> <span class="n">iels</span>
+
+        <span class="n">indices</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">iel</span> <span class="ow">in</span> <span class="n">ilist</span><span class="p">:</span>
+            <span class="n">indices</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">iel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">indices</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">avgPosition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getAvgPosition</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_getAvgPosition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the average position in upper limit space for all indices</span>
+<span class="sd">        belonging to the cluster.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">))</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">positionMap</span><span class="p">[</span><span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="n">masses</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">massMap</span><span class="p">[</span><span class="n">iel</span><span class="p">]</span> <span class="k">for</span> <span class="n">iel</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">]</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">weightMap</span><span class="p">[</span><span class="n">iel</span><span class="p">]</span> <span class="k">for</span> <span class="n">iel</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">]</span>
+        <span class="n">clusterMass</span> <span class="o">=</span> <span class="n">massAvg</span><span class="p">(</span><span class="n">masses</span><span class="p">,</span><span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">)</span>
+        <span class="n">avgPos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">txdata</span><span class="o">.</span><span class="n">getValueFor</span><span class="p">(</span><span class="n">clusterMass</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">avgPos</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">avgPos</span><span class="o">/</span><span class="n">fb</span><span class="p">)</span><span class="o">.</span><span class="n">asNumber</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_getDistanceTo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the maximum distance between any elements belonging to the</span>
+<span class="sd">        cluster and the object obj.</span>
+<span class="sd">        </span>
+<span class="sd">        obj can be a position in upper limit space or an element index.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">dmax</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="nb">int</span><span class="p">())</span> <span class="ow">and</span> <span class="n">obj</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">positionMap</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="mf">1.</span><span class="p">):</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="n">obj</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unknown object type (must be an element index or &quot;</span>
+                         <span class="s2">&quot;position)&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">jel</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">dmax</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">dmax</span><span class="p">,</span> <span class="n">distance</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">positionMap</span><span class="p">[</span><span class="n">jel</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="n">dmax</span>
+
+
+    <span class="k">def</span> <span class="nf">_getMaxInternalDist</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the maximum distance between any pair of elements belonging</span>
+<span class="sd">        to the cluster as well as the cluster center and any element.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dmax</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">avgPosition</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">avgPosition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getAvgPosition</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">iel</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">dmax</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">dmax</span><span class="p">,</span> <span class="n">distance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">positionMap</span><span class="p">[</span><span class="n">iel</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">avgPosition</span><span class="p">))</span>
+            <span class="n">dmax</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">dmax</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getDistanceTo</span><span class="p">(</span><span class="n">iel</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">dmax</span></div>
+
+
+<div class="viewcode-block" id="groupAll"><a class="viewcode-back" href="../../theory.html#theory.clusterTools.groupAll">[docs]</a><span class="k">def</span> <span class="nf">groupAll</span><span class="p">(</span><span class="n">elements</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a single cluster containing all the elements.</span>
+<span class="sd">    Skip mother elements which contain the daughter in the list (avoids double counting).</span>
+<span class="sd">    </span>
+<span class="sd">    :param elements: List of Element objects</span>
+<span class="sd">    :return: ElementCluster object containing all unique elements </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+   
+   
+    <span class="n">cluster</span> <span class="o">=</span> <span class="n">ElementCluster</span><span class="p">()</span>
+    <span class="n">cluster</span><span class="o">.</span><span class="n">elements</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">allmothers</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1">#Collect the list of all mothers:</span>
+    <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+        <span class="n">allmothers</span> <span class="o">+=</span> <span class="p">[</span><span class="n">elMom</span> <span class="k">for</span> <span class="n">tp</span><span class="p">,</span><span class="n">elMom</span> <span class="ow">in</span> <span class="n">el</span><span class="o">.</span><span class="n">motherElements</span><span class="p">]</span>
+        
+    <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+        <span class="c1">#Skip the element if it is a mother of another element in the list</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">((</span><span class="n">elMom</span> <span class="ow">is</span> <span class="n">el</span><span class="p">)</span> <span class="k">for</span> <span class="n">elMom</span> <span class="ow">in</span> <span class="n">allmothers</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">cluster</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="p">)</span> 
+    
+    <span class="c1">#Collect the txnames appearing in the cluster</span>
+    <span class="n">cluster</span><span class="o">.</span><span class="n">txnames</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">el</span><span class="o">.</span><span class="n">txname</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">cluster</span><span class="o">.</span><span class="n">elements</span><span class="p">]))</span>
+    <span class="n">cluster</span><span class="o">.</span><span class="n">txnames</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">cluster</span></div>
+
+
+<div class="viewcode-block" id="clusterElements"><a class="viewcode-back" href="../../theory.html#theory.clusterTools.clusterElements">[docs]</a><span class="k">def</span> <span class="nf">clusterElements</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="n">maxDist</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Cluster the original elements according to their mass distance.</span>
+<span class="sd">    </span>
+<span class="sd">    :parameter elements: list of elements (Element objects)</span>
+<span class="sd">    :parameter txname: TxName object to be used for computing distances in UL space</span>
+<span class="sd">    :parameter maxDist: maximum mass distance for clustering two elements</span>
+<span class="sd">    </span>
+<span class="sd">    :returns: list of clusters (ElementCluster objects)    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">elements</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>  <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">txnames</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">el</span><span class="o">.</span><span class="n">txname</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">]))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">txnames</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Clustering elements with different Txnames!&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+    <span class="n">txdata</span> <span class="o">=</span> <span class="n">txnames</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">txnameData</span>
+    <span class="c1"># ElementCluster elements by their mass:</span>
+    <span class="n">clusters</span> <span class="o">=</span> <span class="n">_doCluster</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="n">txdata</span><span class="p">,</span> <span class="n">maxDist</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">cluster</span> <span class="ow">in</span> <span class="n">clusters</span><span class="p">:</span>
+        <span class="n">cluster</span><span class="o">.</span><span class="n">txnames</span> <span class="o">=</span> <span class="n">txnames</span>
+    <span class="k">return</span> <span class="n">clusters</span></div>
+
+
+<span class="k">def</span> <span class="nf">_doCluster</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="n">txdata</span><span class="p">,</span> <span class="n">maxDist</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Cluster algorithm to cluster elements.</span>
+<span class="sd">    </span>
+<span class="sd">    :parameter elements: list of all elements to be clustered</span>
+<span class="sd">    :parameter txdata: TxNameData object to be used for computing distances in UL space</span>
+<span class="sd">    :parameter maxDist: maximum mass distance for clustering two elements</span>
+<span class="sd">    </span>
+<span class="sd">    :returns: a list of ElementCluster objects containing the elements</span>
+<span class="sd">    belonging to the cluster    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># First build the element:mass, element:position in UL space</span>
+    <span class="c1"># and element:maxWeight (in fb) dictionaries</span>
+    <span class="c1">#(Combine elements with identical masses)</span>
+    <span class="n">massMap</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">posMap</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">weightMap</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">iel</span><span class="p">,</span> <span class="n">el</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">elements</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">el</span><span class="o">.</span><span class="n">getMasses</span><span class="p">()</span> <span class="ow">in</span> <span class="n">massMap</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">massMap</span><span class="p">[</span><span class="n">iel</span><span class="p">]</span> <span class="o">=</span> <span class="n">el</span><span class="o">.</span><span class="n">getMasses</span><span class="p">()</span>
+            <span class="n">posMap</span><span class="p">[</span><span class="n">iel</span><span class="p">]</span> <span class="o">=</span> <span class="n">massPosition</span><span class="p">(</span><span class="n">massMap</span><span class="p">[</span><span class="n">iel</span><span class="p">],</span> <span class="n">txdata</span><span class="p">)</span>
+            <span class="n">weightMap</span><span class="p">[</span><span class="n">iel</span><span class="p">]</span> <span class="o">=</span> <span class="n">el</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">getMaxXsec</span><span class="p">()</span> <span class="o">/</span> <span class="n">fb</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">j</span> <span class="o">=</span> <span class="n">massMap</span><span class="o">.</span><span class="n">keys</span><span class="p">()[</span><span class="n">massMap</span><span class="o">.</span><span class="n">values</span><span class="p">()</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">el</span><span class="o">.</span><span class="n">getMasses</span><span class="p">())]</span> 
+            <span class="n">weightMap</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="n">el</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">getMaxXsec</span><span class="p">()</span> <span class="o">/</span> <span class="n">fb</span>
+
+    <span class="c1"># Start with maximal clusters</span>
+    <span class="n">clusterList</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">iel</span> <span class="ow">in</span> <span class="n">posMap</span><span class="p">:</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">iel</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">jel</span> <span class="ow">in</span> <span class="n">posMap</span><span class="p">:</span>            
+            <span class="k">if</span> <span class="n">distance</span><span class="p">(</span><span class="n">posMap</span><span class="p">[</span><span class="n">iel</span><span class="p">],</span> <span class="n">posMap</span><span class="p">[</span><span class="n">jel</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="n">maxDist</span><span class="p">:</span>
+                <span class="n">indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">jel</span><span class="p">)</span>        
+        <span class="n">indexCluster</span> <span class="o">=</span> <span class="n">IndexCluster</span><span class="p">(</span><span class="n">massMap</span><span class="p">,</span> <span class="n">posMap</span><span class="p">,</span> <span class="n">weightMap</span><span class="p">,</span> <span class="nb">set</span><span class="p">(</span><span class="n">indices</span><span class="p">),</span><span class="n">txdata</span><span class="p">)</span>
+        <span class="c1">#Ignore cluster which average mass falls oustide the grid:</span>
+        <span class="k">if</span> <span class="n">indexCluster</span><span class="o">.</span><span class="n">avgPosition</span><span class="p">:</span>
+            <span class="n">clusterList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">indexCluster</span><span class="p">)</span>
+
+    <span class="c1">#Split the maximal clusters until all elements inside each cluster are</span>
+    <span class="c1">#less than maxDist apart from each other and the cluster average position</span>
+    <span class="c1">#is less than maxDist apart from all elements</span>
+    <span class="n">finalClusters</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">newClusters</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="k">while</span> <span class="n">newClusters</span><span class="p">:</span>
+        <span class="n">newClusters</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">indexCluster</span> <span class="ow">in</span> <span class="n">clusterList</span><span class="p">:</span>
+            <span class="c1"># cluster is good</span>
+            <span class="k">if</span> <span class="n">indexCluster</span><span class="o">.</span><span class="n">_getMaxInternalDist</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">maxDist</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">indexCluster</span> <span class="ow">in</span> <span class="n">finalClusters</span><span class="p">:</span>
+                    <span class="n">finalClusters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">indexCluster</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="c1"># Distance to cluster center (average)</span>
+            <span class="n">distAvg</span> <span class="o">=</span> <span class="n">indexCluster</span><span class="o">.</span><span class="n">_getDistanceTo</span><span class="p">(</span><span class="n">indexCluster</span><span class="o">.</span><span class="n">avgPosition</span><span class="p">)</span>
+            <span class="c1">#Loop over cluster elements and if element distance or cluster</span>
+            <span class="c1">#average distance falls outside the cluster, remove element</span>
+            <span class="k">for</span> <span class="n">iel</span> <span class="ow">in</span> <span class="n">indexCluster</span><span class="p">:</span>
+                <span class="n">dist</span> <span class="o">=</span> <span class="n">indexCluster</span><span class="o">.</span><span class="n">_getDistanceTo</span><span class="p">(</span><span class="n">iel</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">max</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="n">distAvg</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">maxDist</span><span class="p">:</span>
+                    <span class="n">newcluster</span> <span class="o">=</span> <span class="n">indexCluster</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                    <span class="n">newcluster</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">iel</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">newcluster</span> <span class="ow">in</span> <span class="n">newClusters</span><span class="p">:</span>
+                        <span class="c1">#Ignore cluster which average mass falls oustide the grid:</span>
+                        <span class="k">if</span> <span class="n">newcluster</span><span class="o">.</span><span class="n">avgPosition</span><span class="p">:</span>
+                            <span class="n">newClusters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newcluster</span><span class="p">)</span>
+
+        <span class="n">clusterList</span> <span class="o">=</span> <span class="n">newClusters</span>
+        <span class="c1"># Check for oversized list of indexCluster (too time consuming)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">clusterList</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;ElementCluster failed, using unclustered masses&quot;</span><span class="p">)</span>
+            <span class="n">finalClusters</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">clusterList</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># finalClusters = finalClusters + clusterList</span>
+    <span class="c1"># Add clusters of individual masses (just to be safe)</span>
+    <span class="k">for</span> <span class="n">iel</span> <span class="ow">in</span> <span class="n">massMap</span><span class="p">:</span>
+        <span class="n">finalClusters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">IndexCluster</span><span class="p">(</span><span class="n">massMap</span><span class="p">,</span> <span class="n">posMap</span><span class="p">,</span> <span class="n">weightMap</span><span class="p">,</span>
+                                           <span class="nb">set</span><span class="p">([</span><span class="n">iel</span><span class="p">])))</span>
+
+    <span class="c1"># Clean up clusters (remove redundant clusters)</span>
+    <span class="k">for</span> <span class="n">ic</span><span class="p">,</span> <span class="n">clusterA</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">finalClusters</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">clusterA</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">for</span> <span class="n">jc</span><span class="p">,</span> <span class="n">clusterB</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">finalClusters</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">clusterB</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">ic</span> <span class="o">!=</span> <span class="n">jc</span> <span class="ow">and</span> <span class="n">clusterB</span><span class="o">.</span><span class="n">indices</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">clusterA</span><span class="o">.</span><span class="n">indices</span><span class="p">):</span>
+                <span class="n">finalClusters</span><span class="p">[</span><span class="n">jc</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">while</span> <span class="n">finalClusters</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">finalClusters</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+
+    <span class="c1"># Transform index clusters to element clusters:</span>
+    <span class="n">clusterList</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">indexCluster</span> <span class="ow">in</span> <span class="n">finalClusters</span><span class="p">:</span>
+        <span class="n">cluster</span> <span class="o">=</span> <span class="n">ElementCluster</span><span class="p">()</span>
+        <span class="n">masses</span> <span class="o">=</span> <span class="p">[</span><span class="n">massMap</span><span class="p">[</span><span class="n">iel</span><span class="p">]</span> <span class="k">for</span> <span class="n">iel</span> <span class="ow">in</span> <span class="n">indexCluster</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">el</span><span class="o">.</span><span class="n">getMasses</span><span class="p">()</span> <span class="ow">in</span> <span class="n">masses</span><span class="p">:</span>
+                <span class="n">cluster</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+        <span class="n">clusterList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cluster</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">clusterList</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, &lt;function authors at 0x7f73f74eb500&gt;.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.1.0patch1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

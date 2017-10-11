@@ -1,0 +1,14 @@
+txName: T6ttWWoff
+conditionDescription: [[['t'],['mu','nu']],[['t'],['jet','jet']]]>[[['t'],['e','nu']],[['t'],['jet','jet']]]
+condition: Cgtr([[['t'],['mu','nu']],[['t'],['jet','jet']]],[[['t'],['e','nu']],[['t'],['jet','jet']]])
+constraint: 3.5*([[['t+'],['l-','nu']],[['t-'],['jet','jet']]] + [[['t-'],['l+','nu']],[['t+'],['jet','jet']]])
+figureUrl: https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/CONFNOTES/ATLAS-CONF-2013-007/fig_15b.png
+validated: True
+axes: 2*Eq(mother,x)_Eq(inter0,y)_Eq(lsp,0.5*y)
+publishedData: False
+upperLimits: [[[[350.0*GeV, 150.0*GeV, 75.0*GeV], [350.0*GeV, 150.0*GeV, 75.0*GeV]], 0.244*pb],
+[[[400.0*GeV, 150.0*GeV, 75.0*GeV], [400.0*GeV, 150.0*GeV, 75.0*GeV]], 0.186*pb],
+[[[450.0*GeV, 150.0*GeV, 75.0*GeV], [450.0*GeV, 150.0*GeV, 75.0*GeV]], 0.111*pb],
+[[[500.0*GeV, 150.0*GeV, 75.0*GeV], [500.0*GeV, 150.0*GeV, 75.0*GeV]], 0.102*pb],
+[[[550.0*GeV, 150.0*GeV, 75.0*GeV], [550.0*GeV, 150.0*GeV, 75.0*GeV]], 0.077*pb],
+[[[600.0*GeV, 150.0*GeV, 75.0*GeV], [600.0*GeV, 150.0*GeV, 75.0*GeV]], 0.061*pb]]

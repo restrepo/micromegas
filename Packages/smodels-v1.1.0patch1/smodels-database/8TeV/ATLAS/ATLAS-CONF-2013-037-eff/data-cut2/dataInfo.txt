@@ -1,0 +1,7 @@
+dataType: efficiencyMap
+dataId: SRbC1
+observedN: 456
+expectedBG: 482.0
+bgError: 76.0
+upperLimit: 4*fb
+expectedUpperLimit: 7.52*fb

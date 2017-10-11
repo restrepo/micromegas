@@ -1,5 +1,5 @@
-#include"../../sources/micromegas.h"
-#include"../../sources/micromegas_aux.h"
+#include"../../include/micromegas.h"
+#include"../../include/micromegas_aux.h"
 #include"pmodel.h"
 
 
@@ -20,10 +20,10 @@ int loopGamma(double * csAZ, double *csAA)
 
   if(!access(FOUT,R_OK)) unlink(FOUT);
   
-  sprintf(buff,"%s/../lib/nngg/lGamma.exe",WORK);
+  sprintf(buff,"%s/../lib/nngg12/lGamma.exe",WORK);
   if(access( buff,X_OK))
   { char buf[2000]; 
-    sprintf(buf, "make -C %s/../lib/nngg",WORK);
+    sprintf(buf, "dir=%s/../lib/nngg12;  which  gmake; if(test $? -eq 0) then  gmake -C $dir; else make -C $dir; fi",WORK);
     system(buf);
   } 
   if(access( buff,X_OK)) 

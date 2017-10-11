@@ -3,6 +3,7 @@
 #include<string.h>
 #include<math.h>
 
+#include "event2pyth.h"
 #include "ch_events.h"
 
 #define maxFileOpen 100
@@ -116,6 +117,7 @@ eventfile_info * initEventFile(char* fname)
    FILE*F;
    int i,n;
    int ntot;
+   double sumW;
  
    F=fopen(fname,"r");
    if(F==NULL) { printf("Can not open event file %s\n",fname); exit(1);} 
@@ -158,7 +160,9 @@ eventfile_info * initEventFile(char* fname)
          }            
       } else if(strcmp(buff,"#Number_of_events")==0)
       {  fscanf(F," %ld",&Finfo->nEvents);      
-      } else if(strcmp(buff,"#Events")==0)
+      } else if(strcmp(buff,"#Sum_of_weights")==0)
+      { fscanf(F," %lf %*lf ",&sumW);}
+      else if(strcmp(buff,"#Events")==0)
       {  fscanf(F,"%*[^\n]%*c");
          for(i=0;i<Finfo->Nin;i++) if(Finfo->inPID[i]==0) Finfo->inPID[i]=Finfo->PIDs[i];
          
@@ -168,6 +172,7 @@ eventfile_info * initEventFile(char* fname)
          Finfo->CurrentEventPos=Finfo->FirstEventPos;
          Finfo->fileName=malloc(strlen(fname)+1);
          strcpy(Finfo->fileName,fname);
+         Finfo->wCoeff=Finfo->nEvents/sumW;
          fclose(F);
          return Finfo;
       }
@@ -176,7 +181,7 @@ eventfile_info * initEventFile(char* fname)
    return NULL; 
 }
 
-int readEvent(eventfile_info *Finfo, int *Nmom, double * mom, int * color, double *Qf,double *alphaQCD, int * w)
+int readEvent(eventfile_info *Finfo, int *Nmom, double * mom, int * color, double *Qf,double *alphaQCD, double * w)
 { int n=0;
 
   if(Finfo->F==NULL)
@@ -206,7 +211,7 @@ int readEvent(eventfile_info *Finfo, int *Nmom, double * mom, int * color, doubl
        }
      }  
      Finfo->cEvent++;
-     fscanf(Finfo->F,"%d",w);     
+     fscanf(Finfo->F,"%lf",w);     
      for(n=0;1==fscanf(Finfo->F," %lf",mom+n);n++);
      *Nmom=n;
      if(2!=fscanf(Finfo->F,"| %lf %lf",Qf,alphaQCD)) return 2;

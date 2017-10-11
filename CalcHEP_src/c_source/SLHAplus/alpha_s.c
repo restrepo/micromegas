@@ -12,8 +12,8 @@ static int nfMax=6;
 */
 
 
-double Mbp(void) { return MbPole;}
-
+double bPoleMass(void) { return MbPole;}
+double tPoleMass(void) { return MtPole;}
 
 static double alpha3(double Q, double lambda, int nf)
 {

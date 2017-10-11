@@ -2,7 +2,7 @@
  tanbeta NLO contributions
 */
 
-#include "../../sources/micromegas.h"
+#include "../../include/micromegas.h"
 #include "pmodel.h"
 #include "pmodel_aux.h"
 

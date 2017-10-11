@@ -1,0 +1,10 @@
+
+	CalcHEP Batch Details
+
+	Done!
+
+		Finished	Time(hr)
+Symbolic	12/12		0.00
+sigma		1/1		0.02
+Events		1/1		0.01
+

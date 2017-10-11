@@ -1,0 +1,7 @@
+dataType: efficiencyMap
+dataId: SRA-mCT200
+observedN: 48
+expectedBG: 39
+bgError: 6
+upperLimit: 1.29960891313*fb
+expectedUpperLimit: 0.91365270964*fb

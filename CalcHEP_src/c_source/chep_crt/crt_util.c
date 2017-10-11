@@ -145,7 +145,7 @@ int infoLine(double rate)
    static int Y;
    static int X;
 //   static void*dump=NULL;
-   
+   if(blind>0) return 0;
    int xm=where_x(), ym=where_y(), fc=fColor,bc=bColor;
   
    if (rate == 0)
@@ -163,7 +163,7 @@ int infoLine(double rate)
 /*      print("%s",b); */
       goto_xy(15,Y);
       scrcolor(fc,bc);
-      escpressed();
+      res=escpressed();
       goto exi;;
    }
 
@@ -174,7 +174,7 @@ int infoLine(double rate)
    scrcolor(Black,Red);
    goto_xy(X,Y);
    while (where_x() < xx) print("%c",'X');
-   if(xx !=X) { X=xx; res=escpressed();}
+   if(xx !=X) { X=xx;  res=escpressed(); } else { res=escpressed();}
    if (rate  >= 1)
    {
 //     put_text(&dump);
@@ -356,29 +356,27 @@ label_1:
 
       ink = inkey();
 /* mouse filter */
+
       if ((ink==KB_MOUSE)&&(mouse_info.but1 == 2))
       {
          if (mouse_info.row == lastLine )
-         for(i=0; i<10;i++)
-         if ((mouse_info.col > fkPos[i]) && (mouse_info.col < fkPos[i+1]))
-         {  if (i==9)ink='0'; else ink='1'+i;}
-
-         if ( (mouse_info.col >= col ) && (mouse_info.col <=col+ncol+1) )
+         {
+            for(i=0; i<10;i++)
+            if ((mouse_info.col > fkPos[i]) && (mouse_info.col < fkPos[i+1]))
+            {  if (i==9)ink='0'; else ink='1'+i;}
+         } else if ( (mouse_info.col < col ) || (mouse_info.col >col+ncol+1) || (mouse_info.row < row ) || (mouse_info.row >row+height+1) )   goto label_3; 
+         else  
          {  mousePos = mouse_info.row - row;
-
-            if (col+ncol+1-mouse_info.col <4)
+            if (mousePos==0)
+            {      if( col+ncol+1-mouse_info.col <4) ink=KB_PAGEU;
+              else if( mouse_info.col-col <4       ) ink=KB_ESC;
+            }   
+            else if(  mousePos==height+1) ink=KB_PAGED;
+            else if((mousePos > 0)&&(mousePos <= height))
             {
-               if (mousePos==0)        ink=KB_PAGEU;
-               if (mousePos==height+1) ink=KB_PAGED;
-            }
-
-            if ((mousePos == 0 ) && ( mouse_info.col-col <4)) ink=KB_ESC;
-
-            if ((mousePos < 0)&&(mousePos >= height))
-            {
-               if (mousePos > k)  {ink=KB_DOWN; jump=mousePos - k;}
-               if (mousePos < k)  {ink=KB_UP;   jump=k - mousePos;}
-               if (mousePos==k )   ink=KB_ENTER;
+               if(mousePos > k)  {ink=KB_DOWN; jump=mousePos - k;}
+               if(mousePos < k)  {ink=KB_UP;   jump=k - mousePos;}
+               if(mousePos==k )   ink=KB_ENTER;
             }
          }
       }
@@ -387,6 +385,7 @@ label_1:
 label_4:
       switch (ink)
       {
+/*
         case KB_MOUSE:
         if (mouse_info.but1 != 2) break;
         if (mouse_info.row == lastLine )
@@ -396,8 +395,6 @@ label_4:
              goto label_4;
           }
 
-        if ( (mouse_info.col < col ) || (mouse_info.col >col+ncol+1) ||
-             (mouse_info.row < row ) || (mouse_info.row >row+height+1) ) break;
 
            mousePos = mouse_info.row - row;
            if ((mousePos == 0 ) && ( mouse_info.col-col <4)) ink=KB_ESC;
@@ -413,7 +410,7 @@ label_4:
            }
            if (mousePos==k       ) ink=KB_ENTER;
            if (ink!=KB_MOUSE) goto label_4;
-
+*/
           break;
 
 		  case  KB_DOWN: 

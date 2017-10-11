@@ -197,12 +197,13 @@ void cwtarg(vcsect* g)
 {  factor * f;
    cvertex   vl[2*MAXINOUT];
    int nv=2*MAXINOUT;
-   t2k2(g,&nv,vl);
+   int sgn=t2k2(g,&nv,vl);
    f=colorFactor(nv,vl);
 
    if(NcInfLimit) getLeadingTerm(f,maxNcPower(g),&(g->clrnum),&(g->clrdenum));
    else fct_num_calc(f,3,&(g->clrnum), &(g->clrdenum));
-
+   
+   g->clrnum*=sgn;
    free(f);
 }  /* CWTarG */
 

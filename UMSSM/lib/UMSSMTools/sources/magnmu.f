@@ -1,3 +1,5 @@
+      SUBROUTINE MAGNMU(PROB)
+
 *      Computation of the Muon Anomalous Moment
 *
 *       - Literature:
@@ -66,8 +68,6 @@
 *        EPJ Web Conf. 37, 05002 (2012)
 *        arXiv:1212.0738 [hep-ph].
 
-
-      SUBROUTINE MAGNMU(PROB)
       IMPLICIT NONE
 
       INTEGER I,K
@@ -97,7 +97,7 @@
       DOUBLE PRECISION MGL,MCH(2),U(2,2),V(2,2),MNEU(6),N(6,6)
       DOUBLE PRECISION MUR,MUL,MDR,MDL,MLR,MLL,MNL
       DOUBLE PRECISION MST1,MST2,MSB1,MSB2,MSL1,MSL2,MSNT
-      DOUBLE PRECISION CST,CSB,CSL,MSMU1,MSMU2,MSMUNT,CSMU,Xl,Wl,nen
+      DOUBLE PRECISION CST,CSB,CSL,MSMU1,MSMU2,MSNM,CSMU,Xl,Wl,nen
       DOUBLE PRECISION amu1L
       DOUBLE PRECISION delmagmu,damumin,damumax,amuthmax,amuthmin
       DOUBLE PRECISION SGNT,SGNB,SGNL
@@ -116,7 +116,7 @@
       COMMON/SUSYSPEC/MGL,MCH,U,V,MNEU,N
       COMMON/SFSPEC/MUR,MUL,MDR,MDL,MLR,MLL,MNL,
      .      MST1,MST2,MSB1,MSB2,MSL1,MSL2,MSNT,
-     .      CST,CSB,CSL,MSMU1,MSMU2,MSMUNT,CSMU
+     .      CST,CSB,CSL,MSMU1,MSMU2,MSNM,CSMU
       COMMON/MAGMU/delmagmu,damumin,damumax,amuthmax,amuthmin
       COMMON/UMSSM/SAZZ,CAZZ,VEV,NCP,QD,QU,QS,VEVS,G1P,QQ,
      .      QUP,QDOW,QL,QE,QN
@@ -126,7 +126,7 @@
 
       sinb=tanb/dsqrt(1d0+tanb**2)
       cosb=sinb/tanb
-      MSMUNT=UPARF(100)
+      MSNM=UPARF(100)
 
 ********************************************************************
 *   Evaluation of the Discrepancy between Experiment and
@@ -225,10 +225,10 @@
       Ymu=MMUON/H1Q
       aux=0d0
       do k=1,2
-      aux=aux+MMUON/(12d0*MSMUNT**2)
-     .     *(g2q*V(k,1)**2+(Ymu*U(k,2))**2)*Fc1((MCH(k)/MSMUNT)**2)
-     .     +2d0*MCH(k)/(3d0*MSMUNT**2)
-     .       *(-dsqrt(g2q)*V(k,1))*(Ymu*U(k,2))*Fc2((MCH(k)/MSMUNT)**2)
+      aux=aux+MMUON/(12d0*MSNM**2)
+     .     *(g2q*V(k,1)**2+(Ymu*U(k,2))**2)*Fc1((MCH(k)/MSNM)**2)
+     .     +2d0*MCH(k)/(3d0*MSNM**2)
+     .       *(-dsqrt(g2q)*V(k,1))*(Ymu*U(k,2))*Fc2((MCH(k)/MSNM)**2)
       enddo
       amuChar=MMUON/(16d0*pi**2)*aux
 

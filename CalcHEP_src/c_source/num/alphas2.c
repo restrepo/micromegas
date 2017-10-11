@@ -22,7 +22,7 @@
 #include "alphas2.h"
 
 
-double (*sf_alpha)(double)=NULL;
+double (*sf_alpha[2])(double)={NULL,NULL};
 
 static double alphaMZ=0.1184;
 static int alphaOrder=2;
@@ -30,8 +30,11 @@ static int alphaNF=5;
 static double MbMb=4.2;
 static double Mtp=173;
 static int alphaPDF=1;
-static char Fscale_str[61]="91.187";
-static char Rscale_str[61]="Qfact";
+static char Rscale_str[61]="91.187";
+static char F1scale_str[61]="Qren";
+static char F2scale_str[61]="Qpdf1";
+static char Sscale_str[61]="Qren";
+
 static double alpha(int nf, int odr, double lambda,  double dscale)
 {
     double b0 = 11. -  (2./3.)*nf;
@@ -109,16 +112,28 @@ static void init_alpha(void)
   else {nf6=nf5; L6=L5;}
 }
 
-double alpha_2(double Q)
+static double alpha_0(double Q)
 {
-  if(alphaPDF && sf_alpha)  return (*sf_alpha)(Q); 
-
-  if(Q<L3*1.5) Q=L3*1.5;
+    if(Q<L3*1.5) Q=L3*1.5;
   
         if(Q<MCHARM)  return alpha(nf3, alphaOrder, L3, Q);
-  else  if(Q<MbMb)    return alpha(nf4, alphaOrder, L4, Q);
-  else  if(Q<Mtp)     return alpha(nf5, alphaOrder, L5, Q);
-  else                return alpha(nf6, alphaOrder, L6, Q);
+    else  if(Q<MbMb)    return alpha(nf4, alphaOrder, L4, Q);
+    else  if(Q<Mtp)     return alpha(nf5, alphaOrder, L5, Q);
+    else                return alpha(nf6, alphaOrder, L6, Q);
+}
+
+double alpha_2(double Q)
+{
+  switch(alphaPDF)
+  { case 1: if(sf_alpha[0]) return (*sf_alpha[0])(Q);
+            if(sf_alpha[1]) return (*sf_alpha[1])(Q);
+            break;
+    case 2: if(sf_alpha[1]) return (*sf_alpha[1])(Q);         
+            if(sf_alpha[0]) return (*sf_alpha[0])(Q);
+            break;
+  }                                  
+  
+  return alpha_0(Q);
 }
 
 
@@ -136,14 +151,21 @@ L10:{  char strmen[]="\030"
       " order=      NNLO       "
       " mb(mb)=     MbMb       "
       " Mtop(pole)= Mtp        "
-      " Qfact= FFF             "
+      " Alpha(Q) plot          "
       " Qren = RRR             "
-      " Alpha(Q) plot          ";
+      " Qpdf1= FF1             "
+      " Qpdf2= FF2             "
+      " Qshow= FFS             ";
 
       if(alphaPDF)
-      { if(sf_alpha)improveStr(strmen,"OFF","%-.3s","ON");
-        else         improveStr(strmen,"OFF","%-.3s","!ON");
-      }
+      { int k=0;
+//printf("alphaPDF=%d sf_alpha[0]=%p sf_alpha[1]=%p\n", alphaPDF,sf_alpha[0],sf_alpha[1]);      
+        switch(alphaPDF)
+        { case 1: if(sf_alpha[0]) k=1; else if(sf_alpha[1]) k=2; break;
+          case 2: if(sf_alpha[1]) k=2; else if(sf_alpha[0]) k=1; break;
+        }    
+        if(k) improveStr(strmen,"OFF","pdf%d",k);
+      }    
       improveStr(strmen,"ZZZZ","%.4f", alphaMZ);
       improveStr(strmen,"NF","%d",alphaNF);
 
@@ -153,20 +175,27 @@ L10:{  char strmen[]="\030"
       
       improveStr(strmen,"MbMb","%.3f", MbMb);
       improveStr(strmen,"Mtp","%.2f", Mtp);
-      
-      improveStr(strmen,"FFF","%-.16s", Fscale_str);
-      improveStr(strmen,"RRR","%-.16s", Rscale_str);
 
+      improveStr(strmen,"RRR","%-.16s", Rscale_str);
+      
+      improveStr(strmen,"FF1","%-.16s", F1scale_str);
+      improveStr(strmen,"FF2","%-.16s", F2scale_str); 
+      improveStr(strmen,"FFS","%-.16s", Sscale_str);
       menu1(54,8,"QCD alpha",strmen,"n_alpha",&pscr,&mode);
     }
     switch (mode)
     { case 0: if(returnCode) init_alpha(); return returnCode;
-      case 1: alphaPDF=!alphaPDF;
-              if(alphaPDF && !sf_alpha)
-               messanykey(20,20,"WARNING! Parton distribution does not\n"
-                                "define alphaQCD ");
-              returnCode=1;
-              break;
+      case 1: 
+         { char alphaMen[100]="\006"                                                                                    
+           "  OFF "                                                                                                     
+           " pdf1 "                                                                                                     
+           " pdf2 ";                                                                                                    
+           int k=0;                                                                                                     
+           menu1(54,12,"alpha",alphaMen,"",NULL,&k);                                                                    
+           if(k)alphaPDF=k-1;                                                                                           
+           if(alphaPDF && !sf_alpha[alphaPDF-1]) messanykey(20,20,"WARNING! This pdf  does not define alphaQCD ");                                             
+         }                                                                                                              
+         break;
       case 2:
          { double alphaMZ_old=alphaMZ; 
            if(correctDouble(3,15,"Enter new value ",&alphaMZ,1)) returnCode=1;
@@ -199,36 +228,8 @@ L10:{  char strmen[]="\030"
       case 5: correctDouble(3,15,"Enter new value ",&MbMb,1);  break;
       case 6: correctDouble(3,15,"Enter new value ",&Mtp,1);   break;   
       case 7:
-         { int npos=1,rc;
-           do
-           { 
-              char mess[200];
-              goto_xy(2,12); print("Fact.scale: ");
-              if(str_redact(Fscale_str,npos,60)==KB_ENTER) returnCode=1;
-              goto_xy(2,12); clr_eol();
-              rc=initScales(Fscale_str,Rscale_str, mess);
-              if(rc) messanykey(10,10,mess);
-           }  while(rc);
-         }
-	 break;
-      case 8:
-         { int npos=1,rc;
-           do
-           { 
-              char mess[200];
-              goto_xy(2,12); print("Renorm. scale: ");
-              if(str_redact(Rscale_str,npos,60)==KB_ENTER) returnCode=1;
-              goto_xy(2,12); clr_eol();
-              rc=initScales(Fscale_str,Rscale_str,mess);
-              if(rc) messanykey(10,10,mess);
-           }  while(rc);
-         }
-	 break;
-	 
-      case 9:
 	{ void * screen;
 	  int i;
-	  double f[150];
 
 	  static double qMin=1, qMax=1000;
 	  static int nPoints=100;
@@ -239,19 +240,113 @@ L10:{  char strmen[]="\030"
           && correctDouble(40 ,16 ,"Q_max=",&qMax,0)&& qMax>qMin
           && correctInt(33,17,"number of points=" ,&nPoints,0)
           && nPoints>3&& nPoints<=150)
-	  {
+	  { double *f[3]={NULL,NULL,NULL};
+	    double *ff[3]={NULL,NULL,NULL};
+	    char buff[3][100]; 
+	    char* Y[3]={buff[0],buff[1],buff[2]};
+	    switch(alphaOrder)
+	    { case 1: sprintf(Y[0],"MSbar LO");   break;
+	      case 2: sprintf(Y[0],"MSbar NLO");  break;
+	      case 3: sprintf(Y[0],"MSbar NNLO"); break;
+	      default:sprintf(Y[0],"MSbar");
+	    }  
+	       
+	    int N,k;
+	    f[0]=(double*) malloc(nPoints*sizeof(double));
+            int xLog= (qMin>0 && qMax/qMin >10)? 1 : 0; 
+
 	    for(i=0;i<nPoints;i++)
-	    { double z=(i+0.5)/(double)(nPoints);
-	      double q=pow(qMin,1-z)*pow(qMax,z);
-	      f[i]=alpha_2(q);
+	    { double z=(i+0.5)/(double)(nPoints),q;
+	      if(xLog) q=pow(qMin,1-z)*pow(qMax,z); else q=qMin*(1-z)+qMax*z;
+	      f[0][i]=alpha_0(q);
+//	      printf("i=%d %E\n",i,f[0][i]);
 	    }
-	    plot_1(log10(qMin),log10(qMax),nPoints,f,NULL, " ", "log10(Q/GeV)", "Alpha(Q)");
+	    
+	    N=1;	    
+	    for(k=0;k<2;k++) if(sf_alpha[k])
+	    {  
+	       char buff[300];  
+               strFunName(k+1,Y[N]);
+               char *p=strstr(Y[N],"(proton");
+               if(p) p[0]=0; else
+               { p=strstr(Y[N],"(anti-proton");
+                 if(p) p[0]=0;
+               }  
+	       f[N]=(double*) malloc(nPoints*sizeof(double));
+               for(i=0;i<nPoints;i++)
+               { double z=(i+0.5)/(double)(nPoints),q;
+                 if(xLog) q=pow(qMin,1-z)*pow(qMax,z);
+                    else  q=qMin*(1-z)+qMax*z;   
+                 f[N][i]=(*sf_alpha[k])(q);
+	       } 
+	       N++;                                                      
+            }
+//            printf("N=%d Y[0]=%s\n Y[1]=%s\n Y[2]=%s\n", N,Y[0],Y[1],Y[2]);                                                         
+//            plot_Nar(NULL, "Alpha(Q)",  log10(qMin), log10(qMax),"log10(Q/GeV)", nPoints, N, f,ff,Y);
+              plot_Nar(NULL, "Alpha(Q)",  qMin,qMax,"Q/GeV", nPoints, xLog, N, f,ff,Y);
+            for(k=0;k<N;k++) free(f[k]);
 	  } else  messanykey(40,18,
 	          " Correct input is \n"
 	          " 0.5<= Q_min <Q_max\n"
 	          " number of points <=150 and >=4");
 	  put_text(&screen);
-	}	
+	} break;	
+
+      case 8:
+         { int npos=1,rc;
+           do
+           { 
+              char mess[200];
+              goto_xy(2,12); print("Renorm. scale: ");
+              if(str_redact(Rscale_str,npos,60)==KB_ENTER) returnCode=1;
+              goto_xy(2,12); clr_eol();
+              rc=initScales(Rscale_str,F1scale_str,F2scale_str,Sscale_str, mess);
+              if(rc) messanykey(10,10,mess);
+           }  while(rc);
+         }
+	 break;
+
+
+      case 9:
+         { int npos=1,rc;
+           do
+           { 
+              char mess[200];
+              goto_xy(2,12); print("Fct1.scale: ");
+              if(str_redact(F1scale_str,npos,60)==KB_ENTER) returnCode=1;
+              goto_xy(2,12); clr_eol();
+              rc=initScales(Rscale_str,F1scale_str,F2scale_str,Sscale_str, mess);
+              if(rc) messanykey(10,10,mess);
+           }  while(rc);
+         }
+	 break;
+      case 10:
+         { int npos=1,rc;
+           do
+           { 
+              char mess[200];
+              goto_xy(2,12); print("Fct1.scale: ");
+              if(str_redact(F2scale_str,npos,60)==KB_ENTER) returnCode=1;
+              goto_xy(2,12); clr_eol();
+              rc=initScales(Rscale_str,F1scale_str,F2scale_str,Sscale_str, mess);
+              if(rc) messanykey(10,10,mess);
+           }  while(rc);
+         }
+	 break;
+      case 11:
+         { int npos=1,rc;
+           do
+           { 
+              char mess[200];
+              goto_xy(2,12); print("Shworing scale: ");
+              if(str_redact(Sscale_str,npos,60)==KB_ENTER) returnCode=1;
+              goto_xy(2,12); clr_eol();
+              rc=initScales(Rscale_str,F1scale_str,F2scale_str,Sscale_str,mess);
+              if(rc) messanykey(10,10,mess);
+           }  while(rc);
+         }
+	 break;
+	 
     }
     goto L10;
 }
@@ -265,7 +360,8 @@ int w_alphaQCD(FILE * mode)
 
 int w_Scales(FILE * mode)
 {
-  fprintf(mode,"\n Factorization %s\n Renormalization %s",Fscale_str,Rscale_str);
+  fprintf(mode,"\n Renormalization %s\n Factorization1 %s\n Factorization2 %s\n Showering %s\n",
+  Rscale_str,F1scale_str,F2scale_str,Sscale_str);
   return 0;
 }
                   
@@ -277,9 +373,12 @@ void i_Scales(void)
   int err;  
   char mess[200];
  
-  if(nin_int==1) strcpy(Fscale_str,"M1"); else strcpy(Fscale_str,"M12");
-  strcpy(Rscale_str,"Qfact");
-  err=initScales(Fscale_str,Rscale_str ,mess);
+  if(nin_int==1) strcpy(Rscale_str,"M1"); else strcpy(Rscale_str,"M12");
+  
+  strcpy(F1scale_str,"Qren");
+  strcpy(F2scale_str,"Qpdf1");
+  strcpy(Sscale_str,"Qren");
+  err=initScales(Rscale_str,F1scale_str,F2scale_str,Sscale_str,mess);
 }
 
 int r_alphaQCD(FILE *mode)
@@ -296,17 +395,12 @@ int r_Scales(FILE *mode)
 { int n,err; 
   char mess[200];
 
-  n=fscanf(mode," Factorization %[^\n] Renormalization %[^\n]",Fscale_str,Rscale_str);
-  if(n!=2) return 1;      
-  trim(Fscale_str);
+  n=fscanf(mode," Renormalization %[^\n] Factorization1 %[^\n] Factorization2 %[^\n] Showering %[^\n]",Rscale_str,F1scale_str,F2scale_str,Sscale_str);
+  if(n!=4) return 1; 
   trim(Rscale_str);
-  err=initScales(Fscale_str,Rscale_str,mess);
-  if(err)
-  { printf("%s\n",mess); 
-    strcpy(Fscale_str,"91.187");
-    strcpy(Rscale_str,"91.187");
-    err=initScales(Fscale_str,Rscale_str,mess);
-    if(err) exit(12);
-  }  
+  trim(F1scale_str);
+  trim(F2scale_str);
+  err=initScales(Rscale_str,F1scale_str,F2scale_str,Sscale_str,mess);
+  if(err) i_Scales();
   return 0;
 }

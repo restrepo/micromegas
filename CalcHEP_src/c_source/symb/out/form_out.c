@@ -56,7 +56,7 @@ static void  writefunctions(int nsub)
 static void startForm(int nsub, int* prtclNum,int ncalc)  
 {  
   outputLanguage='F';
-  initvararray(nsub,outputLanguage,3);
+  initvararray(nsub,outputLanguage,NULL);
   outFileOpen("%sresults%cusr%d.frm",pathtouser, f_slash,nsub);
   
   writeF("\n#-\nCFunction Sqrt;\n#procedure userWork(nnn)\n");        
@@ -84,7 +84,7 @@ static void  diagramForm(vcsect * vcs, catrec * cr )
 
    writeF("\n*Diagrama number %d-%d;\n",cr->nsub_,cr->ndiagr_); 
 
-   if (vcs != NULL)  DiagramToOutFile(vcs,0,'*');
+   if (vcs != NULL && !noPict)  DiagramToOutFile(vcs,0,'*');
 
    seekArchiv(cr->factpos);
    readvardef(archiv);

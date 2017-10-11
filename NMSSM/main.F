@@ -17,8 +17,11 @@ C    Display information about SUSY and Higgs masses
 C     Display  deltarho, B_>sgamma, Bs->mumu, gmuon and
 C     check LEP mass limits 
 
-C#define HIGGSBOUNDS  '../Packages/HiggsBounds-4.2.0'
-C#define HIGGSSIGNALS '../Packages/HiggsSignals-1.3.0'
+
+C#define HIGGSBOUNDS 
+C#define LILITH
+C#define SMODELS 
+
 
 #define OMEGA
 C    Calculate relic density and display contribution of
@@ -64,7 +67,7 @@ C===== End of DEFINE  settings =====
 
       IMPLICIT NONE
 C! external functions 
-#include "../sources/micromegas.fh"
+#include "../include/micromegas.fh"
 #include "lib/pmodel.fh"
 
 C! local  Parameters   
@@ -95,7 +98,21 @@ C Variables
       character*100 mess
 
 C  for CONSTRAINTS    
-      real*8 constr0,constrM, constrP
+      real*8 constr0,constrM, constrP,csLim
+C for HIGGSBOUNDS/HIGGSSIGNALS
+      integer  NH0/5/, NHch/1/
+      real*8 HB_result,HB_obsratio,HS_observ,HS_chi2, HS_pval
+      character*70 HB_chan
+      character*7 HB_version, HS_version
+C for SMODELS 
+      integer result 
+      real*8 Rvalue
+      character*30 analysis,topology,smodels_version
+C for LILITH 
+      real*8 m2logL, m2logL_reference,pvalue
+      integer exp_ndf,n_par,ndf,vPython1, vPython2
+      character*100 call_lilith
+      character*10 lilith_version
 
 C  for INDIRECT 
       real*8 N_tot, SpA(NZ),SpE(NZ), SpP(NZ) 
@@ -113,6 +130,12 @@ C  for NEUTRINO
       integer forSun
       real*8  rhoDet
       real*8 FluxN(NZ),FluxNb(NZ),FluxMu(NZ) 
+
+C   for CROSS_SECTION
+       character*10 next
+       character*10 next_
+       real*8 nextM 
+
 
 C   to save the SLHA  input/output file  uncomment  
 c       call delFiles(0)
@@ -197,7 +220,7 @@ c       call delFiles(0)
 
       call getarg(1,argv)                               
 
-      err=readVarNMSSM(argv)
+      err=readVar(argv)
 
       if(err.eq.-1) then
           write(*,*) 'Can not open the file'
@@ -223,7 +246,18 @@ c       call delFiles(0)
       endif   
       call getarg(1,argv)
       write(*,*) 'Initial file  ', argv
-      err=readSLHA(argv)
+
+C  mode= 1*m1+2*m2+4*m4+8*m8+16*m16
+C  
+C  m1  0 overwrite all;  1 keep old data  
+C  m2  0 ignore mistake  1: stop in case of mistake in input file.    
+C  m4  0 read DECAY      1: don't read   Decay       
+C  m8  0 read BLOCK      1: don't read   Blocks        
+C  m16 0 read QNUMBERS   1: don't read   QNUMBERS           
+C
+C     err=readSLHA(argv,mode)
+
+      err=readSLHA(argv,0 )
       write(*,*) 'err=', err
       if(err.ne.0) stop
 
@@ -305,47 +339,49 @@ C     Call writeLesH('slha.out')
       constr0=gmuon(constrM,constrP)
       write(*,fmt="('gmuon/BSM  = ',1PE9.2,'(',E9.2,',',E9.2,')')") 
      >constr0,constrM, constrP 
- 
+
+      if(Zinvisible().ne.0) write(*,*) "Excluded by Z->invisible"
+      if(LspNlsp_LEP(csLim).ne.0) write(*,fmt='("Excluded by LEP  by e+,e- -> DM q qbar, Cross section=",E10.2,"pb")') csLim 
 #endif
 
+
+#if defined(HIGGSBOUNDS) || defined(HIGGSSIGNALS)
+      call system("cat spectr decay > HB.in");
+      call system('echo BLOCK DMASS  >> HB.in')
+      call system('echo "  25  2"  >> HB.in')
+      call system('echo "  35  2"  >> HB.in')
+      call system('echo "  45  2"  >> HB.in')
+      call system('echo "  36  2"  >> HB.in')
+      call system('echo "  46  2"  >> HB.in')
+#include "../include/hBandS.inc_f"
 #ifdef HIGGSBOUNDS
-      if(access(HIGGSBOUNDS//"/HiggsBounds",'x') .ne.0) call system('cd '//HIGGSBOUNDS//'; ./configure; make ')
-      call system('cat spectr decay > HB.in')
-      err=HBblocks('HB.in')
-      call system( HIGGSBOUNDS//'/HiggsBounds  LandH SLHA 5 1 HB.in HB.out >hb.stdout')
-      err=slhaRead("HB.out",1+4)
-      write(*,fmt='("HB result=",1PE10.1,"obsratio=", E10.1)')
-     .slhaVal2("HiggsBoundsResults",0.d0,1,2), slhaVal2("HiggsBoundsResults",0.,1,3)
-      if(0.eq.slhaSTRFormat("HiggsBoundsResults","1 5 ||%[^|]||",buff)) write(*,*) "Channel: ", buff
-
+      write(*,fmt='("HB(",A, ")result=",1PE10.1,3x,"obsratio=", E10.1," channel=", A )') HB_version, HB_result,HB_obsratio,HB_chan
+#endif
+#ifdef HIGGSSIGNALS
+      write(*,fmt='("HS(",A, "): Nobservables=",F5.0," chi^2 =", 1PE10.2," pval= ", E10.2)') HS_version,HS_observ,HS_chi2, HS_pval
+#endif
 #endif
 
-#ifdef HIGGSSIGNALS
-#define DataSet " latestresults "
-C#define Method  " peak " 
-C#define  Method " mass "
-#define  Method " both "
-C* PDF 1 - box ; 2 = Gaussian; 3 box+Gaussia
-#define PDF  " 2 " 
-#define dMh " 2 " 
-      write(*,*) 'HiggsSignals:'       
-      if(access(HIGGSSIGNALS// '/HiggsSignals','x').ne.0 ) call system( 'cd ' //HIGGSSIGNALS//'; ./configure; make')
-      call system('rm -f HS.in HS.out')
-      err=slhaWrite("HS.in")
-      err=HBblocks("HS.in")
-      call system('echo "BLOCK DMASS" >> HS.in')
-      call system('echo "  25 '//dMh// '" >> HS.in')
-      call system(HIGGSSIGNALS//'/HiggsSignals'//DataSet//Method//PDF//'SLHA 5 1 HS.in > hs.stdout');
-      call system('grep -A 10000  HiggsSignalsResults HS.in > HS.out')
-      err=slhaRead('HS.out',1+4)
-      write(*,fmt='("  Number of observables ",F5.0)') slhaVal1("HiggsSignalsResults",0.d0,7)
-      write(*,fmt='("  total chi^2=", 1PE10.1)') slhaVal1("HiggsSignalsResults",0.d0,12)
-      write(*,fmt='("  p-value =", 1PE10.1)') slhaVal1('HiggsSignalsResults',0.d0,13)
-#undef dMh
-#undef PDF
-#undef Method
-#undef DataSet
-      
+
+#ifdef LILITH
+      if(LilithMDL("Lilith_in.xml").gt.0) then 
+         m2logL_reference=0
+         n_par=0
+#include "../include/Lilith.inc_f"
+         if(ndf.ne.0) write(*,fmt='("LILITH(DB",A,"):  -2*log(L): ",F5.2,"; -2*log(L_reference): ",F5.2,"; ndf: ",I3"; p-value: ",F5.2)') lilith_version, m2logL,m2logL_reference,ndf,pvalue
+      else 
+         write(*,*) "LILITH: there is no Higgs candidate"
+      endif     
+#endif
+
+
+#ifdef SMODELS
+      write(*,*) "SMODELS:"
+#include "../include/SMODELS.inc_f"
+      if(result.ge.0) write(*,fmt='("highest R=",1PE10.2," from ",A," topology ",A)') Rvalue,analysis,topology
+      if(result.eq.-1) write(*,*) 'no channels for testing.'
+      if(result.eq.0)  write(*,*) 'not excluded.' 
+      if(result.eq.1)  write(*,*) 'excluded.'
 #endif
 
 
@@ -363,7 +399,7 @@ C* PDF 1 - box ; 2 = Gaussian; 3 box+Gaussia
       Omega=darkOmega(Xf,fast,Beps)
       write(*,'(a,3x,1PE10.2)') 'Omega=',Omega
 
-      OmegaAppr=printChannels(Xf,cut,Beps,1,6)
+      if(Omega.gt.0)OmegaAppr=printChannels(Xf,cut,Beps,1,6)
 #endif
 
 
@@ -377,7 +413,7 @@ C** Emin - energy cut in GeV
 C** fi angle of sight [rad], dfi - half of cone angle    
       fi=0.1
       dfi=0.05
-      sigmaV=calcSpectrum(4+1,SpA,SpE,SpP,NULL,NULL,NULL,err)    
+      sigmaV=calcSpectrum(1+2+4,SpA,SpE,SpP,NULL,NULL,NULL,err)    
 C  Returns  sigma*v in cm^3/sec.
 C  SpX - calculated spectra of annihilation.
 C  Use SpectdNdE(E, SpX) to calculate energy distribution in 1/GeV units.
@@ -489,7 +525,7 @@ C  nucleon mass
 
       nEvents=nucleusRecoil(Maxwell,73,Z_Ge,J_Ge73,
      >S00Ge73,S01Ge73,S11Ge73,dNdE)
-C  See '../sources/micromegas.h' for description of arguments
+C  See '../include/micromegas.h' for description of arguments
 C  Instead of Maxwell  one can use 'fDvDelta' Delta-function
 C  velocity distribution.
       write(*,fmt="('Total number of events=',1PE9.2,' /day/kg')") 
@@ -621,19 +657,26 @@ C   pname = "~o2";
 
 #ifdef CROSS_SECTIONS
       write(*,*)
-      write(*,*)'======Calculations of cross sections======='
-      write(*,*) ' Process p,p -> ~o1,~o2'
-      Pcm=4000 
-      Qren=pMass("~o2")
-      Qfact=Qren
-      pTmin=0
-      cs=hCollider(Pcm,1,3,Qren, Qfact, "~o1","~o2",pTmin,1)
-      write(*,fmt="(1PE8.2,'[pb]')") cs 
-    
+      call nextOdd(next,1, nextM)
+      if((next(1:1).ne.' ') .and. (nextM.lt.1000)) then 
+         call antiparticle(next_,next)
+         write(*,*)'======Calculations of cross sections======='
+         write(*,*) ' Process p,p -> ', next,next_
+         Pcm=6500 
+         Qren=nextM
+         Qfact=Qren
+         pTmin=0
+         cs=hCollider(Pcm,1,3,Qren, Qfact, next,next_,pTmin,1)
+         write(*,fmt="('total cross section  ', 1PE8.2,'[pb]')") cs 
+      endif    
 #endif
 
 #ifdef CLEAN
       call killPlots
-      call system("rm -f inp spectr decay nngg.out Lilith_*.* ")
-      END
+      call system("rm -f inp spectr decay nngg.out omega ")
+      call system("rm -f  nngg.out output.flha ")
+      call system("rm -f HB.* HS.* hb.* hs.*  debug_channels.txt debug_predratio.txt  Key.dat")
+      call system("rm -f Lilith_*   particles.py*")
+      call system("rm -f  smodels.in  smodels.log  smodels.out summary.*")
 #endif
+      END

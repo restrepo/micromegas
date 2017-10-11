@@ -1,0 +1,689 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>theory.element &mdash; SModelS 1.1.0patch1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="SModelS 1.1.0patch1 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> SModelS
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.1.0patch1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../theory.html">theory package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../experiment.html">experiment package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tools.html">tools package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">SModelS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>theory.element</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for theory.element</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: element</span>
+<span class="sd">   :synopsis: Module holding the Element class and its methods.</span>
+<span class="sd">    </span>
+<span class="sd">.. moduleauthor:: Andre Lessa &lt;lessa.a.p@gmail.com&gt;</span>
+<span class="sd">    </span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">smodels.theory.particleNames</span> <span class="kn">import</span> <span class="n">elementsInStr</span>
+<span class="kn">from</span> <span class="nn">smodels.theory.branch</span> <span class="kn">import</span> <span class="n">Branch</span>
+<span class="kn">from</span> <span class="nn">smodels.theory</span> <span class="kn">import</span> <span class="n">crossSection</span>
+<span class="kn">from</span> <span class="nn">smodels.particles</span> <span class="kn">import</span> <span class="n">rEven</span><span class="p">,</span> <span class="n">ptcDic</span>
+<span class="kn">from</span> <span class="nn">smodels.theory.exceptions</span> <span class="kn">import</span> <span class="n">SModelSTheoryError</span> <span class="k">as</span> <span class="n">SModelSError</span>
+<span class="kn">from</span> <span class="nn">smodels.tools.smodelsLogging</span> <span class="kn">import</span> <span class="n">logger</span>
+
+<div class="viewcode-block" id="Element"><a class="viewcode-back" href="../../theory.html#theory.element.Element">[docs]</a><span class="k">class</span> <span class="nc">Element</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An instance of this class represents an element.    </span>
+<span class="sd">    This class possesses a pair of branches and the element weight</span>
+<span class="sd">    (cross-section * BR).</span>
+<span class="sd">    </span>
+<span class="sd">    :ivar branches: list of branches (Branch objects)</span>
+<span class="sd">    :ivar weight: element weight (cross-section * BR)</span>
+<span class="sd">    :ivar motherElements: only for elements generated from a parent element</span>
+<span class="sd">                          by mass compression, invisible compression,etc.</span>
+<span class="sd">                          Holds a pair of (whence, mother element), where</span>
+<span class="sd">                          whence describes what process generated the element    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the element. If info is defined, tries to generate</span>
+<span class="sd">        the element using it.</span>
+<span class="sd">        </span>
+<span class="sd">        :parameter info: string describing the element in bracket notation</span>
+<span class="sd">                         (e.g. [[[e+],[jet]],[[e-],[jet]]])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">branches</span> <span class="o">=</span> <span class="p">[</span><span class="n">Branch</span><span class="p">(),</span> <span class="n">Branch</span><span class="p">()]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="n">crossSection</span><span class="o">.</span><span class="n">XSectionList</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">motherElements</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elID</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">covered</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tested</span> <span class="o">=</span> <span class="bp">False</span> 
+        
+        <span class="k">if</span> <span class="n">info</span><span class="p">:</span>
+            <span class="c1"># Create element from particle string</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="nb">str</span><span class="p">()):</span>
+                <span class="n">elements</span> <span class="o">=</span> <span class="n">elementsInStr</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">elements</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">elements</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">nel</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">if</span> <span class="n">elements</span><span class="p">:</span>
+                        <span class="n">nel</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">elements</span><span class="p">)</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Malformed input string. Number of elements &quot;</span>
+                                  <span class="s2">&quot;is </span><span class="si">%d</span><span class="s2"> (expected 1) in: ``</span><span class="si">%s</span><span class="s2">&#39;&#39;&quot;</span><span class="p">,</span> <span class="n">nel</span><span class="p">,</span> <span class="n">info</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="bp">None</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">el</span> <span class="o">=</span> <span class="n">elements</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">branches</span> <span class="o">=</span> <span class="n">elementsInStr</span><span class="p">(</span><span class="n">el</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">branches</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">branches</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Malformed input string. Number of &quot;</span>
+                                      <span class="s2">&quot;branches is </span><span class="si">%d</span><span class="s2"> (expected 2) in: ``</span><span class="si">%s</span><span class="s2">&#39;&#39;&quot;</span><span class="p">,</span>
+                                      <span class="nb">len</span><span class="p">(</span><span class="n">branches</span><span class="p">),</span> <span class="n">info</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="bp">None</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">branches</span> <span class="o">=</span> <span class="p">[]</span>                    
+                    <span class="k">for</span> <span class="n">branch</span> <span class="ow">in</span> <span class="n">branches</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Branch</span><span class="p">(</span><span class="n">branch</span><span class="p">))</span>
+            <span class="c1"># Create element from branch pair</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">([])</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">Branch</span><span class="p">()):</span>
+                <span class="k">for</span> <span class="n">ib</span><span class="p">,</span> <span class="n">branch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">info</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="p">[</span><span class="n">ib</span><span class="p">]</span> <span class="o">=</span> <span class="n">branch</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        
+    
+    <span class="k">def</span> <span class="nf">__cmp__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compares the element with other.        </span>
+<span class="sd">        The comparison is made based on branches.</span>
+<span class="sd">        OBS: The elements and the branches must be sorted! </span>
+<span class="sd">        :param other:  element to be compared (Element object)</span>
+<span class="sd">        :return: -1 if self &lt; other, 0 if self == other, +1, if self &gt; other.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c1">#Compare branches:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">branches</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">branches</span><span class="p">:</span>            
+            <span class="n">comp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">branches</span> <span class="o">&gt;</span> <span class="n">other</span><span class="o">.</span><span class="n">branches</span>
+            <span class="k">if</span> <span class="n">comp</span><span class="p">:</span> <span class="k">return</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>     
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cmp__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cmp__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span><span class="o">&lt;</span><span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">object</span><span class="o">.</span><span class="n">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create the element bracket notation string, e.g. [[[jet]],[[jet]].</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: string representation of the element (in bracket notation)    </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">particleString</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getParticles</span><span class="p">())</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span>\
+                <span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">particleString</span>
+    
+<div class="viewcode-block" id="Element.sortBranches"><a class="viewcode-back" href="../../theory.html#theory.element.Element.sortBranches">[docs]</a>    <span class="k">def</span> <span class="nf">sortBranches</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sort branches. The smallest branch is the first one.</span>
+<span class="sd">        See the Branch object for definition of branch size and comparison</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c1">#First make sure each branch is individually sorted </span>
+        <span class="c1">#(particles in each vertex are sorted)</span>
+        <span class="k">for</span> <span class="n">br</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="p">:</span>
+            <span class="n">br</span><span class="o">.</span><span class="n">sortParticles</span><span class="p">()</span>
+        <span class="c1">#Now sort branches</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">branches</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Element.particlesMatch"><a class="viewcode-back" href="../../theory.html#theory.element.Element.particlesMatch">[docs]</a>    <span class="k">def</span> <span class="nf">particlesMatch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">branchOrder</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compare two Elements for matching particles only.</span>
+<span class="sd">        Allow for inclusive particle labels (such as the ones defined in particles.py).</span>
+<span class="sd">        If branchOrder = False, check both branch orderings.</span>
+<span class="sd">        </span>
+<span class="sd">        :parameter other: element to be compared (Element object)</span>
+<span class="sd">        :parameter branchOrder: If False, check both orderings, otherwise</span>
+<span class="sd">                                check the same branch ordering</span>
+<span class="sd">        :returns: True, if particles match; False, else;        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">branches</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="c1">#Check if particles inside each branch match in the correct order</span>
+        <span class="n">branchMatches</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ib</span><span class="p">,</span><span class="n">br</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="p">):</span>
+            <span class="n">branchMatches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">br</span><span class="o">.</span><span class="n">particlesMatch</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">branches</span><span class="p">[</span><span class="n">ib</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="nb">sum</span><span class="p">(</span><span class="n">branchMatches</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">elif</span> <span class="n">branchOrder</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">else</span><span class="p">:</span>       
+        <span class="c1">#Now check for opposite order</span>
+            <span class="k">for</span> <span class="n">ib</span><span class="p">,</span><span class="n">br</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">switchBranches</span><span class="p">()</span><span class="o">.</span><span class="n">branches</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">br</span><span class="o">.</span><span class="n">particlesMatch</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">branches</span><span class="p">[</span><span class="n">ib</span><span class="p">]):</span>
+                    <span class="k">return</span> <span class="bp">False</span>
+
+            <span class="k">return</span> <span class="bp">True</span></div>
+
+
+<div class="viewcode-block" id="Element.copy"><a class="viewcode-back" href="../../theory.html#theory.element.Element.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a copy of self.        </span>
+<span class="sd">        Faster than deepcopy.     </span>
+<span class="sd">        </span>
+<span class="sd">        :returns: copy of element (Element object)   </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">newel</span> <span class="o">=</span> <span class="n">Element</span><span class="p">()</span>
+        <span class="n">newel</span><span class="o">.</span><span class="n">branches</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">branch</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="p">:</span>
+            <span class="n">newel</span><span class="o">.</span><span class="n">branches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">branch</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+        <span class="n">newel</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">newel</span><span class="o">.</span><span class="n">motherElements</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">motherElements</span><span class="p">[:]</span>
+        <span class="n">newel</span><span class="o">.</span><span class="n">elID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">elID</span>
+        <span class="k">return</span> <span class="n">newel</span></div>
+
+
+<div class="viewcode-block" id="Element.setMasses"><a class="viewcode-back" href="../../theory.html#theory.element.Element.setMasses">[docs]</a>    <span class="k">def</span> <span class="nf">setMasses</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">sameOrder</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">opposOrder</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the element masses to the input mass array.</span>
+<span class="sd">        </span>
+<span class="sd">        </span>
+<span class="sd">        :parameter mass: list of masses ([[masses for branch1],[masses for branch2]])</span>
+<span class="sd">        :parameter sameOrder: if True, set the masses to the same branch ordering</span>
+<span class="sd">                              If True and opposOrder=True, set the masses to the</span>
+<span class="sd">                              smaller of the two orderings.</span>
+<span class="sd">        :parameter opposOrder: if True, set the masses to the opposite branch ordering.</span>
+<span class="sd">                               If True and sameOrder=True, set the masses to the</span>
+<span class="sd">                               smaller of the two orderings.             </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">sameOrder</span> <span class="ow">and</span> <span class="n">opposOrder</span><span class="p">:</span>
+            <span class="n">newmass</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">mass</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">sameOrder</span><span class="p">:</span>
+            <span class="n">newmass</span> <span class="o">=</span> <span class="n">mass</span>
+        <span class="k">elif</span> <span class="n">opposOrder</span><span class="p">:</span>
+            <span class="n">newmass</span> <span class="o">=</span> <span class="p">[</span><span class="n">mass</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">mass</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Called with no possible ordering&quot;</span><span class="p">)</span>            
+            <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">newmass</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Called with wrong number of mass branches&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">mass</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">newmass</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">masses</span> <span class="o">=</span> <span class="n">mass</span><span class="p">[:]</span></div>
+
+
+<div class="viewcode-block" id="Element.switchBranches"><a class="viewcode-back" href="../../theory.html#theory.element.Element.switchBranches">[docs]</a>    <span class="k">def</span> <span class="nf">switchBranches</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Switch branches, if the element contains a pair of them.</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: element with switched branches (Element object)                </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">newEl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">newEl</span><span class="o">.</span><span class="n">branches</span> <span class="o">=</span> <span class="p">[</span><span class="n">newEl</span><span class="o">.</span><span class="n">branches</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">newEl</span><span class="o">.</span><span class="n">branches</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="k">return</span> <span class="n">newEl</span></div>
+
+
+<div class="viewcode-block" id="Element.getParticles"><a class="viewcode-back" href="../../theory.html#theory.element.Element.getParticles">[docs]</a>    <span class="k">def</span> <span class="nf">getParticles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the array of particles in the element.</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: list of particle strings                </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">ptcarray</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">branch</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="p">:</span>
+            <span class="n">ptcarray</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">branch</span><span class="o">.</span><span class="n">particles</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ptcarray</span></div>
+
+
+<div class="viewcode-block" id="Element.getMasses"><a class="viewcode-back" href="../../theory.html#theory.element.Element.getMasses">[docs]</a>    <span class="k">def</span> <span class="nf">getMasses</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the array of masses in the element.    </span>
+<span class="sd">        </span>
+<span class="sd">        :returns: list of masses (mass array)            </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">massarray</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">branch</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="p">:</span>
+            <span class="n">massarray</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">branch</span><span class="o">.</span><span class="n">masses</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">massarray</span></div>
+
+<div class="viewcode-block" id="Element.getPIDs"><a class="viewcode-back" href="../../theory.html#theory.element.Element.getPIDs">[docs]</a>    <span class="k">def</span> <span class="nf">getPIDs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the list of IDs (PDGs of the intermediate states appearing the cascade decay), i.e.</span>
+<span class="sd">        [  [[pdg1,pdg2,...],[pdg3,pdg4,...]] ].</span>
+<span class="sd">        The list might have more than one entry if the element combines different pdg lists:</span>
+<span class="sd">        [  [[pdg1,pdg2,...],[pdg3,pdg4,...]],  [[pdg1&#39;,pdg2&#39;,...],[pdg3&#39;,pdg4&#39;,...]], ...]</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: list of PDG ids</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">pids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ipid</span><span class="p">,</span><span class="n">PIDlist</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">PIDs</span><span class="p">):</span>            
+            <span class="k">for</span> <span class="n">ipid2</span><span class="p">,</span><span class="n">PIDlist2</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">PIDs</span><span class="p">):</span>
+                <span class="n">pids</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">PIDs</span><span class="p">[</span><span class="n">ipid</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">PIDs</span><span class="p">[</span><span class="n">ipid2</span><span class="p">]])</span>
+        
+        <span class="k">return</span> <span class="n">pids</span></div>
+
+<div class="viewcode-block" id="Element.getDaughters"><a class="viewcode-back" href="../../theory.html#theory.element.Element.getDaughters">[docs]</a>    <span class="k">def</span> <span class="nf">getDaughters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a pair of daughter IDs (PDGs of the last intermediate </span>
+<span class="sd">        state appearing the cascade decay), i.e. [ [pdgLSP1,pdgLSP2] ]    </span>
+<span class="sd">        Can be a list, if the element combines several daughters:</span>
+<span class="sd">        [ [pdgLSP1,pdgLSP2],  [pdgLSP1&#39;,pdgLSP2&#39;]] </span>
+<span class="sd">        </span>
+<span class="sd">        :returns: list of PDG ids</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">pids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getPIDs</span><span class="p">()</span>
+        <span class="n">daughterPIDs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">pidlist</span> <span class="ow">in</span> <span class="n">pids</span><span class="p">:</span>
+            <span class="n">daughterPIDs</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">pidlist</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">pidlist</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+            
+        <span class="k">return</span> <span class="n">daughterPIDs</span></div>
+    
+<div class="viewcode-block" id="Element.getMothers"><a class="viewcode-back" href="../../theory.html#theory.element.Element.getMothers">[docs]</a>    <span class="k">def</span> <span class="nf">getMothers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a pair of mother IDs (PDGs of the first intermediate </span>
+<span class="sd">        state appearing the cascade decay), i.e. [ [pdgMOM1,pdgMOM2] ]    </span>
+<span class="sd">        Can be a list, if the element combines several mothers:</span>
+<span class="sd">        [ [pdgMOM1,pdgMOM2],  [pdgMOM1&#39;,pdgMOM2&#39;]] </span>
+<span class="sd">        </span>
+<span class="sd">        :returns: list of PDG ids</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">pids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getPIDs</span><span class="p">()</span>
+        <span class="n">momPIDs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">pidlist</span> <span class="ow">in</span> <span class="n">pids</span><span class="p">:</span>
+            <span class="n">momPIDs</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">pidlist</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">pidlist</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]])</span>
+            
+        <span class="k">return</span> <span class="n">momPIDs</span>    </div>
+
+
+<div class="viewcode-block" id="Element.getEinfo"><a class="viewcode-back" href="../../theory.html#theory.element.Element.getEinfo">[docs]</a>    <span class="k">def</span> <span class="nf">getEinfo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get topology info from particle string.</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: dictionary containing vertices and number of final states information  </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">vertnumb</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">vertparts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">branch</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="p">:</span>
+            <span class="n">vertparts</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">ptcs</span><span class="p">)</span> <span class="k">for</span> <span class="n">ptcs</span> <span class="ow">in</span> <span class="n">branch</span><span class="o">.</span><span class="n">particles</span><span class="p">])</span>
+            <span class="n">vertnumb</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">branch</span><span class="o">.</span><span class="n">particles</span><span class="p">))</span>
+                
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;vertnumb&quot;</span> <span class="p">:</span> <span class="n">vertnumb</span><span class="p">,</span> <span class="s2">&quot;vertparts&quot;</span> <span class="p">:</span> <span class="n">vertparts</span><span class="p">}</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_getLength</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the maximum of the two branch lengths.    </span>
+<span class="sd">        </span>
+<span class="sd">        :returns: maximum length of the element branches (int)    </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">getLength</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">getLength</span><span class="p">())</span>
+
+
+<div class="viewcode-block" id="Element.checkConsistency"><a class="viewcode-back" href="../../theory.html#theory.element.Element.checkConsistency">[docs]</a>    <span class="k">def</span> <span class="nf">checkConsistency</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if the particles defined in the element exist and are consistent</span>
+<span class="sd">        with the element info.</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: True if the element is consistent. Print error message</span>
+<span class="sd">                  and exits otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getEinfo</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">ib</span><span class="p">,</span> <span class="n">branch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">iv</span><span class="p">,</span> <span class="n">vertex</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">branch</span><span class="o">.</span><span class="n">particles</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vertex</span><span class="p">)</span> <span class="o">!=</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;vertparts&#39;</span><span class="p">][</span><span class="n">ib</span><span class="p">][</span><span class="n">iv</span><span class="p">]:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Wrong syntax&quot;</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">ptc</span> <span class="ow">in</span> <span class="n">vertex</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">ptc</span> <span class="ow">in</span> <span class="n">rEven</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">ptc</span> <span class="ow">in</span> <span class="n">ptcDic</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unknown particle. Add &quot;</span> <span class="o">+</span> <span class="n">ptc</span> <span class="o">+</span> <span class="s2">&quot; to smodels/particle.py&quot;</span><span class="p">)</span>
+                        <span class="k">raise</span> <span class="n">SModelSError</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">True</span></div>
+
+    
+<div class="viewcode-block" id="Element.compressElement"><a class="viewcode-back" href="../../theory.html#theory.element.Element.compressElement">[docs]</a>    <span class="k">def</span> <span class="nf">compressElement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doCompress</span><span class="p">,</span> <span class="n">doInvisible</span><span class="p">,</span> <span class="n">minmassgap</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Keep compressing the original element and the derived ones till they</span>
+<span class="sd">        can be compressed no more.</span>
+<span class="sd">        </span>
+<span class="sd">        :parameter doCompress: if True, perform mass compression</span>
+<span class="sd">        :parameter doInvisible: if True, perform invisible compression</span>
+<span class="sd">        :parameter minmassgap: value (in GeV) of the maximum </span>
+<span class="sd">                               mass difference for compression</span>
+<span class="sd">                               (if mass difference &lt; minmassgap, perform mass compression)</span>
+<span class="sd">        :returns: list with the compressed elements (Element objects)        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">added</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">newElements</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="p">]</span>
+        <span class="c1"># Keep compressing the new topologies generated so far until no new</span>
+        <span class="c1"># compressions can happen:</span>
+        <span class="k">while</span> <span class="n">added</span><span class="p">:</span>
+            <span class="n">added</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="c1"># Check for mass compressed topologies</span>
+            <span class="k">if</span> <span class="n">doCompress</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">newElements</span><span class="p">:</span>
+                    <span class="n">newel</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">massCompress</span><span class="p">(</span><span class="n">minmassgap</span><span class="p">)</span>
+                    <span class="c1"># Avoids double counting (conservative)</span>
+                    <span class="k">if</span> <span class="n">newel</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">newel</span><span class="o">.</span><span class="n">hasTopInList</span><span class="p">(</span><span class="n">newElements</span><span class="p">):</span>
+                        <span class="n">newElements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newel</span><span class="p">)</span>
+                        <span class="n">added</span> <span class="o">=</span> <span class="bp">True</span>
+
+            <span class="c1"># Check for invisible compressed topologies (look for effective</span>
+            <span class="c1"># LSP, such as LSP + neutrino = LSP&#39;)</span>
+            <span class="k">if</span> <span class="n">doInvisible</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">newElements</span><span class="p">:</span>
+                    <span class="n">newel</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">invisibleCompress</span><span class="p">()</span>
+                    <span class="c1"># Avoids double counting (conservative)</span>
+                    <span class="k">if</span> <span class="n">newel</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">newel</span><span class="o">.</span><span class="n">hasTopInList</span><span class="p">(</span><span class="n">newElements</span><span class="p">):</span>
+                        <span class="n">newElements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newel</span><span class="p">)</span>
+                        <span class="n">added</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="n">newElements</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># Remove original element</span>
+        <span class="k">return</span> <span class="n">newElements</span></div>
+
+<div class="viewcode-block" id="Element.massCompress"><a class="viewcode-back" href="../../theory.html#theory.element.Element.massCompress">[docs]</a>    <span class="k">def</span> <span class="nf">massCompress</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">minmassgap</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform mass compression.</span>
+<span class="sd">        </span>
+<span class="sd">        :parameter minmassgap: value (in GeV) of the maximum </span>
+<span class="sd">                               mass difference for compression</span>
+<span class="sd">                               (if mass difference &lt; minmassgap -&gt; perform mass compression)</span>
+<span class="sd">        :returns: compressed copy of the element, if two masses in this</span>
+<span class="sd">                  element are degenerate; None, if compression is not possible;        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">masses</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getMasses</span><span class="p">()</span>
+        <span class="n">massDiffs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1">#Compute mass differences in each branch</span>
+        <span class="k">for</span> <span class="n">massbr</span> <span class="ow">in</span> <span class="n">masses</span><span class="p">:</span>
+            <span class="n">massDiffs</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">massbr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">massbr</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">massbr</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)])</span>
+        <span class="c1">#Compute list of vertices to be compressed in each branch            </span>
+        <span class="n">compVertices</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ibr</span><span class="p">,</span><span class="n">massbr</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">massDiffs</span><span class="p">):</span>
+            <span class="n">compVertices</span><span class="o">.</span><span class="n">append</span><span class="p">([])</span>
+            <span class="k">for</span> <span class="n">iv</span><span class="p">,</span><span class="n">massD</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">massbr</span><span class="p">):</span>            
+                <span class="k">if</span> <span class="n">massD</span> <span class="o">&lt;</span> <span class="n">minmassgap</span><span class="p">:</span> <span class="n">compVertices</span><span class="p">[</span><span class="n">ibr</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">iv</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">sum</span><span class="p">(</span><span class="n">compVertices</span><span class="p">,[]):</span> <span class="k">return</span> <span class="bp">None</span> <span class="c1">#Nothing to be compressed</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">newelement</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">newelement</span><span class="o">.</span><span class="n">motherElements</span> <span class="o">=</span> <span class="p">[</span> <span class="p">(</span><span class="s2">&quot;mass&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span> <span class="p">]</span>
+            <span class="k">for</span> <span class="n">ibr</span><span class="p">,</span><span class="n">compbr</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">compVertices</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">compbr</span><span class="p">:</span>            
+                    <span class="n">new_branch</span> <span class="o">=</span> <span class="n">newelement</span><span class="o">.</span><span class="n">branches</span><span class="p">[</span><span class="n">ibr</span><span class="p">]</span>
+                    <span class="n">ncomp</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">for</span> <span class="n">iv</span> <span class="ow">in</span> <span class="n">compbr</span><span class="p">:</span>
+                        <span class="n">new_branch</span><span class="o">.</span><span class="n">masses</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">iv</span><span class="o">-</span><span class="n">ncomp</span><span class="p">)</span>
+                        <span class="n">new_branch</span><span class="o">.</span><span class="n">particles</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">iv</span><span class="o">-</span><span class="n">ncomp</span><span class="p">)</span>
+                        <span class="n">ncomp</span> <span class="o">+=</span><span class="mi">1</span>
+                    <span class="n">new_branch</span><span class="o">.</span><span class="n">setInfo</span><span class="p">()</span> 
+
+        <span class="n">newelement</span><span class="o">.</span><span class="n">sortBranches</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">newelement</span></div>
+    
+
+<div class="viewcode-block" id="Element.hasTopInList"><a class="viewcode-back" href="../../theory.html#theory.element.Element.hasTopInList">[docs]</a>    <span class="k">def</span> <span class="nf">hasTopInList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elementList</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if the element topology matches any of the topologies in the</span>
+<span class="sd">        element list.</span>
+<span class="sd">        </span>
+<span class="sd">        :parameter elementList: list of elements (Element objects)</span>
+<span class="sd">        :returns: True, if element topology has a match in the list, False otherwise.        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">elementList</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">([])</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">elementList</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">elementList</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">element</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">info1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getEinfo</span><span class="p">()</span>
+            <span class="n">info2</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">getEinfo</span><span class="p">()</span>
+            <span class="n">info2B</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">switchBranches</span><span class="p">()</span><span class="o">.</span><span class="n">getEinfo</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">info1</span> <span class="o">==</span> <span class="n">info2</span> <span class="ow">or</span> <span class="n">info1</span> <span class="o">==</span> <span class="n">info2B</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="bp">False</span></div>
+
+
+<div class="viewcode-block" id="Element.invisibleCompress"><a class="viewcode-back" href="../../theory.html#theory.element.Element.invisibleCompress">[docs]</a>    <span class="k">def</span> <span class="nf">invisibleCompress</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform invisible compression.</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: compressed copy of the element, if element ends with invisible</span>
+<span class="sd">                  particles; None, if compression is not possible</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">newelement</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">newelement</span><span class="o">.</span><span class="n">motherElements</span> <span class="o">=</span> <span class="p">[</span> <span class="p">(</span><span class="s2">&quot;invisible&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span> <span class="p">]</span>
+
+        <span class="c1"># Loop over branches</span>
+        <span class="k">for</span> <span class="n">ib</span><span class="p">,</span> <span class="n">branch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="p">):</span>
+            <span class="n">particles</span> <span class="o">=</span> <span class="n">branch</span><span class="o">.</span><span class="n">particles</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">branch</span><span class="o">.</span><span class="n">particles</span><span class="p">:</span>
+                <span class="k">continue</span> <span class="c1"># Nothing to be compressed</span>
+            <span class="c1">#Go over the branch starting at the end and remove invisible vertices: </span>
+            <span class="k">for</span> <span class="n">ivertex</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">particles</span><span class="p">))):</span>
+                <span class="k">if</span> <span class="n">particles</span><span class="p">[</span><span class="n">ivertex</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;nu&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">particles</span><span class="p">[</span><span class="n">ivertex</span><span class="p">]):</span>
+                    <span class="n">newelement</span><span class="o">.</span><span class="n">branches</span><span class="p">[</span><span class="n">ib</span><span class="p">]</span><span class="o">.</span><span class="n">masses</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">ivertex</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="n">newelement</span><span class="o">.</span><span class="n">branches</span><span class="p">[</span><span class="n">ib</span><span class="p">]</span><span class="o">.</span><span class="n">particles</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">ivertex</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">break</span>
+            <span class="n">newelement</span><span class="o">.</span><span class="n">branches</span><span class="p">[</span><span class="n">ib</span><span class="p">]</span><span class="o">.</span><span class="n">setInfo</span><span class="p">()</span>
+
+        <span class="n">newelement</span><span class="o">.</span><span class="n">sortBranches</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">newelement</span> <span class="o">==</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">else</span><span class="p">:</span>            
+            <span class="k">return</span> <span class="n">newelement</span></div>
+
+
+<div class="viewcode-block" id="Element.combineMotherElements"><a class="viewcode-back" href="../../theory.html#theory.element.Element.combineMotherElements">[docs]</a>    <span class="k">def</span> <span class="nf">combineMotherElements</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">el2</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Combine mother elements from self and el2 into self</span>
+<span class="sd">        </span>
+<span class="sd">        :parameter el2: element (Element Object)  </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">motherElements</span> <span class="o">+=</span> <span class="n">el2</span><span class="o">.</span><span class="n">motherElements</span></div>
+
+
+<div class="viewcode-block" id="Element.combinePIDs"><a class="viewcode-back" href="../../theory.html#theory.element.Element.combinePIDs">[docs]</a>    <span class="k">def</span> <span class="nf">combinePIDs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">el2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Combine the PIDs of both elements. If the PIDs already appear in self,</span>
+<span class="sd">        do not add them to the list.</span>
+<span class="sd">        </span>
+<span class="sd">        :parameter el2: element (Element Object) </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+           
+        <span class="n">elPIDs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getPIDs</span><span class="p">()</span>
+        <span class="n">newelPIDs</span> <span class="o">=</span> <span class="n">el2</span><span class="o">.</span><span class="n">getPIDs</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">pidlist</span> <span class="ow">in</span> <span class="n">newelPIDs</span><span class="p">:</span>                    
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">pidlist</span> <span class="ow">in</span> <span class="n">elPIDs</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">PIDs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pidlist</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">PIDs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pidlist</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, &lt;function authors at 0x7f73f74eb500&gt;.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.1.0patch1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

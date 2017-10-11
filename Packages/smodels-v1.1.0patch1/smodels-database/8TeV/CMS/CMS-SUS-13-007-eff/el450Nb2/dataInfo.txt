@@ -1,0 +1,7 @@
+dataType: efficiencyMap
+dataId: el450Nb2
+observedN: 0
+expectedBG: 0
+bgError: 0.44
+upperLimit: 0.15496927535*fb
+expectedUpperLimit: 0.15496927535*fb

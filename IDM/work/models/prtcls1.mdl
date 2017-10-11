@@ -2,9 +2,9 @@ Inert Dublet+hgg
  Particles 
 Full   Name     | P | aP|  number  |spin2|mass|width|color|aux| LaTeX(A)       |  LateX(A+)         |
 photon          |A  |A  |22        |2    |0   |0    |1    |G  |A               |A
-Z boson         |Z  |Z  |23        |2    |MZ  |wZ   |1    |G  |Z               |Z
+Z boson         |Z  |Z  |23        |2    |MZ  |!wZ  |1    |G  |Z               |Z
 gluon           |G  |G  |21        |2    |0   |0    |8    |G  |G               |G
-W boson         |W+ |W- |24        |2    |MW  |wW   |1    |G  |W^+             |W^-
+W boson         |W+ |W- |24        |2    |MW  |!wW  |1    |G  |W^+             |W^-
 neutrino        |ne |Ne |12        |1    |0   |0    |1    |L  |\nu^e           |\bar{\nu}^e
 electron        |e  |E  |11        |1    |0   |0    |1    |   |e               |\bar{e}
 mu-neutrino     |nm |Nm |14        |1    |0   |0    |1    |L  |\nu^\mu         |\bar{\nu}^\mu

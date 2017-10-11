@@ -72,6 +72,4 @@ void link_process( CalcHEP_interface * interface)
   *gswidth_int=0;
   *gtwidth_int=0;
   *twidth_int=0;
-  if(nin_int==1) inP1=0;
-
 }

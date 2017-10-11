@@ -2,7 +2,7 @@
 
 Tools = UMSSMTools
 
-all: aLib.a umhdecay
+all: aLib.a umssmtoolslib
 
 ifneq ($(MAKECMDGOALS),clean)
 include  ../../CalcHEP_src/FlagsForMake
@@ -15,15 +15,16 @@ aLib.a:aLib.a($(aLibOBJ))
 	$(RANLIB) aLib.a
 	rm -f $(aLibOBJ)
 
-aLib.a(calchep_func.o): lpath.h
+aLib.a(mo_func.o): lpath.h
 
 lpath.h:
 	echo \#define LPATH \"`pwd`\" > lpath.h
 
-umhdecay: $(Tools)/umhdecay.F $(Tools)/sources/*.f $(Tools)/sources/*.c
-	echo $(MAKE) -C  $(Tools) ../umhdecay
-	$(MAKE) -C  $(Tools) ../umhdecay
+umssmtoolslib: $(Tools)/umssmtools.F $(Tools)/sources/*.f $(Tools)/sources/*.c
+	echo $(MAKE) -C  $(Tools) ../umssmtoolslib
+	$(MAKE) -C  $(Tools) ../umssmtoolslib
 
 clean:
-	rm -f lpath.h *.o *.a  *.exe  
+	rm -f lpath.h *.o *.a  *.exe
+	rm -rf *.dSYM
 	$(MAKE) -C $(Tools) clean

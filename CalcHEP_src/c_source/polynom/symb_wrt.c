@@ -161,6 +161,7 @@ void  writespinor(SpinTensor p)
    }
 }
 
+
 void  symb_print(char* txt, symb_data  m)
 {  char s[5];
    int n;
@@ -201,4 +202,208 @@ void  symb_print(char* txt, symb_data  m)
         }							       
    }
    writeF(";\n");
+}
+
+
+static int  expand_poly(poly p, char***txt, poly**exp)
+{
+   int Nterm=0;
+   *txt=NULL;
+   *exp=NULL;
+   char buff[STRSIZ]={};
+   poly p_=NULL;
+   for(;p;)
+   { 
+     int  i, deg;
+     char text[STRSIZ]={}; 
+     poly q=p; 
+     p=p->next; q->next=NULL; 
+     for(i = 0; i < vardef->nvar; i++) if(strchr(vardef->vars[i].name,'.')) 
+     {
+         deg = (q->power[vardef->vars[i].wordpos-1]/vardef->vars[i].zerodeg) %
+                vardef->vars[i].maxdeg;
+         if(deg > 0)
+         {  q->power[vardef->vars[i].wordpos-1]-=vardef->vars[i].zerodeg*deg; 
+            if(strlen(text)) strcat(text,"*");
+            strcat(text,vardef->vars[i].name);
+            if(deg > 1)  sprintf(text+strlen(text),"^%d",deg);
+         }
+     }
+
+     if(!p_){ p_=q; strcpy(buff,text);}  
+     else  if(strcmp(text,buff)==0)  sewpoly(&p_,&q);
+     else 
+     {  
+        *txt=(char**)realloc(*txt,sizeof(char*)*(Nterm+1));
+        (*txt)[Nterm]=malloc(strlen(buff)+10);
+        strcpy((*txt)[Nterm],buff);
+        *exp=(poly*)realloc(*exp,sizeof(poly)*(Nterm+1)); 
+        (*exp)[Nterm]=p_;
+        Nterm++;
+        p_=q;
+        strcpy(buff,text); 
+      }      
+   }
+   if(p_)
+     { 
+        *txt=(char**)realloc(*txt,sizeof(char*)*(Nterm+1));
+        (*txt)[Nterm]=malloc(strlen(buff)+10);
+        strcpy((*txt)[Nterm],buff);
+        *exp=(poly*)realloc(*exp,sizeof(poly)*(Nterm+1));
+        (*exp)[Nterm]=p_;
+        Nterm++;
+      }  
+   return Nterm;  
+}  
+
+static int  expand_tensor(tensor p, char***txt, poly**exp)
+{  char  text[STRSIZ],buff[STRSIZ];
+   int   i,s;
+   int   plus, first;
+   int   isMono;
+
+   *txt=NULL;
+   *exp=NULL;   
+    int Nterm=0; 
+
+   for(; p; p=p->next)
+   {
+      strcpy(text,"");
+      first = 1;
+      for (i = 1; i <= maxIndex; i++)
+      {
+         s = p->tens[i-1];
+         if(s < i && s)
+         {
+            if(first) first = 0; else strcat(text,"*"); 
+            if(s > 0) sprintf(text+strlen(text),"m%d.m%d",i,s); 
+            else      sprintf(text+strlen(text),"p%d.m%d",-s,i); 
+         } 
+      }
+
+      char**txtRe=NULL,**txtIm=NULL;  
+      poly*expRe=NULL,*expIm=NULL;
+      int Nre=0,Nim=0;
+      if(p->re)
+      { Nre=expand_poly(p->re,&txtRe,&expRe);
+        for(i=0;i<Nre;i++) 
+        { txtRe[i]=realloc(txtRe[i], strlen(txtRe[i])+strlen(text)+2);
+          if(strlen(txtRe[i])&& strlen(text)) { sprintf(buff,"%s*%s",text,txtRe[i]); strcpy(txtRe[i],buff); }
+          else if(strlen(text)) strcpy(txtRe[i],text); 
+        }
+      }       
+
+      if(p->im)
+      { Nim=expand_poly(p->im,&txtIm,&expIm);
+        for(i=0;i<Nim;i++) 
+        { txtIm[i]=realloc(txtIm[i], strlen(txtIm[i])+strlen(text)+4);
+          if(strlen(txtIm[i])&&strlen(text)) { sprintf(buff,"%s*i*%s",text,txtIm[i]);strcpy(txtIm[i],buff);}
+          else if(strlen(txtIm[i])==0 && strlen(text)==0) strcpy(txtIm[i],"i");
+          else if(strlen(text))      sprintf(txtIm[i],"%s*i",text);
+          else if(strlen(txtIm[i])) { sprintf(buff, "i*%s",txtIm[i]); strcpy(txtIm[i],buff);}                   
+        }
+      }
+
+      *txt=(char**)realloc(*txt,(Nterm+Nre+Nim)*sizeof(char*));
+      *exp=(poly*) realloc(*exp,(Nterm+Nre+Nim)*sizeof(poly));
+      for(i=0;i<Nre;i++) {(*txt)[Nterm+i]=txtRe[i]; (*exp)[Nterm+i]=expRe[i];}
+      Nterm+=Nre;free(txtRe);free(expRe);  
+      for(i=0;i<Nim;i++) {(*txt)[Nterm+i]=txtIm[i]; (*exp)[Nterm+i]=expIm[i];}
+      Nterm+=Nim; free(txtIm); free(expIm);     
+   }
+   return Nterm;   
+} 
+
+static int  expand_spinor(SpinTensor p, char***txt, poly**exp)
+{  char  text[STRSIZ],buff[STRSIZ];
+   int   i,l;
+   *txt=NULL;
+   *exp=NULL;   
+    int Nterm=0; 
+
+   for(; p; p=p->next)
+   {
+      strcpy(text,"");
+      if(p->g5 || p->l)
+      { 
+         if(p->g5) strcat(text,"G5");
+         for(i=0;i<p->l;i++)
+         { int  c=p->g[i];
+           l=strlen(text);
+           if(l) {strcat(text,"*");l++;}
+           if(c>0)sprintf(text+l,"G(m%d)",c);else sprintf(text+l,"G(p%d)",-c);
+         }
+      }     
+      char**txtT=NULL;  
+      poly*expT=NULL;
+      int NT=0;
+      
+      NT=expand_tensor(p->tcoef,&txtT,&expT);
+        for(i=0;i<NT;i++) 
+        {
+          txtT[i]=realloc(txtT[i], strlen(txtT[i])+strlen(text)+2);
+          if(strlen(txtT[i])) { sprintf(buff,"%s*%s",text,txtT[i]); strcpy(txtT[i],buff); }
+          else strcpy(txtT[i],text); 
+        }      
+
+      *txt=(char**)realloc(*txt,(Nterm+NT)*sizeof(char*));
+      *exp=(poly*) realloc(*exp,(Nterm+NT)*sizeof(poly));
+      for(i=0;i<NT;i++) {(*txt)[Nterm+i]=txtT[i]; (*exp)[Nterm+i]=expT[i];}
+      Nterm+=NT;free(txtT);free(expT);
+   }
+   return Nterm;   
+} 
+
+static int  expand_Etens(Etens p, char***txt, poly**exp)
+{  char  text[STRSIZ],buff[STRSIZ];
+   int   i,l;
+   *txt=NULL;
+   *exp=NULL;   
+    int Nterm=0; 
+
+   for(; p; p=p->next)
+   {
+      strcpy(text,"");
+      if(p->eps[0]!=X_MARK)
+      {  sprintf(text,"eps(");
+         for(i=0;i<4;i++)
+         { int  c=p->eps[i];
+           l=strlen(text);
+           if(c>0)sprintf(text+l,"m%d,",c);else sprintf(text+l,"p%d,",-c);
+         }
+         text[strlen(text)-1]=')';
+      }     
+      
+      char**txtT=NULL;  
+      poly*expT=NULL;
+      int NT=0;
+      NT=expand_tensor(p->tcoef,&txtT,&expT);
+        for(i=0;i<NT;i++) 
+        { txtT[i]=realloc(txtT[i], strlen(txtT[i])+strlen(text)+2);
+          if(strlen(txtT[i])) { sprintf(buff,"%s*%s",text,txtT[i]); strcpy(txtT[i],buff); }
+          else strcpy(txtT[i],text); 
+        }      
+
+      *txt=(char**)realloc(*txt,(Nterm+NT)*sizeof(char*));
+      *exp=(poly*) realloc(*exp,(Nterm+NT)*sizeof(poly));
+      for(i=0;i<NT;i++) {(*txt)[Nterm+i]=txtT[i]; (*exp)[Nterm+i]=expT[i];}
+      Nterm+=NT;free(txtT);free(expT);
+   }
+   return Nterm;   
+} 
+
+int   symb_expand(symb_data  m, char***txt,poly**exp)
+{  char s[5];
+   int Nterm;
+
+   switch(m.type)  
+   { case numbertp:
+     case polytp : Nterm= expand_poly(m.expr.p,  txt,exp);break;
+     case tenstp : Nterm= expand_tensor(m.expr.t,  txt,exp);break;
+     case spintp : Nterm= expand_spinor(m.expr.s,txt,exp);
+     break;
+     case etenstp: Nterm= expand_Etens(m.expr.et,txt,exp);break;
+     default:      Nterm=0; *txt=NULL; *exp=NULL;
+   } 
+   return Nterm;     
 }

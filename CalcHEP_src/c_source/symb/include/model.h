@@ -1,7 +1,7 @@
 #ifndef __MODEL__
 #define __MODEL__
 
-#include "polynom.h"   /* for VAR_NAME_SIZE  */
+#include "../../../include/VandP_size.h"
 
 #define MAXINOUT 9
 
@@ -17,6 +17,7 @@ typedef struct varrec
   double     varvalue;
   int        pwidth;
   char *     func;
+  int        line;
 } varrec;
 typedef struct varrec *varlist;
                         
@@ -26,7 +27,6 @@ extern varlist  modelvars;
 
 /*=================== particles ==================== */
 
-#define P_NAME_SIZE 11
 #define MAXVALENCE 4
 
 typedef short particleNumType;

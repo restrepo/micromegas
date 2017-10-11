@@ -94,6 +94,7 @@ void decay_1(int nvpole, REAL *hsum, REAL *hdif,iDecay*memDecay,REAL*V)
     pp = vdot4(nvpole, nvpole,V);
     p0 = e0v * vp;
     p1 = sqrt(p0*p0 - pp);
+
     *hdif = p1 * 2 * pout;
     hsum[0] = pp + am1*am1 + p0 * 2 * e1out;
     hsum[1] = pp + am2*am2 + p0 * 2 * e2out;
@@ -153,12 +154,23 @@ void decay_3(int nvath, REAL parcos, REAL parfi, int nvout1, int nvout2,iDecay*m
        V[i+4*nvout2-4] = e2out*e0v*V[i+4*n0-4] - V[i+4*n3-4];
        V[i+4*nvout1-4] = e1out*e0v*V[i+4*n0-4] + V[i+4*n3-4];
     }   
-
     
 /*
-   if(am1!=0 && vdot4(nvout1, nvout1)<0) printf("nvout1^2=%E am1=%E\n",vdot4(nvout1, nvout1),am1);
-   if(am2!=0 && vdot4(nvout2, nvout2)<0) printf("nvout2^2=%E am2=%E\n",vdot4(nvout2, nvout2),am2);
-*/
+   if((am1!=0 && vdot4(nvout1, nvout1,V)<0)||(am2!=0 && vdot4(nvout2, nvout2,V)<0 )  )
+   {  printf("nvout1^2=%E am1=%E\n",vdot4(nvout1, nvout1,V),am1);
+      printf("nvout2^2=%E am2=%E\n",vdot4(nvout2, nvout2,V),am2);
+      printf("v0=%E\n", v0);
+      printf("pout=%e\n", pout);
+      printf(" in={%e %e %e %e}\n",V[0+4*n0-4],V[1+4*n0-4],V[2+4*n0-4],V[3+4*n0-4]);
+      printf(" out={%e %e %e %e}\n",V[0+4*nvout1-4]+V[0+4*nvout2-4]  ,
+      V[1+4*nvout1-4]+V[1+4*nvout2-4] ,
+      V[2+4*nvout1-4]+V[2+4*nvout2-4],
+      V[3+4*nvout1-4]+V[3+4*nvout2-4]); 
+      printf(" pole V= {%e %e %e %e}\n", V[0+4*n1-4],V[1+4*n1-4],V[2+4*n1-4],V[3+4*n1-4]);
+      printf(" azim V= {%e %e %e %e}\n", V[0+4*n2-4],V[1+4*n2-4],V[2+4*n2-4],V[3+4*n2-4]);
+   }
+*/   
+
 }
 
 

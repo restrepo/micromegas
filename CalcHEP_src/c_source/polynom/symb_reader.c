@@ -14,7 +14,7 @@
 #include "symb_reader.h"
 #include "symb_tot.h"
 
-/*#define STRACE*/
+//#define STRACE
 #ifdef STRACE
 #include "symb_wrt.h"
 #endif
@@ -64,7 +64,7 @@ symb_all rd_symb(char*s)
        p->expr.p->power[vardef->vars[i].wordpos-1] =vardef->vars[i].zerodeg;
        p->type=polytp;
        break;
-     } 
+     }
      if(i==vardef->nvar)
      { p->expr.p=NULL;
        p->type=errortp;
@@ -112,6 +112,10 @@ static symb_all uact_(char * ch, symb_all mm)
    { mm->type=errortp;
      mm->expr.p=NULL;
    }  
+#ifdef STRACE
+         symb_print("result ",*mm);
+#endif      
+
    return mm;
 }
 
@@ -122,7 +126,7 @@ static symb_all  bact_(char ch,symb_all mm1,symb_all mm2)
  NewUnit(mm3); mm3->type= errortp; mm3->expr.p=NULL;
  
 #ifdef STRACE
-	printf("\n bact_ (%d)(%c)(%d)\n",mm1->type,ch,mm2->type);
+	 printf("\n bact_ (%d)(%c)(%d)\n",mm1->type,ch,mm2->type);
 	 symb_print("?",*mm1);printf(" \n|%c|\n ",ch);
 	 symb_print("?",*mm2);printf("\n\n ->\n\n ");
 #endif
@@ -144,7 +148,7 @@ static symb_all  bact_(char ch,symb_all mm1,symb_all mm2)
          mm3->type=tenstp;       
    }
 #ifdef STRACE
-	 symb_print("?",*mm3);
+	 symb_print("result ",*mm3);
 #endif
    return mm3;
 }

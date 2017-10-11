@@ -1,0 +1,7 @@
+dataType: efficiencyMap
+dataId: SRA mCT350
+observedN: 3
+expectedBG: 2.5
+bgError: 0.6
+upperLimit: 0.26*fb
+expectedUpperLimit: 0.235*fb

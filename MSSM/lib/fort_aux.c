@@ -4,7 +4,7 @@
 #include"pmodel_f.h"
 
 #include<errno.h>
-#include"../../sources/micromegas_aux.h"
+#include"../../include/micromegas_aux.h"
 
 
 double deltamb_(void){ return  deltaMb();}
@@ -51,12 +51,22 @@ void o1contents_(int *Nch)
   unlink(fname);
 }
 
-int  hbblocks_(char * fname,int len)
-{
+int  hbblocksmdl_(char *fname, int * nHch,int len)
+{ 
   char * cname=malloc(len+2);
-  int err;
-  fName2c(fname,cname,len);
-  err=HBblocks(cname);
-  free(cname);
-  return err;           
+  int nHiggs;  
+  fName2c(fname,cname,len);    
+  nHiggs= hbBlocksMDL(cname,nHch);      
+  free(cname);        
+  return nHiggs;          
+}  
+
+int lilithmdl_(char*fname,int len)
+{
+   char * cname=malloc(len+2);
+   int err;
+   fName2c(fname,cname,len);
+   err= LilithMDL(cname);
+   free(cname);
+   return err; 
 }

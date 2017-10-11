@@ -1,0 +1,729 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Output Description &mdash; SModelS 1.1.0patch1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="SModelS 1.1.0patch1 documentation" href="index.html"/>
+        <link rel="up" title="Detailed Guide to SModelS" href="SModelsDocs.html"/>
+        <link rel="next" title="How To’s" href="Examples.html"/>
+        <link rel="prev" title="Confronting Predictions with Experimental Limits" href="ConfrontPredictions.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> SModelS
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.1.0patch1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="ReleaseUpdate.html">What&#8217;s New in Version 1.1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation and Deployment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RunningSModelS.html">Using SModelS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">SModelS Tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="SModelsDocs.html">Detailed Guide to SModelS</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="SModelSDefs.html">Basic Concepts and Definitions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Structure.html">SModelS Structure</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">Output Description</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#screen-stdout-output">Screen (Stdout) Output</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#log-output">Log Output</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#summary-file-output">Summary File Output</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#python-output">Python Output</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#xml-output">XML Output</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">How To&#8217;s</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CodeDocs.html">SModelS Code Documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">SModelS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="SModelsDocs.html">Detailed Guide to SModelS</a> &raquo;</li>
+      
+    <li>Output Description</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/OutputDescription.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <span class="target" id="index-0"></span><div class="section" id="output-description">
+<span id="outputdescription"></span><h1>Output Description<a class="headerlink" href="#output-description" title="Permalink to this headline">¶</a></h1>
+<p>A detailed description of the possible output formats generated
+by <a class="reference internal" href="RunningSModelS.html#runningsmodels"><span>running SModelS</span></a> and their content is given below.
+For simplicity we will assume that all printer options
+in the <a class="reference internal" href="RunningSModelS.html#parameterfile"><span>parameters file</span></a> are set to True, so the output information is maximal.</p>
+<div class="section" id="screen-stdout-output">
+<span id="screenout"></span><h2>Screen (Stdout) Output<a class="headerlink" href="#screen-stdout-output" title="Permalink to this headline">¶</a></h2>
+<p>The stdout (or <a class="reference internal" href="#logout"><span>log output</span></a>) is intended to provide extensive information about
+the <a class="reference internal" href="DatabaseDefinitions.html#database"><span>database</span></a>, the <a class="reference internal" href="Decomposition.html"><em>decomposition</em></a>, the  <a class="reference internal" href="TheoryPredictions.html"><em>theory predictions</em></a> and the <a class="reference internal" href="Tools.html#topcoverage"><span>missing topologies</span></a>.
+It is most convenient if the input is a single file and not a folder, since the output is quite extensive.
+If all the options in <strong>stdout-printer</strong> are set to True (see <a class="reference internal" href="RunningSModelS.html#parameterfile"><span>parameters file</span></a>), the screen output contains the following information:</p>
+<ul class="simple">
+<li>information about the basic input parameters and the status of the run:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>Input status: 1
+Decomposition output status: 1 #decomposition was successful
+# Input File: inputFiles/slha/gluino_squarks.slha
+# maxcond = 0.2
+# minmassgap = 5.
+# ncpus = 1
+# sigmacut = 0.03
+# Database version: 1.1.0patch1
+</pre></div>
+</div>
+<ul class="simple">
+<li>a list of all the <a class="reference internal" href="DatabaseDefinitions.html#expresult"><span>experimental results</span></a> considered (if <strong>printDatabase</strong> = True). Note that this list corresponds to all the results
+selected in the <strong>database</strong> options (see <a class="reference internal" href="RunningSModelS.html#parameterfile"><span>parameters file</span></a>). If <strong>addAnaInfo</strong> = True,
+for each <a class="reference internal" href="DatabaseDefinitions.html#expresult"><span>experimental result</span></a> entry a list of all the simplified models (or <a class="reference internal" href="TheoryDefinitions.html#element"><span>elements</span></a>) constrained by the analysis
+is also shown using the <a class="reference internal" href="TheoryDefinitions.html#bracketnotation"><span>bracket notation</span></a>:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>   ======================================================= 
+ || 	 						 || 
+ || 	 	 Selected Experimental Results 	 	 ||
+ || 	 						 || 
+   ======================================================= 
+========================================================
+Experimental Result ID: ATLAS-SUSY-2015-09
+Tx Labels: [&#39;T1tttt&#39;]
+Sqrts: 1.30E+01 [TeV]
+	 -----------------------------
+	 Elements tested by analysis:
+	    [[[t,t]],[[t,t]]]
+========================================================
+========================================================
+Experimental Result ID: CMS-SUS-12-024
+Tx Labels: [&#39;T1bbbb&#39;, &#39;T1tttt&#39;, &#39;T1ttttoff&#39;]
+Sqrts: 8.00E+00 [TeV]
+	 -----------------------------
+	 Elements tested by analysis:
+	    [[[b,b]],[[b,b]]]
+	    [[[t,t]],[[t,t]]]
+	    [[[W,W,b,b]],[[W,W,b,b]]]
+</pre></div>
+</div>
+<ul class="simple">
+<li>a full list of the <a class="reference internal" href="TheoryDefinitions.html#topology"><span>topologies</span></a> generated by the <a class="reference internal" href="Decomposition.html"><em>decomposition</em></a> (if <strong>printDecomp</strong> = True). Each <a class="reference internal" href="TheoryDefinitions.html#topology"><span>topology</span></a> entry
+contains basic information about the <a class="reference internal" href="TheoryDefinitions.html#topology"><span>topology</span></a> as well as the number of <a class="reference internal" href="TheoryDefinitions.html#element"><span>elements</span></a> with this <a class="reference internal" href="TheoryDefinitions.html#topology"><span>topology</span></a>
+and the sum over all the <a class="reference internal" href="TheoryDefinitions.html#element"><span>elements</span></a> weights. If <strong>addElementInfo</strong> = True, the <a class="reference internal" href="TheoryDefinitions.html#element"><span>elements</span></a> belonging to each
+<a class="reference internal" href="TheoryDefinitions.html#topology"><span>topology</span></a> are also explicitly shown, as well as the <a class="reference internal" href="TheoryDefinitions.html#element"><span>element</span></a>&#8216;s mass, <a class="reference internal" href="TheoryDefinitions.html#final-states"><span>final states</span></a>,
+weight, the PIDs of the <a class="reference internal" href="TheoryDefinitions.html#odd-states"><span>intermediate particles</span></a> contributing to the <a class="reference internal" href="TheoryDefinitions.html#element"><span>element</span></a> and the element ID:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>   ======================================================= 
+ || 	 						 || 
+ || 	 	 Topologies Table 		 	 ||
+ || 	 						 || 
+   ======================================================= 
+===================================================== 
+Topology:
+Number of vertices: [0, 0] 
+Number of vertex parts: [[], []]
+Total Global topology weight :
+Sqrts: 8.00E+00 [TeV], Weight:4.81E-04 [pb]
+
+Total Number of Elements: 1
+		 .........................................................................
+		 Element: 
+		 Element ID: 1
+		 Particles in element: [[], []]
+		 The element masses are 
+		 Branch 0: [1.29E+02 [GeV]]
+		 Branch 1: [1.29E+02 [GeV]]
+
+		 The element PIDs are 
+		 PIDs: [[1000022], [1000022]]
+		 The element weights are: 
+ 		 Sqrts: 8.00E+00 [TeV], Weight:4.81E-04 [pb]
+ 		 
+===================================================== 
+Topology:
+Number of vertices: [0, 1] 
+Number of vertex parts: [[], [1]]
+Total Global topology weight :
+Sqrts: 8.00E+00 [TeV], Weight:1.10E-03 [pb]
+
+Total Number of Elements: 5
+		 .........................................................................
+		 Element: 
+		 Element ID: 2
+		 Particles in element: [[], [[&#39;W+&#39;]]]
+		 The element masses are 
+		 Branch 0: [1.29E+02 [GeV]]
+		 Branch 1: [2.69E+02 [GeV], 1.29E+02 [GeV]]
+
+		 The element PIDs are 
+		 PIDs: [[1000022], [1000024, 1000022]]
+		 The element weights are: 
+ 		 Sqrts: 8.00E+00 [TeV], Weight:2.40E-04 [pb]
+</pre></div>
+</div>
+<ul class="simple">
+<li>a list of all the <a class="reference internal" href="TheoryPredictions.html"><em>theory predictions</em></a> obtained and the corresponding <a class="reference internal" href="DatabaseDefinitions.html#expresult"><span>experimental result</span></a> upper limit.
+For each <a class="reference internal" href="DatabaseDefinitions.html#expresult"><span>experimental result</span></a>, the corresponding <em>id</em>, signal region (<a class="reference internal" href="DatabaseDefinitions.html#dataset"><span>data set</span></a>) and <em>sqrts</em> as well as
+the constrained simplified models (<a class="reference internal" href="DatabaseDefinitions.html#txname"><span>txnames</span></a>) are printed.
+After this basic information, the signal cross section (<a class="reference internal" href="TheoryPredictions.html"><em>theory prediction</em></a>),
+the list of <a class="reference internal" href="DatabaseDefinitions.html#ulconditions"><span>condition values</span></a>  (if applicable) and the corresponding observed
+upper limit are shown. Also, if available, the expected upper limit is included.
+If  <strong>computeStatistics</strong> = True, the <span class="math">\(\chi^2\)</span> and likelihood values are printed
+(see <a class="reference internal" href="ConfrontPredictions.html#likelihoodcalc"><span>likelihood calculation</span></a>).
+Finally, if <strong>printExtendedResults</strong> = True, basic information about the <a class="reference internal" href="TheoryDefinitions.html#element"><span>elements</span></a>
+being constrained, such as their masses, IDs and PIDs, is also shown.</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span> 		 
+   ======================================================= 
+ || 	 						 || 
+ || 	 Theory Predictions and 			 || 
+ || 	 Experimental Constraints 		 	 ||
+ || 	 						 || 
+   ======================================================= 
+
+---------------Analysis Label = CMS-SUS-13-006
+-------------------Dataset Label = MET_100
+-------------------Txname Labels = [&#39;TChiWH&#39;]
+Analysis sqrts: 8.00E+00 [TeV]
+Theory prediction: 2.11E-04 [pb]
+Theory conditions:  None
+Observed experimental limit: 3.87E-01 [fb]
+Expected experimental limit: 3.88E-01 [fb]
+Chi2: 1.540030833
+Likelihood: 0.055544509844
+Masses in branch 0: [2.69E+02 [GeV], 1.29E+02 [GeV]]
+Masses in branch 1: [2.69E+02 [GeV], 1.29E+02 [GeV]]
+Contributing elements: [11, 14]
+PIDs:[[1000024, 1000022], [1000023, 1000022]]
+PIDs:[[-1000024, -1000022], [1000023, 1000022]]
+
+---------------Analysis Label = CMS-SUS-13-019
+-------------------Dataset Label = (UL)
+-------------------Txname Labels = [&#39;T2&#39;]
+Analysis sqrts: 8.00E+00 [TeV]
+Theory prediction: 1.77E-03 [pb]
+Theory conditions:  None
+Observed experimental limit: 3.76E-03 [pb]
+Masses in branch 0: [9.91E+02 [GeV], 1.29E+02 [GeV]]
+Masses in branch 1: [9.91E+02 [GeV], 1.29E+02 [GeV]]
+Contributing elements: [17, 18]
+PIDs:[[2000002, 1000022], [2000002, 1000022]]
+PIDs:[[-2000002, -1000022], [2000002, 1000022]]
+PIDs:[[2000002, 1000022], [2000001, 1000022]]
+</pre></div>
+</div>
+<ul class="simple">
+<li>summary information about the <a class="reference internal" href="Tools.html#topcoverage"><span>missing topologies</span></a>, if <strong>testCoverage</strong> = True.
+The total missing topology cross section
+corresponds to the sum of cross sections of all <a class="reference internal" href="TheoryDefinitions.html#element"><span>elements</span></a> which are not tested by any <a class="reference internal" href="DatabaseDefinitions.html#expresult"><span>experimental result</span></a>.
+If, however, the <a class="reference internal" href="TheoryDefinitions.html#element"><span>element</span></a> is constrained by one or more <a class="reference internal" href="DatabaseDefinitions.html#expresult"><span>experimental results</span></a>, but its mass is outside the
+efficiency or upper limit grids (see <a class="reference internal" href="DatabaseDefinitions.html#emtype"><span>EM-type results</span></a> and <a class="reference internal" href="DatabaseDefinitions.html#ultype"><span>UL-type results</span></a>), its cross section is included in the
+total cross section outside the grid. Finally, the <a class="reference internal" href="TheoryDefinitions.html#element"><span>elements</span></a> which contribute to the
+total missing topology cross section are subdivided into <a class="reference internal" href="TheoryDefinitions.html#element"><span>elements</span></a> with
+long decays or with asymmetric branches (see <a class="reference internal" href="Tools.html#topcoverage"><span>coverage tool</span></a> for more details)</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>Total missing topology cross section (fb):  2.767E+02
+Total cross section where we are outside the mass grid (fb):  6.286E+01
+Total cross section in long cascade decays (fb):  1.096E+02
+Total cross section in decays with asymmetric branches (fb):  1.630E+02
+
+</pre></div>
+</div>
+<ul class="simple">
+<li>detailed information about the missing topologies with highest cross sections.
+The <a class="reference internal" href="TheoryDefinitions.html#element"><span>element</span></a> cross section (weight) as well as its description in <a class="reference internal" href="TheoryDefinitions.html#bracketnotation"><span>bracket notation</span></a>
+is included. If <strong>addCoverageID</strong> = True, all the <a class="reference internal" href="TheoryDefinitions.html#element"><span>elements</span></a> IDs contributing to the missing topology are shown.
+These IDs can be traced back to the corresponding <a class="reference internal" href="TheoryDefinitions.html#element"><span>elements</span></a> using the <a class="reference internal" href="Decomposition.html"><em>decomposition</em></a> information
+obtained with <strong>printDecomp</strong> = True and <strong>addElementInfo</strong> = True.</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>================================================================================
+Missing topologies with the highest cross-sections (up to 10):
+Sqrts (TeV)   Weight (fb)        Element description
+  8.0  1.601E+01    #                 [[[jet],[W]],[[jet,jet],[W]]]
+Contributing elements [270, 271, 272, 273, 276, 277, 278, 279, 286, 287, 288, 289, 298, 299, 300, 301, 306, 307, 308, 309, 316, 317, 318, 319]
+</pre></div>
+</div>
+<ul class="simple">
+<li>detailed information about the topologies which are outside the  <a class="reference internal" href="DatabaseDefinitions.html#expresult"><span>experimental results</span></a> grid.
+If <strong>addCoverageID</strong> = True, all the <a class="reference internal" href="TheoryDefinitions.html#element"><span>elements</span></a> IDs contributing to the missing topology are shown.</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>================================================================================
+Contributions outside the mass grid (up to 10):
+Sqrts (TeV)   Weight (fb)        Element description
+  8.0  5.958E+01    #                                 [[[W]],[[W]]]
+Contributing elements [9]
+</pre></div>
+</div>
+<ul class="simple">
+<li>information about the missing topologies with long cascade decays.
+The long cascade decays are classified by the initially produced mother particles.
+If more than one pair of mothers are contributing to the same class of elements, the full list is given in the comment.
+For definiteness all lists are sorted.
+If <strong>addCoverageID</strong> = True, all the <a class="reference internal" href="TheoryDefinitions.html#element"><span>elements</span></a> IDs contributing to the missing topology are shown.</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>================================================================================
+Long cascade decay by produced mothers (up to 10):
+Mother1 Mother2 Weight (fb)
+1000021 2000002  3.743E+01 # [[1000021, 2000002]]
+Contributing elements [582, 585, 588, 591, 594, 597, 600, 603, 606, 609, 610, 613, 616, 619, 622, 625, 628, 631, 634, 637, 638, 639, 640, 641, 642, 643, 812, 813, 814, 815, 816, 817, 818, 821, 825, 829, 832, 836, 840, 844, 848, 851, 852, 853, 857, 861, 865, 866, 869, 873, 877, 881, 885, 886, 889, 892, 893, 897, 901, 905, 906, 909, 913, 917, 921, 925, 926, 929, 932, 933, 934, 935, 936, 937, 938, 941, 944, 947, 950, 953, 956, 959, 962, 965, 966, 967, 971, 975, 979, 980, 983, 987, 991, 995, 999, 1000, 1003, 1006, 1007, 1011, 1015, 1019, 1020, 1023, 1027, 1031, 1035, 1039, 1040, 1043, 1046, 1047, 1051, 1055, 1059, 1060, 1063, 1067, 1071, 1075, 1079, 1080, 1083, 1086, 1087, 1091, 1095, 1099, 1100, 1103, 1107, 1111, 1115, 1119, 1120, 1123, 1126, 1127, 1128, 1129, 1130, 1131, 1132, 1135, 1138, 1141, 1144, 1147, 1150, 1153, 1156, 1159, 1160, 1161, 1164, 1167, 1168, 1171, 1174, 1177, 1180]
+1000002 2000001  2.600E+00 # [[1000002, 2000001], [1000002, 2000003]]
+Contributing elements [653, 657, 661, 665, 669, 673, 677, 681, 685, 689, 699, 701, 703, 705, 707, 709, 739, 743, 747, 754, 758, 762, 766]
+</pre></div>
+</div>
+<ul class="simple">
+<li>information about the missing topologies with asymmetric decays.
+The asymmetric branch decays are classified by the initially produced mother particles.
+If more than one pair of mothers are contributing to the same class of elements, the full list is given in the comment.
+For definiteness all lists are sorted.
+If <strong>addCoverageID</strong> = True, all the <a class="reference internal" href="TheoryDefinitions.html#element"><span>elements</span></a> IDs contributing to the missing topology are shown.</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>================================================================================
+Asymmetric branch decay by produced mothers
+Mother1 Mother2 Weight (fb)
+1000002 1000021  4.725E+01 # [[1000002, 1000021]]
+Contributing elements [150, 151, 152, 153, 154, 155, 166, 168, 169, 171, 172, 174, 176, 177, 179, 181, 183, 185, 187, 189, 280, 281, 282, 283, 284, 285, 286, 287, 288, 289, 290, 291, 292, 293, 303, 304, 305, 306, 307, 308, 309, 324, 325, 326, 327, 328, 329, 330, 331, 332, 333, 341, 342, 343, 344, 345, 346, 347, 348, 349, 350, 351, 352, 353, 354, 376, 377, 378, 379, 380, 381, 382, 383, 384, 404, 405, 406, 407, 408, 409, 410, 411, 412]
+</pre></div>
+</div>
+</div>
+<div class="section" id="log-output">
+<span id="logout"></span><h2>Log Output<a class="headerlink" href="#log-output" title="Permalink to this headline">¶</a></h2>
+<p>The log-type output is identical to the <a class="reference internal" href="#screenout"><span>screen output</span></a>, except that it is
+redirected to a .log file. The filename is set as the &lt;input file&gt;.log and stored in the output folder
+(see the <a class="reference internal" href="RunningSModelS.html#runsmodels"><span>runSModelS options</span></a>).</p>
+</div>
+<div class="section" id="summary-file-output">
+<span id="fileout"></span><h2>Summary File Output<a class="headerlink" href="#summary-file-output" title="Permalink to this headline">¶</a></h2>
+<p>The summary-type output is similar to the <a class="reference internal" href="#screenout"><span>screen output</span></a>, but restricted
+to the list of <a class="reference internal" href="TheoryPredictions.html"><em>theory predictions</em></a> and model <a class="reference internal" href="Tools.html#topcoverage"><span>coverage</span></a>.
+The output is printed to the file &lt;input file&gt;.smodels and stored in the output folder
+(see the <a class="reference internal" href="RunningSModelS.html#runsmodels"><span>runSModelS options</span></a>).</p>
+<p>Below we describe in detail the blocks contained in the summary output:</p>
+<ul class="simple">
+<li>information about the basic input parameters and the status of the run:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>Input status: 1
+Decomposition output status: 1 #decomposition was successful
+# Input File: inputFiles/slha/gluino_squarks.slha
+# maxcond = 0.2
+# minmassgap = 5.
+# ncpus = 1
+# sigmacut = 0.03
+# Database version: 1.1.0patch1
+</pre></div>
+</div>
+<ul class="simple">
+<li>a list of all the <a class="reference internal" href="TheoryPredictions.html"><em>theory predictions</em></a> obtained and the corresponding <a class="reference internal" href="DatabaseDefinitions.html#expresult"><span>experimental result</span></a> upper limit.
+If <strong>expandedSummary</strong> = False only the most constraining <a class="reference internal" href="DatabaseDefinitions.html#expresult"><span>experimental result</span></a> is printed.
+For each <a class="reference internal" href="TheoryPredictions.html"><em>theory prediction</em></a> entry, the corresponding <a class="reference internal" href="DatabaseDefinitions.html#expresult"><span>experimental result</span></a> <em>id</em>, the signal region (<a class="reference internal" href="DatabaseDefinitions.html#dataset"><span>data set</span></a>) used (only for <a class="reference internal" href="DatabaseDefinitions.html#emtype"><span>EM-type results</span></a>)
+and the <a class="reference internal" href="DatabaseDefinitions.html#expresult"><span>experimental result</span></a> <em>sqrts</em> is printed. Furthermore, the <a class="reference internal" href="DatabaseDefinitions.html#txname"><span>txnames</span></a> contributing to the signal cross section, the
+theory cross section (<em>Theory_Value</em>), the observed upper limit (<em>Exp_limit</em>),
+the (theory cross section)/(observed upper limit) ratio (<em>r</em>) and, when available,
+the (theory cross section)/(expected upper limit) ratio (<em>r_expect</em>) are also printed.
+For <a class="reference internal" href="DatabaseDefinitions.html#ultype"><span>UL-type results</span></a> the condition violation (see <a class="reference internal" href="DatabaseDefinitions.html#ulconditions"><span>upper limit conditions</span></a>) is also included.
+Finally, if  <strong>computeStatistics</strong> = True, the <span class="math">\(\chi^2\)</span> and likelihood values (for <a class="reference internal" href="DatabaseDefinitions.html#emtype"><span>EM-type results</span></a>) are printed:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>#Analysis  Sqrts  Cond_Violation  Theory_Value(fb)  Exp_limit(fb)  r  r_expected
+
+     CMS-SUS-13-006  8.00E+00    0.0  2.107E-01  3.867E-01  5.450E-01  5.427E-01
+ Signal Region:  MET_100
+ Txnames:  TChiWH
+ Chi2, Likelihood =  1.540E+00  5.554E-02
+--------------------------------------------------------------------------------
+     CMS-SUS-13-019  8.00E+00    0.0  1.773E+00  3.762E+00  4.714E-01  N/A
+ Signal Region:  (UL)
+ Txnames:  T2
+--------------------------------------------------------------------------------
+     CMS-SUS-13-012  8.00E+00    0.0  1.255E-01  2.733E-01  4.593E-01  8.205E-01
+ Signal Region:  6NJet8_1250HT1500_450MHTinf
+ Txnames:  T1, T2, T5WW
+ Chi2, Likelihood =  1.791E-01  1.476E-01
+--------------------------------------------------------------------------------
+</pre></div>
+</div>
+<ul class="simple">
+<li>the maximum value for the (theory cross section)/(observed upper limit) ratio. If this value is
+higher than <em>1</em> the input model is likely excluded by one of the <a class="reference internal" href="DatabaseDefinitions.html#expresult"><span>experimental results</span></a> (see <a class="reference internal" href="ConfrontPredictions.html#confrontpredictions"><span>confronting predictions</span></a>)</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>================================================================================
+The highest r value is = 0.545037998842
+</pre></div>
+</div>
+<ul class="simple">
+<li>summary information about the <a class="reference internal" href="Tools.html#topcoverage"><span>missing topologies</span></a>, if <strong>testCoverage</strong> = True.
+The total missing topology cross section
+corresponds to the sum of all <a class="reference internal" href="TheoryDefinitions.html#element"><span>elements</span></a> cross sections which are not tested by any <a class="reference internal" href="DatabaseDefinitions.html#expresult"><span>experimental result</span></a>.
+If, however, the <a class="reference internal" href="TheoryDefinitions.html#element"><span>element</span></a> is constrained by one or more <a class="reference internal" href="DatabaseDefinitions.html#expresult"><span>experimental results</span></a>, but its mass is outside the
+efficiency or upper limit grids (see <a class="reference internal" href="DatabaseDefinitions.html#emtype"><span>EM-type results</span></a> and <a class="reference internal" href="DatabaseDefinitions.html#ultype"><span>UL-type results</span></a>), its cross section is included in the
+total cross section outside the grid. Finally, the <a class="reference internal" href="TheoryDefinitions.html#element"><span>elements</span></a> which contribute to the
+total missing topology cross section are subdivided into <a class="reference internal" href="TheoryDefinitions.html#element"><span>elements</span></a> with
+long decays or with asymmetric branches (see <a class="reference internal" href="Tools.html#topcoverage"><span>coverage tool</span></a> for more details)</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>Total missing topology cross section (fb):  2.767E+02
+Total cross section where we are outside the mass grid (fb):  6.286E+01
+Total cross section in long cascade decays (fb):  1.096E+02
+Total cross section in decays with asymmetric branches (fb):  1.630E+02
+</pre></div>
+</div>
+<ul class="simple">
+<li>detailed information about the missing topologies with highest cross sections.
+The <a class="reference internal" href="TheoryDefinitions.html#element"><span>element</span></a> cross section (weight) as well as its description in <a class="reference internal" href="TheoryDefinitions.html#bracketnotation"><span>bracket notation</span></a>
+is included.</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>================================================================================
+Missing topologies with the highest cross-sections (up to 10):
+Sqrts (TeV)   Weight (fb)        Element description
+  8.0  1.601E+01    #                 [[[jet],[W]],[[jet,jet],[W]]]
+  8.0  1.395E+01    #       [[[jet],[jet,jet],[W]],[[jet,jet],[W]]]
+</pre></div>
+</div>
+<ul class="simple">
+<li>detailed information about the topologies which are outside the  <a class="reference internal" href="DatabaseDefinitions.html#expresult"><span>experimental results</span></a> grid:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>================================================================================
+Contributions outside the mass grid (up to 10):
+Sqrts (TeV)   Weight (fb)        Element description
+  8.0  5.958E+01    #                                 [[[W]],[[W]]]
+  8.0  2.272E+00    #                         [[[jet]],[[jet,jet]]]
+</pre></div>
+</div>
+<ul class="simple">
+<li>information about the missing topologies with long cascade decays:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>================================================================================
+Long cascade decay by produced mothers (up to 10):
+Mother1 Mother2 Weight (fb)
+1000021 2000002  3.743E+01 # [[1000021, 2000002]]
+1000002 1000021  1.626E+01 # [[1000002, 1000021]]
+1000002 2000001  2.600E+00 # [[1000002, 2000001], [1000002, 2000003]]
+</pre></div>
+</div>
+<ul class="simple">
+<li>information about the missing topologies with asymmetric decays:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>================================================================================
+Asymmetric branch decay by produced mothers
+Mother1 Mother2 Weight (fb)
+1000002 1000021  4.725E+01 # [[1000002, 1000021]]
+1000021 1000021  4.324E+01 # [[1000021, 1000021]]
+</pre></div>
+</div>
+</div>
+<div class="section" id="python-output">
+<span id="pyout"></span><h2>Python Output<a class="headerlink" href="#python-output" title="Permalink to this headline">¶</a></h2>
+<p>The Python-type output is similar to the <a class="reference internal" href="#screenout"><span>screen output</span></a>, however
+converted to a Python dictionary. If all options are set to True,
+it includes information about the <a class="reference internal" href="Decomposition.html"><em>decomposition</em></a>, the list of <a class="reference internal" href="TheoryPredictions.html"><em>theory predictions</em></a> and model <a class="reference internal" href="Tools.html#topcoverage"><span>coverage</span></a>.
+The output is printed to the file &lt;input file&gt;.py and stored in the output folder
+(see the <a class="reference internal" href="RunningSModelS.html#runsmodels"><span>runSModelS options</span></a>).</p>
+<p>Below we describe in detail the dictionary keys and values contained in the Python dictionary output:</p>
+<ul class="simple">
+<li>information about the basic input parameters and the status of the run stored under the <em>OutputStatus</em> key:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>smodelsOutput = {
+&#39;OutputStatus&#39;: {&#39;minmassgap&#39;: 5.0, &#39;input file&#39;: &#39;inputFiles/slha/gluino_squarks.slha&#39;, &#39;decomposition status&#39;: 1, &#39;warnings&#39;: &#39;Input file ok&#39;, &#39;ncpus&#39;: 1, &#39;maxcond&#39;: 0.2, &#39;smodels version&#39;: &#39;1.1.0&#39;, &#39;database version&#39;: &#39;1.1.0&#39;, &#39;sigmacut&#39;: 0.03, &#39;file status&#39;: 1}, 
+</pre></div>
+</div>
+<ul class="simple">
+<li>a full list of the <a class="reference internal" href="TheoryDefinitions.html#element"><span>elements</span></a> generated by the <a class="reference internal" href="Decomposition.html"><em>decomposition</em></a> (if <strong>addElementList</strong> = True) stored
+under the <em>Element</em> key. Each list entry contains basic information about the <a class="reference internal" href="TheoryDefinitions.html#element"><span>elements</span></a>.
+The list can be considerably long, so it is recommended to
+set <strong>addElementList</strong> to False, unless the <a class="reference internal" href="Decomposition.html"><em>decomposition</em></a> information is required by the user.</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>&#39;Element&#39;: [{&#39;Particles&#39;: &#39;[[], []]&#39;, &#39;Weights (fb)&#39;: {&#39;xsec 8.0 TeV&#39;: 0.48082062}, &#39;PIDs&#39;: [[[1000022], [1000022]]], &#39;Masses (GeV)&#39;: [[128.96157], [128.96157]], &#39;ID&#39;: 1}, 
+{&#39;Particles&#39;: &quot;[[], [[&#39;W+&#39;]]]&quot;, &#39;Weights (fb)&#39;: {&#39;xsec 8.0 TeV&#39;: 0.2404103}, &#39;PIDs&#39;: [[[1000022], [1000024, 1000022]]], &#39;Masses (GeV)&#39;: [[128.96157], [269.035358, 128.96157]], &#39;ID&#39;: 2}, ...],
+</pre></div>
+</div>
+<ul class="simple">
+<li>a list of all the <a class="reference internal" href="TheoryPredictions.html"><em>theory predictions</em></a> obtained for the <a class="reference internal" href="DatabaseDefinitions.html#expresult"><span>experimental results</span></a>, stored under the <em>ExptRes</em> key.
+For each list entry, the corresponding result <em>id</em>, the <a class="reference internal" href="DatabaseDefinitions.html#expresult"><span>experimental result</span></a> type (if <a class="reference internal" href="DatabaseDefinitions.html#ultype"><span>UL-type result</span></a> or <a class="reference internal" href="DatabaseDefinitions.html#emtype"><span>EM-type result</span></a>),
+the signal region (<a class="reference internal" href="DatabaseDefinitions.html#dataset"><span>data set</span></a> ID), the <em>sqrts</em> and luminosity, the constrained simplified models (<a class="reference internal" href="DatabaseDefinitions.html#txname"><span>txnames</span></a>),
+the signal cross section (theory prediction), the corresponding observed
+upper limit and the maximum condition violation (see <a class="reference internal" href="DatabaseDefinitions.html#ulconditions"><span>upper limit conditions</span></a>) are shown.
+Furthermore, the masses of the <a class="reference internal" href="TheoryDefinitions.html#element"><span>elements</span></a> contributing to the signal cross section and the <span class="math">\(\chi^2\)</span> and
+likelihood values (if <strong>computeStatistics</strong> = True) are also included.</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>&#39;ExptRes&#39;: [{&#39;AnalysisID&#39;: &#39;ATLAS-CONF-2013-061&#39;,&#39;dataType&#39;: &#39;efficiencyMap&#39;, &#39;DataSetID&#39;: &#39;SR-0l-4j-B&#39;,&#39;AnalysisSqrts (TeV)&#39;: 8,&#39;lumi (fb-1)&#39;: 20.1,
+&#39;TxNames&#39;: [&#39;TGQbbq&#39;],&#39;theory prediction (fb)&#39;: 0.0003935, &#39;upper limit (fb)&#39;: 0.33, &#39;expected upper limit (fb)&#39;: 0.206, 
+&#39;maxcond&#39;: 0.0, &#39;Mass (GeV)&#39;: [[991.299127, 128.96157], [865.035125, 128.96157]], &#39;chi2&#39;: 1.010082, &#39;likelihood&#39;: 0.1140}, 
+{&#39;AnalysisSqrts (TeV)&#39;: 8, &#39;chi2&#39;: 0.161, &#39;dataType&#39;: &#39;efficiencyMap&#39;, &#39;Mass (GeV)&#39;: [[991.299127, 128.96157], [865.035125, 128.96157]], 
+&#39;maxcond&#39;: 0.0, &#39;expected upper limit (fb)&#39;: 0.555, &#39;likelihood&#39;: 0.07213, &#39;AnalysisID&#39;: &#39;ATLAS-CONF-2013-024&#39;, 
+&#39;upper limit (fb)&#39;: 0.49, &#39;theory prediction (fb)&#39;: 0.003073, &#39;lumi (fb-1)&#39;: 20.5, &#39;TxNames&#39;: [&#39;TGQqtt&#39;], 
+&#39;DataSetID&#39;: &#39;SR1: MET &gt; 200&#39;}, ...],
+</pre></div>
+</div>
+<ul class="simple">
+<li>a list of missing topologies (if <strong>testCoverage</strong> = True), stored under the <em>Missed Topologies</em> key.
+For each list entry, the <a class="reference internal" href="TheoryDefinitions.html#element"><span>element</span></a> cross section (weight), the <a class="reference internal" href="TheoryDefinitions.html#element"><span>element</span></a> IDs contributing to the topology and the <a class="reference internal" href="TheoryDefinitions.html#element"><span>element</span></a>
+description in <a class="reference internal" href="TheoryDefinitions.html#bracketnotation"><span>bracket notation</span></a> is included.</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>&#39;Missed Topologies&#39;: [{&#39;weight (fb)&#39;: 16.00759, &#39;sqrts (TeV)&#39;: 8.0, &#39;element IDs&#39;: [270, 271, 272, 273, 276, 277, 278, 279, 286, 287, 288, 289, 298, 299, 300, 301, 306, 307, 308, 309, 316, 317, 318, 319], 
+&#39;element&#39;: &#39;[[[jet],[W]],[[jet,jet],[W]]]&#39;}, ...],
+</pre></div>
+</div>
+<ul class="simple">
+<li>a list of topologies which are outside the  <a class="reference internal" href="DatabaseDefinitions.html#expresult"><span>experimental results</span></a> grid (if <strong>testCoverage</strong> = True),
+stored under the <em>Outside Grid</em> key.
+For each list entry, the <a class="reference internal" href="TheoryDefinitions.html#element"><span>element</span></a> cross section (weight)
+and the <a class="reference internal" href="TheoryDefinitions.html#element"><span>element</span></a> description in <a class="reference internal" href="TheoryDefinitions.html#bracketnotation"><span>bracket notation</span></a> is included.</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>&#39;Outside Grid&#39;: [{&#39;weight (fb)&#39;: 59.581, &#39;sqrts (TeV)&#39;: 8.0, &#39;element&#39;: &#39;[[[W]],[[W]]]&#39;}, {&#39;weight (fb)&#39;: 2.27241, &#39;sqrts (TeV)&#39;: 8.0, &#39;element&#39;: &#39;[[[jet]],[[jet,jet]]]&#39;}, ...],
+</pre></div>
+</div>
+<ul class="simple">
+<li>a list of topologies with long cascade decays (if <strong>testCoverage</strong> = True),
+stored under the <em>Long Cascades</em> key.
+For each list entry, the <a class="reference internal" href="TheoryDefinitions.html#element"><span>element</span></a> cross section (weight) and the PIDs of the mothers are included.
+The mother PIDs are given in a nested list, as more than one pair might contribute to the same class of <a class="reference internal" href="TheoryDefinitions.html#element"><span>elements</span></a>.</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>&#39;Long Cascades&#39;: [{&#39;weight (fb)&#39;: 37.4342, &#39;sqrts (TeV)&#39;: 8.0, &#39;mother PIDs&#39;: [[1000002, 1000021]]}, {&#39;weight (fb)&#39;: 16.2564, &#39;sqrts (TeV)&#39;: 8.0, &#39;mother PIDs&#39;:  [[1000021, 1000021]]}, ...],
+</pre></div>
+</div>
+<ul class="simple">
+<li>a list of topologies with asymmetric branch decays (if <strong>testCoverage</strong> = True),
+stored under the <em>Asymmetric Branches</em> key.
+For each list entry, the <a class="reference internal" href="TheoryDefinitions.html#element"><span>element</span></a> cross section (weight) and the PIDs of the mothers are included.
+The mother PIDs are given in a nested list, as more than one pair might contribute to the same class of <a class="reference internal" href="TheoryDefinitions.html#element"><span>elements</span></a>.</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span>&#39;Asymmetric Branches&#39;: [{&#39;weight (fb)&#39;: 47.2530, &#39;sqrts (TeV)&#39;: 8.0, &#39;mother PIDs&#39;: [[1000002, 1000021]]}, {&#39;weight (fb)&#39;: 3.6085628898688245, &#39;sqrts (TeV)&#39;: 8.0, &#39;mother PIDs&#39;: [[1000001, 1000002], [1000002, 1000003]]}, ...]}
+</pre></div>
+</div>
+</div>
+<div class="section" id="xml-output">
+<span id="xmlout"></span><h2>XML Output<a class="headerlink" href="#xml-output" title="Permalink to this headline">¶</a></h2>
+<p>The xml-type output is identical to the <a class="reference internal" href="#pyout"><span>python output</span></a>, however
+converted to a xml format. The output is printed to the file &lt;input file&gt;.xml and stored in the output folder
+(see the <a class="reference internal" href="RunningSModelS.html#runsmodels"><span>runSModelS options</span></a>).</p>
+<p>Since the output information and options are the same as described for <a class="reference internal" href="#pyout"><span>python output</span></a>,
+we simply show below an excerpt of the xml file to illustrate the output format:</p>
+<div class="highlight-xml"><div class="highlight"><pre><span></span><span class="cp">&lt;?xml version=&quot;1.0&quot; ?&gt;</span>
+<span class="nt">&lt;smodelsOutput&gt;</span>
+            <span class="nt">&lt;/mother_PIDs_List&gt;</span>
+            <span class="nt">&lt;Particles&gt;</span>[[], [[&#39;q&#39;, &#39;q&#39;]]]<span class="nt">&lt;/Particles&gt;</span>
+            <span class="nt">&lt;Weights_fb&gt;</span>
+                <span class="nt">&lt;xsec_8.0_TeV&gt;</span>0.0963414474763<span class="nt">&lt;/xsec_8.0_TeV&gt;</span>
+            <span class="nt">&lt;/Weights_fb&gt;</span>
+        <span class="nt">&lt;/Element&gt;</span>
+        <span class="nt">&lt;Element&gt;</span>
+            <span class="nt">&lt;ID&gt;</span>9<span class="nt">&lt;/ID&gt;</span>
+            <span class="nt">&lt;Masses_GeV_List&gt;</span>
+                <span class="nt">&lt;Masses_GeV_List&gt;</span>
+                    <span class="nt">&lt;Masses_GeV&gt;</span>269.035358<span class="nt">&lt;/Masses_GeV&gt;</span>
+                    <span class="nt">&lt;Masses_GeV&gt;</span>128.96157<span class="nt">&lt;/Masses_GeV&gt;</span>
+                <span class="nt">&lt;/Masses_GeV_List&gt;</span>
+                <span class="nt">&lt;Masses_GeV_List&gt;</span>
+                    <span class="nt">&lt;Masses_GeV&gt;</span>269.035358<span class="nt">&lt;/Masses_GeV&gt;</span>
+                    <span class="nt">&lt;Masses_GeV&gt;</span>128.96157<span class="nt">&lt;/Masses_GeV&gt;</span>
+                <span class="nt">&lt;/Masses_GeV_List&gt;</span>
+            <span class="nt">&lt;/Masses_GeV_List&gt;</span>
+            <span class="nt">&lt;PIDs_List&gt;</span>
+                <span class="nt">&lt;PIDs_List&gt;</span>
+                    <span class="nt">&lt;PIDs_List&gt;</span>
+                        <span class="nt">&lt;PIDs&gt;</span>1000024<span class="nt">&lt;/PIDs&gt;</span>
+                        <span class="nt">&lt;PIDs&gt;</span>1000022<span class="nt">&lt;/PIDs&gt;</span>
+                    <span class="nt">&lt;/PIDs_List&gt;</span>
+                    <span class="nt">&lt;PIDs_List&gt;</span>
+                        <span class="nt">&lt;PIDs&gt;</span>-1000024<span class="nt">&lt;/PIDs&gt;</span>
+                        <span class="nt">&lt;PIDs&gt;</span>-1000022<span class="nt">&lt;/PIDs&gt;</span>
+                    <span class="nt">&lt;/PIDs_List&gt;</span>
+                <span class="nt">&lt;/PIDs_List&gt;</span>
+            <span class="nt">&lt;/PIDs_List&gt;</span>
+            <span class="nt">&lt;Particles&gt;</span>[[[&#39;q&#39;], [&#39;q&#39;, &#39;q&#39;], [&#39;W-&#39;]], [[&#39;q&#39;], [&#39;q&#39;, &#39;q&#39;], [&#39;higgs&#39;]]]<span class="nt">&lt;/Particles&gt;</span>
+            <span class="nt">&lt;Weights_fb&gt;</span>
+                <span class="nt">&lt;xsec_8.0_TeV&gt;</span>0.102108555715<span class="nt">&lt;/xsec_8.0_TeV&gt;</span>
+            <span class="nt">&lt;/Weights_fb&gt;</span>
+        <span class="nt">&lt;/Element&gt;</span>
+    <span class="nt">&lt;/Element_List&gt;</span>
+    <span class="nt">&lt;ExptRes_List&gt;</span>
+        <span class="nt">&lt;ExptRes&gt;</span>
+            <span class="nt">&lt;AnalysisID&gt;</span>ATLAS-CONF-2013-061<span class="nt">&lt;/AnalysisID&gt;</span>
+            <span class="nt">&lt;AnalysisSqrts_TeV&gt;</span>8<span class="nt">&lt;/AnalysisSqrts_TeV&gt;</span>
+            <span class="nt">&lt;DataSetID&gt;</span>SR-0l-4j-B<span class="nt">&lt;/DataSetID&gt;</span>
+            <span class="nt">&lt;Mass_GeV_List&gt;</span>
+                <span class="nt">&lt;Mass_GeV_List&gt;</span>
+                    <span class="nt">&lt;Mass_GeV&gt;</span>991.299127<span class="nt">&lt;/Mass_GeV&gt;</span>
+                    <span class="nt">&lt;Mass_GeV&gt;</span>128.96157<span class="nt">&lt;/Mass_GeV&gt;</span>
+                <span class="nt">&lt;/Mass_GeV_List&gt;</span>
+                <span class="nt">&lt;Mass_GeV_List&gt;</span>
+                    <span class="nt">&lt;Mass_GeV&gt;</span>865.035125<span class="nt">&lt;/Mass_GeV&gt;</span>
+                    <span class="nt">&lt;Mass_GeV&gt;</span>128.96157<span class="nt">&lt;/Mass_GeV&gt;</span>
+                <span class="nt">&lt;/Mass_GeV_List&gt;</span>
+            <span class="nt">&lt;/Mass_GeV_List&gt;</span>
+            <span class="nt">&lt;TxNames_List&gt;</span>
+                <span class="nt">&lt;TxNames&gt;</span>TGQbbq<span class="nt">&lt;/TxNames&gt;</span>
+            <span class="nt">&lt;/TxNames_List&gt;</span>
+            <span class="nt">&lt;chi2&gt;</span>1.01008222891<span class="nt">&lt;/chi2&gt;</span>
+            <span class="nt">&lt;dataType&gt;</span>efficiencyMap<span class="nt">&lt;/dataType&gt;</span>
+            <span class="nt">&lt;expected_upper_limit_fb&gt;</span>0.206<span class="nt">&lt;/expected_upper_limit_fb&gt;</span>
+            <span class="nt">&lt;likelihood&gt;</span>0.114066361521<span class="nt">&lt;/likelihood&gt;</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Examples.html" class="btn btn-neutral float-right" title="How To’s" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="ConfrontPredictions.html" class="btn btn-neutral" title="Confronting Predictions with Experimental Limits" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Federico Ambrogi, Sabine Kraml, Suchita Kulkarni, Ursula Laa, Andre Lessa, Veronika Magerl, Wolfgang Magerl, Doris Proschofsky, Michael Traub, Jory Sonneveld, Wolfgang Waltenberger.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.1.0patch1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

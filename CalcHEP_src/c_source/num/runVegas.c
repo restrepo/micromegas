@@ -25,6 +25,7 @@
 #include "n_calchep_.h"
 #include "files.h"
 #include "usrfun.h"
+#include "qcdScale.h"
 
 //========= old events.c
 
@@ -39,10 +40,10 @@ static pthread_mutex_t wrt_key=PTHREAD_MUTEX_INITIALIZER;
 
 #define buffSize 100
 
-static void writeEvent(double *x,  int n)
+static void writeEvent(double *x,  double  w)
 { 
    int i,icc;
-   double GG,qF,qR,x1,x2;
+   double GG,qF1,qF2,qR,qS,x1,x2;
 
    REAL pvectR[4*maxNp],cb_coeff_[buffSize],*cb_coeff;
    double pvect[4*maxNp];
@@ -53,7 +54,7 @@ static void writeEvent(double *x,  int n)
    mkmom(x, &factor_0,&x1,&x2,pvectR);
    
    for(i=0;i<4*(nin_int+nout_int);i++) pvect[i]=pvectR[i];   
-   Scale(pvect,&qF,&qR);
+   Scale(pvect,&qR,&qF1,&qF2,&qS);
    
    if(cb_pow)
    {  double sum=0;
@@ -76,15 +77,14 @@ static void writeEvent(double *x,  int n)
    } 
 
    if(nPROCSS)pthread_mutex_lock(&wrt_key);   
-   fprintf(events_,"%8d ",n);  
+   fprintf(events_,"%12.3E",w);  
    if(nin_int==2) fprintf(events_," %17.10E %17.10E",pvect[3],pvect[7]);
 
    for(i=0;i<nout_int;i++) fprintf(events_," %17.10E %17.10E %17.10E",
    pvect[4*(i+nin_int)+1],pvect[4*(i+nin_int)+2],pvect[4*(i+nin_int)+3]);
 
-   fprintf(events_,"| %.3E  %.3E ", qF,alpha_2(qR));
+   fprintf(events_,"| %.3E  %.3E ", qS,alpha_2(qR));
  
-
    if(cb_pow)
    {  int j;
       fprintf(events_,"  ");
@@ -102,22 +102,20 @@ static void writeEvent(double *x,  int n)
 #define n_cube EventGrid
 long EventGrid=10000;
 
-
-
-static int regen=1; 
+int regenEvents=0; 
 static int nEvents=10000;
 static double max =1.2;
 static double milk=0.1; 
 
 int saveEventSettings(FILE * f)
 {
-  fprintf(f, "%d %d %d ",n_cube, regen,  nEvents);
+  fprintf(f, "%d %d %d ",n_cube, regenEvents,  nEvents);
   return 0;
 }
 
 int  readEventSettings(FILE * f)
 {
-  fscanf(f, "%d %d %d ", &n_cube, &regen, &nEvents);
+  fscanf(f, "%d %d %d ", &n_cube, &regenEvents, &nEvents);
   return 0;
 }
 
@@ -129,20 +127,16 @@ static void write_event_cap(void)
   fprintf(events_,"#%s\n",VERSION_);
   fprintf(events_,"#Type %d -> %d\n",nin_int,nout_int); 
   fprintf(events_,"#Initial_state\n");
-  fprintf(events_,"  P1_3=%E" , inP1); 
-  if(nin_int>1) fprintf(events_,"  P2_3=%E\n",-inP2);else fprintf(events_,"\n");
-  if(nin_int>1) wrt_sf__(events_);
+  if(nin_int==1) fprintf(events_,"  P1_3=0\n");
+  else
+  {  fprintf(events_,"   P1_3=%E  P2_3=%E\n" , inP1,-inP2);
+     wrt_sf__(events_);
+  }
 
   fprintf(events_,"#PROCESS  ");
   for(i=1;i<=nin_int+nout_int; i++)
   { int pcode;
     char * pname=pinf_int(Nsub,i,NULL,&pcode);
-    switch(pcode)
-    { case  81: pcode= 1; break;
-      case -81: pcode=-1; break;
-      case  83: pcode= 3; break;
-      case -83: pcode=-3; break;
-    }
     fprintf(events_," %d(%s)", pcode, pname);
     if(i==nin_int)  fprintf(events_," ->");
   } 
@@ -158,7 +152,7 @@ static void write_event_cap(void)
   if(integral.n_it) fprintf(events_,"#Cross_section(Width) %E\n",integral.s1/integral.n_it);
   else   fprintf(events_,"#Cross_section(Width) Unknown\n"); 
   fprintf(events_,"#Number_of_events %10d\n",0);
-
+  fprintf(events_,"#Sum_of_weights %12.4E %12.4E \n",0.,0.);
   fprintf(events_,"#Events  "); 
   if(nin_int==2) fprintf(events_,"     P1_3 [Gev]        P2_3 [Gev]   ");
   for(i=1;i<=nout_int; i++) for(j=1;j<=3;j++) 
@@ -171,93 +165,74 @@ static void write_event_cap(void)
 
    
 static void  generateEvents( vegasGrid * vegPtr,  char *fname,  FILE * iprt)
-{                                                   
-   int mode=1;
-   void * pscr=NULL;
-//   if(!vegPtr->fMax)improveEvents(vegPtr,func);
-    
-   for(mode=1;;)
-   {
-     char strmen[]="\032"
-                   " Number of events=N1      "
-                   " Launch generator         "
-		   " Allow weighted events OFF";
-		   
-     if(!regen) improveStr(strmen,"OFF","%s","ON");		   
-     improveStr(strmen,"N1","%d",nEvents);
-     menu1(53,10,"",strmen,"n_gen_*",&pscr,&mode);
-     switch(mode)
-     { case 0: return; 
-       case 1: correctInt(50,15,"",&nEvents,1); break;
-       case 2: 
-       { long  nGenerated=0; 
-         double eff;
-         int nmax,mult,neg;   
-         char mess[200];
-         long cEvent;
-         long fileEnd;
-         event_stat stat;
-         
-         if(!vegPtr->fMax) { messanykey(15,15,"Generator is not ready."); break;}
-         events_= fopen(fname,"a");       
-         if(ftell(events_)==0) write_event_cap();
-         fileEnd=ftell(events_);
-         fflush(events_); 
-         cEvent= vegas_events(vegPtr,nEvents,max,writeEvent,regen,nPROCSS,&stat); //   &eff,&nmax,&mult,&neg);
-         eff=stat.eff; neg=stat.neg; mult=stat.lmax;
-         fclose(events_);
-
-         if(cEvent>0)
-         {  int l;   
-            sprintf(mess,"Statistic\n Events generated: %ld\n  efficiency: %.1E\n"
-                      "Multiple events(total): %d \nNegative weight  events: %d \n", cEvent, eff,mult, neg);
-
-            l=strlen(mess);
-            strcat(mess,"---------------\n Accept events? ");    
-            if(mess_y_n(25,15,mess)) 
-            {  
-               long  nEvPos=0;
-               integral.old=1;
-               mess[l]=0;
-               events_=fopen(fname,"r+");
-               while(nEvPos==0)
-               { char ch;
-                 char word[100];
-                 do fscanf(events_,"%c",&ch); while(ch !='#');
-                 fscanf(events_,"%s",word);
-                 if(strcmp(word,"Number_of_events")==0) nEvPos=ftell(events_);
-               }
-               fscanf(events_,"%ld",&nGenerated);
-               nGenerated+=cEvent;
-               fseek(events_,nEvPos,SEEK_SET);
-               fprintf(events_," %10ld",nGenerated);
-               fclose(events_);
-               fprintf(iprt," %ld events are stored in '%s'\n",nGenerated,fname);
-               fprintf(iprt,"%s\n",mess);
-               fflush(iprt);
-            } else  truncate(fname,fileEnd);
-         }
-       } 
-       break;
-
-//       case 3: improveEvents(vegPtr,func); put_text(&pscr); break;
-       case 3: regen=!regen; 
-       
-//       goto ret;
-
-     }
-   }
-}                                                                     
-
+{ long  nGenerated=0;                                                             
+  double eff;                                                                     
+  int nmax,mult,neg;                                                              
+  char mess[200];                                                                 
+  long cEvent;                                                                    
+  long fileEnd;
+  double sumW,sumW2;                                                                   
+  event_stat stat;                                                                
+                                                                                  
+  events_= fopen(fname,"a");                                                      
+  if(ftell(events_)==0) write_event_cap();                                        
+  fileEnd=ftell(events_);                                                         
+  fflush(events_);                                                                
+  cEvent= vegas_events(vegPtr,nEvents,max,writeEvent,regenEvents,nPROCSS,&stat); //   &eff,&nmax,&mult,&neg);       
+  eff=stat.eff; neg=stat.neg; mult=stat.lmax;                                     
+  fclose(events_);                                                                
+                                                                                  
+  if(cEvent>0)
+  {  int l;                                                                       
+     sprintf(mess,"Statistic\n Events generated: %ld\n  efficiency: %.1E\n"       
+               "<weight^2>/<weight>^2-1: %.1E \nNegative weight  events: %d \n", cEvent, eff,
+                 cEvent*stat.sumW2/stat.sumW/stat.sumW-1., neg);
+                                                                                  
+     l=strlen(mess);
+     strcat(mess,"---------------\n Accept events? ");                            
+     if(mess_y_n(25,15,mess))                                                     
+     {                                                                            
+        long  nEvPos=0,nWpos=0;                                                           
+        integral.old=1;                                                           
+        mess[l]=0;                                                                
+        events_=fopen(fname,"r+");                                                
+        while(nEvPos==0 || nWpos==0)                                                          
+        { char ch;                                                                
+          char word[100];                                                         
+          do fscanf(events_,"%c",&ch); while(ch !='#');                           
+          fscanf(events_,"%s",word);                                              
+          if(strcmp(word,"Number_of_events")==0) nEvPos=ftell(events_);
+          if(strcmp(word,"Sum_of_weights")==0) nWpos=ftell(events_);           
+        }
+        fseek(events_,nEvPos,SEEK_SET);                                                                           
+        fscanf(events_,"%ld",&nGenerated);
+        nGenerated+=cEvent;
+        fseek(events_,nEvPos,SEEK_SET);                                                                                                  
+        fprintf(events_," %10ld",nGenerated); 
+        
+        fseek(events_,nWpos,SEEK_SET);
+        fscanf(events_,"%lf %lf",&sumW,&sumW2);
+        sumW+=stat.sumW;
+        sumW2+=stat.sumW2;
+        fseek(events_,nWpos,SEEK_SET);
+        fprintf(events_," %12.4E %12.4E",sumW,sumW2); 
+                                            
+        fclose(events_);                                                          
+        fprintf(iprt," %ld events are stored in '%s'\n",nGenerated,fname);        
+        fprintf(iprt,"%s\n",mess);                                                
+        fflush(iprt);                                                             
+     } else  truncate(fname,fileEnd);                                             
+  }                                                                               
+}                                                                                 
 
 //======== old runVegas.c
 int nSess=1;
 
-double inP1=3500, inP2=3500;
+double inP1=4000, inP2=4000;
 
 static vegasGrid * veg_Ptr=NULL;
 static int hFill=0;
-vegas_integral integral={{5,5},{10000,10000},0,0.,0.,0.,0.,0.,0.,0,0,0,-1}; 
+vegas_integral integral={{5,5},{100000,100000},0,0.,0.,0.,0.,0.,0.,0,0,0,-1}; 
 
 
 char * effInfo(void)
@@ -346,8 +321,8 @@ int readVegasGrid(FILE * f)
     setEventCubes(veg_Ptr, nCubes);
     if(nCubes && veg_Ptr->evnCubes==nCubes) 
     { long l;
-      veg_Ptr->fMax=malloc(sizeof(float)*veg_Ptr->evnCubes);
-      for(l=0;l<veg_Ptr->evnCubes;l++) fscanf(f,"%f",veg_Ptr->fMax+l);
+      veg_Ptr->fMax=malloc(sizeof(double)*veg_Ptr->evnCubes);
+      for(l=0;l<veg_Ptr->evnCubes;l++) fscanf(f,"%lf",veg_Ptr->fMax+l);
     }
   }
   return 0;
@@ -385,7 +360,7 @@ static double func_(double *x, double wgt)
     int err=0,nd,i;
     double factor_0;
     double x1,x2;    
-    double GG,qF,qR;
+    double GG,qF1,qF2,qR,qS;
     REAL pvectR[100];
     double pvect[100];
 /* get momenta */
@@ -397,12 +372,12 @@ static double func_(double *x, double wgt)
     factor_0 *= calcCutFactor(pvect)*usrFF(nin_int,nout_int,pvect,p_names,p_codes); 
     if (!factor_0)   goto exi;
 
-    Scale(pvect,&qF,&qR);
+    Scale(pvect,&qR,&qF1,&qF2,&qS);
 /* **  structure function  multiplication */
     if (nin_int == 2) 
     {
-	if(sf_num[0]) { factor_0 *= strfun_(1, x1,qF);  if(factor_0==0.) goto exi;}
-	if(sf_num[1]) { factor_0 *= strfun_(2, x2,qF);  if(factor_0==0.) goto exi;} 
+	if(sf_num[0]) { factor_0 *= strfun_(1, x1,qF1);  if(factor_0==0.) goto exi;}
+	if(sf_num[1]) { factor_0 *= strfun_(2, x2,qF2);  if(factor_0==0.) goto exi;} 
     }   
     if (!factor_0)  { goto exi;}
 /* ** call for 'running strong coupling constant' */
@@ -465,6 +440,7 @@ int runVegas(void)
 
     for(;;)
     {
+        int fz;
         char strmen[]="\030"
          " nSess  = N2_1          "
          " nCalls = N1_1          "
@@ -475,14 +451,22 @@ int runVegas(void)
          " Freeze grid        OFF " 
 	 " Clear  grid            "
 	 " Event Cubes NCUBE      "
+	 " Num. of events=NE      "
 	 " Generate Events        ";
+	 
+        if(integral.freeze)
+        {  fz=1;
+           improveStr(strmen,"OFF","ON");
+           improveStr(strmen,"NCUBE","%d",EventGrid);
+        }  
+        else
+        {  fz=0;
+           strmen[ 030*8+2]=0;
+        }
 
-        improveStr(strmen,"N1_1","%d",integral.ncall[0]);
-        improveStr(strmen,"N2_1","%d",integral.itmx[0]);
-        improveStr(strmen,"NCUBE","%d",EventGrid);
-
-        if(integral.freeze) improveStr(strmen,"OFF","ON");
-
+        improveStr(strmen,"N1_1","%d",integral.ncall[fz]);
+        improveStr(strmen,"N2_1","%d",integral.itmx[fz]);
+        improveStr(strmen,"NE","%d",nEvents);
         menu1(54,7,"",strmen,"n_veg_*",&pscr,&mode);
         switch(mode)
         {     
@@ -490,32 +474,25 @@ int runVegas(void)
            w_sess__(NULL);
           if(iprt) fclose(iprt);
           return 0;           
-        case 1:  
-          correctInt(50,12,"Enter new value ",&integral.itmx[0],1); break;
-        case 2: 
-          correctLong(50,12,"Enter new value ",&integral.ncall[0],1); break;
+        case 1: correctInt(50,12,"Enter new value ", integral.itmx+fz,1);  break;
+        case 2: correctLong(50,12,"Enter new value ",integral.ncall+fz,1);break;
         case 3:  editHist(); break;
         case 4:
           if(veg_Ptr->fMax && !integral.freeze) 
-          {  if(!mess_y_n(15,15,"You have event generator prepared.\n"
-             " The  answer 'Y'  will start Vegas session \nwhich destroys it."
-             " To save the event generator answer 'N' \nand set "
-             " ' Freeze grid' ON")) break;
-             else { free(veg_Ptr->fMax); veg_Ptr->fMax=NULL; veg_Ptr->evnCubes=0;}  
-          }
+          {  free(veg_Ptr->fMax); veg_Ptr->fMax=NULL; veg_Ptr->evnCubes=0; }
           if(!veg_Ptr->fMax && integral.freeze)
           {  setEventCubes(veg_Ptr, EventGrid);
              EventGrid=veg_Ptr->evnCubes;
           }
 
-          for (i = 1; i <= integral.itmx[0]; ++i)                                       
+          for (i = 1; i <= integral.itmx[fz]; ++i)                                       
           { char  errtxt[100]="";
             long nCall;
             if(integral.ncall[0]==0) break;                                                                  
             negPoints=0;                                                              
             badPoints=0; 
             hFill=1;   
-            nCall=vegas_int(veg_Ptr, integral.ncall[0],1.5*(!integral.freeze),nPROCSS,&avgi, &sd);
+            nCall=vegas_int(veg_Ptr, integral.ncall[fz],1.5*(!fz),nPROCSS,&avgi, &sd);
             if(nCall<0) { messanykey(10,10,"NaN in integrand"); break;}
             if(nCall==0) break;
             
@@ -571,7 +548,13 @@ int runVegas(void)
                 messanykey(54,13,"Old results for integral\n"
                 "and distributions\nare deleted.");
                 break;
-        case 7: integral.freeze=!integral.freeze; break; 
+        case 7: 
+             if(veg_Ptr->fMax && integral.freeze) 
+             {  if(mess_y_n(15,15,"You have event generator prepared.\n"
+                " Setting the flag \"OFF\"  will destroy it."
+                " Press 'Y' to confirm.")) integral.freeze=0; 
+             } else  integral.freeze=!integral.freeze; 
+             break; 
         case 8: if(!integral.freeze || mess_y_n(15,15,"The information for Event Generator will be lost\n OK?"))  
                 { int ndim=veg_Ptr->dim;
                   vegas_finish(veg_Ptr);
@@ -586,7 +569,8 @@ int runVegas(void)
              setEventCubes(veg_Ptr, EventGrid);
              EventGrid=veg_Ptr->evnCubes;  
            } break;
-        case 10: 
+        case 10:  correctInt(50,15,"",&nEvents,1); break;
+        case 11: 
            if( !veg_Ptr || !veg_Ptr->fMax)
            { char * mess="Before event generation one has to launch  Vegas session with freezed grid\n"
                                            "to prepare generator";

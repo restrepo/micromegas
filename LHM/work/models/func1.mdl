@@ -42,7 +42,7 @@ Mb     |MbEff(Q)
 Mt     |MtEff(Q)
 Mc     |McEff(Q)
 PI     |acos(-1)
-Mbp    |MbMb*(1+4/3*alphaQCD(MbMb)/PI)
+Mbp    |bPoleMass()
 Mcp    |McMc*(1+4/3*alphaQCD(McMc)/PI)
 lamb   |Mb/v
 lams   |Ms/v

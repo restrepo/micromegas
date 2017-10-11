@@ -1,8 +1,8 @@
-#include"../../sources/micromegas.h"
-#include"../../sources/micromegas_aux.h"
+#include"../../include/micromegas.h"
+#include"../../include/micromegas_aux.h"
 #include "pmodel.h"
 
-int LiLithF(char*fname)
+int LilithMDL(char*fname)
 {
   unsigned int i, npart=0;
 
@@ -23,9 +23,8 @@ int LiLithF(char*fname)
 
   for(i=0; i<3; i++) {
     double mass = pMass(parts[i]);
-    if(mass < 123. || mass > 128.) {
-      continue;
-    }
+    if(mass < 123 || mass > 128)  continue;
+    
     ++npart;
 
     // compute invisible and undetected branching ratios
@@ -79,7 +78,7 @@ int LiLithF(char*fname)
       sprintf(LaTxt,"imLAA%s",parts[i]);
       LaV5=findValW(LaTxt); 
              
-      Cgamma=sqrt(LaV*LaV+LaV5*LaV5/4)/lAAhSM(mass,alphaQCD(mass)/M_PI, Mcp,Mbp,Mtp,vev);
+      Cgamma=-sqrt(LaV*LaV+4*LaV5*LaV5)/lAAhSM(mass,alphaQCD(mass)/M_PI, Mcp,Mbp,Mtp,vev);
 
     
       fprintf(f, "  <reducedcouplings part=\"%s\">\n", parts[i]);
@@ -108,5 +107,15 @@ int LiLithF(char*fname)
   fprintf(f, "</lilithinput>\n");
   fclose(f);
   return npart;
+}
+
+int lilithmdlf_(char*fname,int len)
+{
+   char * cname=malloc(len+2);
+   int err;
+   fName2c(fname,cname,len);
+   err= LilithMDL(cname);
+   free(cname);
+   return err; 
 }
 

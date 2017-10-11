@@ -1,8 +1,6 @@
 #include"num_in.h"
 
 REAL Helicity[2]={0.,0.};
-REAL HelicityN[2]={0.,0.};
-
 double Fmax=0; 
 int  CalcConst=0;
 

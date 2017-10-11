@@ -471,8 +471,8 @@ external_func(polint4alfSQS,1,'extfunc.so').
 
 
 parameter Q2MIN=100**2:'Minimum scale for runnings to SUSY scale',
-	  QSTSB=sqrt(max((MSt1*MSt2)**2,Q2MIN**2)):'SUSY scale',
-	  QSQ2=max((2*MSsL**2+MSsR**2+MScR**2)/4,Q2MIN):'2nd gen. squarks scale',
+	  QSTSB=sqrt(max(MSt1**2,Q2MIN)*max(MSt2**2,Q2MIN)):'SUSY scale',
+	  QSQ2=(2*max(MSsL**2,Q2MIN)+max(MSsR**2,Q2MIN)+max(MScR**2,Q2MIN))/4:'2nd gen. squarks scale',
 	  k=3/(4*PI)**2,
 	  M2Q3=Mq3q**2 -(1/2-1/3*SW**2)*MZ**2*c2b + QQ*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2:'3rd gen. LH squark mass term squared',
 	  M2U3=Mu3q**2 +2/3*SW**2*MZ**2*c2b + Qu*g1p**2*(v**2*(Q2*sb**2 + Q1*cb**2) + Qs*vs**2)/2:'3rd gen. RH up-squark mass term squared',

@@ -145,7 +145,7 @@ double cs23(numout*cc, int nsub, double Pcm, int ii3)
 
 
   passParameters(cc);
-  GG=sqrt(4*M_PI*parton_alpha(GGscale));
+  GG=sqrt(4*M_PI*alphaQCD(GGscale));
   Pcm_=Pcm;
   nsub_=nsub;
   cc23_=cc;
@@ -216,7 +216,7 @@ double cs23Vegas(numout * cc, int nsub, double Pcm, int ii3,
   int i,k, nCall[2]={nCall1,nCall2}, nSess[2]={nSess1,nSess2};
   double rVal=0; 
   vegasGrid *vegPtr=NULL;
-  GG=sqrt(4*M_PI*parton_alpha(GGscale));  
+  GG=sqrt(4*M_PI*alphaQCD(GGscale));  
   
   if(passParameters(cc)) return 0;  
 
@@ -376,7 +376,7 @@ double cs24Vegas(numout * cc, int nsub, double Pcm, int ii3, int ii4,
   double rVal=0,C,sqrtS;
    
   vegasGrid *vegPtr=NULL;
-  GG=sqrt(4*M_PI*parton_alpha(GGscale));  
+  GG=sqrt(4*M_PI*alphaQCD(GGscale));  
 //  link_process(cc->interface);
   Pcm_=Pcm;
   cc24_=cc;  

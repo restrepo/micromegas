@@ -21,8 +21,8 @@ extern double cpHiggs(double,double,double,double,double,double,double,double,
 extern int readVarCPVMSSM(char * fname);
 extern int loopGamma(double * cs_gz, double *cs_gg);
 
-extern int  HBblocks(char * fname);
-extern int  LiLithF(char*fname);
+extern int  hbBlocksMDL(char*fname,int*nHch);
+extern int  LilithMDL(char*fname);
 
 
 #ifdef __cplusplus

@@ -1,0 +1,31 @@
+txName: T5tttt
+conditionDescription: None
+condition: None
+constraint: [[['t+'],['t-']],[['t-'],['t+']]]+[[['t-'],['t+']],[['t-'],['t+']]]+[[['t+'],['t-']],[['t+'],['t-']]]
+checked: VM
+figureUrl: https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/CONFNOTES/ATLAS-CONF-2013-007/fig_09.png
+validated: True
+axes: 2*Eq(mother,x)_Eq(inter0,y)_Eq(lsp,60.0)
+publishedData: False
+upperLimits: [[[[800.0*GeV, 500.0*GeV, 60.0*GeV], [800.0*GeV, 500.0*GeV, 60.0*GeV]], 0.023*pb],
+[[[800.0*GeV, 600.0*GeV, 60.0*GeV], [800.0*GeV, 600.0*GeV, 60.0*GeV]], 0.023*pb],
+[[[900.0*GeV, 300.0*GeV, 60.0*GeV], [900.0*GeV, 300.0*GeV, 60.0*GeV]], 0.021*pb],
+[[[900.0*GeV, 500.0*GeV, 60.0*GeV], [900.0*GeV, 500.0*GeV, 60.0*GeV]], 0.02*pb],
+[[[900.0*GeV, 600.0*GeV, 60.0*GeV], [900.0*GeV, 600.0*GeV, 60.0*GeV]], 0.02*pb],
+[[[900.0*GeV, 700.0*GeV, 60.0*GeV], [900.0*GeV, 700.0*GeV, 60.0*GeV]], 0.023*pb],
+[[[1000.0*GeV, 500.0*GeV, 60.0*GeV], [1000.0*GeV, 500.0*GeV, 60.0*GeV]], 0.014*pb],
+[[[1000.0*GeV, 600.0*GeV, 60.0*GeV], [1000.0*GeV, 600.0*GeV, 60.0*GeV]], 0.016*pb],
+[[[1000.0*GeV, 700.0*GeV, 60.0*GeV], [1000.0*GeV, 700.0*GeV, 60.0*GeV]], 0.018*pb],
+[[[1000.0*GeV, 800.0*GeV, 60.0*GeV], [1000.0*GeV, 800.0*GeV, 60.0*GeV]], 0.021*pb],
+[[[1100.0*GeV, 300.0*GeV, 60.0*GeV], [1100.0*GeV, 300.0*GeV, 60.0*GeV]], 0.014*pb],
+[[[1100.0*GeV, 500.0*GeV, 60.0*GeV], [1100.0*GeV, 500.0*GeV, 60.0*GeV]], 0.014*pb],
+[[[1100.0*GeV, 600.0*GeV, 60.0*GeV], [1100.0*GeV, 600.0*GeV, 60.0*GeV]], 0.013*pb],
+[[[1100.0*GeV, 700.0*GeV, 60.0*GeV], [1100.0*GeV, 700.0*GeV, 60.0*GeV]], 0.014*pb],
+[[[1100.0*GeV, 800.0*GeV, 60.0*GeV], [1100.0*GeV, 800.0*GeV, 60.0*GeV]], 0.015*pb],
+[[[1100.0*GeV, 900.0*GeV, 60.0*GeV], [1100.0*GeV, 900.0*GeV, 60.0*GeV]], 0.017*pb],
+[[[1200.0*GeV, 500.0*GeV, 60.0*GeV], [1200.0*GeV, 500.0*GeV, 60.0*GeV]], 0.012*pb],
+[[[1200.0*GeV, 600.0*GeV, 60.0*GeV], [1200.0*GeV, 600.0*GeV, 60.0*GeV]], 0.011*pb],
+[[[1200.0*GeV, 700.0*GeV, 60.0*GeV], [1200.0*GeV, 700.0*GeV, 60.0*GeV]], 0.012*pb],
+[[[1200.0*GeV, 800.0*GeV, 60.0*GeV], [1200.0*GeV, 800.0*GeV, 60.0*GeV]], 0.013*pb],
+[[[1200.0*GeV, 900.0*GeV, 60.0*GeV], [1200.0*GeV, 900.0*GeV, 60.0*GeV]], 0.013*pb],
+[[[1200.0*GeV, 1000.0*GeV, 60.0*GeV], [1200.0*GeV, 1000.0*GeV, 60.0*GeV]], 0.015*pb]]

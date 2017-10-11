@@ -7,8 +7,8 @@
 #define __PLOT__
 
 
-extern void   plot_N(  char*title,  double xMin, double xMax, char*xName,  int dim, int N,...);
-extern void   plot_Nar(char*title,  double xMin, double xMax, char*xName,  int dim, int N,
+extern int   plot_N(char*title,  double xMin, double xMax, char*xName,   int dim, int xScale, int N,...);
+extern int   plot_Nar(char*file, char*title,  double xMin, double xMax, char*xName,  int dim, int xScale, int N,
                double **f,double**ff,char**Y);
 
 extern void   plot_1(double xMin, double xMax, int dim, 

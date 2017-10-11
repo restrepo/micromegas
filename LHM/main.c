@@ -6,9 +6,12 @@
 #define MASSES_INFO      
   /* Display information about mass spectrum  */
 
-//#define HIGGSBOUNDS "../Packages/HiggsBounds-4.2.0"  
-//#define HIGGSSIGNALS "../Packages/HiggsSignals-1.3.0"
+#define CONSTRAINTS 
 
+//#define HIGGSBOUNDS
+//#define HIGGSSIGNALS
+//#define SMODELS 
+#define LILITH
 
 #define OMEGA            
   /* Calculate relic density and display contribution of  individual channels */
@@ -47,8 +50,8 @@
 /*===== End of DEFINE  settings ===== */
 
 
-#include"../sources/micromegas.h"
-#include"../sources/micromegas_aux.h"
+#include"../include/micromegas.h"
+#include"../include/micromegas_aux.h"
 #include"lib/pmodel.h"
 
 
@@ -92,43 +95,56 @@ int main(int argc,char** argv)
 }
 #endif
 
+#ifdef CONSTRAINTS
+{ double csLim;
+  if(Zinvisible()) printf("Excluded by Z->invisible\n");
+  if(LspNlsp_LEP(&csLim)) printf("LEP excluded by e+,e- -> DM q qbar  Cross section= %.2E\n",csLim);
+}
+#endif
 
+
+#if defined(HIGGSBOUNDS) || defined(HIGGSSIGNALS)
+{   int NH0=1, NHch=0; // number of neutral and charged Higgs particles.
+    double HB_result,HB_obsratio,HS_observ,HS_chi2, HS_pval;
+    char HB_chan[100]={""}, HB_version[50], HS_version[50]; 
+     NH0=hbBlocksMDL("HB.in",&NHch);
+     system("echo 'BLOCK DMASS\n 25  2  '>> HB.in");
+#include "../include/hBandS.inc"
 #ifdef HIGGSBOUNDS
-   if(access(HIGGSBOUNDS "/HiggsBounds",X_OK )) system( "cd " HIGGSBOUNDS "; ./configure; make ");
-   HBblocks("HB.in");
-   system(HIGGSBOUNDS "/HiggsBounds  LandH SLHA 1 0 HB.in HB.out > hb.stdout");
-   slhaRead("HB.out",1+4);
-    printf("HB result= %.0E  obsratio=%.2E\n",slhaValFormat("HiggsBoundsResults",0.,"1 2 %lf"), slhaValFormat("HiggsBoundsResults",0.,"1 3 %lf" )  );
-   { char hbInfo[100];
-    if(0==slhaSTRFormat("HiggsBoundsResults","1 5 ||%[^|]||",hbInfo)) printf("Channel: %s\n",hbInfo);
-   }     
+     printf("HB(%s): result=%.0f  obsratio=%.2E  channel= %s \n", HB_version,HB_result,HB_obsratio,HB_chan);
 #endif
-
 #ifdef HIGGSSIGNALS
-#define DataSet " latestresults "
-//#define Method  " peak " 
-//#define  Method " mass "
-#define  Method " both "
-#define PDF  " 2 "  // Gaussian
-//#define PDF " 1 "  // box 
-//#define PDF " 3 "  // box+Gaussia
-#define dMh " 2 "
-   printf("HiggsSignals:\n");
-   if(access(HIGGSSIGNALS "/HiggsSignals",X_OK )) system( "cd " HIGGSSIGNALS "; ./configure; make ");
-     system("rm -f HS.in HS.out");
-     HBblocks("HS.in");
-     system(HIGGSSIGNALS "/HiggsSignals" DataSet Method  PDF  " SLHA 1 0 HS.in > hs.stdout");
-     system("grep -A 10000  HiggsSignalsResults HS.in > HS.out");
-     slhaRead("HS.out",1+4);
-     printf("  Number of observables %.0f\n",slhaVal("HiggsSignalsResults",0.,1,7));
-     printf("  total chi^2= %.1E\n",slhaVal("HiggsSignalsResults",0.,1,12));
-     printf("  HS p-value = %.1E\n", slhaVal("HiggsSignalsResults",0.,1,13));     
-#undef dMh
-#undef PDF
-#undef Method
-#undef DataSet
-
+     printf("HS(%s): Nobservables=%.0f chi^2 = %.2E pval= %.2E\n",HS_version,HS_observ,HS_chi2, HS_pval);  
 #endif
+}
+#endif
+
+#ifdef LILITH
+{  double m2logL, m2logL_reference=0,pvalue;
+   int exp_ndf,n_par=0,ndf;
+   char call_lilith[100], Lilith_version[20];
+
+   if(LilithMDL("Lilith_in.xml"))
+   {        
+#include "../include/Lilith.inc"
+      if(ndf)
+      {
+        printf("LILITH(DB%s:  -2*log(L): %.2f; -2*log(L_reference): %.2f; ndf: %d; p-value: %.2E \n", 
+        Lilith_version, m2logL,m2logL_reference,ndf,pvalue);
+      }  
+   } else printf("LILITH: there is no Higgs candidate\n");
+}     
+#endif
+
+
+#ifdef SMODELS
+{  int result=0;
+   double Rvalue=0;
+   char analysis[30]={},topology[30]={}; 
+#include "../include/SMODELS.inc" 
+}   
+#endif 
+
 
 
 #ifdef OMEGA
@@ -146,7 +162,7 @@ int main(int argc,char** argv)
   printf("\n==== Calculation of relic density =====\n");  
   Omega=darkOmega(&Xf,fast,Beps);
   printf("Xf=%.2e Omega=%.2e\n",Xf,Omega);
-  printChannels(Xf,cut,Beps,1,stdout);   
+  if(Omega>0)printChannels(Xf,cut,Beps,1,stdout);   
 
 //   VZdecay=1; VWdecay=1; cleanDecayTable();  // restore default
 
@@ -322,12 +338,12 @@ printf("\n======== Direct Detection ========\n");
 #ifdef SHOWPLOTS
   displaySpectra("neutrino fluxes [1/Year/km^2/GeV]",Emin,Mcdm,2,nu,"nu",nu_bar,"nu_bar");
 #endif
-  printf(" E>%.1E GeV neutrino/anti-neutrin fluxes   %.2E/%.2E [1/Year/km^2]\n",Emin,
+  printf(" E>%.1E GeV neutrino/anti-neutrino fluxes   %.2E/%.2E [1/Year/km^2]\n",Emin,
           spectrInfo(Emin,nu,NULL), spectrInfo(Emin,nu_bar,NULL));
 
 // ICE CUBE
-  if(forSun) printf("IceCube22 exclusion confidence level = %.2%%E\n", 100*cLevIC22(nu,nu_bar,NULL));
-/* Upward events */
+  if(forSun) printf("IceCube22 exclusion confidence level = %.2%%E\n", 100*exLevIC22(nu,nu_bar,NULL));
+/* Upward events */    
 
   Emin=0.1;
   muonUpward(nu,nu_bar, mu);
@@ -364,25 +380,36 @@ printf("\n======== Direct Detection ========\n");
 #endif
 
 #ifdef CROSS_SECTIONS
-{
-  double cs, Pcm=4000, Qren,Qfact,pTmin=200;
-  int nf=3;
-  
-  Qfact=pMass(CDM1);
-  Qren=pTmin;
 
-  printf("pp -> DM,DM +jet(pt>%.2E GeV)  at %.2E GeV\n",pTmin,Pcm);  
-  
-  cs=hCollider(Pcm,1,nf,Qren, Qfact, CDM1,aCDM1,pTmin,1);
-  printf("cs(pp->~o1,~o2)=%.2E[pb]\n",cs);
+{
+  char* next,next_;
+  double nextM;
+    
+  next=nextOdd(1,&nextM); 
+  if(next && nextM<1000)  
+  { 
+     double cs, Pcm=6500, Qren, Qfact, pTmin=0;
+     int nf=3;
+     char*next_=antiParticle(next);
+     Qren=Qfact=nextM; 
  
+     printf("\npp > nextOdd  at sqrt(s)=%.2E GeV\n",2*Pcm);  
+  
+     Qren=Qfact;
+     cs=hCollider(Pcm,1,nf,Qren, Qfact, next,next_,pTmin,1);
+     printf("Production of 'next' odd particle: cs(pp-> %s,%s)=%.2E[pb]\n",next,next_, cs);
+  }  
 }
+ 
 #endif 
 
 
 #ifdef CLEAN 
-    system("rm -f HB.in HB.out HS.in HS.out hb.stdout hs.stdout debug_channels.txt debug_predratio.txt Key.dat");
-    killPlots();   
+  system("rm -f HB.* HS.* hb.* hs.*  debug_channels.txt debug_predratio.txt  Key.dat");
+  system("rm -f Lilith_*   particles.py*");
+  system("rm -f   smodels.in  smodels.log  smodels.out  summary.*");         
 #endif 
+
+  killPlots();
   return 0;
 }

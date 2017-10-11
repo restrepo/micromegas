@@ -1,0 +1,8 @@
+sqrts: 8.0*TeV
+lumi: 5.8/fb
+id: ATLAS-CONF-2012-105
+url: https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/CONFNOTES/ATLAS-CONF-2012-105/
+supersededBy: ATLAS-SUSY-2013-09
+implementedBy: Federico A
+lastUpdate: 2016/9/29
+

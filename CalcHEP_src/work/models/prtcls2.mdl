@@ -1,7 +1,6 @@
 Standard Model(CKM=1)
  Particles 
  Full  name  | A  | A+ | PDG    |2*spin| mass | width |color|aux| LaTex(A) | LaTeX(A+)   |
-gluon        |G   |G   |21      |2     |0     |0      |8    |G  |g         |g
 photon       |A   |A   |22      |2     |0     |0      |1    |G  |\gamma    |\gamma
  Z-boson     |Z   |Z   |23      |2     |MZ    |wZ     |1    |G  |Z         |Z
 W-boson      |W+  |W-  |24      |2     |MW    |wW     |1    |G  |W^+       |W^-
@@ -12,6 +11,7 @@ muon         |m   |M   |13      |1     |Mm    |0      |1    |   |\mu       |\bar
 m-neutrino   |nm  |Nm  |14      |1     |0     |0      |1    |L  |\nu_\mu   |\bar{\nu}_\mu
 tau-lepton   |l   |L   |15      |1     |Ml    |0      |1    |   |\tau      |\bar{\tau}
 t-neutrino   |nl  |Nl  |16      |1     |0     |0      |1    |L  |\nu_\tau  |\bar{\nu}_\ta
+gluon        |G   |G   |21      |2     |0     |0      |8    |G  |g         |g
 d-quark      |d   |D   |1       |1     |0     |0      |3    |   |d         |\bar{d}
 u-quark      |u   |U   |2       |1     |0     |0      |3    |   |u         |\bar{u}
 s-quark      |s   |S   |3       |1     |0     |0      |3    |   |s         |\bar{s}

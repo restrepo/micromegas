@@ -10,8 +10,9 @@ Composite: le=e,E,m,M
 Composite: n=ne,Ne,nm,Nm
 Composite: jet=u,U,d,D,s,S,c,C,b,B,G
 
-pdf1:      cteq6l (proton)
-pdf2:      cteq6l (proton)
+pdf1:      PDT:cteq6l1(proton)
+pdf2:      PDT:cteq6l1(proton)
+
 p1:        4000
 p2:        4000
 

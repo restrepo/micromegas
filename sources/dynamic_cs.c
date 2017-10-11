@@ -41,8 +41,3 @@ void procinfo2_(int*ccf,int*nsub,char*name,double*mass,int len)
   free(cname);
 }
 
-double width1cc_(int*ccf, int *err)
-{ numout*cc;
-   memcpy(&cc,ccf,sizeof(cc));  
-  return width1CC(cc, err);
-}

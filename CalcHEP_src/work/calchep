@@ -1,8 +1,5 @@
 :
 
-#export LD_RUN_PATH=$HOME/Packages/lhapdf-5.9.1/install/lib
-export LD_RUN_PATH=$HOME/Packages/LHAPDF-6.1.5/install/lib
-
 WORK=`pwd`
 export WORK
 

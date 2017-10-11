@@ -2,7 +2,7 @@
 #include"pmodel.h"
 #include"pmodel_aux.h"
 #include"pmodel_f.h"
-#include"../../sources/micromegas.h"
+#include"../../include/micromegas.h"
 
 #include<ctype.h>
 #include<stdio.h>

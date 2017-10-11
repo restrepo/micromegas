@@ -19,25 +19,22 @@ As for other micrOMEGAs models, compile the UMSSM as
 and execute the code after specifying the file containing the input parameters
 		./main umssm.par
 
-In main.c :
+In main.c (note that a fortran version main.F is also available) :
 
 To compute the UMSSM spectrum : 
 		err=sortOddParticles(cdmName);
 Then to check if there is an error in computing the spectrum :
 		if(err) {printf("Can't calculate %s\n",cdmName);} 
 
-To use the limit on the invisible Z1-width :
-		if(Zinv()!=0) {printf(" Invisible Z1-width above 0.5 MeV \n");}
-
 To use LEP limits on sparticles :
 		if(masslimits()!=0) {printf(" LEP limits not satisfied \n");}
 		
 To use LHC limits on the new gauge boson :
-		if(Zprimelimits()!=0) {printf(" LHC limits on new Zprime not satisfied \n");}
+		if(Zprimelimits()==0) {printf("LHC limits on new Zprime OK\n");}
 
 To compute low energy and Higgs physics observables :
 Use UMSSMTools which contain an adaptation of several routines of NMSSMTools :
-		err=UMSSMTools();
+		err=umssmtools(PDG_LSP);
 -> Output in SLHA format : - UMSSM_inp.dat		
 			   - UMSSM_spectr.dat
 			   - UMSSM_decay.dat
@@ -45,7 +42,12 @@ Use UMSSMTools which contain an adaptation of several routines of NMSSMTools :
 
 i) U. Ellwanger, J. F. Gunion and C. Hugonie, JHEP 0502(2005) 006, arXiv:hep-ph/0406215
 ii) U. Ellwanger and C. Hugonie, Comput. Phys. Commun. 175 (2006) 290, arXiv:hep-ph/0508022
-iii) G. Belanger, F. Boudjema, C. Hugonie, A. Pukhov, A. Semenov, JCAP 0509:001 (2005), arXiv:hep-ph/0505142 
+iii) G. Belanger, F. Boudjema, C. Hugonie, A. Pukhov, A. Semenov, JCAP 0509:001 (2005), arXiv:hep-ph/0505142
+
+Major update from
+iV) F. Domingo, arXiv:1512.02091 [hep-ph]
+with B-physics observables at full NLO also adapted to UMSSMTools.
+
 
 The following command displays the warning messages from UMSSMTools :
 		slhaWarnings(stdout);
@@ -74,16 +76,17 @@ They are also printed in UMSSM_spectr.dat. The following warning messages can be
 		21 excluded by stop -> neutralino c
 		22 excluded by sbottom -> neutralino b
 		23 squark/gluino too light
-		32 b->s gamma more than 2 sigma away
+		28 unphysical global minimum
+		29 Higgs soft masses >> Msusy
+		32 b -> s gamma more than 2 sigma away
 		33 Delta M_s more than 2 sigma away
 		34 Delta M_d more than 2 sigma away
-		35 B_s->mu+mu- more than 2 sigma away
-		36 B+-> tau+nu_tau more than 2 sigma away
+		35 B_s -> mu+ mu- more than 2 sigma away
+		36 B+ -> tau nu_tau more than 2 sigma away
 		37 (g-2)_muon more than 2 sigma away
-		38 excluded by Upsilon(1S) -> A gamma
+		38 excluded by Upsilon(1S) -> A/H gamma
 		39 excluded by eta_b(1S) mass measurement
 		40 BR(B-->X_s mu+ mu-) more than 2 sigma away
-		41 excluded by ee -> hZ, h -> AA -> 4taus (new ALEPH analysis)
 		42 excluded by top -> b H+, H+ -> c s (CDF, D0)
 		43 excluded by top -> b H+, H+ -> tau nu_tau (D0)
 		44 excluded by top -> b H+, H+ -> W+ A1, A1 -> 2taus (CDF)
@@ -93,11 +96,38 @@ They are also printed in UMSSM_spectr.dat. The following warning messages can be
 		48 chi2(H->bb) > chi2MAX
 		49 chi2(H->ZZ) > chi2MAX
 		51 excluded by H/A->tautau
-		52 Excluded H_125->AA->4mu (CMS)
+		52 excluded by H->AA->4leptons/2lept.+2b (LHC)
+		53 excluded by ggF->H/A->gamgam (65GeV < M < 122GeV, ATLAS)
+		55 b -> d gamma more than 2 sigma away
+		56 B_d -> mu+ mu- more than 2 sigma away
+		57 b -> s nu_L nubar_L more than 2 sigma away
+		58 b -> c tau nu_tau more than 2 sigma away (as SM)
+		59 K -> pi nu_L nubar_L more than 2 sigma away
+		60 Delta M_K / eps_K more than 2 sigma away
 
 To get the loop-improved Higgs branching ratios from UMSSMTools (useful before computing relic abundance for instance) use : slhaRead("UMSSM_decay.dat",0);
 
 
-First public version : 4 august 2015.
- 
+First public version (v1.0.1) : 4 august 2015.
+v1.0.2 : 27 november 2015 -> Interface created so that slha files can now be used as input.
+			     The only elements needed are the ones placed in UMSSM_inp.dat, the following command can be used : "./main UMSSM_inp.dat".
+v1.0.3 : 25 january 2016  -> New limits from LHC Run at 13 TeV on the new Zprime added.
+			     Bug in lilith.c removed. Routine to compute invisible width of the Z1 boson removed as a more general one is now available
+			     in ../sources.
+v1.0.4 : 8 june 2016      -> Several small updates, especially on main.F and routines related to it.
+			     Now the routine to compute constraints on the Zprime is in ../sources.
+v1.0.5 : 30 june 2016     -> Model files updated to include couplings needed for the computation of dijet constraints on the Zprime.
+v1.1.0 : 7 august 2016    -> Major update. New features for NMSSMTools_4.9.3 adapted to the UMSSM :
+			     B-physics observables at full NLO (from F. Domingo, arXiv:1512.02091 [hep-ph]);
+			     New B-physics observables with b -> d gamma, B_d -> mu+ mu-, b -> s nu_L nubar_L and b -> c tau nu_tau;
+			     New tests of K-physics in Kphys.f with K -> pi nu_L nubar_L, Delta M_K and eps_K;
+			     CKM, experimental and lattice input updated;
+			     bsg.f renamed as Bphys.f given the number of B-physics observables computed by this routine;
+			     Update on Higgs constraints, muon/strange quark loops added to h_i/h_A -> gamma gamma;
+			     Treatment of BR(h_i -> invisible) modified : PDG of the LSP automatically given to UMSSMTools
+			     -> BR(h_i -> invisible) computed only if LSP = lighest neutralino or lighest RH-sneutrino.
+			     In main.c "printHiggs(stdout);" now gives the corrected Higgs widths from UMSSMTools.
+v1.1.1 : 5 october 2016   -> Bug fixes + new features from NMSSMTools_5.0.0 adapted to the UMSSM. 
+			     Some files/libraries renamed; lhchig.f removed, its content is included into subexp.f.
+v1.1.2 : 4 november 2016  -> NMSSMTools_5.0.1 adapted to the UMSSM + bug removed during compilation (library umssmtools called now umssmtoolslib).
 

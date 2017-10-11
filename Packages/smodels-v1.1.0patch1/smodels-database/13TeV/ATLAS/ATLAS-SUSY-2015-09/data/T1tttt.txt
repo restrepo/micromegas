@@ -1,0 +1,29 @@
+txName: T1tttt
+conditionDescription: None
+condition: None
+constraint: [[['t','t']],[['t','t']]]
+figureUrl: https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/PAPERS/SUSY-2015-09/.thumb_fig_04d.png
+dataUrl: http://hepdata.cedar.ac.uk/view/ins1424844/all
+validated: True
+axes: 2*Eq(mother,x)_Eq(lsp,y)
+publishedData: True
+upperLimits: [[[[1000.0*GeV, 400.0*GeV], [1000.0*GeV, 400.0*GeV]], 0.088*pb],
+[[[1000.0*GeV, 600.0*GeV], [1000.0*GeV, 600.0*GeV]], 0.15*pb],
+[[[1000.0*GeV, 645.0*GeV], [1000.0*GeV, 645.0*GeV]], 0.226*pb],
+[[[1100.0*GeV, 200.0*GeV], [1100.0*GeV, 200.0*GeV]], 0.079*pb],
+[[[1100.0*GeV, 400.0*GeV], [1100.0*GeV, 400.0*GeV]], 0.08*pb],
+[[[1100.0*GeV, 600.0*GeV], [1100.0*GeV, 600.0*GeV]], 0.106*pb],
+[[[1100.0*GeV, 745.0*GeV], [1100.0*GeV, 745.0*GeV]], 0.224*pb],
+[[[1200.0*GeV, 100.0*GeV], [1200.0*GeV, 100.0*GeV]], 0.084*pb],
+[[[1200.0*GeV, 200.0*GeV], [1200.0*GeV, 200.0*GeV]], 0.081*pb],
+[[[1200.0*GeV, 400.0*GeV], [1200.0*GeV, 400.0*GeV]], 0.078*pb],
+[[[1200.0*GeV, 600.0*GeV], [1200.0*GeV, 600.0*GeV]], 0.089*pb],
+[[[1200.0*GeV, 700.0*GeV], [1200.0*GeV, 700.0*GeV]], 0.107*pb],
+[[[1200.0*GeV, 800.0*GeV], [1200.0*GeV, 800.0*GeV]], 0.156*pb],
+[[[1200.0*GeV, 845.0*GeV], [1200.0*GeV, 845.0*GeV]], 0.24*pb],
+[[[1200.0*GeV, 855.0*GeV], [1200.0*GeV, 855.0*GeV]], 0.25*pb],
+[[[1300.0*GeV, 200.0*GeV], [1300.0*GeV, 200.0*GeV]], 0.084*pb],
+[[[1300.0*GeV, 400.0*GeV], [1300.0*GeV, 400.0*GeV]], 0.075*pb],
+[[[1300.0*GeV, 600.0*GeV], [1300.0*GeV, 600.0*GeV]], 0.08*pb],
+[[[1300.0*GeV, 800.0*GeV], [1300.0*GeV, 800.0*GeV]], 0.1*pb],
+[[[1300.0*GeV, 945.0*GeV], [1300.0*GeV, 945.0*GeV]], 0.234*pb]]

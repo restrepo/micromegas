@@ -873,6 +873,7 @@ if (key>30)  f_printf(stderr,"inkey='%c'\n",key);
 int  escpressed(void)  /* by A.Pukhov */
 {  int key;
    if(blind) return 0;
+     
    if(crt0_keypressed()) key=crt0_inkey();else return 0;
    for(;;)
    {

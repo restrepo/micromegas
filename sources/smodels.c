@@ -1,11 +1,19 @@
 #include"micromegas.h"
 #include"micromegas_aux.h"
 
-void smodels(int nf,double csMinFb, char*fileName,int wrt) 
+void smodels(int Run, int nf,double csMinFb,  char*fileName,int wrt) 
 { 
    int SMP[16]={1,2,3,4,5,6, 11,12,13,14,15,16, 21,22,23,24};
    int i,j;
-   double Pcm=4000; // LHC pcm
+   double PcmMax=6500; // LHC pcm
+   double PcmMin=4000;
+   if(Run & (LHC8|LHC13) == 0) 
+   { printf("SMODELS: The third parameter has to be either  LHC8 or  LHC13 or  LHC8+LHC13 \n");      
+     return;
+   }  
+   if((Run & LHC8) == 0)  PcmMax=4000;
+   if((Run & LHC13) == 0) PcmMin=6500;
+   
    FILE*f=fopen(fileName,"w");
    int np=0;
    char**plist=NULL;
@@ -97,7 +105,7 @@ void smodels(int nf,double csMinFb, char*fileName,int wrt)
    else  printf("warning: no SM-like Higgs\n");
     
    fprintf(f,"BLOCK MASS\n");
-   for(i=0;i<nModelParticles;i++) if(pMass(ModelPrtcls[i].name) <Pcm)
+   for(i=0;i<nModelParticles;i++) if(pMass(ModelPrtcls[i].name) <PcmMax)
    { 
      for(j=0;j<16;j++) if(abs(ModelPrtcls[i].NPDG)==SMP[j]) break; 
      if(j==16 )
@@ -121,7 +129,7 @@ void smodels(int nf,double csMinFb, char*fileName,int wrt)
       if(j==16) slhaDecayPrint(ModelPrtcls[i].name,0,f); 
    }
 
-   for(i=0;i<np;i++) for(j=i;j<np;j++) if(pMass(plist[i])+pMass(plist[j])<Pcm)
+   for(i=0;i<np;i++) for(j=i;j<np;j++) if(pMass(plist[i])+pMass(plist[j])<PcmMax)
     if(plist[i][0]=='~' && plist[j][0]=='~')
     {  int q31,q32,q3,c1,c2;
 
@@ -144,12 +152,16 @@ void smodels(int nf,double csMinFb, char*fileName,int wrt)
         
        {  double dcs;
           double Qf=0.5*(pMass(plist[i])+pMass(plist[j]));
-          dcs=hCollider(Pcm,1,nf,Qf,Qf,plist[i],plist[j],0,wrt);
-          if(dcs>csMinFb*0.001)
-          {
-            fprintf(f,"XSECTION  %E   2212  2212  2  %d  %d\n",2*Pcm, pNum(plist[i]),pNum(plist[j])); 
-/*pb*/      fprintf(f," 0  0  0  0  0  0 %E micrOMEGAs 4.3\n\n", dcs);
-          }
+          for(double Pcm=PcmMin; ; ) 
+          { 
+             dcs=hCollider(Pcm,1,nf,Qf,Qf,plist[i],plist[j],0,wrt);
+             if(dcs>csMinFb*0.001)
+             {
+               fprintf(f,"XSECTION  %E   2212  2212  2  %d  %d\n",2*Pcm, pNum(plist[i]),pNum(plist[j])); 
+/*pb*/         fprintf(f," 0  0  0  0  0  0 %E micrOMEGAs 4.3\n\n", dcs);
+             }
+             if(Pcm==PcmMax) break; else Pcm=PcmMax;
+          }  
        }
     }    
 
@@ -160,7 +172,7 @@ void smodels(int nf,double csMinFb, char*fileName,int wrt)
   fprintf(f,"#!/usr/bin/env python\n");
   
   fprintf(f,"rOdd ={\n");
-  for(np=0,i=0;i<nModelParticles;i++) if(ModelPrtcls[i].name[0]=='~'  && pMass(ModelPrtcls[i].name) <Pcm )
+  for(np=0,i=0;i<nModelParticles;i++) if(ModelPrtcls[i].name[0]=='~'  && pMass(ModelPrtcls[i].name) <PcmMax )
   {  
      if(np) fprintf(f,",\n");
      fprintf(f, " %d : \"%s\",\n",  ModelPrtcls[i].NPDG,ModelPrtcls[i].name);
@@ -170,7 +182,7 @@ void smodels(int nf,double csMinFb, char*fileName,int wrt)
   fprintf(f,"\n}\n");
 
   fprintf(f,"rEven ={\n");
-  for(np=0,i=0;i<nModelParticles;i++) if(ModelPrtcls[i].name[0]!='~' && pMass(ModelPrtcls[i].name) <Pcm  )
+  for(np=0,i=0;i<nModelParticles;i++) if(ModelPrtcls[i].name[0]!='~' && pMass(ModelPrtcls[i].name) <PcmMax  )
   {  
      for(j=0;j<16;j++) if(abs(ModelPrtcls[i].NPDG)==SMP[j]) break;
      if(j==16 )
@@ -249,7 +261,7 @@ fprintf(f,
   
 
   fprintf(f,"qNumbers ={\n");
-  for(np=0,i=0;i<nModelParticles;i++) if(pMass(ModelPrtcls[i].name) <Pcm  )
+  for(np=0,i=0;i<nModelParticles;i++) if(pMass(ModelPrtcls[i].name) <PcmMax  )
   {  
      for(j=0;j<16;j++) if(abs(ModelPrtcls[i].NPDG)==SMP[j]) break;
      if(j==16 )
@@ -264,9 +276,9 @@ fprintf(f,
   if(VZdecay!= VZdecay_ || VWdecay!=VWdecay_ ) { VZdecay=VZdecay_; VWdecay=VWdecay_; cleanDecayTable();}  
 }
 
-void smodels_(int *nf,double *csMinFb, char*fileName,int *wrt,int len)
+void smodels_(int*LHCrun, int *nf,double *csMinFb, char*fileName,int *wrt,int len)
 {
   char cName[30];
   fName2c(fileName,cName, len);
-  smodels(*nf, *csMinFb,cName,*wrt);
+  smodels(*LHCrun,*nf, *csMinFb,  cName,*wrt);
 }

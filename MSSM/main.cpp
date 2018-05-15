@@ -358,7 +358,7 @@ int main(int argc,char** argv)
    int exp_ndf,n_par=0,ndf;
    char call_lilith[100], Lilith_version[20];
 
-   if(LiLithF("Lilith_in.xml"))
+   if(LilithMO("Lilith_in.xml"))
    {        
 #include "../include/Lilith.inc"
       printf("LILITH(DB%s):  -2*log(L): %.2f; -2*log(L_reference): %.2f; ndf: %d; p-value: %.2E \n",
@@ -371,7 +371,9 @@ int main(int argc,char** argv)
 #ifdef SMODELS
 {  int result=0;
    double Rvalue=0;
-   char analysis[30]={},topology[30]={}; 
+   char analysis[30]={},topology[30]={};
+   int LHCrun=LHC8|LHC13;
+ 
 #include "../include/SMODELS.inc" 
 }   
 #endif 
@@ -392,7 +394,7 @@ int main(int argc,char** argv)
 
 //  sortOddParticles(cdmName);
 
-   Omega=darkOmega(&Xf,fast,Beps);
+   Omega=darkOmega(&Xf,fast,Beps,&err);
    printf("Xf=%.2e Omega=%.2e\n",Xf,Omega);
 
  printChannels(Xf,cut,Beps,1,stdout);

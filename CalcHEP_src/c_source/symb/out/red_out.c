@@ -129,7 +129,7 @@ static void  emitexpression(catrec* cr)
         if(i) writeF("*");
         writeF("propDen(%s,%s,%s)",momStr, vararr[denom[i].mass].alias,
         vararr[denom[i].width].alias);
-        if(denom[i].power!=1) writeF("^%d",denom[i].power);
+        if(denom[i].power>1) writeF("^%d",denom[i].power);
      }
    else writeF("1");
    writeF("$\n");

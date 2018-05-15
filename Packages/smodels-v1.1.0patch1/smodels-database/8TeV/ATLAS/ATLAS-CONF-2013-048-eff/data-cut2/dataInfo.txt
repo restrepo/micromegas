@@ -1,7 +1,0 @@
-dataType: efficiencyMap
-dataId: SR M110
-observedN: 7
-expectedBG: 11.0
-bgError: 4.0
-upperLimit: 0.4*fb
-expectedUpperLimit: 0.557*fb

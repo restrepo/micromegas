@@ -7,7 +7,6 @@ extern int      pTabPos(char * name);
 extern double   pMass(char * name);
 extern int      pNum(char * name);
 extern int      qNumbers(char *pname, int *spin2, int * charge3, int * cdim);
-int             pdg2TabPos(int pdg);
 extern char*    pdg2name(int pdg);
 extern REAL*    varAddress(char * name);
 extern char*    antiParticle(char*name); 

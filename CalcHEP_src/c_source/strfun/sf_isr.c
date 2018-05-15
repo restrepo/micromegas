@@ -4,7 +4,7 @@
 
 #include"crt_util.h"
 #include"interface.h"
-#include"simpson.h"
+#include"1d_integration.h"
 #include"runVegas.h"
 #include"subproc.h"
 #include"4_vector.h"
@@ -144,7 +144,7 @@ int i_isr__(int ii,double * be,double * mass)
 
   for (i = 0; i < NPOINTS; ++i)  xi[i] = (double)(i)/NPOINTS;
   for(i= NPOINTS;i<NPOINTS+4;i++)  xi[i]= 1- (1-xi[i-1])*0.5;
-  if(bOn) iRest= b_ng-simpson(norm_test,0.,1.,1.E-8);
+  if(bOn) iRest= b_ng-simpson(norm_test,0.,1.,1.E-8,NULL);
   for (i = 0; i < NPOINTS+4; ++i)
   {  double x=xi[i];
      x=1-x*x*x;
@@ -160,9 +160,9 @@ int i_isr__(int ii,double * be,double * mass)
 #ifdef CHECK_NORN
 if(bOn)
  printf("Check of Beamstralung normalization  delta(1-x)*%E  + %E(Beamstralung) =1?\n",(1-exp(-b_ng))/b_ng, 
- simpson(norm_test,0.,1.,1.E-8)/b_ng);
+ simpson(norm_test,0.,1.,1.E-8,NULL)/b_ng);
  
- printf("ISR [+ beamstrahlung] normalization: %E\n", simpson(norm_tot_func,0.00001,0.99999,1.E-8)); 
+ printf("ISR [+ beamstrahlung] normalization: %E\n", simpson(norm_tot_func,0.00001,0.99999,1.E-8,NULL)); 
   
 #endif
     

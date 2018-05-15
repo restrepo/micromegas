@@ -35,9 +35,13 @@ void procinfo2_(int*ccf,int*nsub,char*name,double*mass,int len)
   memcpy(&cc,ccf,sizeof(cc));
   procInfo1(cc, &ntot, &nin, &nout);
   cname=malloc((nin+nout)*sizeof(char*));
+  REAL r_mass[10];  
+  procInfo2(cc,*nsub,cname, r_mass);
   
-  procInfo2(cc,*nsub,cname, mass);
-  for(i=0;i<nin+nout;i++) cName2f(cname[i],name+i*len,len);
+  for(i=0;i<nin+nout;i++)
+  {  cName2f(cname[i],name+i*len,len);
+     mass[i]=r_mass[i];
+  }   
   free(cname);
 }
 

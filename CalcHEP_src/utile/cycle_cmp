@@ -1,13 +1,5 @@
 :
 
-if(test -z "$COMPHEP") then
-   COMPHEP=../
-   export COMPHEP
-fi
-
-if( test -e results_) then
-  rm -r results_
-fi
 
 if(test $# -lt 2) then
   echo " This command needs at least two parameters,
@@ -15,87 +7,96 @@ if(test $# -lt 2) then
   exit 1
 fi
 
+
+if(test -d results_) then 
+   rm results_/*.red
+else 
+   mkdir results_
+fi
+
+if(test ! -r sub.red) then 
+    echo "end;" > sub.red
+fi
+
 modeln=$1
-model1=""
+mdl11=""
 while(test $modeln  -ne 1  )
 do
   modeln=`expr $modeln  - 1` 
-  model1=$model1"]"
+  mdl1=$mdl1"["
 done
 
 modeln=$2
-model2=""
+mdl2=""
 while(test $modeln  -ne 1  )
 do
   modeln=`expr $modeln  - 1`  
-  model2=$model2"]"
+  mdl2=$mdl2"["
 done
 
-#Exclude to exlcude diagrams with virtual particles from the $Exclude list
 
-if(test $# -lt 3) then 
-  Exclude=""
-  echo "% let S13=0; let S23=0;" >let_tmp   
-else 
-  Exclude="e3,n3,t,b"
-  echo " let S13=0; let S23=0;" >let_tmp
-fi 
-
-SqrtS="1000"
-
-
-Prg=""       # ""/"]}["  (do not create)/(create) Reduce code
-             # "]}9"  make the  Reduce code and finish.
-
-Output=""    # "" - Reduce; "]"- Mathematica; "]]" - Form; "]]]" - C; ...
-             # "}]]]" - Reduce plus C, ....
+#read Process #It is expected to read a process  string like "e,E->m,M"
 
 read Process
 
-#read Process #It is expected to read a process  string like "e1,E1->e2,E2"
 
 while( test  "$Process" )
 do
 
-  rm   results/* tmp/*   # to start from the beginning
 
-  $COMPHEP/s_comphep -blind \
-     $model1"}}"$Process"}$SqrtS}$Exclude}]]}]$Prg}}"$Output"}9"
+
+#  echo =========================
+#  echo $Process
   
-  mv results results_
-  mkdir results 
-  rm tmp/*
 
-  $COMPHEP/s_comphep -blind \
-     $model2"}}"$Process"}$SqrtS}$Exclude}]]}]$Prg}}"$Output"}9"
+  rm  -f results/*.red  results_/*.red  tmp/*    # to start from the beginning
+
+  com1=$mdl1{{$Process{{[{[{[[[{0 
+  bin/s_calchep -blind "$com1"   1>/dev/null 2>/dev/null  
+  if(test $? -ne 0) then 
+        echo $Process  ERROR: absent in model $1
+        read Process
+        continue       
+  fi 
+  mv results/symb1.red  results_/
+
+  rm tmp/safe
+  com2=$mdl2{{$Process{{[{[{[[[{0  
+  bin/s_calchep -blind  "$com2"  1>/dev/null 2>/dev/null
+  if(test $? -ne 0) then 
+        echo $Process  ERROR: absent in model $2
+        read Process
+        continue       
+  fi 
+
 
 #  YOUR CHECK BEGIN
 #
-     echo =========================
-     echo $Process
 
-     if(test -f r-session) then 
-        rm r-session
-     fi 
+
+
+  diff  results/symb1.red results_/symb1.red > diff
+  if(test -s diff) then 
 
      if(test -f message) then 
         rm message
      fi 
 
-     cat let_tmp  cmp.red |  reduce >r-session 
-     grep -i heap r-session 
+     cat  cmp.red |  reduce >r-session 
      rm r-session
-     if (test ! -f message) then 
-        echo  REDUCE can not perform summation for  $Process 
+     if(test -s message) then
+        R=`cat message | tail -n 1`
+        echo  $Process  $R  
      else 
-        cat message
+        echo  REDUCE can not perform summation for  $Process  ERROR 
      fi
-     rm -r results_
+  else
+     echo  $Process  oK
+  fi
 #
 # YOUR CHECK END
-
 
   read Process
 done
 
-rm let_tmp r-session message
+#rm   message

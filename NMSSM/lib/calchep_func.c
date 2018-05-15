@@ -97,11 +97,11 @@ static int runTools(char * cmd, char * fout,int mode)
    fprintf(f," 64  %.8E      # AK\n", aKappQ);
    fprintf(f," 65  %.8E      # MU\n", mu);
 
-   fprintf(f," 66  %.8E        # XiF \n",  mXiF*fabs(mXiF));
-   fprintf(f," 67  %.8E        # XiS \n",  pow(mXiS,3));
+   fprintf(f," 66  %.8E        # XiF \n", (double)(mXiF*fabs(mXiF)));
+   fprintf(f," 67  %.8E        # XiS \n", (double)(pow(mXiS,3)));
    fprintf(f," 68  %.8E        # muP \n",  muP);
-   fprintf(f," 69  %.8E        # MS'^2 \n", msP*fabs(msP));
-   fprintf(f," 72  %.8E        # M3H^2\n", m3h*fabs(m3h));
+   fprintf(f," 69  %.8E        # MS'^2 \n", (double)(msP*fabs(msP)));
+   fprintf(f," 72  %.8E        # M3H^2\n", (double)(m3h*fabs(m3h)));
      
    fclose(f);
 
@@ -117,6 +117,7 @@ double sugraNMSSM( double m0, double mhf, double a0, double tb, double sgn,
      double muP, double msP,double m3h)
 {
   int nw=0,err,prec=2;
+
   if(mXiF || mXiS || muP|| msP||m3h) prec=0;
   FILE*  f=fopen("inp","w");  
   if(f==NULL) return -1;
@@ -149,11 +150,11 @@ double sugraNMSSM( double m0, double mhf, double a0, double tb, double sgn,
    fprintf(f," 63  %.8E        # A_LAMBDA\n", aLambda);
    fprintf(f," 64  %.8E        # A_K\n", aKappa);
 
-   fprintf(f," 66  %.8E        # XiF \n",  mXiF*fabs(mXiF));
+   fprintf(f," 66  %.8E        # XiF \n",  mXiF*((double)fabs(mXiF)));
    fprintf(f," 67  %.8E        # XiS \n",  mXiS*mXiS*mXiS);
    fprintf(f," 68  %.8E        # muP \n", muP);
-   fprintf(f," 69  %.8E        # MS'2 \n", msP*fabs(msP));
-   fprintf(f," 72  %.8E        # M3H^2\n", m3h*fabs(m3h));
+   fprintf(f," 69  %.8E        # MS'2 \n", msP*((double)fabs(msP)));
+   fprintf(f," 72  %.8E        # M3H^2\n", m3h*((double)fabs(m3h)));
                            
    fclose(f);
      

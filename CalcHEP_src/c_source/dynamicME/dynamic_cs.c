@@ -20,6 +20,8 @@
 #include "vp.h"
 #include "n_proc.h"
 #include "dynamic_cs.h"
+
+#include"SLHAplus.h"
   
 char  * libDir=NULL;
 char  * modelDir=NULL;
@@ -211,9 +213,6 @@ typedef struct  procRec
 
 static  procRec* allProc=NULL;
 
-
-
-
 #include<stdlib.h>
 #include<sys/wait.h>
 
@@ -228,10 +227,10 @@ numout*getMEcode(int twidth,int Gauge, char*Process, char*excludeVirtual,
    int Len;
    char * lib_;
 
-   lib_=malloc(strlen(lib)+4);
+   lib_=malloc(strlen(lib)+6);
    
    if(Gauge) sprintf(lib_,"%s_u",lib);    else  strcpy(lib_,lib); 
-     
+   if(twidth) strcat(lib_,"_t");  
    for(test=allProc;test; test=test->next) if(strcmp(lib_,test->libname)==0) 
    {
      *(test->cc->interface->gtwidth)=0;
@@ -269,8 +268,7 @@ numout*getMEcode(int twidth,int Gauge, char*Process, char*excludeVirtual,
         char GaugeCh[4];
         int ret;  
         int delWorkDir;
-        
-        if(twidth) strcpy(options,"5[[{[{}");else strcpy(options,"");
+        if(twidth) strcpy(options,"5[{}");else strcpy(options,"");
         if(Gauge) strcpy(GaugeCh,"U"); else strcpy(GaugeCh,"F");
  
         delWorkDir=prepareWorkPlace();
@@ -365,7 +363,7 @@ static int vert2name(char**field ,char * lib)
 } 
 
 
-lVert* getLagrVertex(char*n1,char*n2,char*n3,char*n4)
+lVert* getVertex(char*n1,char*n2,char*n3,char*n4)
 {
    char lib[50];
    char *proclibf,*command;
@@ -375,14 +373,13 @@ lVert* getLagrVertex(char*n1,char*n2,char*n3,char*n4)
    vertRec*test;
    int Len;
    char *fields[4]={n1,n2,n3,n4};
- 
+
    
    int err=vert2name(fields,lib);      
    if(err) return NULL;
    
    for(test=allVert;test; test=test->next) if(strcmp(lib,test->libname)==0)
-   { if(test->vv->nTerms==0) return NULL;
-     else return test->vv;
+   { if(test->vv->nTerms==0) return NULL;  else  return   test->vv;
    }  
    
    Len=strlen(compDir)+strlen(lib)+strlen(libDir)+300;
@@ -404,10 +401,8 @@ lVert* getLagrVertex(char*n1,char*n2,char*n3,char*n4)
         int delWorkDir;
         
         delWorkDir=prepareWorkPlace();
-
-        sprintf(command,"cd %s; %s/sbin/newVertex %s %d  %s  %s %s",
-                       compDir, calchepDir, modelDir, modelNum, lib, libDir, vert_txt);
-                          
+        sprintf(command,"cd %s; %s/sbin/newVertex models  %d  %s  %s %s",
+                       compDir, calchepDir,  modelNum, lib, libDir, vert_txt);                         
         ret=system(command);
       
 //        if(ret<0 || WIFSIGNALED(ret)>0 ) exit(10);
@@ -592,4 +587,86 @@ numout*newProcess(char*Process)
    if(err) return NULL;
    return getMEcode(0,ForceUG,Process,NULL,"",lib);
 }
-            
+
+
+//============================
+
+int HiggsLambdas(double Q, char * Higgs, double complex*lAA,double complex *lGG, double complex *lAA5, double complex *lGG5)
+{               
+   if(lGG)*lGG=0;  if(lGG5)*lGG5=0; if(lAA)*lAA=0; if(lAA5)*lAA5=0;
+   int i;
+   for(i=0;i<nModelParticles;i++) if(strcmp(ModelPrtcls[i].name,Higgs)==0) break;
+   if(i==nModelParticles) { printf(" %s - no such particles\n",Higgs);   return 0;}
+   if( ModelPrtcls[i].spin2!=0 ||  ModelPrtcls[i].cdim!=1 || ModelPrtcls[i].q3!=0) 
+   { printf(" %s - has not quantum numbers of Higgs\n",Higgs);   return 0;}
+
+   int pdg= ModelPrtcls[i].NPDG;
+
+   double complex ffE=0,faE=0,ffC=0,faC=0; 
+  
+   txtList L = makeDecayList(Higgs,2), l=L;
+
+   double a=alphaQCD(Q)/M_PI;
+   for(l=L;l;l=l->next)
+   { char Xp[10], Xm[10];
+     sscanf(strstr(l->txt,"->")+2, "%[^,],%s",Xp,Xm);
+     trim(Xp); trim(Xm); 
+
+     if(strcmp(Xp,antiParticle(Xm))==0)
+     {  
+        int pdg,spin2,charge3,cdim;
+        double mX=pMass(Xp);
+        double dffE=0,dfaE=0,dffC=0,dfaC=0;
+        pdg=qNumbers(Xp, &spin2, &charge3, &cdim);
+
+        if(charge3 !=0 || cdim!=1)
+        {  
+           double coeff[10]; 
+           int k;
+           double mXp; // pole mass
+           switch(abs(pdg))
+           { case 4: mXp=1.48;         break;
+             case 5: mXp=bPoleMass();  break;
+             case 6: mXp=tPoleMass();  break;
+             default:mXp=mX;
+           }             
+           double mN= (spin2&1)?  mX : mX*mX;   
+           lVert *xxh=getVertex(Xm,Xp,Higgs,NULL);
+           if(!xxh) continue;
+           getNumCoeff(xxh,coeff);
+           for(k=0;k<xxh->nTerms;k++)  
+           { int addFF=0,addFA=0;
+             switch(spin2)
+             {
+               case 0:  if(strcmp(xxh->SymbVert[k],"1")==0) addFF=1;    break;
+               case 1:  if(strcmp(xxh->SymbVert[k],"1")==0) addFF=1; else
+                        if(strcmp(xxh->SymbVert[k],"G5*i")==0) addFA=1; break;
+               case 2:  if(strcmp(xxh->SymbVert[k],"m2.m1")==0) addFF=1;break; 
+             }
+               if(addFF)
+               { if(lGG && cdim!=1)  *lGG+=hGGeven(Q,a,1,spin2,cdim,(REAL)mXp,(REAL)(coeff[k]/mN)); 
+                 if(lAA && charge3 ) *lAA+=hAAeven(Q,a,1,spin2,cdim,(REAL)mXp,(REAL)(coeff[k]/mN))*charge3*charge3/9.;
+               }
+               if(addFA) 
+               { if(lGG5 && cdim!=1) *lGG5+=0.5*hGGodd(Q,a,1,spin2,cdim,(REAL)mXp,(REAL)(coeff[k]/mN)); 
+                 if(lAA5 && charge3) *lAA5+=0.5*hAAodd(Q,a,1,spin2,cdim,(REAL)mXp,(REAL)(coeff[k]/mN))*charge3*charge3/9.; 
+               } 
+             }   
+          }                     
+        }    
+      }
+      cleanTxtList(L);
+      return pdg;
+}
+
+static int nHiggs=0;
+typedef  struct { char hName[20]; double complex lXX[5];} lambdaRec;
+static lambdaRec* allLambdas=NULL;
+
+void cleanHiggs_AA_GG(void) { free(allLambdas); allLambdas=NULL; nHiggs=0;} 
+ 
+
+double complex lAAhiggs(double Q, char * hName) { double complex lAA;  if(HiggsLambdas(Q,hName, &lAA,NULL,NULL, NULL))  return lAA; else  { FError=1;  return 0;} }
+double complex lGGhiggs(double Q, char * hName) { double complex lGG;  if(HiggsLambdas(Q,hName, NULL,&lGG,NULL, NULL))  return lGG; else  { FError=1;  return 0;} } 
+double complex lAA5higgs(double Q,char * hName) { double complex lAA5; if(HiggsLambdas(Q,hName, NULL,NULL,&lAA5,NULL))  return lAA5; else { FError=1;  return 0;} }
+double complex lGG5higgs(double Q,char * hName) { double complex lGG5; if(HiggsLambdas(Q,hName, NULL,NULL,NULL,&lGG5))  return lGG5; else { FError=1;  return 0;} }

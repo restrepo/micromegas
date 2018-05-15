@@ -8,8 +8,8 @@
     exit 1
   fi 
   
-  rm -rf Packages/HiggsBounds  Packages/HiggsSignals
-
+  rm -rf Packages/HiggsBounds  Packages/HiggsSignals Packages/smodels-v1.1.1
+  
   if(test -x "`which gmake`") then
      MAKE=gmake
   else

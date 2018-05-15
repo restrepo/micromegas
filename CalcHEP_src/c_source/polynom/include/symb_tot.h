@@ -31,7 +31,7 @@ typedef struct symb_data
                   
 extern void symb_clean(symb_data S);
 extern symb_data symb_copy(symb_data S);
-extern symb_data symb_imult(symb_data S,int del,int factor);
+extern symb_data symb_imult(symb_data S,int del, NUM_TYPE factor);
 extern symb_data symb_mult(symb_data S1, int del1, symb_data S2, int del2);
 extern symb_data symb_sum(symb_data S1, int del1, symb_data S2, int del2);
 extern symb_data symb_typeUp(symb_data S, int del,int type);

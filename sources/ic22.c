@@ -111,7 +111,7 @@ void  getdNSdCos( double *nu,double *nu_)
    for(i=0;i<40;i++) 
    { cs_stat=1-i*(1-cos(10./180.*M_PI))/40.;
      cs_tab[i]=cs_stat;
-     dNsigTab[i]=simpson(E_integ,1,M,1.E-3); 
+     dNsigTab[i]=simpson(E_integ,1,M,1.E-3,NULL); 
    }  
 }
 
@@ -228,10 +228,10 @@ static    double P(double x)
          } else {IC22chan[i].n=0; IC22chan[i].s2=0;} 
          IC22chan[i].n*=104/365./1.2; 
       }
-      double Nbg=simpson(IC22BGdCos,cs_,1,1E-3);
+      double Nbg=simpson(IC22BGdCos,cs_,1,1E-3,NULL);
       double Ns=0;
 #ifdef NOCHAN
-      Ns=simpson(dNSdCos,cs_,1,1.E-3)/1.2;
+      Ns=simpson(dNSdCos,cs_,1,1.E-3,NULL)/1.2;
 //printf("Ns(noChan=%E ",Ns);      
 #else   
       Ns=0;           
@@ -244,12 +244,12 @@ static    double P(double x)
       int nData=0;      
       for(cs=1;cs>0.99;cs-=0.0001)       
       { 
-         Ns= simpson(dNSdCos,cs,1,1.E-3)/1.2;
-         Nbg=simpson(IC22BGdCos,cs,1,1E-3);
+         Ns= simpson(dNSdCos,cs,1,1.E-3,NULL)/1.2;
+         Nbg=simpson(IC22BGdCos,cs,1,1E-3,NULL);
         if(rate<Ns/sqrt(Nbg)) {rate=Ns/sqrt(Nbg); cs_=cs;}   
       } 
-      Ns= simpson(dNSdCos,cs_,1,1.E-3)/1.2;
-      Nbg=simpson(IC22BGdCos,cs_,1,1E-3);   
+      Ns= simpson(dNSdCos,cs_,1,1.E-3,NULL)/1.2;
+      Nbg=simpson(IC22BGdCos,cs_,1,1E-3,NULL);   
       for(i=0;i<Nev;i++) if(events[i].cs>cs_) nData++;
 
 printf("nData=%d Ns=%E Nbg=%E fi=%E\n",nData,Ns,Nbg,180/M_PI*acos(cs_));      
@@ -279,8 +279,8 @@ printf("s=%E\n",s);
       L[0]=0;
       if(L[20]>L[15]) return 0;     
       double dI=exp(L[20])/(2*(L[15]-L[20]));   
-      double int1=simpson(P,0.,1,1E-3);
-      double int2=simpson(P,1.,2,1E-2);
+      double int1=simpson(P,0.,1,1E-3,NULL);
+      double int2=simpson(P,1.,2,1E-2,NULL);
       if(B) *B=P(1)/P(0);
       return (int1)/(int1+int2+dI);
    }
@@ -317,7 +317,7 @@ static int Nev;
          IC22histRead(); 
       }
 
-      Nev_=simpson(IC22BGdCos,cs_,1,1E-3);    
+      Nev_=simpson(IC22BGdCos,cs_,1,1E-3,NULL);    
 if(rand)
 {
 // generate random number of events in Nev_ \pm 2*sqrt(Nev_) interval
@@ -373,7 +373,7 @@ if(rand)
          IC22chan[i].n*=104/365./1.2; 
       }
       
-      double Nbg=simpson(IC22BGdCos,cs_,1,1E-3);
+      double Nbg=simpson(IC22BGdCos,cs_,1,1E-3,NULL);
       double Ns=0;
       for(i=1;i<20;i++) if(IC22chan[i].n>0) Ns+=IC22chan[i].n*(1-exp((cs_-1)/IC22chan[i].s2));      
       double nData=0;
@@ -391,13 +391,13 @@ if(rand)
       if(L[20]>=L[15]) return 0;
 
       double dI=exp(L[20])/(2*(L[15]-L[20]));  
-      double int1=simpson(P,0.,1.,1E-3);
-      double int2=simpson(P,1.,2.,1E-2);
+      double int1=simpson(P,0.,1.,1E-3,NULL);
+      double int2=simpson(P,1.,2.,1E-2,NULL);
       double exLev=int1/(int1+int2+dI);
-      if(prn)
-      {  displayFunc(P,0,2,"PPP");
-         exit(0);
-      }      
+//      if(prn)
+//      {  displayFunc(P,0,2,"PPP");
+//         exit(0);
+//      }      
       return int1/(int1+int2+dI);
    }
 #endif
@@ -405,7 +405,7 @@ if(rand)
 int  IC22events(double *nu, double * nuB, double phi_cut, double *Nsig,double *Nbg, int*Nobs)
 { double dfi,cs,cs_=cos(phi_cut*M_PI/180);                           
   if(phi_cut>25) { printf(" Too large angle cut\n");  return 1;}   
-  if(Nbg) *Nbg=simpson(IC22BGdCos,cs_,1,1E-3);                        
+  if(Nbg) *Nbg=simpson(IC22BGdCos,cs_,1,1E-3,NULL);                        
   if(Nobs)                                                            
   {  FILE*F;                                                          
      char fname[300];                                                 
@@ -429,7 +429,6 @@ int  IC22events(double *nu, double * nuB, double phi_cut, double *Nsig,double *N
 //        i,E,s,1-exp((cs_-1)/s), IC22nuAr(E),n[i]);                                                
         n[i]=nu[i]*IC22nuAr(E)*(1-exp((cs_-1)/(s*s))) ;
       }
-//       displaySpectrum("nu",10,Mdm,n);                                                               
       *Nsig+=spectrInt(50,Mdm,n);                                     
     }                                                                 
     if(nuB)                                                           
@@ -564,12 +563,12 @@ double fluxFactIC22_FC(double cl,double * nu, double*NU)
       int nData=0;      
       for(cs=1;cs>0.99;cs-=0.0001)       
       { 
-         Ns= simpson(dNSdCos,cs,1,1.E-3)/1.2;
-         Nbg=simpson(IC22BGdCos,cs,1,1E-3);
+         Ns= simpson(dNSdCos,cs,1,1.E-3,NULL)/1.2;
+         Nbg=simpson(IC22BGdCos,cs,1,1E-3,NULL);
         if(rate<Ns/sqrt(Nbg)) {rate=Ns/sqrt(Nbg); cs_=cs;}   
       } 
-      Ns= simpson(dNSdCos,cs_,1,1.E-3)/1.2;
-      Nbg=simpson(IC22BGdCos,cs_,1,1E-3);   
+      Ns= simpson(dNSdCos,cs_,1,1.E-3,NULL)/1.2;
+      Nbg=simpson(IC22BGdCos,cs_,1,1E-3,NULL);   
       for(i=0;i<Nev;i++) if(events[i].cs>cs_) nData++;
 //      printf("cs_=%E nData=%d, Nbg=%E,cl=%E\n",cs_,nData,Nbg, cl);
       return  FeldmanCousins(nData, Nbg, cl)/Ns;

@@ -1,9 +1,5 @@
 :
 
-if(test -z "$COMPHEP") then
-   COMPHEP=../
-   export COMPHEP
-fi
 
 if(test $# -lt 1) then
   echo " This command needs at least one parameter, 
@@ -16,26 +12,12 @@ model=""
 while(test $modeln  -ne 1  ) 
 do 
   modeln=`expr $modeln  - 1`
-  model=$model"]"
+  model=$model"["
 done 
 
 
 #Exclude to exlcude diagrams with virtual particles from the $Exclude list
 
-if(test $# -lt 2) then
-  Exclude=""
-else
-  Exclude="e3,n3,t,b"
-fi
-
-
-SqrtS="1000"
-
-Prg="]}["    # ""/"]}["  (do not create)/(create) Reduce code
-             # "]}9"  make the  Reduce code and finish.
-
-Output=""    # "" - Reduce; "]"- Mathematica; "]]" - Form; "]]]" - C; ...
-             # "}]]]" - Reduce plus C, ....
 
 read Process
 
@@ -46,8 +28,8 @@ do
 
   rm results/* tmp/*   # to start from the beginning
 
-  $COMPHEP/s_comphep -blind \
-     $model"}}"$Process"}$SqrtS}$Exclude}]]}]$Prg}}"$Output"}9"
+  com="$model{{$Process{{[{[[[[{]]]{[[[{0"
+  bin/s_calchep -blind "$com" 
 
 
 #  YOUR CHECK BEGIN
@@ -63,7 +45,7 @@ do
       rm message
    fi
 
-   cat  check.red | reduce >r-session
+   cat  bin/../utile/check.red | reduce >r-session
    grep  -i heap r-session
    if (test ! -f message) then
         echo  REDUCE can not calculate $Process 

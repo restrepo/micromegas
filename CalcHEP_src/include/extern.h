@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdio.h>
-#include <math.h>   
-#include <complex.h>
+#include <math.h> 
 
 #include"nType.h"
         
@@ -23,11 +22,25 @@ extern REAL MixMatrixU(int id, int i,int j);
 extern int cDiagonalH(int Dim,...);
 extern int cDiagonalA(int Dim,...);
 extern int cDiagonalS(int Dim,...);
+
 extern double complex cMixMatrix(int id,int i,int j);
 extern double complex cMixMatrixU(int id,int i,int j);
+
 extern int System(char * format, ...);
 extern int openAppend(char * fileName);
 extern int aPrintF(char * format,...);
+
+extern int aPrintF0(char * format);
+extern int aPrintF1(char*format,double x1);
+extern int aPrintF2(char*format,double x1,double x2);
+extern int aPrintF3(char * format, double x1,double x2,double x3);
+extern int aPrintF4(char * format, double x1,double x2,double x3,double x4);
+extern int aPrintF5(char * format, double x1,double x2,double x3,double x4,double x5);
+extern int aPrintF6(char * format, double x1,double x2,double x3,double x4,double x5,double x6);
+extern int aPrintF7(char * format, double x1,double x2,double x3,double x4,double x5,double x6,double x7);
+extern int aPrintF8(char * format, double x1,double x2,double x3,double x4,double x5,double x6,double x7,double x8);
+extern int aPrintF9(char * format, double x1,double x2,double x3,double x4,double x5,double x6,double x7,double x8,double x9);
+
 
 extern double initQCD(double,double,double,double);
 extern double initQCD5(double,double,double,double);
@@ -49,6 +62,7 @@ extern double complex Hgam1V(double z);
 extern double complex Hgam1A(double z);
 extern double Mbp(void);
 
+#define dbl(a) (double)(a)
 #define  slhaVal0(block,scale)             slhaVal(block,scale,0)
 #define  slhaVal1(block,scale,i1)          slhaVal(block,scale,1,i1)
 #define  slhaVal2(block,scale,i1,i2)       slhaVal(block,scale,2,i1,i2)
@@ -62,11 +76,18 @@ extern double Mbp(void);
 
 extern double complex  hGGeven(double MH, double alphaMH, int Nitems, ...);
 extern double complex  hAAeven(double MH, double alphaMH, int Nitems, ...);
-extern double complex  hGGodd(double MH, double alphaMH, int Nitems, ...);
-extern double complex  hAAodd(double MH, double alphaMH, int Nitems, ...);
+extern double complex  hGGodd(double MH,  double alphaMH, int Nitems, ...);
+extern double complex  hAAodd(double MH,  double alphaMH, int Nitems, ...);
+
+extern double complex lAAhiggs(double Q, char*hName);
+extern double complex lGGhiggs(double Q, char*hName);
+extern double complex lAA5higgs(double Q,char*hName);
+extern double complex lGG5higgs(double Q,char*hName);
+
 
 /* To avoid avto-prototyping  
 
+extern double  dbl(double);
 extern double  sqrt(double);
 extern double  sin(double);
 extern double  cos(double);

@@ -19,7 +19,7 @@ extern int     spinLength;
 
 
 extern void    delSpin(SpinTensor s);
-extern void    multSpinInt(SpinTensor *t , long l);
+extern void    multSpinInt(SpinTensor *t , NUM_TYPE l);
 extern void    multSpinPoly(SpinTensor*, poly);
 extern void    multSpinTens(SpinTensor * spn, tensor tns);
 extern void    addSpin(SpinTensor * t1, SpinTensor t2);

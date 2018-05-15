@@ -15,7 +15,7 @@ int nvar_int;
 int nfunc_int;
 
 char * (*pinf_int)(int nsub, int nprtcl, REAL * pmass,int * num);
-int (*pinfAux_int)(int nsub, int nprtcl, int*spin2,int*color,int*neutral);
+int (*pinfAux_int)(int nsub, int nprtcl, int*spin2,int*color,int*neutral,int*ndf);
 char ** polarized_int;
 char ** varName_int;
 

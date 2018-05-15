@@ -174,7 +174,7 @@ slhaRead("UMSSM_decay.dat",1);
   
   printf("\n==== Calculation of relic density =====\n"); 
   sortOddParticles(cdmName);
-  Omega=darkOmega(&Xf,fast,Beps);
+  Omega=darkOmega(&Xf,fast,Beps,&err);
   printf("Xf=%.2e Omega=%.2e\n",Xf,Omega);
   if(Omega>0)printChannels(Xf,cut,Beps,1,stdout);
 
@@ -307,7 +307,8 @@ LilithMO("Lilith_in.xml_");
 #ifdef SMODELS
 {  int result=0;
    double Rvalue=0;
-   char analysis[30]={},topology[30]={}; 
+   char analysis[30]={},topology[30]={};
+   int LHCrun=LHC8|LHC13;  //  LHC8  - 8TeV; LHC13  - 13TeV; 
 #include "../include/SMODELS.inc" 
 }   
 #endif 
@@ -348,7 +349,6 @@ printf("\n==== Indirect detection =======\n");
     */
     
 
-  if(SpA)
   { 
      double fi=0.1,dfi=M_PI/180.; /* angle of sight and 1/2 of cone angle in [rad] */ 
                                                    /* dfi corresponds to solid angle 1.E-3sr */                                             
@@ -364,7 +364,6 @@ printf("\n==== Indirect detection =======\n");
 #endif
   }
 
-  if(SpE)
   { 
     posiFluxTab(Emin, sigmaV, SpE, FluxE);
     if(SMmev>0)  solarModulation(SMmev,0.0005,FluxE,FluxE);
@@ -375,7 +374,6 @@ printf("\n==== Indirect detection =======\n");
     SpectdNdE(Etest, FluxE),  Etest); 
   }
   
-  if(SpP)
   {
     pbarFluxTab(Emin, sigmaV, SpP,  FluxP); 
     
@@ -399,18 +397,23 @@ printf("\n==== Indirect detection =======\n");
          <Nucleon>     "P" or "N" for proton and neutron
          <q>            "d", "u","s"
 
-   calcScalarFF( Mu/Md, Ms/Md, sigmaPiN[MeV], sigma0[MeV])  
+   calcScalarQuarkFF( Mu/Md, Ms/Md, sigmaPiN[MeV], sigmaS[MeV])  
    calculates and rewrites Scalar form factors
 */
   printf("\n======== RESET_FORMFACTORS ======\n");
  
   printf("protonFF (default) d %.2E, u %.2E, s %.2E\n",ScalarFFPd, ScalarFFPu,ScalarFFPs);                               
   printf("neutronFF(default) d %.2E, u %.2E, s %.2E\n",ScalarFFNd, ScalarFFNu,ScalarFFNs);
+//                    To restore default form factors of  version 2  call 
+     calcScalarQuarkFF(0.553,18.9,55.,243.5);
 
-  calcScalarQuarkFF(0.553,18.9,45.5,26.);
 
   printf("protonFF (new)     d %.2E, u %.2E, s %.2E\n",ScalarFFPd, ScalarFFPu,ScalarFFPs);                               
   printf("neutronFF(new)     d %.2E, u %.2E, s %.2E\n",ScalarFFNd, ScalarFFNu,ScalarFFNs);
+
+//                    To restore default form factors  current version  call 
+//  calcScalarQuarkFF(0.56,20.2,34,42);
+
 
 
 /* Option to change parameters of DM velocity  distribution  */   

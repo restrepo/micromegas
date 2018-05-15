@@ -1,0 +1,13 @@
+Vector Portal simplified model
+ Constraints
+ Name  |  Expression                                                                                <|
+CW     |MW/MZ           % on-shell cos of the Weinberg angle
+SW     |sqrt(1-CW^2)    % sin of the Weinberg angle
+LamQCD |initQCD5(alfSMZ,McMc,MbMb,Mtp)
+ GF    |EE^2/(2*SW*MW)^2/Sqrt2        % Fermi constant
+ Mb    |MbEff(Q)
+ Mt    |MtEff(Q)
+ Mc    |McEff(Q)
+CWp    |MW/MZp
+SWp    |sqrt(fabs(1-CWp^2))
+======================================================================================================

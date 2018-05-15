@@ -30,6 +30,7 @@ static int txt2plist(char*txt,double *br, int * ind)
 int LilithMO(char * fname)  
 { int i,j,k;
 
+printf("LILITH_MO\n");
   
   double Mcp=1.478662E+00, Mbp=bPoleMass(), Mtp=tPoleMass();
   int VZdecay_save=VZdecay, VWdecay_save=VWdecay, changeVirtual=0;
@@ -43,14 +44,14 @@ int LilithMO(char * fname)
   char  *Wm=  antiParticle(Wp);
   double MW=pMass(Wp);
    
-  lVert* WWA=getLagrVertex(Wp,Wm,A,NULL); if(!WWA) { printf(" %s %s %s is absent\n", Wp,Wm,A); return -2;}
+  lVert* WWA=getVertex(Wp,Wm,A,NULL); if(!WWA) { printf(" %s %s %s is absent\n", Wp,Wm,A); return -2;}
   getNumCoeff(WWA,coeff);
   for(k=0;k<WWA->nTerms;k++) if( strcmp(WWA->SymbVert[k],"p1.m1*m3.m2")==0) break;
   double EE=coeff[k];
 //for(k=0;k<WWA->nTerms;k++) printf( "%e ", coeff[k]);
 //printf("\n"); 
   
-  lVert* WWZ=getLagrVertex(Wp,Wm,Z,NULL); if(!WWZ) { printf(" %s %s %s is absent\n", Wp,Wm,Z); return -2;}
+  lVert* WWZ=getVertex(Wp,Wm,Z,NULL); if(!WWZ) { printf(" %s %s %s is absent\n", Wp,Wm,Z); return -2;}
   getNumCoeff(WWZ,coeff);
   for(k=0;k<WWZ->nTerms;k++) if( strcmp(WWZ->SymbVert[k],"p1.m1*m3.m2")==0) break;
   double SW=sin(atan(EE/coeff[k]));
@@ -92,7 +93,7 @@ int LilithMO(char * fname)
          char *Fe=antiParticle(fe);  if(!Fe) continue;
          double m=pMass(fe);
          if(m==0) continue; 
-         lVert *hff=getLagrVertex(Fe,fe,Higgs[i],NULL); 
+         lVert *hff=getVertex(Fe,fe,Higgs[i],NULL); 
          double c[2]={0,0};
          if(hff)
          {  getNumCoeff(hff,coeff); 
@@ -110,7 +111,7 @@ int LilithMO(char * fname)
  
       char *ve=pdg2name(24); if(!ve) continue;
       char *Ve=antiParticle(ve); if(!Ve) continue; 
-      lVert *hvv=getLagrVertex(Ve,ve,Higgs[i],NULL);          
+      lVert *hvv=getVertex(Ve,ve,Higgs[i],NULL);          
       double c=0;
       if(hvv)
       {  getNumCoeff(hvv,coeff); 
@@ -118,54 +119,9 @@ int LilithMO(char * fname)
       } 
       fprintf(f, "    <C to=\"VV\">%f</C>\n", c);
          
-      double complex ffE=0,faE=0,ffC=0,faC=0; 
-      txtList L = makeDecayList(Higgs[i],2), l=L;
-      double mH=pMass(Higgs[i]);
-      double a=alphaQCD(mH)/M_PI;
-      for(l=L;l;l=l->next)
-      { char Xp[10], Xm[10];
-        sscanf(strstr(l->txt,"->")+2, "%[^,],%s",Xp,Xm);
-        trim(Xp); trim(Xm); 
-        if(strcmp(Xp,antiParticle(Xm))==0)
-        {  
-          int pdg,spin2,charge3,cdim;
-          double mX=pMass(Xp);
-          double dffE=0,dfaE=0,dffC=0,dfaC=0;
-          pdg=qNumbers(Xp, &spin2, &charge3, &cdim);
-          if((charge3 !=0 || cdim!=1) && mX>0.5)
-          {  double mXp; // pole mass
-             switch(abs(pdg))
-             { case 4: mXp=Mcp;    break;
-               case 5: mXp=Mbp;      break;
-               case 6: mXp=Mtp; break;
-               default:mXp=mX;
-             }             
-             double mN= (spin2&1)?  mX : mX*mX;   
-             lVert *xxh=getLagrVertex(Xm,Xp,Higgs[i],NULL);
-             if(!xxh) continue; 
-             getNumCoeff(xxh,coeff);
-             for(k=0;k<xxh->nTerms;k++)  
-             { int addFF=0,addFA=0;
-               switch(spin2)
-               {
-                 case 0:  if(strcmp(xxh->SymbVert[k],"1")==0) addFF=1;    break;
-                 case 1:  if(strcmp(xxh->SymbVert[k],"1")==0) addFF=1; else
-                          if(strcmp(xxh->SymbVert[k],"G5*i")==0) addFA=1; break;
-                 case 2:  if(strcmp(xxh->SymbVert[k],"m2.m1")==0) addFF=1;break; 
-               }
-               if(addFF)
-               { if(cdim!=1) ffC+=hGGeven(mH,a,1,spin2,cdim,mXp,coeff[k]/mN); 
-                 if(charge3) ffE+=hAAeven(mH,a,1,spin2,cdim,mXp,coeff[k]/mN)*charge3*charge3/9.;
-               }
-               if(addFA) 
-               { if(cdim!=1) faC+=0.5*hGGodd(mH,a,1,spin2,cdim,mXp,coeff[k]/mN); 
-                 if(charge3) faE+=0.5*hAAodd(mH,a,1,spin2,cdim,mXp,coeff[k]/mN)*charge3*charge3/9.; 
-               } 
-             }   
-          }                     
-        }    
-      }
-      cleanTxtList(L);
+      double complex ffE,faE,ffC,faC; 
+      double mH=pMass(Higgs[i]); 
+      HiggsLambdas(mH, Higgs[i], &ffE,&ffC, &faE, &faC);      
       double  LGGSM=lGGhSM(mH,alphaQCD(mH)/M_PI, Mcp,Mbp,Mtp,vev);
       double  LAASM=lAAhSM(mH,alphaQCD(mH)/M_PI, Mcp,Mbp,Mtp,vev);
       double  lamQGG=(ffC*conj(ffC) +4*faC*conj(faC));
@@ -178,6 +134,7 @@ int LilithMO(char * fname)
       int idDM1=0,idDM2=0;
       if(CDM1) idDM1=abs(pNum(CDM1));
       if(CDM2) idDM2=abs(pNum(CDM2));
+      txtList L,l;
       width=pWidth(Higgs[i],&L);
       for(l=L;l;l=l->next)
       {  double br;
@@ -226,4 +183,5 @@ int lilithmo_(char*fname,int len)
    free(cname);
    return nHiggs; 
 }
-                  
+
+

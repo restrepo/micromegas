@@ -131,7 +131,7 @@ extern void  printhiggs_(int * N);
     Relic density evaluation 
   =====================================*/ 
 
-extern double darkomega_(double *Xf,int * Fast, double* Beps);
+extern double darkomega_(double *Xf,int * Fast, double* Beps,int*err);
 /*
      real*8 function darkOmega(Xf,Fast,Beps)
      real*8 Xf,Fast,Beps

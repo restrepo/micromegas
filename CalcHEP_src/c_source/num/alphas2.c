@@ -281,9 +281,11 @@ L10:{  char strmen[]="\030"
 	       } 
 	       N++;                                                      
             }
+            int dim[3];
+            for(i=0;i<N;i++) dim[i]=nPoints;
 //            printf("N=%d Y[0]=%s\n Y[1]=%s\n Y[2]=%s\n", N,Y[0],Y[1],Y[2]);                                                         
 //            plot_Nar(NULL, "Alpha(Q)",  log10(qMin), log10(qMax),"log10(Q/GeV)", nPoints, N, f,ff,Y);
-              plot_Nar(NULL, "Alpha(Q)",  qMin,qMax,"Q/GeV", nPoints, xLog, N, f,ff,Y);
+              plot_Nar(NULL, "Alpha(Q)",  qMin,qMax,"Q/GeV", xLog, N, dim,f,ff,Y);
             for(k=0;k<N;k++) free(f[k]);
 	  } else  messanykey(40,18,
 	          " Correct input is \n"

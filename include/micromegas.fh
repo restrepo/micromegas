@@ -106,6 +106,10 @@ C              procInfo1,procInfo2
 
       integer  setpdt
       external setpdt 
+      real*8 YF,Yeq
+      external YF,Yeq
+
+
  
 #define NZ  250      
 
@@ -170,6 +174,9 @@ C              procInfo1,procInfo2
 #define Z_Xe  54
 #define Z_Cs  55
 #define Z_Pb  82
+
+#define LHC8  1
+#define LHC13 2
 
 #define NOFF (-12345.d0)
 #define M_PI  3.14159265358979323846d0

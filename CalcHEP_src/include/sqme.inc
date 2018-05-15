@@ -21,14 +21,13 @@ double sqme_ext(int nsub, double GG,REAL*momenta,REAL*cb_coeff, int * err)
 {
   int i,nperm,shift, ntot=nin_ext+nout_ext,cb_pow=cb_ext[nsub-1].pow;
   REAL result, momenta_[4*maxNp], cb_buf_[buffSize],*cb_buff=NULL;
-
-  if(!momenta){ darr[nsub-1](GG,NULL,NULL,err); return 0;}
+  double Fmax=0; 
+  if(!momenta){ darr[nsub-1](GG,NULL,NULL,NULL,err); return 0;}
 
 
   if(cb_coeff) for(i=0;i<cb_pow;i++) cb_coeff[i]=0;
    
-  Fmax=0; 
-  result=darr[nsub-1](GG,momenta,cb_coeff,err);
+  result=darr[nsub-1](GG,momenta,cb_coeff,&Fmax, err);
   nperm=permMap[nsub-1][1];
   if(nperm)
   { int n; 
@@ -40,15 +39,20 @@ double sqme_ext(int nsub, double GG,REAL*momenta,REAL*cb_coeff, int * err)
      { 
        if(cb_buff) for(i=0;i<cb_pow;i++) cb_buff[i]=0;
        for(i=0;i<ntot;i++) memcpy(momenta_+i*4,momenta+ 4*(permP[shift+n][i]-1),sizeof(REAL)*4);
-       result+=darr[nsub-1](GG,momenta_,cb_coeff,err);
+       result+=darr[nsub-1](GG,momenta_,cb_coeff,&Fmax,err);
        if(cb_buff) for(i=0;i<cb_pow;i++) cb_coeff[permC[shift+n][i]-1]+=cb_buff[i];
      }
      result/=(1+nperm);
      if(cb_coeff) for(i=0;i<cb_pow;i++) cb_coeff[i]/=1+nperm;
      if(cb_buff && cb_buff !=cb_buf_) free(cb_buff);
   }
-  if(!(*err) && Fmax*computer_eps*100 > (result>0 ? result : -result) )
-  { *err=1; result=0;}
+
+  if(!(*err) && Fmax*computer_eps*1000 > (result>0 ? result : -result) )
+  { *err=1;
+     if(result>0) { result-=(1000*Fmax*computer_eps -result)*0.1  ; if(result<0) result=0;}
+     else { result+=(1000*Fmax*computer_eps+result)*0.05  ; if(result>0) result=0;}
+  }
+
 
    return (double)result;
 }

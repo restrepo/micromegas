@@ -64,7 +64,7 @@ symb_all rd_symb(char*s)
        p->expr.p->power[vardef->vars[i].wordpos-1] =vardef->vars[i].zerodeg;
        p->type=polytp;
        break;
-     }
+     } 
      if(i==vardef->nvar)
      { p->expr.p=NULL;
        p->type=errortp;

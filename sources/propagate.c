@@ -60,17 +60,17 @@ extern void setRhoClumps(double (*cProfile)(double));
 void setClumpConst(double f,double rho)
 {  f_clump=f; rho_clump=rho; setRhoClumps(rhoClumpsConst); }
 
-static double (*hProfile_)(double)=hProfileZhao;
+double (*haloProfile)(double)=hProfileZhao;
 
 double rhoClumpsConst(double r)
-{ double v=(rho_clump - rhoDM*(*hProfile_)(r)*f_clump);
+{ double v=(rho_clump - rhoDM*(*haloProfile)(r)*f_clump);
   if(v<=0) return 0;
   return f_clump*v;
 }
 
 static double (*rhoClumpEff_)(double)=rhoClumpsConst;
 
-void setHaloProfile(double (*hProfile)(double)){ hProfile_=hProfile;}
+void setHaloProfile(double (*hProfile)(double)){ haloProfile=hProfile;}
 
 void setRhoClumps(double (*cProfile)(double)) {   rhoClumpEff_=cProfile; }
 
@@ -127,7 +127,7 @@ static double  N_rho(void)
   else if(CDM2==NULL) N=rhoDM/Mcdm1;
   else N=rhoDM*(fracCDM2/Mcdm2 +(1-fracCDM2)/Mcdm1); 
   
-  return N/hProfile_(Rsun); 
+  return N/haloProfile(Rsun); 
 }
 
 
@@ -139,7 +139,7 @@ static double xIntegrand(double x)
 {  double r=Rsun*sqrt(x*x+sn_*sn_);
    double pf;
    if(r<rHaloMin) r=rHaloMin;
-   pf=hProfile_(r); 
+   pf=haloProfile(r); 
    if(vcsMode) pf*=(pf +rhoClumpEff_(r)/rhoDM );
    return  pf;
 }
@@ -150,7 +150,7 @@ static double yIntegrand(double y)
   x=1/y-1;
   r=Rsun*sqrt(x*x+sn_*sn_);
   if(r<rHaloMin) r=rHaloMin;
-  pf=hProfile_(r);
+  pf=haloProfile(r);
   if(vcsMode) pf*=(pf+rhoClumpEff_(r)/rhoDM);
   return  pf/y/y;
 }
@@ -167,17 +167,17 @@ static double psiIntegrand(double psi)
   if(cs_>0)
   { double xmin;
     if(rHaloMin/Rsun>sn_) xmin=sqrt((rHaloMin/Rsun-sn_)*(rHaloMin/Rsun+sn_)); else xmin=0;
-    Int=2*simpson(xIntegrand,xmin,cs_,1.E-4);
+    Int=2*simpson(xIntegrand,xmin,cs_,1.E-4,NULL);
   } else Int=0;
   
-  Int+= simpson(yIntegrand,0,1/(fabs(cs_)+1),1.E-4);
+  Int+= simpson(yIntegrand,0,1/(fabs(cs_)+1),1.E-4,NULL);
   return Int;
 }
 
 static double fiIntegrand(double fi)
 { 
   dfi_=fi;
-  return sin(fi)*simpson(psiIntegrand,-M_PI/2,M_PI/2,1.E-4)/M_PI;
+  return sin(fi)*simpson(psiIntegrand,-M_PI/2,M_PI/2,1.E-4,NULL)/M_PI;
 }  
 
 double HaloFactor(double fi,double dfi)
@@ -187,7 +187,7 @@ double HaloFactor(double fi,double dfi)
    
    fi_=fi;
    if(dfi<=0) {dfi_=0;res=psiIntegrand(0);} 
-   else res=simpson(fiIntegrand,0,dfi,1.E-4)/(1-cos(dfi));
+   else res=simpson(fiIntegrand,0,dfi,1.E-4,NULL)/(1-cos(dfi));
    return res/(4*M_PI)*Rsun*sm_in_kpc;
 }
 
@@ -202,7 +202,7 @@ static double l_integrand(double l)
          
 static double b_integrand(double b)
 { b_=b;
-   return cos(b)*simpson(l_integrand,l1_,l1_+dl_,1.E-3);
+   return cos(b)*simpson(l_integrand,l1_,l1_+dl_,1.E-3,NULL);
 }
        
            
@@ -213,7 +213,7 @@ static double HaloFactorGC(double l,double b,double dl,double db)
   
    l1_=l, dl_=dl;
 
-   res=simpson(b_integrand,b,b+db,1.E-3);
+   res=simpson(b_integrand,b,b+db,1.E-3,NULL);
    if(dl<0) res*=-1;
    if(db<0) res*=-1;
    return res/(4*M_PI)*Rsun*sm_in_kpc;
@@ -335,7 +335,7 @@ static double  rIntegrand(double r)
    if(r==0) return 0;
    I_angular_rS=azimuthInt(Rsun*r /Kt_);
    rr=sqrt(r*r+z_*z_);
-   prQ=hProfile_(rr);
+   prQ=haloProfile(rr);
    if(vcsMode) prQ*=(prQ+rhoClumpEff_(rr)/rhoDM);
    return r*I_angular_rS*exp(-(Rsun-r)*(Rsun-r)/(4*Kt_))*prQ;
 }
@@ -350,17 +350,17 @@ static double zIntegrand(double z)
   if (rMax > Rdisk) rMax = Rdisk;
 
   z_=z;  
-  return   green_v(Kt_,z)*simpson(rIntegrand,rMin,rMax, 1.E-4);
+  return   green_v(Kt_,z)*simpson(rIntegrand,rMin,rMax, 1.E-4,NULL);
 }        
 
 
 static double integral_cal_In(double K0_tau)
 {
-   if(K0_tau<0.001) { double prQ=hProfile_(Rsun); if(vcsMode)prQ*=prQ+rhoClumpEff_(Rsun)/rhoDM;   return prQ/2;}
+   if(K0_tau<0.001) { double prQ=haloProfile(Rsun); if(vcsMode)prQ*=prQ+rhoClumpEff_(Rsun)/rhoDM;   return prQ/2;}
    Kt_=K0_tau;
    dR_ = sqrt(4.0 * Kt_ * log(10.0) * DIGIT);  
 
-   return  simpson(zIntegrand,0,dR_, 1.E-3)/(4*Kt_);
+   return  simpson(zIntegrand,0,dR_, 1.E-3,NULL)/(4*Kt_);
 }
 
 #else
@@ -369,7 +369,7 @@ static double r_;
 
 static double zIntegrand(double z)
 { double rr=sqrt(r_*r_+z*z), prQ;
-  prQ=hProfile_(rr); 
+  prQ=haloProfile(rr); 
   if(vcsMode) prQ*=prQ+rhoClumpEff_(rr)/rhoDM;
   return   green_v(Kt_,z)*prQ; 
 }        
@@ -380,7 +380,7 @@ static double  rIntegrand(double r)
    r_=r;
    if(dR_>L_dif) zMax=L_dif; else zMax=dR_;
    if(r>=rHaloMin)zMin=0; else zMin=sqrt(rHaloMin*rHaloMin -r*r );
-   I_z=simpson(zIntegrand,zMin,zMax,0.1*Eps);
+   I_z=simpson(zIntegrand,zMin,zMax,0.1*Eps,NULL);
    I_angular_rS=azimuthInt(Rsun*r /Kt_);
    return  r*I_angular_rS*exp(-(Rsun-r)*(Rsun-r)/(4*Kt_))*I_z;
 }
@@ -389,7 +389,7 @@ static double integral_cal_In(double K0_tau)
 {
   double rMin,rMax;
   if(K0_tau<0.001) 
-  { double prQ; prQ=hProfile_(Rsun); 
+  { double prQ; prQ=haloProfile(Rsun); 
     if(vcsMode)prQ*=prQ+rhoClumpEff_(Rsun)/rhoDM; 
     return prQ/2;
   }
@@ -401,7 +401,7 @@ static double integral_cal_In(double K0_tau)
   if (rMin <= 0.0  ) rMin = 0.0;
   if (rMax > Rdisk) rMax = Rdisk;
 
-  return simpson(rIntegrand,rMin,rMax, 0.3*Eps)/(4*Kt_);
+  return simpson(rIntegrand,rMin,rMax, 0.3*Eps,NULL)/(4*Kt_);
 }
 
 
@@ -432,7 +432,7 @@ double posiFlux(double E, double sigmav, double *tab)
   tab_=tab; 
   flu =Tau_dif/(E*E)*sigmav/(4*M_PI)*CELERITY_LIGHT;
   Eobs=E;
-  return  2*flu*rho0*simpson(PosifluxIntegrand,E,tab[0],Eps); 
+  return  2*flu*rho0*simpson(PosifluxIntegrand,E,tab[0],Eps,NULL); 
 }
 
 static double* xa_,*ya_;
@@ -459,7 +459,7 @@ void posiFluxTab(double Emin, double sigmav, double *tab, double *tabOut)
   {
      Eobs=tab[0]*exp(Zi(i));
      if(Eobs<Emin*0.9) buff[i]=0; 
-     else buff[i]= (flu/Eobs)* simpson(SpectIntegrand, Eobs, tab[0], Eps);
+     else buff[i]= (flu/Eobs)* simpson(SpectIntegrand, Eobs, tab[0], Eps,NULL);
   }   
 
   for(i=1;i<NZ;i++) tabOut[i]=2*rho0*buff[i];
@@ -635,8 +635,8 @@ static double ek_,z_,r_;
 
 #define rHalo1  0.1
 
-static double rhoQ_2(double r){ double prQ=hProfile_(r); if(vcsMode)prQ*=prQ+rhoClumpEff_(r)/rhoDM;  return r*r*prQ;  }
-static double rhoQ_3(double r){ double prQ=hProfile_(r); if(vcsMode)prQ*=prQ+rhoClumpEff_(r)/rhoDM;  return r*r*r*prQ;}
+static double rhoQ_2(double r){ double prQ=haloProfile(r); if(vcsMode)prQ*=prQ+rhoClumpEff_(r)/rhoDM;  return r*r*prQ;  }
+static double rhoQ_3(double r){ double prQ=haloProfile(r); if(vcsMode)prQ*=prQ+rhoClumpEff_(r)/rhoDM;  return r*r*r*prQ;}
 
 static double  thetaIntegrandP(double uTheta)
 {
@@ -645,7 +645,7 @@ static double  thetaIntegrandP(double uTheta)
   double prQ;
   double d=sqrt(z_*z_ + (Rsun-r_)*(Rsun-r_) +4*r_*Rsun*sinTh*sinTh);
   if(d>=Rdisk) return 0;
-  prQ=hProfile_(d); 
+  prQ=haloProfile(d); 
   if(vcsMode) prQ*=prQ+rhoClumpEff_(d)/rhoDM;
   return  uTheta*prQ*(1-exp(-2*(Rdisk-d)/Leff));
 }
@@ -664,10 +664,10 @@ static double rIntegrandP(double r)
   if(sinMax>=1) thetaMax=M_PI; else thetaMax=2*asin(sinMax);
 
   r_=r;
-  prQ=hProfile_(rHalo1); if(vcsMode) prQ*=prQ+rhoClumpEff_(rHalo1)/rhoDM;
+  prQ=haloProfile(rHalo1); if(vcsMode) prQ*=prQ+rhoClumpEff_(rHalo1)/rhoDM;
   
   fluxDM_r_z=2*2*simpson(thetaIntegrandP,sqrt(thetaMin),sqrt(thetaMax),
-  0.1*Eps)+2*thetaMin*prQ;   	
+  0.1*Eps,NULL)+2*thetaMin*prQ;   	
 
   return r*fluxDM_r_z*pbar_PropagatorInfiniteR(r,z_,ek_);
 }
@@ -687,13 +687,13 @@ z_=z;
 
   Ismall=(a-b*z*z)*(sqrt(r1*r1+z*z)-z) +b/3*(pow(r1*r1+z*z,3./2.)-z*z*z);
 
-//  return u*(Ismall+simpson(rIntegrandP,r1,10*Leff, Eps/3));
-  return  u*(Ismall+simpson(rIntegrandP,r1,Rsun, Eps/3)
-                     +simpson(rIntegrandP,Rsun,Rdisk+Rsun,Eps/3));
+//  return u*(Ismall+simpson(rIntegrandP,r1,10*Leff, Eps/3,NULL));
+  return  u*(Ismall+simpson(rIntegrandP,r1,Rsun, Eps/3,NULL)
+                     +simpson(rIntegrandP,Rsun,Rdisk+Rsun,Eps/3,NULL));
                        
   
-  return  u*(Ismall+simpson(rIntegrandP,r1,Rsun, Eps/3)
-                   +simpson(rIntegrandP,Rsun,Rdisk+Rsun,Eps/3));
+  return  u*(Ismall+simpson(rIntegrandP,r1,Rsun, Eps/3,NULL)
+                   +simpson(rIntegrandP,Rsun,Rdisk+Rsun,Eps/3,NULL));
 }
 
 int  Gtot_style=2;
@@ -735,10 +735,10 @@ static double pbarPropRate(double ek)
     Leff=1/sqrt(SQR(knL/L_dif)+SQR(kv)); 
   }  
           
-  fluxDM=4*simpson(zIntegrandP,0.,sqrt(L_dif),Eps);
+  fluxDM=4*simpson(zIntegrandP,0.,sqrt(L_dif),Eps,NULL);
 
-  i2=simpson(rhoQ_2,rHaloMin, rHalo1, 1.E-2) -rHalo1*rhoQ_2(rHalo1)/3;
-  i3=simpson(rhoQ_3,rHaloMin, rHalo1, 1.E-2) -rHalo1*rhoQ_3(rHalo1)/4; 
+  i2=simpson(rhoQ_2,rHaloMin, rHalo1, 1.E-2,NULL) -rHalo1*rhoQ_2(rHalo1)/3;
+  i3=simpson(rhoQ_3,rHaloMin, rHalo1, 1.E-2,NULL) -rHalo1*rhoQ_3(rHalo1)/4; 
     
   dFluxDM=4*M_PI*i2*pbar_PropagatorInfiniteR(Rsun,0.5*i3/i2,ek);
   fluxDM+=dFluxDM;   

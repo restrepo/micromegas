@@ -215,6 +215,10 @@ static void *  bact(char ch,void * mm1,void * mm2)
 /*         if(!mult_perm[m1->tp][m2->tp])
          {  rderrcode = typemismatch; return NULL; }
 */
+
+         if(m1->tp==indextp || m2->tp==indextp)
+         { rderrcode = typemismatch; return NULL;}
+                 
          if((m1->indlist & m2->indlist))
          {  rderrcode = indexuncompatibility; return NULL; }
 

@@ -4,7 +4,7 @@
 #include <math.h>
 #include<stdlib.h>
 #include"tools.h"
-#include"simpson.h"
+#include"1d_integration.h"
 
 double divy_(double y)
 {

@@ -19,7 +19,7 @@ do
     if(test $run -eq 1) then
        Wi=`$1/run_vegas`
        Wi=`echo $Wi | cut  -f1 -d" "`
-echo Wi=$Wi  
+#echo Wi=$Wi  
        if(test "$Wi" != "0.0E+0"  ) then
           Wt=`$1/calc "$Wt + ($Wi)"`
           cp session.dat session.dat.$nSub  

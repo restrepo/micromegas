@@ -88,8 +88,8 @@ int sugraLesH(char *fname,  double tb, double gMG1,double gMG2,double gMG3,
    if(fabs(a0-gAb)>a0_)   fprintf(f," 12  %.8E      # Ab \n",  gAb);
    if(fabs(a0-gAl)>a0_)   fprintf(f," 13  %.8E      # Al\n", gAl);
 
-   if(fabs(m0-gMHd)>m0_) fprintf(f," 21  %.8E      # MHd^2\n",gMHd*fabs(gMHd));
-   if(fabs(m0-gMHu)>m0_) fprintf(f," 22  %.8E      # MHu^2\n",gMHu*fabs(gMHu));
+   if(fabs(m0-gMHd)>m0_) fprintf(f," 21  %.8E      # MHd^2\n",(double)(gMHd*fabs(gMHd)));
+   if(fabs(m0-gMHu)>m0_) fprintf(f," 22  %.8E      # MHu^2\n",(double)(gMHu*fabs(gMHu)));
 
    if(fabs(m0-gMl2)>m0_) {fprintf(f," 31  %.8E      # Ml1\n",  gMl2);
                           fprintf(f," 32  %.8E      # Ml2\n",  gMl2);}

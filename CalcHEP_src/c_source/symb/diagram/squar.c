@@ -568,7 +568,6 @@ label_2:             n++;
      
          constrdiagr += nsdiagram; 
          goto_xy(13,21); print("%5d",constrdiagr); 
-                  
          if ((constrdiagr) > maxdiagr && !feof(diagrp))
           {  if(mess_y_n(3,17," Continue ?")) maxdiagr += 1000;  else goto label_3;}
       }  

@@ -128,7 +128,10 @@ int initvararray(int nsub, char key, polyvars * vardef_ext)
       
    nvar=0; nfunc=0;
    
-   if(key=='F' ||key=='R'||key== 'M') for(k=0;k<=nmodelvar;k++) strcpy(vararr[k].alias, modelvars[k].varname);
+   if(key=='F' ||key=='R'||key== 'M') for(k=0;k<=nmodelvar;k++) 
+   {  strcpy(vararr[k].alias, modelvars[k].varname);
+      vararr[k].tmpvalue=modelvars[k].varvalue; 
+   }    
    else     
    if(key=='c')
    {   

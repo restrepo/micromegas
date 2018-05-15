@@ -1,15 +1,15 @@
 #include"micromegas.h"
 #include"micromegas_aux.h"
 #include"../CalcHEP_src/c_source/chep_crt/include/crt.h"
-
+#include"../CalcHEP_src/include/rootDir.h"
 #include <sys/types.h>
 #include <unistd.h>
 #include <signal.h>              
 #include <sys/wait.h>
 #include <stdarg.h>
- 
 
  
+  
 static int First=1;
   
 static void disconnect(int N) { setsid();}
@@ -26,7 +26,7 @@ static int pidList[100];
 
 extern char pathtocalchep[], pathtohelp[];
   
-void displayPlotN(char * title, double xMin, double xMax,  char*xName,  int dim,int lScale, int N, double**f,double**ff,char**Y)
+void displayPlotN(char * title,char*xName,  double xMin, double xMax,  int lScale, int N, char**Y, int*Dim, double**f,double**ff)
 { int pid;
   
   if(First) { First=0;   signal(SIGUSR1, disconnect);}  
@@ -43,36 +43,77 @@ void displayPlotN(char * title, double xMin, double xMax,  char*xName,  int dim,
      { printf("Can not display plot because micromegas is compiled without X11\n");
        exit(0);
      }
-     sprintf(pathtocalchep,"%s/",calchepDir);
+     sprintf(pathtocalchep,"%s/",rootDir);
      sprintf(pathtohelp,"%s/help/",pathtocalchep);
      clearTypeAhead();     
-     plot_Nar(NULL,title,xMin,xMax,xName, dim,lScale,N, f,ff,Y);
+     plot_Nar(NULL,title,xMin,xMax,xName, lScale,N, Dim,f,ff,Y);
      finish();
      exit(0);
   } else pidList[newPID++]=pid;
 }
 
-void displayPlot(char * title, double xMin, double xMax,  char*xName,  int dim, int lScale, int N, ...)
+int displayPlot(char * title, char*xName, double xMin, double xMax ,  int lScale, int N, ...)
 {
-  int i;
-  double **f; double**ff; char**Y;  
+  int i,j;
+  double **f; double**ff; char**Y;
+  int *Dim;
+  int * delMark;
   va_list ap;   
-        
+  if(lScale !=0 && lScale!=1)
+  { printf(" 5-th parameter  is not 0/for linear scale/ or 1/for log scale/.\n");
+    return 1;
+  }   
+
+  Dim=(int*)malloc(N*sizeof(int));
   f =malloc(N*sizeof(double*));
   ff=malloc(N*sizeof(double*));
   Y = malloc(N*sizeof(char*));
-  
+  delMark=(int*)malloc(N*sizeof(int));
   va_start(ap,N);
   for(i=0;i<N;i++) 
-  { f[i]=va_arg(ap,double*);
-    ff[i]=va_arg(ap,double*);
+  { 
     Y[i]=va_arg(ap,char*);
+    for(j=0;j<50;j++) if(Y[i][j]==0)break;
+    if(j==50) 
+    {  printf("Parameter %d is not a text string or too long. Curve title expected in this position.\n",7+N*4);
+       free(Dim); free(f); free(ff); free(Y); free(delMark);
+       return 2;
+    }    
+    Dim[i]=va_arg(ap,int);
+    if(Dim[i]<0 || Dim[i]>300) 
+    { printf("Parameter %d =%d should present number of points for curve of number of bins for histogram.\n" 
+      "Values larger than 300 are forbidden. Zero input reserved for presentation of  functions\n",4+N*4,Dim[i] );
+      free(Dim); free(f); free(ff); free(Y); free(delMark);
+      return 3;
+    } 
+    if(Dim[i])
+    { 
+      f[i]=va_arg(ap,double*);
+      ff[i]=va_arg(ap,double*);
+      delMark[i]=0;
+    } else 
+    { void * F,*A;
+      Dim[i]=150;
+      f[i]=malloc(Dim[i]*sizeof(double));
+      ff[i]=NULL;
+      delMark[i]=1;
+      F=va_arg(ap,void*);
+      A=va_arg(ap,void*);
+         
+      for(j=0;j<Dim[i];j++)
+      { double x;
+        if(lScale) x=xMin*pow(xMax/xMin,(j+0.5)/Dim[i]); else x= xMin+(j+0.5)/Dim[i]*(xMax-xMin);
+        if(A) { double (*func)(double,void*)=F; f[i][j]=func(x,A);} 
+        else  { double (*func)(double)=F;       f[i][j]=func(x);}
+      }
+                 
+    }     
   }   
   va_end(ap);
   
-  displayPlotN(title,xMin,xMax, xName, dim, lScale,N, f,ff,Y);
-
-  free(f); free(ff);free(Y);
+  displayPlotN(title, xName,xMin,xMax,lScale,N,Y,Dim,f,ff);
+  for(i=0;i<N;i++) if(delMark[i]) free(f[i]);
+  free(Dim); free(f); free(ff); free(Y); free(delMark);
 }
 
 
@@ -107,23 +148,3 @@ void  killPlots(void)
 
 void  killplots_(void) { killPlots();}
 
-void displayFunc(char*title, double (*F)(double), double x1  ,double x2, char * varName, int lScale)
-{
-  int i;
-  double f[100];
-  if( x1<=0 || x2<=0) lScale =0;
-  if(lScale) for(i=0;i<100;i++) f[i]=F(x1*pow(x2/x1, (i+0.5)/100.));
-  else      for(i=0;i<100;i++) f[i]=F(x1+(i+0.5)*(x2-x1)/100.);
-  displayPlot(title,x1,x2,varName,100,lScale,1,f,NULL,"");
-}  
-
-
-void displayFuncArg(char*title, double (*F)(double,void *), void* Arg, double x1  ,double x2, char * varName , int lScale)
-{
-  int i;
-  double f[100];
-  if( x1<=0 || x2<=0) lScale =0;
-   if(lScale) for(i=0;i<100;i++) f[i]=F(x1*pow(x2/x1, (i+0.5)/100.),Arg);
-    else      for(i=0;i<100;i++) f[i]=F(x1+(i+0.5)*(x2-x1)/100.,Arg);
-  displayPlot(title,x1,x2,varName,100,lScale,1,f,NULL,"");
-}  

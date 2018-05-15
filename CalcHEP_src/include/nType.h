@@ -5,12 +5,16 @@
 #define __NTYPE__
 
 #include<math.h>
+
 #include<complex.h>
+
  
 #ifdef _LONG_  
 
 #define REAL    long double
+
 #define COMPLEX long double complex
+
 
 #define sqrt   sqrtl
 #define sin    sinl
@@ -60,7 +64,9 @@
 
 #ifdef _QUAD16_
 #define REAL _Quad
+
 #define COMPLEX  complex _Quad
+
 //http://software.intel.com/en-us/forums/topic/289725
 
 #define sin    __sinq  
@@ -75,6 +81,11 @@
 #define paw    __pawq 
 #define sqrt   __sqrtq
 #define fabs   __fabsq
+#define creal  __crealq
+#define cimag  __cimagq
+#define conj   __conjq 
+#define cabs   __cabsq
+
 
 extern _Quad   __sinq(_Quad); 
 extern _Quad   __cosq(_Quad); 
@@ -88,6 +99,10 @@ extern _Quad   __logq(_Quad);
 extern _Quad   __pawq(_Quad); 
 extern _Quad   __sqrtq(_Quad);
 extern _Quad   __fabsq(_Quad);
+extern _Quad  __crealq(COMPLEX);
+extern _Quad  __cimagq(COMPLEX);
+extern COMPLEX __conjq(COMPLEX); 
+extern _Quad  __cabsq(COMPLEX);  
 
 #else 
 

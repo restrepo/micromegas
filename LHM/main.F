@@ -63,7 +63,7 @@ C for HIGGSBOUNDS/HIGGSSIGNALS
       character*70 HB_chan
       character*7 HB_version, HS_version
 C for SMODELS
-      integer result
+      integer result,LHCrun
       real*8 Rvalue
       character*30 analysis,topology,smodels_version
 C for LILITH
@@ -180,6 +180,7 @@ C      CALL printVar(6)
 
 #ifdef SMODELS
       write(*,*) "SMODELS:"
+      LHCrun=LHC8+LHC13
 #include "../include/SMODELS.inc_f"
       if(result.ge.0) write(*,fmt='("highest R=",1PE10.2," from ",A," topology ",A)') Rvalue,analysis,topology
       if(result.eq.-1) write(*,*) 'no channels for testing.'
@@ -280,7 +281,7 @@ C   where <Type> can be "Scalar", "pVector", and "Sigma";
 C         <Nucleon>     "P" or "N" for proton and neutron
 C         <q>            "d", "u","s"
 C
-C   calcScalarFF( Mu/Md, Ms/Md, sigmaPiN[MeV], sigma0[MeV])
+C   calcScalarQuarkFF( Mu/Md, Ms/Md, sigmaPiN[MeV], sigmaS[MeV])
 C   calculates and rewrites Scalar form factors
       write(*,*)
       write(*,*) '===== RESET_FORMFACTOR ============'
@@ -288,11 +289,8 @@ C   calculates and rewrites Scalar form factors
       write(*,fmt='(" neutronFF(default)  d, u, s ", 1PE10.2,E10.2,E10.2)') ScalarFFNd,ScalarFFNu,ScalarFFNs
 
       write(*,*) '===========Redefinition of form factors========='
-      call calcScalarFF(0.553d0,18.9d0,70.d0,35.d0)
-
-C    To restore default form factors of  version 2  call
-C      call  calcScalarQuarkFF(0.553d0,18.9d0,55.d0,243.5d0)
-
+C    To restore default form factors of  version 2  call   
+      call  calcScalarQuarkFF(0.553d0,18.9d0,55.d0,243.5d0)
 
       write(*,fmt='(" protonFF (new)  d, u, s ", 1PE10.2,E10.2,E10.2)') ScalarFFPd,ScalarFFPu,ScalarFFPs
       write(*,fmt='(" neutronFF(new)  d, u, s ", 1PE10.2,E10.2,E10.2)') ScalarFFNd,ScalarFFNu,ScalarFFNs

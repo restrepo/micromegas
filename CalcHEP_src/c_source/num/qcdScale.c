@@ -9,13 +9,16 @@
 #include "parser.h"
 #include "num_out.h"
 #include "rootDir.h"
+#include "subproc.h"
+#include "interface.h"
 #include "qcdScale.h"
+
 
 static int NX, pos[4];
 static char* sname[4]={"Qren","Qpdf1","Qpdf2","Qshow"};
 
 static FILE*fout;
-static double (*scaleCC_)(REAL*,double (*calcPV)(char,char*,double*), double *,double*,double*,double*,double*) =NULL;
+static double (*scaleCC_)(int nsub,REAL*,double (*calcPV)(char,char*,double*), double *,double*,double*,double*,double*) =NULL;
 static void* scaleLib=NULL;
 
 
@@ -29,15 +32,21 @@ static void*  rd_num_(char* s)
    { p=malloc(strlen(s)+10); 
      sprintf(p,"%s",s);
      return p;
-   }  
+   }
+   else if(s[0]=='"') 
+   {  p=malloc(strlen(s)+10);
+      sprintf(p,"%s",s);
+      return p;
+   }      
    else 
    { p=malloc(20);
      sprintf(p,"X[%d]",NX++);
+
      if(checkPhysVal(s,&key,plist)) 
      { fprintf(fout,"  %s=calcPV('%c',\"",p,key);
        for(i=0;plist[i];i++) fprintf(fout,"\\%d",plist[i]);
        fprintf(fout,"\",pvect);\n");   
-        return p;  
+        return p;
      }
 
      for(i=0;i<nModelVars+nModelFunc;i++) if(strcmp(varNames[i],s)==0)
@@ -88,14 +97,16 @@ static void*  act_num_(char* ch,int n, void**args)
                        { 
                          p=malloc(strlen(p1)+10);
                          sprintf(p,"%s(%s)",ch,p1);
+                         return p;
                        }   
-                       return p;
+                       break;
                    case 2:
                       if(!strcmp(ch,"atan2"))
                       { p=malloc(strlen(p1)+strlen(p2)+10);
                         sprintf(p,"atan2(%s,%s)",p1,p2);
                         return p;   
                       }
+                      break; 
                    case 3:   
                       if(!strcmp(ch,"if"))
                       { p=malloc(strlen(p1)+strlen(p2)+strlen(p3)+10);
@@ -103,6 +114,46 @@ static void*  act_num_(char* ch,int n, void**args)
                         return p;
                       }  
                }
+
+               if(strchr("ACDEJKMPSTUYNWZ",ch[0]) && (ch[1]==0 || ( ch[2]==0 && (ch[1]=='_' || ch[1]=='`') )
+               || !strcmp(ch,"S1") || !strcmp(ch,"S1_") || !strcmp(ch,"S1`")
+               || !strcmp(ch,"S2") || !strcmp(ch,"S2_") || !strcmp(ch,"S2`")      )) 
+               { char buff[100];
+                 int i;
+                 
+                 sprintf(buff,"%s(",ch);
+                 for(i=0;i<n;i++) sprintf(buff+strlen(buff),"%s,",(char*)args[i]);
+                 buff[strlen(buff)-1]=')';
+                 int Nsub_mem=Nsub;
+                 fprintf(fout,"  switch(nsub)\n  {\n");
+                 for(Nsub=1;Nsub<=nprc_int;Nsub++)
+                 {  fprintf(fout,"   case %d:\n   { ",Nsub);
+                    char key[3];
+                    physValRec *pList,*p;
+                    if(!checkPhysValN(buff, key, &pList)) return NULL;
+                    fprintf(fout,"char * plist[]={");
+                    for(p=pList;p;p=p->next) {fprintf(fout,"\"");
+                      for(i=0;i<strlen(p->pstr);i++) fprintf(fout,"\\%d",p->pstr[i]); fprintf(fout,"\",");
+                     } fprintf(fout,"NULL};\n");
+                    cleanPVlist(pList); 
+                    fprintf(fout,"     for(i=1,ss=calcPV('%c',plist[0],pvect); plist[i];i++) ",key[0]);
+                    switch (key[1]) 
+                    { case 0  : fprintf(fout," ss+=calcPV('%c',plist[i],pvect);\n",key[0]);  break;
+                      case '_': fprintf(fout,"{ s1=calcPV('%c',plist[i],pvect); if(s1<ss) ss=s1;} ",key[0]);  break;
+                      case '`': fprintf(fout,"{ s1=calcPV('%c',plist[i],pvect); if(s1>ss) ss=s1;} ",key[0]);  break;
+                    }                   
+                    fprintf(fout,"   } break;\n",NX);   
+                    
+                 }
+                 fprintf(fout,"  };\n");
+                 fprintf(fout,"  X[%d]=ss;\n",NX); 
+                 Nsub=Nsub_mem;             
+                 
+                 p=malloc(30);
+                 sprintf(p,"X[%d]",NX++);
+                 return p;
+               }    
+               
     }                    
 
    if(strcmp(ch,"min")==0 || strcmp(ch,"max")==0)
@@ -119,6 +170,7 @@ static void*  act_num_(char* ch,int n, void**args)
      free(q);
      return p;
    }
+   
    return NULL;
 }
 
@@ -137,16 +189,18 @@ int initScales(char*sR, char*sF1,char*sF2, char*sS, char * mess)
    fout=fopen("scale.c","w");
    if(!fout){ if(mess) sprintf(mess,"can't open file scale.c for writing");  return -1;}
    NX=0;
-   fprintf(fout,"#include<math.h>\n");  
+   fprintf(fout,"#include<math.h>\n");
+   fprintf(fout,"#include<stdlib.h>\n");  
    fprintf(fout,"#include\"%s/include/nType.h\"\n",rootDir);
    fprintf(fout,"#define min(x,y) (x<y? x:y)\n");
    fprintf(fout,"#define max(x,y) (x>y? x:y)\n"); 
-   fprintf(fout,"extern void ScaleCC(REAL*, double (*calcPV)(char,char*,double*), double*,double*,double*,double*,double *);\n");
-   fprintf(fout,"void ScaleCC(REAL*modelVal, double (*calcPV)(char,char*,double*), double *pvect,double *%s, double *%s,double *%s, double*%s)\n",
+   fprintf(fout,"extern void ScaleCC(int nsub, REAL*, double (*calcPV)(char,char*,double*), double*,double*,double*,double*,double *);\n");
+   fprintf(fout,"void ScaleCC(int nsub,REAL*modelVal, double (*calcPV)(char,char*,double*), double *pvect,double *%s, double *%s,double *%s, double*%s)\n",
             sname[0],sname[1],sname[2],sname[3]);
    fprintf(fout,"{ double ");
    fpos=ftell(fout);
    fprintf(fout,"               \n");
+   fprintf(fout,"  double ss,s1; int i;\n");
 
    for(k=0;k<4;k++)
    {
@@ -192,12 +246,12 @@ int initScales(char*sR, char*sF1,char*sF2, char*sS, char * mess)
 }
 
 
-void Scale(double*pv, double *qR, double *qF1,double *qF2,double *qS)
+void Scale(int nsub, double*pv, double *qR, double *qF1,double *qF2,double *qS)
 { double q=91.187; 
 
   if(scaleCC_)  
   { 
-     (*scaleCC_)(varValues, calcPhysVal, pv,qR,qF1,qF2,qS); 
+     (*scaleCC_)(nsub,varValues, calcPhysVal, pv,qR,qF1,qF2,qS); 
      if(*qF1<0) *qF1*=-1; 
      if(*qF2<0) *qF2*=-1;
      if(*qR<0) *qR*=-1; if(*qR<1) *qR=1;

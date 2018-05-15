@@ -160,12 +160,11 @@ int main(int argc,char** argv)
      ForceUG=interface_ext.forceUG;
   }
   
-  
-  
 
 /* **  initialization of the session */
   link_process(PtrInterface_ext);  
-  
+
+
   start1(title,icon,"calchep.ini;../calchep.ini",&xw_error);
   nPROCSS=sysconf(_SC_NPROCESSORS_ONLN); 
 
@@ -205,7 +204,6 @@ int main(int argc,char** argv)
   { char *ch=getenv("nParProc");
     if(ch) sscanf(ch,"%d",&nPROCSS);
   }  
-  
   goto_xy(10,10); print("Calculation of constraints.  Please, be patient.");
   escpressed();
   n_comphep();

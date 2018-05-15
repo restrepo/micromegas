@@ -5,13 +5,16 @@ special moment:(vector).
 special '__moment__start__':(vector), '__moment__end__'.
 special epsv:(vector,vector,vector,vector).
 group color:SU(3).
-repres color:(c3/c3b,c8).
-SetDefIndex(spinor,color c3, color c8, vector, wild 2).
+repres color:(c3/c3b,c8,c6/c6b).
+SetDefIndex(spinor,color c3, color c8, vector).
 special lambda:(color c3, color c3b, color c8).
 special f_SU3:(color c8, color c8, color c8).
 special d_SU3:(color c8, color c8, color c8).
 special eps_c3: (color c3,  color c3,  color c3), 
         eps_c3b:(color c3b, color c3b, color c3b).
+special k_c6:(color c3b, color c3b, color c6),
+        k_c6b:(color c3, color c3, color c6b).
+special l_c6:(color c6, color c6b, color c8).
 let deriv=-i*moment.
 special deriv5.
 let '__deriv__start__'=-i*'__moment__start__'.

@@ -29,9 +29,12 @@ SO=so
 echo UNIX `uname`
 case `uname` in
 
-Linux) CC=gcc
-       CFLAGS="-g -fsigned-char -Wstrict-prototypes -Wimplicit -Wmissing-prototypes -std=gnu99"
-#       CFLAGS="-fsigned-char -Wall"
+Linux) if(test "$CC" = "icc") then
+          CFLAGS="-g -fsigned-char -Qoption,cpp,--extended_float_type -std=gnu99 -fPIC" 
+       else
+          CC=gcc
+          CFLAGS="-g -fsigned-char -Wstrict-prototypes -Wimplicit -Wmissing-prototypes -std=gnu99"
+       fi
        lDL="-rdynamic -ldl"       
        SHARED=-shared
        SONAME=
@@ -43,32 +46,7 @@ Linux) CC=gcc
        RANLIB=ranlib
      ;;
 
-OSF1)  CC=cc
-       CFLAGS="-g -std1 -ieee -std=gnu99" 
-       FC=f77
-       FFLAGS="-O0 -fpe2" 
-       FFLAGSD=
-       SONAME="-soname "
-       SHARED=-shared
-       lFort=-lfor
-       lDL=
-       CXX=c++
-       CXXFLAGS=-g
-       RANLIB=ranlib
-     ;;
-SunOS) CC=cc
-       CFLAGS=-g -std=gnu99
-       SHARED=-G
-       SONAME=
-       FC=f77
-       FFLAGS=
-       lFort="-lF77 -lM77 -lsunmath"
-       lDL=-ldl
-       CXX=c++
-       CXXFLAGS=-g
-       RANLIB=ranlib
-     ;;
-Darwin)CC=gcc
+Darwin)CC=clang
        CFLAGS="-g -fsigned-char -std=gnu99"
        lDL=-ldl
        SHARED=-dynamiclib
@@ -76,7 +54,7 @@ Darwin)CC=gcc
        FC=gfortran
        FFLAGS= 
        lFort="-L/sw/lib  -lgfortran"
-       CXX=g++
+       CXX=clang++
        CXXFLAGS=-g
        RANLIB="ranlib -c"
      ;;
@@ -377,7 +355,9 @@ EOF
 
   $FC  -o a.out test.f  1>/dev/null 2>/dev/null
   if(test $? -ne 0) then
-    echo Fatal problem in  fortran compiler
+    echo Fatal problem in  fortran compiler:
+     $FC  -o a.out test.f
+     FC=
     return 1
   else 
     echo $FC OK
@@ -593,8 +573,14 @@ checkNUM
 
 # FORTRAN COMPILER
 
-testFC;  if(test $? -ne 0 ) then exit 1; fi
-if(test -n "$FC" ) then checklFort; fi
+
+testFC;  
+  if(test $? -eq 0 ) 
+     then checklFort; 
+  else 
+   if(test -n "$MICROMEGAS") then exit 1 ; fi 
+  fi
+
 
 writeFlags
 cd ..

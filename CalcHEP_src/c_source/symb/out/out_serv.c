@@ -133,6 +133,7 @@ void readDenominators(void)
        FREAD1(denom[i].power,archiv);   /*  power  1 or 2  */
        FREAD1(denom[i].mass,archiv);
        FREAD1(denom[i].width,archiv);
+       FREAD1(denom[i].pnum,archiv);
        m=0;  
        do FREAD1(denom[i].momStr[m],archiv); while(denom[i].momStr[m++]);
    }

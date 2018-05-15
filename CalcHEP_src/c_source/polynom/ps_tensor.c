@@ -113,7 +113,7 @@ void  addEtens(Etens* t1, Etens t2)
    *t1 = ans_str.next;
 }
 
-void multEtensInt(Etens *t , long l)
+void multEtensInt(Etens *t , NUM_TYPE l)
 { Etens tt;
   if(l==0) { delEtens(*t); *t=NULL;} else 
   for(tt=*t;tt;tt=tt->next) multtensint(&(tt->tcoef),l);

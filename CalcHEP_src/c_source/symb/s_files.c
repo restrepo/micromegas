@@ -34,7 +34,7 @@ void wrt_menu(int menutype,int k,char*txt,int ndel,int ncalc,int nrest,long recp
    else
    {
       fseek(menuq,(k - 1)*77 + 2,SEEK_SET);
-      fprintf(menuq,"%4d| %-44.44s|%5d|%5d|%5d|%-8ld",k,txt,ndel,ncalc,nrest,recpos);
+      fprintf(menuq,"%4d| %-44.44s|%5d|%5d|%5d|%-8ld",k,txt,ndel,ncalc,nrest,recpos);      
    }
 }
 

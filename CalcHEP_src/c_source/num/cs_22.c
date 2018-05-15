@@ -5,7 +5,7 @@
 #include "chep_crt.h"
 #include "plot.h"
 #include "num_serv.h"
-#include "simpson.h"
+#include "1d_integration.h"
 #include "cs_22.h"
 #include "interface.h"
 #include "subproc.h"
@@ -23,7 +23,7 @@
 static REAL pvect4[16];
 
 static double         totcoef;
-static double         cos1, cos2;
+static double         cos1=-0.999, cos2=0.999;
 static double         eps=0.001;
 static int            recalc;
 static char           procname[STRSIZ];
@@ -95,8 +95,9 @@ errorexit:
 }
 
 
-static void  calcscalars(double  cos_f)
+static void  calcscalars(double  cosf)
 {
+   REAL cos_f=cosf;
    REAL sin_f=sqrt(fabs((1-cos_f)*(1+cos_f)));
    pvect4[11]=pRestOut*cos_f;
    pvect4[15]=-pvect4[11];
@@ -112,7 +113,7 @@ static double  cross_section(double  x)
   calcscalars(x);
   for(i=0;i<16;i++) pvect4_[i]=pvect4[i];
  
-  Scale(pvect4_,&qR,&qF1,&qF2,&qS);
+  Scale(Nsub,pvect4_,&qR,&qF1,&qF2,&qS);
   GG=sqrt(4*M_PI*alpha_2(qR));
       
   r = sqme_int( Nsub,GG,pvect4,NULL,&err_code)*usrFF(2,2,pvect4_,p_names,p_codes);
@@ -221,9 +222,6 @@ int  cs_numcalc(double Pcm)
            pinf_int(k,2,NULL,NULL),pinf_int(k,3,NULL,NULL),pinf_int(k,4,NULL,NULL));              
 
    Pcm22=Pcm;
-   
-    cos1=-0.999;
-    cos2= 0.999;
 
    infotext();
    writeinformation();

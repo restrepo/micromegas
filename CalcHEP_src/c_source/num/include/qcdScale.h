@@ -2,6 +2,6 @@
 #define __qcdScale__
 
 extern int initScales(char*strR,char*strF1,char*strF2,char*strShower,char*mess);
-extern void Scale(double*,double*,double*,double*,double*);
+extern void Scale(int nsub,double*,double*,double*,double*,double*);
 
 #endif

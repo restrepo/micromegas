@@ -298,7 +298,7 @@ int main(int argc,char ** argv)
              //if(k==16)
              //{  
                 if(first) { fprintf(lun1,"BLOCK MASS\n"); first=0;}
-                fprintf(lun1," %d    %E # \n", key[0], creal(val));
+                fprintf(lun1," %d    %E # \n", key[0], (double)creal(val));
              //}
            }              
            break;
@@ -353,7 +353,7 @@ int main(int argc,char ** argv)
       fprintf(lun1,"<event>\n");
       
       fprintf(lun1,"%2d %4d %15.7E %15.7E %15.7E %15.7E\n",
-          E_.NUP,E_.IDPRUP,E_.XWGTUP,E_.SCALUP,E_.AQEDUP,E_.AQCDUP);
+          E_.NUP,E_.IDPRUP,E_.XWGTUP*cs,E_.SCALUP,E_.AQEDUP,E_.AQCDUP);
      
       for(II=0;II<E_.NUP;II++)
       { double s;

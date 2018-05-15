@@ -7,7 +7,7 @@ special =
 
 #OBJ= $(notdir $(subst .c,.o, $(filter-out $(special),$(wildcard *.c diagram/*.c out/*.c))))
 
-OBJ = dynamic_cs.o kin4.o vp.o VVdecay.o
+OBJ = dynamic_cs.o kin4.o vp.o VVdecay.o 
 lib = ../../lib
 
 all: $(lib)/dynamic_me.a $(lib)/dynamic_vp.a

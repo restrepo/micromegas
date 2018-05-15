@@ -534,73 +534,35 @@ void sg_drawBox(int x1, int y1, int x2, int y2, int color)
    XFillRectangle(display,win,gc,x1,y1,x2-x1+1,y2-y1+1);
 }
 
-static void bgi_set_dash (unsigned short rp)
-{
-        int i,j,k,offset,dn;
-        unsigned short p;
-        char bgi_dashes[16];
-        
-        p=0;
-        for(i=0;i<16;i++)
-        {
-                p = p << 1;
-                if( ( rp & 1 ) == 1)
-                        p|=1;
-                rp = rp >> 1;
-        }
-        i=0;
-        while((p&1)==1 && i<16)
-        {
-                i++;
-                p = p >> 1;
-        }
-        offset=i;
-
-        dn=0;
-
-        while(i<16)
-        {
-                j=0;
-                k=0;
-                while((p&1) == 0 && (i<16))
-                {
-                        i++;
-                        j++;
-                        p = p >> 1;
-                };
-                while((p&1) == 1 && (i<16))
-                {
-                        i++;
-                        k++;
-                        p = p >> 1;
-                };
-                if(i==16)
-                        k+=offset;
-                bgi_dashes[dn++]=j;
-                bgi_dashes[dn++]=k;
-        }
-        XSetDashes(display,gc, offset==0 ? offset : 16-offset ,bgi_dashes,dn);
-}
-
-
 
 void sg_drawLine(int x1, int y1, int x2, int y2, int color,
 					  int thickness, int style)
 {
-	if(thickness==NormWidth) thickness=0;else thickness=ThickWidth;
-	if(style==SolidLn)
-	XSetLineAttributes(display,gc,thickness,LineSolid,CapRound,JoinRound);
-	else
-	{
-	  XSetLineAttributes(display,gc,thickness,LineOnOffDash,CapRound,JoinRound);
-	  switch(style)
-	  {
-	     case DottedLn: bgi_set_dash((unsigned short)0x1111); break;
-	     case DashedLn: bgi_set_dash((unsigned short)0x0F0F); break;
-	  }
-	}
-	XSetForeground(display,gc,bgi_colors[color]);
-        XDrawLine(display,win,gc,x1,y1,x2,y2);
+   if(thickness==NormWidth) thickness=0;else thickness=ThickWidth;				    	
+   XSetLineAttributes(display,gc,thickness,LineSolid,CapRound,JoinRound);			    	
+   XSetForeground(display,gc,bgi_colors[color]);						    	
+   if(style==SolidLn) XDrawLine(display,win,gc,x1,y1,x2,y2);					    	
+   else												    	
+   { int i;											    	
+     double dx=(x2-x1),dy=y2-y1;								    	
+     double l=sqrt(dx*dx+dy*dy);								    	
+     int lhx,lhy;										    	
+     sg_textSize("H",&lhx , &lhy);								    	
+     int N=l/lhx+1;										    	
+   												    	
+    if(style==DashedLn)										    	
+    {												    	
+      dx/=2*N-1;										    	
+      dy/=2*N-1;										    	
+      for(i=0;i<N;i++) XDrawLine(display,win,gc,x1+2*i*dx,y1+2*i*dy,x1+(2*i+1)*dx ,y1+(2*i+1)*dy);  	
+    }												    	
+    else											    	
+    { N*=2;											    	
+      dx/=4*(N-1)+1;										         
+      dy/=4*(N-1)+1;										         
+     for(i=0;i<N;i++) XDrawLine(display,win,gc,x1+4*i*dx,y1+4*i*dy,x1+(4*i+1)*dx ,y1+(4*i+1)*dy);        
+    }												    	
+   												        }
 }
 
 void sg_outText(int x, int y, int color, char*  s)

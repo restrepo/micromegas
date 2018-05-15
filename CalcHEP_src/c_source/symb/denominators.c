@@ -134,7 +134,7 @@ void  calcdenominators(vcsect vcs )
 
          strcpy(denom[denrno].momStr,buff);
          if(v <= vcs.sizel) denom[denrno].power = 1; else denom[denrno].power = -1;
-
+         denom[denrno].pnum=prtclbase[ln->partcl-1].pnum-1;
          denom[denrno].mass=modelVarPos(prtclbase[ln->partcl-1].massidnt);
          if(ttypepropag(v,l)&&!tWidths) denom[denrno].width = 0; else 
          denom[denrno].width=modelVarPos(prtclbase[ln->partcl-1].imassidnt);
@@ -183,6 +183,7 @@ void  denominatorStatistic(int nsub,
          {  
             dendescript.denarr[i].power=denom[i].power;
             dendescript.denarr[i].width=denom[i].width;
+            
             den_tmp = den_;  
             while (den_tmp != NULL &&
               (  strcmp(denom[i].momStr,den_tmp->momStr)
@@ -195,6 +196,7 @@ void  denominatorStatistic(int nsub,
                strcpy(den_tmp->momStr,denom[i].momStr);
                den_tmp->mass=denom[i].mass;
                den_tmp->width=denom[i].width;
+               den_tmp->pnum=denom[i].pnum;
                den_tmp->stype= stype(denom[i].momStr);
                den_ = den_tmp;
                if(denom[i].width) 

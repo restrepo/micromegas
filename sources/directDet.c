@@ -186,7 +186,7 @@ static int getAuxCodesForDD(char*pname,numout**ccSI,numout**ccSD)
   char libnameSD[40]="dirSD";
   char libnameSI[40]="dirSI";
   int newDir=0;
-  char ProcNameSI[500], ProcNameSD[500];
+  char ProcNameSI[4000], ProcNameSD[4000];
   int err=0;
   char * A=NULL;
   char exclude[30];
@@ -497,12 +497,11 @@ int nucleonAmplitudes(char * WIMP, double*pA0,double*pA5,double*nA0,double*nA5)
       double alphaMq, qcdNLO;
       int lf;
       
-      for(l=0;l<4;l++)   names[l]= cc->interface->pinf(n,l+1,masses+l,pdg+l);
+      for(l=0;l<4;l++) names[l]= cc->interface->pinf(n,l+1,masses+l,pdg+l); 
       if(strcmp(names[0],names[2]) ) continue; 
 
-      cc->interface->pinfAux(n,2,&spin2Wimp,NULL,&neutralWIMP); 
-      cc->interface->pinfAux(n,1,&spin2,&color,&neutral);
-    
+      cc->interface->pinfAux(n,2,&spin2Wimp,NULL,&neutralWIMP,NULL);       
+      cc->interface->pinfAux(n,1,&spin2,&color,&neutral,NULL);    
       Qnum=pdg[0];
       qMass=masses[0];
       if(!qMass) continue;
@@ -540,8 +539,8 @@ int nucleonAmplitudes(char * WIMP, double*pA0,double*pA5,double*nA0,double*nA5)
       
       for(i=0;i<16;i++) pvect[i]=0;     
       for(i=0;i<4;i++) pvect[4*i]=masses[i];
+      err_code=0;
       cs0= (*cc->interface->sqme)(n,GG,pvect,NULL,&err_code);
-
       if(II==0 && loopFF__==NULL && spin2==1) //twist-2 trace  subtraction from SD amplitude
       {
           int k;
@@ -556,7 +555,7 @@ int nucleonAmplitudes(char * WIMP, double*pA0,double*pA5,double*nA0,double*nA5)
               pvect[0]=pvect[8]=E;
               pvect[3]=pvect[11]=P;
               p1_p2=E*masses[1];
-              diff+=(*cc->interface->sqme)(n,GG,pvect,NULL,&err_code)*d4[k];  
+              diff+=(*cc->interface->sqme)(n,GG,pvect,NULL,&err_code)*d4[k];                
           }
           diff/=pow(h*masses[1],2);            
           cs0-=3./4.*diff*masses[1]*masses[1]*masses[0]*masses[0];                    
@@ -582,7 +581,7 @@ int nucleonAmplitudes(char * WIMP, double*pA0,double*pA5,double*nA0,double*nA5)
           /* scalar SI amplitude */
         if(aQnum>3)
         { int color,spin2,neutral;
-          cc->interface->pinfAux(n,1,&spin2,&color,&neutral);
+          cc->interface->pinfAux(n,1,&spin2,&color,&neutral,NULL);
         
           switch(color)
           { case  3:
@@ -692,7 +691,7 @@ double FermiFF(int A, double Qfermi)
   R_=C_*pow(A,1./3.)+B_;
   a_=A_;
   p_=Qfermi;
-  return simpson(FermiNDP,0., R_+5, 1.E-4)/simpson(FermiND0,0., R_+5, 1.E-4)/p_;
+  return simpson(FermiNDP,0., R_+5, 1.E-4,NULL)/simpson(FermiND0,0., R_+5, 1.E-4,NULL)/p_;
 }
 
 /*===== Maxwell velosity distribution =====*/ 
@@ -706,7 +705,7 @@ double Maxwell(double v)
    { norm_=1;
      vmax_=Vesc;
      vrot_=Vrot;
-     norm_=1/simpson(vMaxwell,0,Vesc+Vrot, 1.E-5);
+     norm_=1/simpson(vMaxwell,0,Vesc+Vrot, 1.E-5,NULL);
 //     printf("norm=%E\n",norm_);
    }  
    
@@ -797,7 +796,7 @@ static double nucleusRecoil_stat(double M_cdm, double(*vfv)(double),
   {
     Rs=C_*pow(A,1./3.)+B_;
     R_=Rs; a_=A_; 
-    ffs=simpson(FermiND0,0., R_+10*0.5, 1.E-4);
+    ffs=simpson(FermiND0,0., R_+10*0.5, 1.E-4,NULL);
   }
   
   for(i=0,sum=0;i<eGrid;i++)
@@ -813,13 +812,13 @@ static double nucleusRecoil_stat(double M_cdm, double(*vfv)(double),
       }
       p_=p;    
       R_=Rs; a_=A_; 
-      FFs=simpson(FermiNDP,0., R_+10*0.5, 1.E-4)/p_/ffs;      
+      FFs=simpson(FermiNDP,0., R_+10*0.5, 1.E-4,NULL)/p_/ffs;      
     }  
     
     dNdE[i]=FFs*FFs*css;
     if(J) dNdE[i]+=(csv00*s00+csv01*s01+csv11*s11);
     if(vfv==fDvDelta) dNdE[i]/=deltaV_;
-    else dNdE[i]*=simpson(vfv,vmin,vmax,1.E-4);
+    else dNdE[i]*=simpson(vfv,vmin,vmax,1.E-4,NULL);
     dNdE[i]*=1/E0*1.E5*vC*vC*(rhoDM/M_cdm)*lDay*(Kg/MA)*1.E-6;
     if(i==0 ||i==eGrid-1) sum+=dNdE[i]/2; else sum+=dNdE[i];
   }
@@ -986,13 +985,12 @@ int displayRecoilPlot(double * tab, char * text, double  E1, double E2)
   int i1=(E1/eStep), i2=(E2/eStep), dim=i2-i1+1;
   
   if(E1<0 || E1>=E2-eStep|| i2>eGrid-1|| i2-i1>299  ) return 1;
-  displayPlot(text, i1*eStep, i2*eStep,"E[keV]", dim, 0,1, tab+i1,NULL, "dM/dE");
+  displayPlot(text,"E[keV]", i1*eStep, i2*eStep,0,1,"dM/dE", dim, tab+i1,NULL);
   return 0;
 }
 
 
-
-double dNdERecoil(double *tab, double E)
+double dNdERecoil(double E, double *tab)
 {  double kE,alpha;
    int k;
    
@@ -1691,7 +1689,7 @@ static double  _fPb_integrand(double x)
 void SxxPb207(double q,double*S00,double*S01,double*S11)
 {
   _u_=0.5*pow(207.,1./3.)*(q)*(q);
-  *S00=((2*0.5+1)/16/M_PI)*0.305*simpson(_fPb_integrand,0.,1.,1.E-4);
+  *S00=((2*0.5+1)/16/M_PI)*0.305*simpson(_fPb_integrand,0.,1.,1.E-4,NULL);
   *S01=*S00*(-2)*0.266/0.305; 
   *S11=*S00*0.231/0.305;
 }
@@ -1700,7 +1698,7 @@ void SxxPb207(double q,double*S00,double*S01,double*S11)
 double S00Pb207(double q)
 {
  _u_=0.5*pow(207.,1./3.)*(q)*(q);
- return   ((2*0.5+1)/16/M_PI)*0.305*simpson(_fPb_integrand,0.,1.,1.E-4);
+ return   ((2*0.5+1)/16/M_PI)*0.305*simpson(_fPb_integrand,0.,1.,1.E-4,NULL);
 }
 double S11Pb207(double q){return S00Pb207(q)*0.231/0.305;}
 double S01Pb207(double q){return  -2*S00Pb207(q)*0.266/0.305;}

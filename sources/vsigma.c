@@ -41,7 +41,7 @@ static double s_integrandT_(double  sqrtS )
    PcmIn = sqrt((sqrtS-ms)*(sqrtS+ms)*(sqrtS-md)*(sqrtS+md))/(2*sqrtS);
    kin22(PcmIn,pmass);
    
-   sv_tot=simpson(dSigma_dCos,-1.,1.,1E-3); 
+   sv_tot=simpson(dSigma_dCos,-1.,1.,1E-3,NULL); 
    bess=    sqrt(2*x1*x2/y/M_PI)*exp(-(y-x1-x2))*K1pol(1/y)/(K2pol(1/x1)*K2pol(1/x2));
    Rm=PcmIn*sqrtS/M1/M2;   
    return  bess*Rm*Rm*sv_tot/T_;    
@@ -224,7 +224,7 @@ double vSigmaCC(double T,numout* cc, int mode)
   sqrtSmax=sqrtSmin-T*log(bEps); 
 
   n0=0; 
-  if(CI->nout>2) for(n=1;(s=CI->den_info(1,n,&m,&w));n++)
+  if(CI->nout>2) for(n=1;(s=CI->den_info(1,n,&m,&w,NULL));n++)
   { double d=sing2(s,CI->nout,CI->va[m],CI->va[w]); 
     if(!isfinite(d)) { printf("non-integrable pole\n"); return 0;}
     if(d>dMax){ dMax=d; n0=n;} 
@@ -237,17 +237,18 @@ double vSigmaCC(double T,numout* cc, int mode)
        {  double eps=1.E-3;
           sqme22=CI->sqme;
           nsub22=1;
-          a=simpson(u_integrand_,0.,1.,eps)*3.8937966E8;
+          a=simpson(u_integrand_,0.,1.,eps,NULL)*3.8937966E8;
        }   
        break;
      case 3:
      {  
         if(n0)
-        {  s=CI->den_info(1,n0,&m,&w);
+        {  s=CI->den_info(1,n0,&m,&w,NULL);
            for(i3=2;i3<5;i3++) if(i3!=s[0]-1 && i3!=s[1]-1) break;
            for(i4=2;i4<4;i4++) if(i4!=i3) break;   
            for(i5=i4+1;i5<=4;i5++) if(i5!=i3) break;    
         } else {i3=2;i4=3;i5=4;}
+   
         
         if(T==0) a=vegas_chain(3, vsigma23integrand0 ,2000,1., 0.03,&dI,NULL);
         else     a=vegas_chain(5, vsigma23integrandT ,2000,1., 0.03,&dI,NULL);
@@ -255,7 +256,7 @@ double vSigmaCC(double T,numout* cc, int mode)
      }
      case 4:
          if(n0) 
-         {  s=CI->den_info(1,n0,&m,&w);
+         {  s=CI->den_info(1,n0,&m,&w,NULL);
             i3=s[0]-1;
             i4=s[1]-1;
             for(i5=2;i5<5;i5++)  if(i5!=i3 && i5!=i4) break;

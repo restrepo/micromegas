@@ -37,7 +37,7 @@ static int errorcode=0;
 static void xw_error(void) { sortie(80);}
 int    menulevel;
 
-static  void checkAuxDir( int nmod)
+static  int checkAuxDir( int nmod)
 {  char  n1[50],n2[50];
    char *fList[5]= {"vars","prtcls","extlib","func","lgrng",};   
    int i;
@@ -47,7 +47,14 @@ static  void checkAuxDir( int nmod)
      if(fcompare(n1,n2)) break;
    }   
    if(i!=5)
-   {
+   { 
+     int dirStat=checkDir("results");
+     if(dirStat)
+     {  messanykey( 10,10,"There are files in directory 'results/'.\n"  
+                          "To continue you has to clean or rename this directory.");
+        viewresults();
+        if(checkDir("results")!=0)  return 1;                   
+     }
      delAllLib();
      system("if(test -d results/aux) then\n"
             "rm  -r results/aux\n"
@@ -60,6 +67,23 @@ static  void checkAuxDir( int nmod)
        system(command); 
      } 
    }
+   if(!compDir)
+   {
+      int err,size=100;
+     
+      for(;;)
+      {  compDir=realloc(compDir,size+20);
+         if(getcwd(compDir,size)) break; else size*=2;
+      }
+      modelDir="models";
+      modelNum=1; 
+      strcat(compDir,"/results/aux");
+      libDir=malloc(strlen(compDir)+20);
+      sprintf(libDir,"%s/so_generated",compDir); 
+      calchepDir=pathtocalchep; 
+   }
+   
+   return 0;
 }  
 
 
@@ -90,7 +114,20 @@ int main(int argc,char** argv)
   blind=0;
   strcpy(pathtocalchep,argv[0]);
   for(n=strlen(pathtocalchep)-1; n && pathtocalchep[n]!=f_slash; n--);
-  pathtocalchep[n-3]=0;                                         
+  pathtocalchep[n-3]=0;
+  if(pathtocalchep[0]!='/')
+  { int size=100;
+    char*buff=NULL;
+    for(;;)
+    {  buff=realloc(buff,size+strlen(pathtocalchep)+10);
+       if(getcwd(buff,size)) break; else size*=2;
+    }
+    strcat(buff,"/");
+    strcat(buff,pathtocalchep);
+    strcpy(pathtocalchep,buff);
+    free(buff);                         
+  }
+                                           
      
    for ( n=1;n<argc;n++) 
    { if (strcmp(argv[n],"-blind")==0 && n<argc-1 )
@@ -201,8 +238,11 @@ label_10:   /*   Menu2(ModelMenu): */
         if(err){ if(blind) sortie(133); else  goto label_10;} else goto label_20;
       }
    }
+   
 
 label_20:   /*  Menu3:Enter Process  */
+   if(checkAuxDir(n_model))  goto label_10;
+
    f3_key[0]=NULL; 
    f3_key[1]=NULL; 
 
@@ -227,7 +267,7 @@ label_20:   /*  Menu3:Enter Process  */
       {
          case 0:  goto_xy(1,1); clr_eol(); goto label_10;
          case 2:  forceUG=!forceUG;   modelinfo(); break;
-	 case 3:  editModel(1); break;
+	 case 3:  editModel(1); for(;checkAuxDir(n_model);) continue;  break;
 	 case 4:  numcheck();   
 	 case 5:  break;
          case 6: 
@@ -251,7 +291,6 @@ label_21:
    f3_key[1]=NULL; 
    
    menulevel=2;
-   checkAuxDir(n_model);
    errorcode=enter();   /*  Enter a process  */
    newCodes=0;
    showheap();
@@ -279,7 +318,7 @@ label_21:
      processinfo();
      diagramsinfo();
      goto label_31;	
-   }
+   } else cleanResults();
    
 label_30: /*  Menu4: Squaring,...*/
    clr_scr(FGmain,BGmain);
@@ -313,7 +352,20 @@ label_31:
                    { int err=rd_menu(1,k,process,&ndel,&ncalc,&nrest,&recpos);
                      if(!err) break;
                      trim(process);
-                     fprintf(f,"%s\n",process);
+                     if(nin==1)fprintf(f,"%s\n",process);
+                     else
+                     { char name1[20], name2[20];
+                       int pos;
+                       sscanf(process,"%[^,],%s",name1,name2); 
+                       trim(name1);trim(name2);
+                       fprintf(f,"%s",name1);
+                       locateinbase(name1,&pos);
+                       if(polarized(1,pos)) fprintf(f,"%%");
+                       fprintf(f,",%s",name2);
+                       locateinbase(name2,&pos);
+                       if(polarized(2,pos)) fprintf(f,"%%");  
+                       fprintf(f," %s\n",strstr(process,"->")); 
+                     } 
                    } 
                    fclose(f);
                    fclose(menup);
@@ -459,7 +511,6 @@ restart2:
               for(k=0;k<nPROCSS2;k++) free(qd[k]);
               free(qd);   
             }
-
             updateMenuQ(); 
             sq_diagramsinfo();
 
@@ -526,7 +577,7 @@ label_50:
              if(nPROCSS)
              { chdir("results"); 
                 makeVandP(0,"../models",n_model,2,pathtocalchep);
-               pCompile();
+               pCompile();               
                if(access("./n_calchep",X_OK)==0)
                { 
                   fflush(NULL); 

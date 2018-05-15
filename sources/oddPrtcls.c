@@ -3,6 +3,7 @@
 #include"micromegas.h"
 
 ModelPrtclsStr *OddPrtcls=NULL;
+int*oddPpos=NULL;
 int Nodd=0;
 
 int createTableOddPrtcls(void)
@@ -19,11 +20,11 @@ int createTableOddPrtcls(void)
    }    
 
    OddPrtcls=( ModelPrtclsStr*)malloc(Nodd*sizeof(ModelPrtclsStr));
-   Nodd=0;
-   for(i=0,Nodd=0;i<nModelParticles;i++) if(ModelPrtcls[i].name[0]=='~')
-         OddPrtcls[Nodd++]=ModelPrtcls[i];
+   for(i=0,Nodd=0;i<nModelParticles;i++) if(ModelPrtcls[i].name[0]=='~') OddPrtcls[Nodd++]=ModelPrtcls[i];
+     
    return 0;
 }
+
 
 void printMasses(FILE * f,int sort)
 {

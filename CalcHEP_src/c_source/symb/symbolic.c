@@ -991,6 +991,7 @@ static void  calcproc(csdiagram* csdiagr)
 
    transfdiagr(csdiagr,&vcs);
    cwtarg(&vcs);
+   
    if (vcs.clrnum == 0)  csdiagr->status = 2;
    else
    {
@@ -1078,6 +1079,7 @@ onlineWrt=1;
    menuq=fopen(MENUQ_NAME,"r+b");
    for(nsub=1;nsub<=subproc_sq;nsub++)
    {  int naux;  
+   
       rd_menu(2,nsub,txt,&ndel,&ncalc,&nrest,&nrecord);
       naux = ndel + ncalc + nrest;
       for (ndiagr = 1; ndiagr <= naux; ndiagr++)
@@ -1114,7 +1116,7 @@ exi:
 
    fclose(diagrq);
    fclose(menuq);
-   
+
    fclose(catalog);
    whichArchive(0,0);      
    scrcolor(FGmain,BGmain);
@@ -1327,7 +1329,7 @@ static void  writepolyC(poly p)
 
 
 
-int getVertex(char*pathToModels,int Model,int N,char**field_txt,char *label)
+int writeVertexCode(char*pathToModels,int Model,int N,char**field_txt,char *label)
 { 
 
   int i;

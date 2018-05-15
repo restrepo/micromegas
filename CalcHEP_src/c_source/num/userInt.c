@@ -9,7 +9,7 @@ Copyright (C) 2006, Alexander Pukhov
 #include <stdio.h>
 #include "parser.h"
 #include "calc.h"
-#include "simpson.h"
+#include "1d_integration.h"
 
 int err_code=0;
 int main(int argn, char** argc)

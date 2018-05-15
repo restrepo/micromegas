@@ -470,7 +470,7 @@ static int  alldiagrams(FILE * fd,  int nsub)
       {  writeF("Prop=1");
          writeDenominators(&dendescript);
          writeF("R*=creal(Prop);\n");
-         writeF(" if(R>Fmax) Fmax=R; else if(R<-Fmax) Fmax=-R;\n");
+         writeF(" if(R>(*Fmax)) (*Fmax)=R; else if(R<-(*Fmax)) (*Fmax)=-R;\n");
       } else  writeF(";\n");
       if(!noCChain)calcColor(cr.ndiagr_+inftmp->firstdiagpos);
       writeF("ans+=R;\n");
@@ -529,7 +529,7 @@ static void  writesubprocess(int nsub,long firstDiag,long totDiag,int* breaker)
 
    if(totDiag==0) 
    { writeF("extern DNN S%d_ext;\n",nsub); 
-     writeF("REAL S%d_ext(double GG,  REAL * momenta,REAL*cb_coeff, int * err)\n{",nsub); 
+     writeF("REAL S%d_ext(double GG,  REAL * momenta, REAL*cb_coeff, double*Fmax, int * err)\n{",nsub); 
      writeF("  return 0;\n}\n");
      outFileClose(); 
      return;
@@ -544,7 +544,7 @@ static void  writesubprocess(int nsub,long firstDiag,long totDiag,int* breaker)
       writeF("};\n");
    } 
    writeF("extern DNN S%d_ext;\n",nsub);
-   writeF("REAL S%d_ext(double GG, REAL * momenta,REAL*cb_coeff,int * err)\n{",nsub);
+   writeF("REAL S%d_ext(double GG, REAL * momenta, REAL*cb_coeff, double*Fmax, int * err)\n{",nsub);
    writeF("REAL  ans=0;\n");
 
    sprintf(fd_name,"%stmp%cden.inf",pathtouser,f_slash);
@@ -610,7 +610,7 @@ static void  writesubprocess(int nsub,long firstDiag,long totDiag,int* breaker)
       writeF("{int i; for(i=0;i<%d;i++) \n",totDiag);
       writeF(
       "{ REAL r=Farr[i](GG,DP,Q0,Q1,Q2,cb_coeff);\n"
-      "  if(r>Fmax) Fmax=r;\n"
+      "  if(r>(*Fmax)) *Fmax=r;\n"
       "  ans+=r;\n"
       "}}\n"
       "return ans;\n}\n"
@@ -705,7 +705,7 @@ static void  make_pinf(void)
       writeF("\"};\n");
    }
 
-   writeF("int pinfAux_ext(int nsub,int nprtcl,int*spin2,int*color,int*neutral)\n{\n");
+   writeF("int pinfAux_ext(int nsub,int nprtcl,int*spin2,int*color,int*neutral,int*ndf)\n{\n");
 /*   writeF("int n;\n"); */
 
    writeF("int const pcode[%d][%d]={\n",subproc_sq,nin + nout);
@@ -752,7 +752,7 @@ static void  make_pinf(void)
       inftmp = inftmp->next;
    }
 
- writeF("int const Neutral[%d][%d]={\n",subproc_sq,nin + nout);
+   writeF("int const Neutral[%d][%d]={\n",subproc_sq,nin + nout);
 
    inftmp = inf;
    for (nsub = 1; nsub <= subproc_sq; nsub++)
@@ -768,18 +768,38 @@ static void  make_pinf(void)
       inftmp = inftmp->next;
    }
    
+   writeF("int const NDF[%d][%d]={\n",subproc_sq,nin + nout);
+
+   inftmp = inf;
+   for (nsub = 1; nsub <= subproc_sq; nsub++)
+   {  writeF("{");
+      for (i = 0; i < nin + nout; i++)
+      { int pos;
+        if(i) writeF(",");  
+	locateinbase(inftmp->p_name[i], &pos);
+	int ndf=fabs(prtclbase1[pos].cdim);
+	int spin2=prtclbase1[pos].spin;
+	if(strcmp(prtclbase1[pos].massidnt,"0")==0 && spin2==2    ) ndf*=2;
+	else if(strchr("LR",prtclbase1[pos].hlp)==0)  ndf*=(spin2+1);
+         writeF("%d",ndf);
+      }
+      if (nsub== subproc_sq) writeF("}};\n"); else  writeF("},\n"); 
+      inftmp = inftmp->next;
+   }
+    
    writeF("if(nsub<0 ||nsub>%d||nprtcl<0||nprtcl>%d) return 0;\n",
    subproc_sq,nin + nout);
    writeF("if(spin2) *spin2=Spin2[nsub-1][nprtcl-1];\n");
    writeF("if(color) *color=Color[nsub-1][nprtcl-1];\n");
    writeF("if(neutral) *neutral=Neutral[nsub-1][nprtcl-1];\n");
+   writeF("if(ndf) *ndf=NDF[nsub-1][nprtcl-1];\n");
    writeF("return pcode[nsub-1][nprtcl-1];\n}\n");   
 }
 
 static void  make_den_info(void)
 {  int nden_s,nden_t,nden_0;
 
-   writeF("\n char * den_info_ext(int nsub,int n, int * mass, int * width)\n{\n");
+   writeF("\n char * den_info_ext(int nsub,int n, int * mass, int * width, int*pnum)\n{\n");
    writeF(" switch(nsub){\n");
 
    for (nsub = 1; nsub <= subproc_sq; nsub++)
@@ -792,12 +812,12 @@ static void  make_den_info(void)
       denominatorStatistic(nsub, &nden_s, &nden_t, &nden_0, &den_, NULL); 
       for(n=1 ;den_;den_ = den_->next,n++)
       { int m=0;
-          writeF("\n    case %d: *mass=%d; *width=%d; return \"",
-          n, vararr[den_->mass].num, vararr[den_->width].num);
+          writeF("\n    case %d: *mass=%d; *width=%d;  if(pnum) *pnum=%d; return \"",
+          n, vararr[den_->mass].num, vararr[den_->width].num,den_->pnum);
          while(den_->momStr[m]) fprintf(outFile,"\\%o",den_->momStr[m++]);
          fprintf(outFile,"\";");    
       }  
-      writeF("\n    default:*mass=0; *width=0; return NULL;\n                  }\n");
+      writeF("\n    default:*mass=0; *width=0; if(pnum) *pnum=0; return NULL;\n                  }\n");
  
       release_(&mem_start); 
    }
@@ -961,7 +981,7 @@ static void  make_perm(void)
 {
    int  i,j,pos=0,cbPowMax;
    int * simMap=malloc(sizeof(int)*subproc_sq); 
-   writeF("static int permMap[%d][2]={\n",subproc_sq);
+   writeF("static  int permMap[%d][2]={\n",subproc_sq);
    
 
    for (nsub = 1, inftmp = inf; nsub <= subproc_sq; nsub++,inftmp = inftmp->next)

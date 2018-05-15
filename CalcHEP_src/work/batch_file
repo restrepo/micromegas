@@ -17,7 +17,7 @@
 #  Gauge specifies gauge.  Choices are        #
 #       Feynman or unitary.                   #
 ###############################################
-Model:         Standard Model(CKM=1)
+Model:         SM(+hgg)
 Model changed: False
 Gauge:         Feynman
 
@@ -40,6 +40,7 @@ Composite: W=W+,W-
 Composite: le=e,E,m,M
 Composite: n=ne,Ne,nm,Nm
 Composite: jet=u,U,d,D,s,S,c,C,b,B,G
+
 
 
 ##############################################
@@ -110,8 +111,10 @@ Composite: jet=u,U,d,D,s,S,c,C,b,B,G
 #    Ignored unless Proton Photon chosen.    #
 #    Default: 0.1                            #
 ##############################################
+
 pdf1:      PDT:cteq6l1(proton)
 pdf2:      PDT:cteq6l1(proton)
+
 
 #Bunch x+y sizes (nm)      : 202500
 #Bunch length (mm)         : 10
@@ -324,7 +327,6 @@ Parallelization method:      local
 #Memory:                      1
 #email:                       name@address
 #Max number of cpus:          2
-
 Max number of nodes:   8
 Max number of processes per node: 1
 

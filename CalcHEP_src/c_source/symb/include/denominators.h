@@ -5,7 +5,7 @@
 typedef struct
 {
   int power;
-  int mass,width;
+  int mass,width,pnum;
   char momStr[MAXINOUT];
 } denom_struct;
       
@@ -15,7 +15,7 @@ typedef struct denlistrec
       struct denlistrec * next;
       int          order_num;
       int          stype;
-      int          mass,width;
+      int          mass,width,pnum;
       char         momStr[MAXINOUT];
       double val0,val1,val2;  /*for  Interpreter denominators in power 0,1 
                                 and 2 correspondingly      */

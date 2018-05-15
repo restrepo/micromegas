@@ -1,0 +1,33 @@
+Vector Portal simplified model
+ Parameters
+  Name | Value       |  Comment                                                                   |
+ EE    |0.31343      |Electroweak coupling. EE=0.31223 corresponds to alpha=EE^2/(4*PI)=1/128.9
+ alfSMZ|0.1184       |MS-BAR Srtong coupling at  MZ
+ Mm    |0.1057       |muon mass
+ Ml    |1.777        |tau-lepton mass
+ Q     |100          | QCD scale
+ McMc  |1.2          | Mc(Mc)  MS-BAR
+ MbMb  |4.23         | Mb(Mb)  MS-BAR
+ Mtp   |172.5        |t-quark pole mass
+ MZ    |91.188       |Z-boson mass
+ MW    |80.385       |W-mass
+ Mh    |125          |higgs mass
+Mdm    |100          |
+Mdm2   |200          |
+MZp    |1000         |
+gZp    |1E-5         |
+YpU    |1            |
+YpD    |1            |
+YpS    |1            |
+YpC    |1            |
+YpB    |1            |
+YpT    |1            |
+YpE    |-3           |
+YpM    |-3           |
+YpL    |-3           |
+YpNe   |-3           |
+YpNm   |-3           |
+YpNl   |-3           |
+gZpDm  | 1E-10       |
+gZpDm2 |0            |
+===================================================================================================

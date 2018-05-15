@@ -1,4 +1,4 @@
-UMSSM
+UMSSM(micro)
  Variables 
  Name  | Value       |>  Comment                                   <|
 alfSMZ |0.1184       |alpha_QCD(MZ)
@@ -50,3 +50,4 @@ tE6    |1.364        |E6 angle
 zero   |0            |
 Q2MIN  |10000        |Minimum scale for runnings to SUSY scale
 Maux   |1            |mass of aux particles
+=====================================================================

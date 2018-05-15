@@ -195,11 +195,10 @@ static void f7_prog(int mode)
              case 11: sprintf(title+strlen(title)," F(x=%.2E,Q)",x0);     break;
            }
            if(pos==11) xName="Q"; else xName="x";
-           
-           if(on[0]&&on[1]) plot_N(title,z1,z2, xName, nPoints,LOG, 2, f[0],NULL,p_name[0],f[1],NULL,p_name[1]);
+           if(on[0]&&on[1]) plot_N(title,z1,z2, xName, LOG, 2, nPoints, f[0],NULL,p_name[0],nPoints,f[1],NULL,p_name[1]);
            else 
            { if(on[0]) l=0; else l=1;
-              plot_N(title,z1,z2, xName, nPoints,LOG,1, f[l],NULL,p_name[l]);   
+              plot_N(title,z1,z2, xName, LOG,1, nPoints, f[l],NULL,p_name[l]);   
            }  
            put_text(&screen);
          } else messanykey(16,5," Correct input is \n"
@@ -289,7 +288,7 @@ static int  in_setting(void)
               {  double buf=Helicity[0]; 
                  int spin2; 
                  char txt[60];
-                  (*pinfAux_int)(Nsub,1, &spin2,NULL,NULL);
+                  (*pinfAux_int)(Nsub,1, &spin2,NULL,NULL,NULL);
                   sprintf(txt, "Enter new value [%.1f,%.1f] :", -(spin2/2.),(spin2/2.));
                   correctDouble(40,12,txt,&buf,1);
                   if(fabs(2*buf)>spin2) 
@@ -304,7 +303,7 @@ static int  in_setting(void)
               {  double buf=Helicity[1];
                  int spin2; 
                  char txt[60];
-                  (*pinfAux_int)(Nsub,2, &spin2,NULL,NULL);
+                  (*pinfAux_int)(Nsub,2, &spin2,NULL,NULL,NULL);
                   sprintf(txt, "Enter new value [%.1f,%.1f] :", -(spin2/2.),(spin2/2.));
                   correctDouble(40,12,txt,&buf,1);
                   if(fabs(2*buf)>spin2) 
@@ -560,14 +559,14 @@ int monte_carlo_menu(void)
                      fclose(f); 
                      return 1;
                    }
-                  
+                            
                    messanykey(15,15,"Energy is too small!");                   
                    break;
                  }
 
                  if(fillCutArray()) 
                  { if(blind) return 2;
-                   messanykey(15,15,"Can not evaluate cut limlts"); 
+                   messanykey(15,15,"Can not evaluate cut limits"); 
                    break;
                  }  
         case 11:
@@ -603,6 +602,7 @@ int monte_carlo_menu(void)
                 break;
                  
       }
+//printf("r=%d\n",r);      
       if(r) clearEventMax();
       if(r&2) clearGrid();
       if(r&1)newSession();

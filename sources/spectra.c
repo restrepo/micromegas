@@ -17,7 +17,6 @@
 
 static double Mcdm0;
 
-extern double cs23(numout*cc, int nsub, double Pcm, int ii3);
 
 
 aChannel* vSigmaCh=NULL;
@@ -56,8 +55,7 @@ double  vcs22(numout * cc,int nsub,int * err)
    *(cc->interface->twidth)=0;
    *(cc->interface->gswidth)=0;
 //printf("Mb4c=%E\n", findValW("Mb"));    
-   for(i=0;i<4;i++) printf("%s ",  cc->interface->pinf(nsub,1+i,pmass+i,NULL));
-printf("\n");   
+   for(i=0;i<4;i++)  cc->interface->pinf(nsub,1+i,pmass+i,NULL);   
    *err=0;
    if(pmass[0]+pmass[1] <= pmass[2]+pmass[3]) return 0;
    for(i=0;i<16;i++) pvect[i]=0;
@@ -147,13 +145,13 @@ static double dSigmadE(double E)
    Egamma=E;
 /*
    if(pmass[ix]>1.E-3*Mcdm0 && pmass[iX]>1.E-3*Mcdm0  ) 
-                       r= simpson(dSigmadFi23,0,M_PI,1.E-4);
+                       r= simpson(dSigmadFi23,0,M_PI,1.E-4,NULL);
    else { printf("dSigmadCos23\n"); //displayFunc("dSigmadCos23",dSigmadCos23, -1 , 1,0,"dSigmadCos23");
-                 r= simpson(dSigmadCos23,-0.9,0.9,1.E-4); printf("ok\n");  
+                 r= simpson(dSigmadCos23,-0.9,0.9,1.E-4,NULL); printf("ok\n");  
 */
 //                   r= gauss(dSigmadCos23,-1,1,7); }
    r= gauss(dSigmadCos23,-1,1,7);                 
-//   r= simpson(dSigmadFi23,0,M_PI,1.E-4);
+//   r= simpson(dSigmadFi23,0,M_PI,1.E-4,NULL);
    return r;
 }
 
@@ -222,14 +220,14 @@ static double dSigmadEe(double E)
      return   ((x2-xe)*dSigmadEe(x1*Mcdm0) + (xe-x1)*dSigmadEe(x2*Mcdm0))/(x2-x1);
    }           
    if(Xe>X0 )
-   { double csMin=(2*(1-Xe) -1)*0.9999;
-     double csMax=2*(1-Xe)/X0 -1;
+   { double csMin=(2*(1-Xe) -1)*1.0001;
+     double csMax=(2*(1-Xe)/X0 -1);
      double r;
 /*     csMax=1;     
 
         if(csMin<-0.98) csMin=-0.98;
         if(csMax> 0.98) csMax=0.98;
-        return simpson(FE,csMin,csMax,1.E-3);
+        return simpson(FE,csMin,csMax,1.E-3,NULL);
 
         if(csMin<-1) csMin=-1;
         if(csMax> 1) csMax=1;
@@ -237,7 +235,9 @@ static double dSigmadEe(double E)
 */
      if(csMin<-1) csMin=-1;
      if(csMax> 1) csMax=1;
-     r= simpson(FEfi,acos(csMax),acos(csMin),1.E-4);
+int err;
+     r= simpson(FEfi,acos(csMax),acos(csMin),1.E-4,NULL);
+//if(err) displayPlot("dSigmadEe", "fi",acos(csMax),acos(csMin),0,1,"FEfi",0,FEfi,NULL);
      return r;
    } else return 0;
 }
@@ -280,7 +280,7 @@ if(Spectra[0])
 
      for(i=0;i<5;i++) N[i]=cc23->interface->pinf(1,i+1,pmass+i,code+i);
     
-     cc23->interface->pinfAux(1,1,&spin2Dm,NULL,NULL);
+     cc23->interface->pinfAux(1,1,&spin2Dm,NULL,NULL,NULL);
      
      for(ix=0,i=2;i<5;i++) if(code[i]==22) iA=i; else if(!ix)ix=i;else iX=i;
      if(Spectra[0] && dSigmadE(X1*Mcdm0) > X1CUT*dSigmadE_x1 )
@@ -316,10 +316,10 @@ if(Spectra[0])
 #ifdef DISPLAY_SPECTRA 
   displayFunc(dSigmadEe, Mcdm0*X0, Mcdm0," electron spectrum");
 { double csA,csE,xcsA,xcsE; 
-  csA=simpson(dSigmadE,Mcdm0*X0,Mcdm0,1.E-3);
-  csE=simpson(dSigmadEe,Mcdm0*X0,Mcdm0,1.E-3);
-  xcsA=simpson(EdSigmadERest,Mcdm0*X0,Mcdm0,1.E-3);
-  xcsE=simpson(EdSigmadEe,Mcdm0*X0,Mcdm0,1.E-3);
+  csA=simpson(dSigmadE,Mcdm0*X0,Mcdm0,1.E-3,NULL);
+  csE=simpson(dSigmadEe,Mcdm0*X0,Mcdm0,1.E-3,NULL);
+  xcsA=simpson(EdSigmadERest,Mcdm0*X0,Mcdm0,1.E-3,NULL);
+  xcsE=simpson(EdSigmadEe,Mcdm0*X0,Mcdm0,1.E-3,NULL);
 /*  
   printf("vcs(A)= %E  vcs(E)= %E\n",csA,csE);
   printf("energy  fraction lost %E\n", (2*Mcdm0- xcsA/csA-2*xcsE/csA)/Mcdm0);  
@@ -417,7 +417,6 @@ double zInterp(double zz, double * tab)
 {  
    double dz,r;
    int j0;   
-
    if(zz>0) return 0;
    
    j0=Iz(zz); 
@@ -425,7 +424,7 @@ double zInterp(double zz, double * tab)
    if(j0>=NZ-1) return tab[NZ-1];
    
    dz= (zz-Zi(j0))/(Zi(j0+1)-Zi(j0));
-   
+
    r=(1-dz)*tab[j0]+dz*tab[j0+1];
    if(r<0)r=0;
    return r; 
@@ -478,7 +477,6 @@ double  spectrInfo(double Emin,double*tab,double*Etot)
     double Xmin=Emin/tab[0],zmin,zmax=0;
     if(Xmin<1.22E-7) Xmin=1.22E-7;
     zmin=log(Xmin); 
-
     for(i1=Iz(zmin); i1>1 && tab[i1]==0;i1--) continue;
     if(i1<NZ-1) i1++;
     if(zmin<Zi(i1)) zmin=Zi(i1)+1E-6;
@@ -490,9 +488,9 @@ double  spectrInfo(double Emin,double*tab,double*Etot)
 
     if(zmax<zmin) return 0;    
     tabStat=tab;
-    if(Etot)*Etot=tab[0]*simpson(FUNE, zmin, zmax,1.E-4);       
+    if(Etot)*Etot=tab[0]*simpson(FUNE, zmin, zmax,1.E-4,NULL);       
 //    displayFunc(FUNN,Xmin, 0.,"integrand");
-    return simpson(FUNN, zmin, zmax,1.E-4);
+    return simpson(FUNN, zmin, zmax,1.E-4,NULL);
   }  
 }
 
@@ -518,7 +516,7 @@ double spectrInt(double Emin,double Emax, double * tab)
                 
   
   tabStat=tab;
-  return simpson(FUNN, zmin, zmax,1.E-4);
+  return simpson(FUNN, zmin, zmax,1.E-4,NULL);
 }
 
 
@@ -558,9 +556,10 @@ void boost(double Y, double M0, double mx, double*tab)
   { double e=M0*exp(Zi(l));
     double p=sqrt(e*(e+2*mx)); 
     double e1=chY*(e+mx)-shY*p-mx;
+    if(e1>=tab[0]) {tab_out[l]=0; continue;}
     double e2=chY*(e+mx)+shY*p-mx;
     int k=Iz(log(e1/tab[0]));
-    if(e1>=tab[0]) {tab_out[l]=0; continue;}
+    if(k>NZ-1) { k=NZ-1; e1=tab[0]*exp(Zi(k));} 
     
     if(tab[k]==0)
     { 
@@ -569,7 +568,7 @@ void boost(double Y, double M0, double mx, double*tab)
     }       
      
     if(e2>tab[0]) e2=tab[0];
-    if (e1>=e2) tab_out[l]=0; else tab_out[l]=e*simpson(FUNB,e1,e2,1.E-4)/2/shY;
+    if (e1>=e2) tab_out[l]=0; else tab_out[l]=e*simpson(FUNB,e1,e2,1.E-4,NULL)/2/shY;
 
     
 /*     
@@ -765,8 +764,8 @@ static void getSpectrum(int wPol, double M, double m1,double m2,char*n1,char*n2,
               double wP=pWidth2(d2Proc,l);
             
               if(wP>0)
-              { int N2=d2Proc->interface->pinfAux(l,2,NULL,NULL,NULL);
-                int N3=d2Proc->interface->pinfAux(l,3,NULL,NULL,NULL);
+              { int N2=d2Proc->interface->pinfAux(l,2,NULL,NULL,NULL,NULL);
+                int N3=d2Proc->interface->pinfAux(l,3,NULL,NULL,NULL,NULL);
                 procInfo2(d2Proc,l,n,m);    
                 getSpectrum(0,m[0],m[1],m[2],n[1],n[2],N2,N3,outP, tab_p);
                 for(i=1;i<NZ;i++) tabAux[i]+=wP*tab_p[i];
@@ -833,7 +832,7 @@ static double calcSpectrum0(char *name1,char*name2, int key, double **Spectra, t
   int ntot,err;
   double * v_cs;
   char * photonName=NULL;
-  char name1L[10],name2L[10], lib[20],process[400];
+  char name1L[10],name2L[10], lib[20],process[4000];
   numout * libPtr;
     
   for(l=0;l<6;l++) if(Spectra[l]) { Spectra[l][0]=Mcdm0; for(i=1;i<NZ;i++) Spectra[l][i]=0;}  
@@ -899,7 +898,10 @@ static double calcSpectrum0(char *name1,char*name2, int key, double **Spectra, t
     { int i3W;  
       double  r,m1,v0=0.001;
       for(i3W=2;i3W<5;i3W++) if(strcmp(cc23->interface->pinf(1,i3W+1,NULL,NULL),N[l_])==0) break;
-      r=v0*cs23(cc23,1,v0*Mcdm0/2,i3W)/br;
+      { int err;
+        r=v0*cs23(cc23,1,v0*Mcdm0/2,i3W,&err)/br;
+        if(err) printf("error in simpson spectra.c line 902\n");
+      }  
       if(pdg[l_]==23 || abs(pdg[l_])==24)
       { double wV2;
         
@@ -951,7 +953,7 @@ static double calcSpectrum0(char *name1,char*name2, int key, double **Spectra, t
 printf("energy conservation:0=%E=%E\n",  (E1+Eg+sqrt(pow(p2+2*dp,2)+m2*m2))/2/Mcdm0-1   ,
                                                    (E2+Eg+sqrt(pow(p1+2*dp,2)+m1*m1))/2/Mcdm0-1 );
 */                      
-          for(n=1;(s=libPtr->interface->den_info(k+1,n,&m,&w));n++)
+          for(n=1;(s=libPtr->interface->den_info(k+1,n,&m,&w,NULL));n++)
           {  double mass=fabs( libPtr->interface->va[m]);
                 if( ( strcmp(s,"\1\3")==0  || strcmp(s,"\1\4")==0) && m  && m_min> mass) m_min=mass;
           }
@@ -1196,41 +1198,4 @@ double SpectdNdE(double E, double *tab){
   return 1/E*zInterp(z,tab); 
 }
 
-int displaySpectrum( char*mess,double Emin,double Emax,double*tab)
-{
-  int i;
-  double f[100];
-  for(i=0;i<100;i++) f[i]=SpectdNdE(Emin+(i+0.5)*(Emax-Emin)/100.,tab);
-  displayPlot(mess,Emin, Emax, "E[GeV]",100,0,1,f,NULL,"dN/dE");
-  return 0;     
-}
-
-int displaySpectra(char * title, double Emin,double Emax, int N,...)
-{
-  int i,dim=100; 
-  double **f,**ff,**nu; char**Y; 
-  va_list ap;    
-        
-  nu=malloc(N*sizeof(double*)); 
-  f=malloc(N*sizeof(double*));
-  ff=malloc(N*sizeof(double*)); 
-  Y = malloc(N*sizeof(char*));  
- 
-  va_start(ap,N);  
-  for(i=0;i<N;i++)  
-  { int j;
-    nu[i]=va_arg(ap,double*);
-    f[i]=malloc(dim*sizeof(double));
-    for(j=0;j<dim;j++) f[i][j]=SpectdNdE(Emin+(j+0.5)*(Emax-Emin)/dim,nu[i]);  
-    ff[i]=NULL; 
-    Y[i]=va_arg(ap,char*); 
-  }    
-  va_end(ap); 
- 
-  displayPlotN(title,Emin,Emax,"E[GeV]", dim,0,N, f,ff,Y); 
-  
-  for(i=0;i<N;i++) free(f[i]);
-  free(nu); free(f); free(ff);free(Y);
-  return 0;
-}
 

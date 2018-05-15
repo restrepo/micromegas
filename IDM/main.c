@@ -8,7 +8,7 @@
 
 #define CONSTRAINTS 
 
-#define HIGGSBOUNDS
+//#define HIGGSBOUNDS
 //#define HIGGSSIGNALS 
 #define LILITH  
 //#define SMODELS 
@@ -16,7 +16,7 @@
 
 #define OMEGA            
   /* Calculate relic density and display contribution of  individual channels */
-//#define INDIRECT_DETECTION  
+#define INDIRECT_DETECTION  
   /* Compute spectra of gamma/positron/antiprotons/neutrinos for DM annihilation; 
      Calculate <sigma*v>;
      Integrate gamma signal over DM galactic squared density for given line 
@@ -36,14 +36,14 @@
 #define CDM_NUCLEON     
   /* Calculate amplitudes and cross-sections for  CDM-mucleon collisions */  
 
-/*#define CDM_NUCLEUS*/      
+#define CDM_NUCLEUS
   /* Calculate number of events for 1kg*day and recoil energy distibution
       for various nuclei
   */
 
 #define NEUTRINO //neutrino telescope
 
-//#define DECAYS
+#define DECAYS
 //#define CROSS_SECTIONS
   
 /*===== end of Modules  ======*/
@@ -52,7 +52,7 @@
 /*#define SHOWPLOTS*/
      /* Display  graphical plots on the screen */ 
 
-#define CLEAN   to clean intermediate files
+//#define CLEAN   to clean intermediate files
 /*===== End of DEFINE  settings ===== */
 
 
@@ -79,9 +79,7 @@ int main(int argc,char** argv)
   
   if(err==-1)     {printf("Can not open the file\n"); exit(1);}
   else if(err>0)  { printf("Wrong file contents at line %d\n",err);exit(1);}
-           
-  
-
+             
   err=sortOddParticles(cdmName);
   if(err) { printf("Can't calculate %s\n",cdmName); return 1;}
    
@@ -148,11 +146,12 @@ int main(int argc,char** argv)
 #ifdef SMODELS
 {  int result=0;
    double Rvalue=0;
-   char analysis[30]={},topology[30]={}; 
+   char analysis[30]={},topology[30]={};
+   int LHCrun=LHC8|LHC13;  //  LHC8  - 8TeV; LHC13  - 13TeV;   
+
 #include "../include/SMODELS.inc" 
 }   
 #endif 
-
 
 
 #ifdef OMEGA
@@ -168,10 +167,10 @@ int main(int argc,char** argv)
 //   VZdecay=2; VWdecay=2; cleanDecayTable(); 
        
   printf("\n==== Calculation of relic density =====\n");  
-  Omega=darkOmega(&Xf,fast,Beps);
+  Omega=darkOmega(&Xf,fast,Beps,&err);
 
 //    Omega=darkOmega2(fast,Beps);
-  printf("Xf=%.2e Omega=%.4e\n",Xf,Omega);  
+  printf("Xf=%.2e Omega=%.2e\n",Xf,Omega);  
   if(Omega>0)printChannels(Xf,cut,Beps,1,stdout);   
 //   VZdecay=1; VWdecay=1; cleanDecayTable();  // restore default
 
@@ -203,7 +202,6 @@ printf("\n==== Indirect detection =======\n");
   printf("sigmav=%.2E[cm^3/s]\n",sigmaV);  
   
 
-  if(SpA)
   { 
      double fi=0.1,dfi=0.05; /* angle of sight and 1/2 of cone angle in [rad] */ 
 
@@ -217,7 +215,6 @@ printf("\n==== Indirect detection =======\n");
      printf("Photon flux = %.2E[cm^2 s GeV]^{-1} for E=%.1f[GeV]\n",SpectdNdE(Etest, FluxA), Etest);       
   }
 
-  if(SpE)
   { 
     posiFluxTab(Emin, sigmaV, SpE,  FluxE);
 #ifdef SHOWPLOTS     
@@ -227,7 +224,6 @@ printf("\n==== Indirect detection =======\n");
     SpectdNdE(Etest, FluxE),  Etest);           
   }
   
-  if(SpP)
   { 
     pbarFluxTab(Emin, sigmaV, SpP,  FluxP  ); 
 #ifdef SHOWPLOTS    
@@ -268,22 +264,24 @@ printf("\n==== Indirect detection =======\n");
          <Nucleon>     "P" or "N" for proton and neutron
          <q>            "d", "u","s"
 
-   calcScalarFF( Mu/Md, Ms/Md, sigmaPiN[MeV], sigma0[MeV])  
+   calcScalarQuarkFF( Mu/Md, Ms/Md, sigmaPiN[MeV], sigmaS[MeV])  
    calculates and rewrites Scalar form factors
 */
   printf("\n======== RESET_FORMFACTORS ======\n");
  
   printf("protonFF (default) d %.2E, u %.2E, s %.2E\n",ScalarFFPd, ScalarFFPu,ScalarFFPs);                               
   printf("neutronFF(default) d %.2E, u %.2E, s %.2E\n",ScalarFFNd, ScalarFFNu,ScalarFFNs);
-
  
-  calcScalarFF(0.553,18.9,70.,35.);
-
 //  To restore default form factors of  version 2  call 
-//  calcScalarQuarkFF(0.553,18.9,55.,243.5);
+      calcScalarQuarkFF(0.553,18.9,55.,243.5);
+
 
   printf("protonFF (new)     d %.2E, u %.2E, s %.2E\n",ScalarFFPd, ScalarFFPu,ScalarFFPs);                               
   printf("neutronFF(new)     d %.2E, u %.2E, s %.2E\n",ScalarFFNd, ScalarFFNu,ScalarFFNs);
+
+//                    To restore default form factors  current version  call 
+//  calcScalarQuarkFF(0.56,20.2,34,42);
+
 
 }
 #endif

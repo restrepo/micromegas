@@ -120,9 +120,9 @@ double cutrecoilresult_(double *tab, double *E1, double *E2)
    return  cutRecoilResult(tab, *E1, *E2);
 }
 
-double dnderecoil_(double *tab, double *E)
+double dnderecoil_( double *E,double *tab)
 {  
-   return  dNdERecoil(tab, *E);
+    return  dNdERecoil(*E,tab);
 } 
 
  void sxxf19_   (double *p,double*S00,double*S01,double*S11){ SxxF19(*p,S00,S01,S11);}

@@ -105,7 +105,7 @@ C for HIGGSBOUNDS/HIGGSSIGNALS
       character*70 HB_chan
       character*7 HB_version, HS_version
 C for SMODELS 
-      integer result 
+      integer result,LHCrun 
       real*8 Rvalue
       character*30 analysis,topology,smodels_version
 C for LILITH 
@@ -376,6 +376,7 @@ C     Call writeLesH('slha.out')
 
 
 #ifdef SMODELS
+      LHCrun=LHC8+LHC13
       write(*,*) "SMODELS:"
 #include "../include/SMODELS.inc_f"
       if(result.ge.0) write(*,fmt='("highest R=",1PE10.2," from ",A," topology ",A)') Rvalue,analysis,topology
@@ -470,7 +471,7 @@ C   where <Type> can be "Scalar", "pVector", and "Sigma";
 C         <Nucleon>     "P" or "N" for proton and neutron
 C         <q>            "d", "u","s"
 C
-C   calcScalarQuarkFF( Mu/Md, Ms/Md, sigmaPiN[MeV], sigma0[MeV])  
+C   calcScalarQuarkFF( Mu/Md, Ms/Md, sigmaPiN[MeV], sigmaS[MeV])  
 C   calculates and rewrites Scalar form factors
 
       write(*,*) 'protonFF (default)  d, u, s ', 
@@ -478,11 +479,16 @@ C   calculates and rewrites Scalar form factors
       write(*,*) 'neutronFF(default)  d, u, s ', 
      >       ScalarFFNd, ScalarFFNu,ScalarFFNs                          
       write(*,*) '===========Redefinition of form factors========='  
-      call calcScalarQuarkFF(0.553d0,18.9d0,45.5d0,26.d0)
+C    To restore default form factors of  version 2  call   
+      call  calcScalarQuarkFF(0.553d0,18.9d0,55.d0,243.5d0)
+
       write(*,*) 'protonFF (new)      d, u, s ', 
      >ScalarFFPd, ScalarFFPu,ScalarFFPs                           
       write(*,*) 'neutronFF(new)      d, u, s ', ScalarFFNd, 
      >ScalarFFNu,ScalarFFNs                    
+C    To restore default form factors of  current  version  call
+C      call  calcScalarQuarkFF(0.56d0,20.2d0,34d0,42d0)
+
 
 C  Option to change parameters of DM velocity  distribution 
 

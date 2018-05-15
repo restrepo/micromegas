@@ -42,6 +42,7 @@ typedef struct modeofdecay *decaylink;
 typedef struct prtcl_base
    {
       char    name[P_NAME_SIZE];
+      int          pnum;
       int          N;    
       int          anti, spin;
       char         massidnt[VAR_NAME_SIZE], imassidnt[VAR_NAME_SIZE];

@@ -1,10 +1,10 @@
 #include"micromegas.h"
 #include"micromegas_aux.h"
 
-#include"../CalcHEP_src/c_source/ntools/include/vegas.h"
-#include"../CalcHEP_src/c_source/ntools/include/simpson.h"
+//#include"../CalcHEP_src/c_source/ntools/include/vegas.h"
+//#include"../CalcHEP_src/c_source/ntools/include/simpson.h"
 
-#include<math.h>
+//#include<math.h>
 
 static REAL pmass[6]={10,20,30,40,50};
 static int i3=2,i4=3,i5=4,i6=5;
@@ -137,12 +137,13 @@ static double dIdM_mu_mu(double mu)
 {  return 1./q2 *dIdM_w_mu(zMax - pow(mu,1/q2))*pow(mu,(1-q2)/q2); }
 
 
-double cs23(numout*cc, int nsub, double Pcm, int ii3) 
+double cs23(numout*cc, int nsub, double Pcm, int ii3,int*err) 
 { int i,n;
   char*s,s0[3];
   int m,w;
   double muMax;
 
+  if(err) *err=0;
 
   passParameters(cc);
   GG=sqrt(4*M_PI*alphaQCD(GGscale));
@@ -164,7 +165,7 @@ double cs23(numout*cc, int nsub, double Pcm, int ii3)
   s0[2]=0;
 
   for(n=1;;n++)
-  {  s=cc->interface->den_info(nsub,n,&m,&w);
+  {  s=cc->interface->den_info(nsub,n,&m,&w,NULL);
      if(s==NULL) break;
      if(strcmp(s,s0)==0) 
      { 
@@ -183,7 +184,12 @@ double cs23(numout*cc, int nsub, double Pcm, int ii3)
   if(Mmin>=Mmax) { return 0;}
   muMax=pow(Mmax-Mmin,q);
   
-  if(s==NULL) return simpson(dIdM_mu, 0.01, muMax-0.01, 0.01);
+  if(s==NULL)
+  { int err_;
+    double r= simpson(dIdM_mu, 0.01, muMax-0.01, 0.01,&err_);
+    if(err_) { if(err) *err=err_;  printf("error in simpson kin23.c line 189\n");}
+    return  r;
+  }
 
   yMin=atan((Mmin*Mmin-m0*m0)/(m0*w0));
   yMax=atan((Mmax*Mmax-m0*m0)/(m0*w0)); 
@@ -195,8 +201,11 @@ double cs23(numout*cc, int nsub, double Pcm, int ii3)
   uMax=pow(zMax,q2);
   
 //  displayFunc(dIdM_w_mu_mu, 0., uMax,"dIdM_w_mu_mu");
-    return simpson(dIdM_w_mu_mu,0, uMax, 0.01);
-
+  { int err_; 
+    double r=simpson(dIdM_w_mu_mu,0, uMax, 0.01,&err_);
+    if(err_){ if(err) *err=err_; printf("error in simpson cs23.c line 206\n");}
+    return r;
+  }
 }
 
 

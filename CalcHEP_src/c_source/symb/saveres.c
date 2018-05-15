@@ -112,6 +112,7 @@ void  saveanaliticresult(poly rnum,poly factn,poly factd, vcsect vcs, int ndiagr
        FWRITE1(denom[i].power,archiv);   /*  power  1 or 2  */
        FWRITE1(denom[i].mass,archiv);
        FWRITE1(denom[i].width,archiv);
+       FWRITE1(denom[i].pnum,archiv);
        m=0;  do FWRITE1(denom[i].momStr[m],archiv); while(denom[i].momStr[m++]);
    }
    FWRITE1(cr,catalog);

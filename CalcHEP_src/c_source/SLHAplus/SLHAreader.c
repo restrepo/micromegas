@@ -137,7 +137,8 @@ static int (*getLnPtr)(int, char*)=NULL;
 static int getLnC(int N, char * buff)
 { int len;
   char*s=fgets(buff,N-1,_f_);
-  if(s==NULL) return -1;
+  if(s==NULL)   return -1;
+  
   len=strlen(buff);   
   if(len>0 && buff[len-1]=='\n')
   {  
@@ -581,6 +582,7 @@ int slhaRead(char *fname, int mode)
   
   return err;
 }
+
 
 /* see manual arXiv:1008.0181 */
 int slhaReadStream(FILE*f,  int mode, char * end )

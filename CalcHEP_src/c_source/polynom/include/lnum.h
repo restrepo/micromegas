@@ -2,19 +2,35 @@
 #define __LNUM__
 
 
-#if defined (NUM_DOUBLE)      /* double */
+#if defined (NUM_LDOUBLE)      /* double */
+
+#define NUM_TYPE long double
+#include<math.h>
+#define NUM_ONE  1.
+#define NUM_ZERO 0.  
+#define STR_NUM "Lf"
+#define NUM_STR ".0Lf"
+
+#define DIV(a,b) ((a)>0. ? ((b)>0. ?   floorl((a)/(b))  : -floorl(-(a)/(b))) :\
+			   ((b)>0. ?  -floorl(-(a)/(b)) :  floorl((a)/(b))   ) )
+#define REST(a,b)  ((a)-DIV(a,b)*(b))
+
+//============================================
+
+#elif defined (NUM_DOUBLE)      /* double */
 
 #define NUM_TYPE double
 #include<math.h>
 #define NUM_ONE  1.
 #define NUM_ZERO 0.  
 #define STR_NUM "lf"
-#define NUM_STR ".0f"
+#define NUM_STR ".0lf"
 
 #define DIV(a,b) ((a)>0. ? ((b)>0. ?  floor((a)/(b))   : -floor(-(a)/(b))) :\
 			   ((b)>0. ?  -floor(-(a)/(b)) : floor((a)/(b))   ) )
 #define REST(a,b)  ((a)-DIV(a,b)*(b))
 
+//============================================
 
 #elif defined(NUM_LONG_LONG)  /* long long */
 #define NUM_TYPE long long  
@@ -29,7 +45,7 @@
 
 #define DIV(a,b)   ((a)/(b)) 
 #define REST(a,b)  ((a)%(b))
-
+// ===========================================
 #else                         /* long */   
 
 #define NUM_TYPE long

@@ -1710,7 +1710,9 @@ extern double  MixMatrix(int id,  int i, int j);
 extern double  MixMatrixU(int id,  int i, int j);
 */
 
-#include "SLHAplus/SLHAplus.h"
+#include "../../CalcHEP_src/c_source/SLHAplus/include/SLHAplus.h"
+
+//#include "SLHAplus/SLHAplus.h"
 
 static double eval_ef(Atom, int, double *);
 

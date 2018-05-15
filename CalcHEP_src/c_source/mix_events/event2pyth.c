@@ -425,7 +425,7 @@ static int upEvent1(void)
      if(Finfo->next) Finfo=Finfo->next;
    }
    E_.IDPRUP=1;
-   E_.XWGTUP= totCS*Finfo->wCoeff;
+   E_.XWGTUP= Finfo->wCoeff;
    N=Finfo->Nin+Finfo->Nout;
    E_.NUP=N;
    

@@ -88,7 +88,7 @@ C for HIGGSBOUNDS/HIGGSSIGNALS
       character*70 HB_chan
       character*7 HB_version, HS_version
 C for SMODELS 
-      integer result 
+      integer result,LHCrun 
       real*8 Rvalue
       character*30 analysis,topology,smodels_version
 C for LILITH 
@@ -325,6 +325,7 @@ C Get the corrected Higgs branching ratios from UMSSMTools :
 
 
 #ifdef SMODELS
+      LHCrun=LHC8+LHC13
       write(*,*) "SMODELS:"
 #include "../include/SMODELS.inc_f"
       if(result.ge.0) write(*,fmt='("highest R=",1PE10.2," from ",A," topology ",A)') Rvalue,analysis,topology
@@ -440,15 +441,14 @@ C   calculates and rewrites Scalar form factors
       write(*,fmt='(" neutronFF(default)  d, u, s ", 1PE10.2,E10.2,E10.2)') ScalarFFNd,ScalarFFNu,ScalarFFNs                          
       write(*,*) '===========Redefinition of form factors========='  
       
-      call calcScalarQuarkFF(0.46d0,27.5d0,34.d0,42.d0)
-
-
-C    To restore default form factors of  version 2  call
-C      call  calcScalarQuarkFF(0.553d0,18.9d0,55.d0,243.5d0)
+C    To restore default form factors of  version 2  call   
+      call  calcScalarQuarkFF(0.553d0,18.9d0,55.d0,243.5d0)
 
 
       write(*,fmt='(" protonFF (new)      d, u, s ", 1PE10.2,E10.2,E10.2)') ScalarFFPd,ScalarFFPu,ScalarFFPs                           
       write(*,fmt='(" neutronFF(new)      d, u, s ", 1PE10.2,E10.2,E10.2)') ScalarFFNd,ScalarFFNu,ScalarFFNs                    
+C    To restore default form factors of  current  version  call
+C      call  calcScalarQuarkFF(0.56d0,20.2d0,34d0,42d0)
 
 #endif
 

@@ -1,20 +1,16 @@
-SM(CKM=1 with hGG/AA)
+SM(+hgg+h4G)
  Constraints 
- Name     <|> Expression                                                                                                                                                                           <|
-CW         |MW/MZ           % on-shell cos of the Weinberg angle
-SW         |sqrt(1-CW^2)    % sin of the Weinberg angle
-VEV        |2*MW*SW/EE
-GF         |1/VEV^2/Sqrt2
-LamQCD     |initQCD5(alphaSMZ,McMc,MbMb,Mtp)
-Mcp        | McMc*(1+4/3*alphaQCD(McMc)/pi)  % 1 loop formula like in Hdecay
-Mbp        | MbMb*(1+4/3*alphaQCD(MbMb)/pi)  % 1 loop formula like in Hdecay
-aQCDh      |alphaQCD(Mh)/pi
-Rqcdh      |sqrt(1+149/12*aQCDh+68.6482*aQCDh^2-212.447*aQCDh^3)
-LGGh       |-cabs(hGGeven(Mh, aQCDh,3, 1,3,Mtp,1/VEV,  1,3,Mbp,1/VEV, 1,3,Mcp,1/VEV))
-Quq        | 4/9
-Qdq        | 1/9
-LAAh       |-cabs(hAAeven(Mh,aQCDh,2,2,1,MW,-2/VEV,1,1,Ml,1/VEV)+Quq*hAAeven(Mh,aQCDh,2,1,3,Mtp,1/VEV,1,3,Mcp,1/VEV)+Qdq*hAAeven(Mh,aQCDh,1,1,3,Mbp,1/VEV))
-Mb         |MbEff(Q)
-Mt         |MtEff(Q)
-Mc         |McEff(Q)
-=====================================================================================================================================================================================================
+ Name  |> Expression                                                                        <|
+CW     |sqrt(1-SW^2) % cos of the Weinberg angle
+GF     |EE^2/(2*SW*MW)^2/Sqrt2 %  experimental value 1.166E-5 [1/GeV^2]
+MZ     |MW/CW % Z boson mass
+LamQCD |initQCD5(alphaSMZ, McMc, MbMb, Mtp)
+Mb     |MbEff(Q)
+Mc     |McEff(Q)
+Ms     |MqEff(0.096, Q) % s-quark effective mass  via 2MeV running one
+LAAh   |-cabs(lAAhiggs(Mh, "h"))
+LGGh   |-cabs(lGGhiggs(Mh, "h"))
+aQCDh  |alphaQCD(Mh)/acos(-1)
+RQCDh  |sqrt(1+149/12*aQCDh+68.6482*aQCDh^2-212.447*aQCDh^3)
+B00000 |1-2*SW^2
+B00001 |1-4*SW^2+4*SW^4

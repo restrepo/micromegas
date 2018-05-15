@@ -56,13 +56,6 @@ double zinterp_(double*x, double*tab) {  return zInterp(*x, tab);}
 
 double spectdnde_(double *E, double *tab){ return SpectdNdE(*E, tab); }   
  
-int displayspectrum_(char*fmess,double *Emin,double *Emax,double*tab,int len)
-{
-   char cmess[200];
-   fName2c(fmess,cmess, len);
-   return  displaySpectrum( cmess,*Emin,*Emax,tab);
-} 
-
 
 double halofactor_(double *fi,double * dfi){ return HaloFactor(*fi,*dfi); }
 
@@ -88,21 +81,6 @@ int basicspectra_(double *Mass, int *pdgN, int *outN, double * tab)
 int basicnuspectra_(int*forSun, double *Mass, int *pdgN, int*pol, double * nu, double * nuB)
 { return basicNuSpectra(*forSun,*Mass, *pdgN,*pol, nu, nuB);}
 
-
-
-static double (*dFdF_displayFunc)(double *);
-static double dFdC_displayFunc(double x) {return (*dFdF_displayFunc)(&x);}
-
-void displayfunc_(char*title, double (*F)(double*),double *x1,double *x2,char *xname ,int *lScale,int lenT,int lenN)
-{
-  char cTitle[200];
-  char cXname[200];
-  fName2c(cTitle,title, lenT);
-  fName2c(cXname,xname, lenN);
-       
-  dFdF_displayFunc=F;
-  displayFunc( cTitle, dFdC_displayFunc,*x1,*x2,cXname,*lScale);
-}
 
 double  spectrint(double *Emin,double *Emax, double * tab)
 {

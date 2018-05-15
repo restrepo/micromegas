@@ -12,6 +12,7 @@ extern void viewsqdiagr(void);
 extern void sqdiagrmenu(void);
 extern void viewfeyndiag(int  del_mode);
 extern int  viewresults(void);
+extern void cleanResults(void);
 extern void showheap(void);
 extern char* currentModelName(void);
 

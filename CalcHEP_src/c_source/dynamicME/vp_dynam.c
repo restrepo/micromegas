@@ -34,15 +34,16 @@ int getDynamicVP(void)
    sprintf(SO,"%s/so_generated/VandP.so",compDir); 
    if(access(SO,X_OK&R_OK)|| checkMtime(SO) )  // [re]compile VandP.so 
    {
-     char *command=malloc(300+strlen(rootDir)+strlen(compDir) ); 
+     char *command=malloc(400+strlen(rootDir)+strlen(compDir) ); 
      sprintf(command,"CALCHEP=%s;"
                      "cd %s;"
-                     "$CALCHEP/bin/make_VandP models 1 6\n"
+                     "$CALCHEP/bin/make_VandP models 1 6 \n"
                      " . $CALCHEP/FlagsForSh;"
                      " . ./EXTLIBsh;"
-                     "$CC $CFLAGS $SHARED -o so_generated/VandP.so VandP.c $CALCHEP/include/VandPgate.c $EXTLIB  $CALCHEP/lib/dummy.a  $CALCHEP/lib/libSLHAplus.a -lm"
+                     "$CC $CFLAGS $SHARED -o so_generated/VandP.so VandP.c $CALCHEP/include/VandPgate.c $EXTLIB  $CALCHEP/lib/dummy.a  $CALCHEP/lib/dynamic_me.a    $CALCHEP/lib/libSLHAplus.a $CALCHEP/lib/ntools.a $CALCHEP/lib/serv.a  -lm -lpthread -ldl"
                     ,rootDir,compDir);
      err=system(command);
+//printf("%s\n", command);     
      free(command);
      if(WIFSIGNALED(err) ||WEXITSTATUS(err) )
      { 

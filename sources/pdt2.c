@@ -243,7 +243,7 @@ D->index=0;
     for(ix=0;ix<D->nx;ix++)
     { 
       x0_=D->x_grid[ix];
-      D->strfun[D->nx*iq+ix] = simpson(conv_integrand,0.,-log(x0_),1.E-3);
+      D->strfun[D->nx*iq+ix] = simpson(conv_integrand,0.,-log(x0_),1.E-3,NULL);
          
     }
   } 
@@ -279,13 +279,13 @@ double convStrFun3(double x, double q, int pc1, int pc2, int pp)
    if(pp>0) pc2c=pc2; else pc2c=-pc2;
     pc1_=pc1;
     pc2_=pc2c;
-    strF=simpson(conv_integrand,0.,-log(x),1.E-3);
+    strF=simpson(conv_integrand,0.,-log(x),1.E-3,NULL);
               
     if(pc1!=pc2)
     { if(pp>0) pc1c=pc1; else pc1c=-pc1;
       pc1_=pc1;
       pc2_=pc2c;
-      strF+=simpson(conv_integrand,0.,-log(x),1.E-3);
+      strF+=simpson(conv_integrand,0.,-log(x),1.E-3,NULL);
     }
     return strF;
 }
@@ -310,11 +310,11 @@ double parton_x( int pNum, double  Q)
 
   pc1_=pNum;
   
-  x1=simpson(x_integrand,1E-4,1.,1.E-4);  
+  x1=simpson(x_integrand,1E-4,1.,1.E-4,NULL);  
   if(pNum==21) return x1;
   if(abs(pNum)>2) return 2*x1;
   pc1_=-pNum;
-  return x1+simpson(x_integrand,1E-4,1.,1.E-4);
+  return x1+simpson(x_integrand,1E-4,1.,1.E-4,NULL);
 }
 
 // FORTRAN

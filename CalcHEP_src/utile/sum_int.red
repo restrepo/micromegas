@@ -79,7 +79,7 @@ begin
   sum:=sum;
   off combinelogs;
 
-  if not (sub_S=0) then  sum:=(sum where log(~x)=>log(sub({s=sub_S},x)));
+%  if not (sub_S=0) then  sum:=(sum where log(~x)=>log(sub({s=sub_S},x)));
   sum:= (sum where log(~x)=>-log(1/x) when  ordp(x,1/x));
   sum:=(sum/((s- p1.p1-p2.p2)^2 -4*p1.p1*p2.p2)/(16*pi) where substitutions);
 end;

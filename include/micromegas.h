@@ -12,10 +12,12 @@ extern "C" {
 #include<unistd.h>
 
 #include"../CalcHEP_src/include/num_out.h"
+#include"../CalcHEP_src/c_source/dynamicME/include/dynamic_cs.h"
 #include"../CalcHEP_src/c_source/plot/include/plot.h"
 #include"../CalcHEP_src/c_source/ntools/include/n_proc.h"
 extern char * CDM1, *CDM2, *aCDM1, *aCDM2;
 
+/*
 typedef struct numout
 {
   void * handle;
@@ -24,7 +26,7 @@ typedef struct numout
   int init;
   CalcHEP_interface * interface; 
 } numout;
-
+*/
 extern int VVdecay;
 
 extern int sortOddParticles(char * name);
@@ -103,13 +105,13 @@ extern int  pNum(char * name);  /* returns PDG code */
 extern double pMass(char * name); /* returns particle mass */
 extern char *   pdg2name(int pdg); 
 /*======= Subprocesses ===========*/
-  typedef struct txtListStr
+/*  typedef struct txtListStr
   {  struct txtListStr * next;
      char  *txt;
   } txtListStr;
 
   typedef txtListStr * txtList;
-  
+*/  
 extern txtList  makeDecayList(char * pname, int nx);
 extern void massFilter(double M, txtList * List);
 extern void gammaGluFilter(txtList* List);
@@ -170,17 +172,29 @@ extern int Zprimelimits(void);
     Relic density evaluation 
   =====================================*/
   
-typedef struct { double weight; char*prtcl[5];} aChannel;
+typedef struct {int err; double weight; char*prtcl[10];} aChannel;
 extern aChannel*omegaCh;  
 extern aChannel* vSigmaTCh;
+extern aChannel*omegaFiCh;
 
 extern double vSigmaCC(double T,numout* cc,int mode);
    
 extern int loadHeffGeff(char*fname);
 extern double  hEff(double T);
 extern double  gEff(double T);
+extern double T_s3(double s3);
+extern double s3_T(double T);
+
+extern double  h1eff(double x, int eta);
+extern double  g1eff(double x, int eta);
+extern double Hubble(double T);
+
+extern int toFeebleList(char*pname);
+extern int isFeeble(char*name);
+
+extern double hEffLnDiff(double T);
 extern double vSigma(double T,double Beps ,int Fast);
-extern double darkOmega(double *Xf,int Fast, double Beps);
+extern double darkOmega(double *Xf,int Fast, double Beps,int *err);
 extern double darkOmega2(double fast, double Beps0);
 extern double darkOmegaExt(double *Xf, double (*f0)(double), double (*f1)(double));
 
@@ -199,7 +213,7 @@ extern double vs2210F(double T);
 extern double vs2221F(double T);
 extern double vs1211F(double T);
 
-
+extern double TCoeffF(double T);
 extern double dY1F(double T);
 extern double dY2F(double T);
 extern double Y1F(double T);
@@ -218,6 +232,14 @@ extern double Yeq2(double T);
 
 extern double Beps;
 extern int Fast_;
+
+// Freeze-in
+extern double  darkOmegaFi22(double TR, char *Proc, int vegas, int plot, int *err);
+extern double  decayAbundance(double TR, double M, double w, int Ndf,double  eta, int plot);
+extern double  darkOmegaFiDecay(double TR, char * pname, int KE, int plot);
+extern double  darkOmegaFi(double TR,int*err);
+extern void printChannelsFi(double cut, int prcn, FILE*f);
+extern void sort2FiDm( double * omg1,double * omg2);  
 /*===============================================
     Annihilation spectra
 =================================================*/
@@ -266,8 +288,6 @@ extern void  spectrMult( double *spect, double(*func)(double));
 
 
 extern void boost(double Y, double M0, double mx, double*tab);
-extern int displaySpectrum(char*mess,double Emin,double Emax,double*tab);
-extern int displaySpectra(char * title, double Emin,double Emax, int N,...);
 
 extern void setHaloProfile( double (*haloProfile)(double));
 extern void setClumpConst(double f,double rho);
@@ -294,6 +314,7 @@ extern double gammaFluxGC(double l, double b, double dl,double db, double dSigma
 extern void solarModulation(double PHI, double mass, double * inTab, double * outTab);
    
 extern double hProfileZhao(double r);
+extern double (*haloProfile)(double);
 extern void setProfileZhao(double alpha, double beta ,double gamma,double Rc);
 
 extern double hProfileEinasto(double r);
@@ -405,11 +426,11 @@ extern double brSMhAA(double Mh);
 extern int displayRecoilPlot(double * tab, char * text, double E1, double E2);
 
 extern double cutRecoilResult(double *tab, double E1, double E2);
-extern double dNdERecoil(double *tab, double E);
+extern double dNdERecoil(double E,double *tab);
 
 extern void killPlots(void);
 
-extern void smodels(int nf,double csMinFb, char*fileName,int wrt);
+extern void smodels(int Run, int nf,double csMinFb, char*fileName,int wrt);
 
 
 typedef void (SxxType)(double,double*,double*,double*);
@@ -494,6 +515,11 @@ http://www.nndc.bnl.gov/nudat2/indx_sigma.jsp
 #define Z_Xe  54
 #define Z_Pb  82
 #define Z_Cs  55
+
+
+#define LHC8   1
+#define LHC13  2
+
 
 #ifdef __cplusplus
 }

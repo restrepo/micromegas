@@ -9,7 +9,7 @@ clean :
 	@rm -f  FlagsForMake  so_locations CMessage
 	@cd lib;  rm -rf sqme_aux.so.dSYM;  rm -f *.*
 	@cd bin;  rm -rf *.dSYM rm -f Int calc events2tab s_calchep show_distr sum_distr plot_view make_VandP event_info event_mixer lhe2tab nt_maker showHelp event2lhe *.exe lhapdf2pdt
-	@rm -rf sbin/make-j sbin/makeVrtLib sbin/*.dSYM  
+	@rm -rf sbin/make-j sbin/makeVrtLib sbin/*.dSYM   
 	@rm -f c_source/*/*.o c_source/*/so_location
 	@rm -fr work/results/* work/batch_results/*  work/tmp/*  work/Processes work/Events work/html
 	@rm -f c_source/Root/ch_dict.cc c_source/Root/ch_dict.h c_source/Root/*.o

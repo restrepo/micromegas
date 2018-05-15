@@ -303,13 +303,13 @@ static int  readvars(int  check)
    tabName=func_tab.headln;
 
    for(nLine = 1,ln=func_tab.strings; ln; nLine++,ln=ln->next)
-   {  int forcePub=0;  
+   {  int pub=0;
       int hidden=0;
       ss=ln->line;
       name[0]=0; sscanf(ss," %[^|]",name);   
       trim(name);
       if(!name[0]) { errorMessage("Name","Empty line in the table","*"); goto errExi1; }
-      if(name[0]=='*') {name[0]=' '; trim(name);  forcePub=1; }  else 
+      if(name[0]=='*') {name[0]=' '; trim(name); pub=1;}  else 
       { 
          if(name[0]=='#') {name[0]=' '; trim(name); hidden=1;}
          else if(name[0]=='%') 
@@ -334,8 +334,8 @@ static int  readvars(int  check)
       mvars=modelvars+nmodelvar;
       strcpy(mvars->varname,name);
       mvars->func=strchr(ln->line,'|')+1;
-      if(forcePub) mvars->pub=forcePub;
       mvars->line=nLine;
+      mvars->pub=pub;
    }
 
    sortVariables();
@@ -384,7 +384,7 @@ static int  readvars(int  check)
          
    setPub=1;   
    testingVar=nmodelvar;
-   for(i=nmodelvar; i>nCommonVars; i--) if(modelvars[i].pub==-1) 
+   for(i=nmodelvar; i>nCommonVars; i--) if(modelvars[i].pub) 
    {  readExpression(modelvars[i].func,rd_33, act_33,NULL);
       modelvars[i].pub=1;
    }   
@@ -764,8 +764,19 @@ static int  readparticles(int  check, int ugForce )
 
   for(i=1;i<=nmodelvar;i++)
   if(modelvars[i].pwidth) modelvars[i].pwidth=ghostmother(modelvars[i].pwidth);
-   
-   return 1;
+
+  int pnum=0;
+  for(i=0;i<nparticles;i++) if(strchr("*fcCtT",prtclbase[i].hlp)) prtclbase[i].pnum=0; else
+  { int anti=prtclbase[i].anti; 
+    if(i+1<=anti)
+    {  prtclbase[i].pnum=++pnum;
+       if(anti!=i+1) prtclbase[anti-1].pnum =prtclbase[i].pnum;
+    }
+  } 
+  for(i=0;i<nparticles;i++) if(strchr("fcCtT",prtclbase[i].hlp))
+  prtclbase[i].pnum=prtclbase[ghostmother(i+1)-1].pnum;
+  
+  return 1;
 }
 
 static int  testLgrgn(algvertptr lgrgn)
@@ -1066,7 +1077,7 @@ static int  readlagrangian(int check, int ugForce)
 
       errorMessage("P1,P2,P3,P4","conjugated vertex for %s not found",sss);
             return 0;
-      }
+       }
       lgrgn1= lgrgn1->next;
      }  while (lgrgn1 != NULL);
    }
@@ -1278,15 +1289,21 @@ int  loadModel(int check,int ugForce)
 }
 
 int  readModelFiles(char * path,int l)
-{  char fname[100];
+{  char fname[200];
    char *ext[5]={"vars","func","prtcls","lgrng","extlib"};
    int i;
        
    ldModelStatus=0; 
    sprintf(fname,"%s/%s%d.mdl",path,ext[4],l);
    if(access(fname,R_OK)) 
-   { FILE *f=fopen(fname,"w");
-     fprintf(f,"Any Model\n");
+   { char fname_var[200];
+     char tytle[200];
+     sprintf(fname_var,"%s/%s%d.mdl",path,ext[0],l);
+     FILE *f=fopen(fname_var,"r");
+     fscanf(f,"%[^\n]",tytle);
+     fclose(f);
+     f=fopen(fname,"w");
+     fprintf(f,"%s\n",tytle);
      fprintf(f,"Libraries\n");
      fprintf(f,"External libraries and  function prototypes                             <|\n");
      fprintf(f,"========================================================================\n");
@@ -1433,8 +1450,7 @@ int makeVandP(int rd ,char*path,int L, int mode,char*CalcHEP)
                                             * sizeof(singlevardescription));
 
   sprintf(vararr[0].alias,"XXX");
-  vararr[0].tmpvalue=0;
-  vararr[0].num=vararr[0].used = 0;
+  vararr[0].tmpvalue=vararr[0].num=vararr[0].used = 0;
 
   
   for(i=0;i< nv0;i++)
@@ -1605,4 +1621,3 @@ if(i==depQ1) fprintf(f," FirstQ:\n cErr=1;\n");
   }   
   return 0;
 }
-

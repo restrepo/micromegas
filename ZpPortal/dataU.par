@@ -1,0 +1,23 @@
+# file to improve default parameters
+gZp     1E-2  #  Coupling of Zp to SM quarks and leptons 
+              #  hypercharges
+YpU     1
+YpD     0
+YpS     0
+YpC     0
+YpB     0
+YpT     0
+YpE     0
+YpM     0
+YpL     0
+YpNe    0
+YpNm    0 
+YpNl    0
+              #  Zp couplings with DN
+gZpDm   8E-11
+gZpDm2  0 
+              #  DM masses 
+Mdm     1       
+Mdm2    100      
+              #  Zp mass 
+MZp     1E4     

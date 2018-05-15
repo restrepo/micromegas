@@ -15,7 +15,7 @@
 #include "read_mdl.h"
 #include "model.h"
 #include "rootDir.h"
-#include "simpson.h"
+#include "1d_integration.h"
 #include "alphas2.h"
 #include "screen.h"
 #include "viewdir.h"
@@ -209,7 +209,6 @@ static void  writeSLHA(void)
    {  txtList all=NULL;
       double mass,width;
       char *name;
-      
       if( strcmp(ModelPrtcls[i].mass,"0")==0) continue;
       if( strcmp(ModelPrtcls[i].width,"0")==0) continue;
       name=ModelPrtcls[i].name;
@@ -300,25 +299,7 @@ static void localF6(int x){  viewDir("./");}
 //#define SO "./results/aux/so_generated/VandP.so"
 
 int numcheck(void)
-{  int err,size=100;
-     
-   for(;;)
-   {  compDir=realloc(compDir,size+20);
-      if(getcwd(compDir,size)) break; else size*=2;
-   }
-   modelDir="models";
-   modelNum=n_model; 
-   strcat(compDir,"/results/aux");
-   libDir=malloc(strlen(compDir)+20);
-   sprintf(libDir,"%s/so_generated",compDir);
-   calchepDir= rootDir;
-   if(prepareWorkPlace()) mkdir(libDir,00755); else if(checkWorkPlace())
-   { char*command=malloc(strlen(libDir)+20);
-      sprintf(command,"rm %s/*.so",libDir);
-      system(command);
-      free(command);
-   }  
-
+{
    if(getDynamicVP()) return 1;
    cleanDecayTable();
    ForceUG=forceUG;
@@ -327,7 +308,7 @@ int numcheck(void)
                    " Parameters           "
                    " All Constraints      "
                    " Masses,Widths,Branch.";
-     int m0=1;
+     int m0=1,err;
      void (*F10)(int);
      void (*F6)(int);
      F10=f3_key[7];    F6=f3_key[3];

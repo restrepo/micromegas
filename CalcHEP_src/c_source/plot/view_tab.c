@@ -21,13 +21,14 @@ int main(int argc,char** argv)
   char*buff=NULL,*procName=NULL;
   int bLen=0;
   double xMin,xMax;
-  int xDim=1;
+  int* xDim=NULL;
+  int xDimMax=0;
   double yMin,yMax;
   int yDim=1;
   int ptype=-1; 
   double *f=NULL, *df=NULL;
   FILE*F;
-  
+    
   int i, n;
   char icon_name[STRSIZ];
  
@@ -70,7 +71,10 @@ int main(int argc,char** argv)
       else if(strcmp(word,"xScale")==0)   sscanf(buff+1,"%*s %d",&xScale);  
       else if(strcmp(word,"yMin")==0)   sscanf(buff+1,"%*s %lf",&yMin);  
       else if(strcmp(word,"yMax")==0)   sscanf(buff+1,"%*s %lf",&yMax);  
-      else if(strcmp(word,"xDim")==0)   sscanf(buff+1,"%*s %d",&xDim);  
+      else if(strcmp(word,"xDim")==0)   {n=0; char*ch=strtok(buff, " ");  ch=strtok(NULL," ");
+                                         while(ch) { xDim=realloc(xDim,(n+1)*sizeof(int)); sscanf(ch,"%d",xDim+n); ch=strtok(NULL," ");
+                                         if(xDim[n]>xDimMax) xDimMax=xDim[n]; n++;  }
+                                        } 
       else if(strcmp(word,"yDim")==0)   sscanf(buff+1,"%*s %d",&yDim);    
       else if(strcmp(word,"title")==0)  
       { for(i=strlen(buff);buff[i-1]==' '; i--) buff[i-1]=0;
@@ -88,7 +92,7 @@ int main(int argc,char** argv)
       }
     } else break;
   }  
-  
+
   if(bLen<100) buff=realloc(buff,100); 
   if(!procName)  procName=" ";
   
@@ -98,7 +102,7 @@ int main(int argc,char** argv)
     int N=0;
     
     for(ch=yName; ch=strstr(ch,"{c}"); ch+=3) N++;
-    for(ch=yName; ch=strstr(ch,"{h}"); ch+=3) N++; 
+    for(ch=yName; ch=strstr(ch,"{h}"); ch+=3) N++;  
     if(N)
     {  double **fn=malloc(N*sizeof(double*));
        double **dn=malloc(N*sizeof(double*));
@@ -107,7 +111,7 @@ int main(int argc,char** argv)
        {  char*chc=strstr(ch,"{c}");
           char*chh=strstr(ch,"{h}");  
           Y[n]=malloc(50);
-          fn[n]=malloc(xDim*sizeof(double));
+          fn[n]=malloc(xDimMax*sizeof(double));
           if(chc && (  chc<chh || !chh )) 
           { chc[0]=0;
             sscanf(ch,"%s",Y[n]);
@@ -116,11 +120,11 @@ int main(int argc,char** argv)
           } else
           { chh[0]=0;
             sscanf(ch,"%s",Y[n]);
-            dn[n]=malloc(xDim*sizeof(double));
+            dn[n]=malloc(xDimMax*sizeof(double));
             ch=chh+3; 
           }
        }
-       for(i=0;i<xDim;i++) for(n=0;n<N;n++)
+       for(i=0;i<xDimMax;i++) for(n=0;n<N;n++)
        { fscanf(F,"%lf",fn[n]+i); 
          if( !isfinite(fn[n][i]) ){ printf(" NAN in table \n"); return 2;}
          if(dn[n]) 
@@ -132,35 +136,35 @@ int main(int argc,char** argv)
        sprintf(icon_name,"%s/include/icon",pathtocalchep);
        start1(VERSION_ ,icon_name,"calchep.ini;../calchep.ini",NULL);
        clearTypeAhead();
-       plot_Nar(argv[1],procName,xMin,xMax,xName,xDim,xScale,N,fn,dn,Y);
+       plot_Nar(argv[1],procName,xMin,xMax,xName,xScale,N,xDim,fn,dn,Y);
        finish();
        return 0; 
     }
     return 1;
   }
   
-  f=(double*)malloc(xDim*yDim*sizeof(double));   
+  f=(double*)malloc(xDim[0]*yDim*sizeof(double));   
   if(ptype)
   { 
-    df=(double*)malloc(xDim*yDim*sizeof(double)); 
+    df=(double*)malloc(xDim[0]*yDim*sizeof(double)); 
     sscanf(buff,"%lf  %lf",f,df);  
-    for(i=1;i<xDim*yDim;i++) fscanf(F,"%lf  %lf",f+i,df+i);
-    for(i=1;i<xDim*yDim;i++) if( !isfinite(f[i])|| !isfinite(df[i]) )
+    for(i=1;i<xDim[0]*yDim;i++) fscanf(F,"%lf  %lf",f+i,df+i);
+    for(i=1;i<xDim[0]*yDim;i++) if( !isfinite(f[i])|| !isfinite(df[i]) )
        { printf(" NAN in table %s\n",procName); return 0;}
   }
   else 
   { 
     sscanf(buff,"%lf",f);
-    for(i=1;i<xDim*yDim;i++) fscanf(F,"%lf",f+i);
-    for(i=1;i<xDim*yDim;i++) if( !isfinite(f[i])){ printf(" NAN in table %s\n",procName); return 0;} 
+    for(i=1;i<xDim[0]*yDim;i++) fscanf(F,"%lf",f+i);
+    for(i=1;i<xDim[0]*yDim;i++) if( !isfinite(f[i])){ printf(" NAN in table %s\n",procName); return 0;} 
   }             
   sprintf(icon_name,"%s/include/icon",pathtocalchep);
   start1(VERSION_ ,icon_name,"calchep.ini;../calchep.ini",NULL);  
   clearTypeAhead();
-  if(ptype==2) plot_2D(xMin,xMax,xDim,yMin,yMax,yDim,f,df,procName,xName,yName);
+  if(ptype==2) plot_2D(xMin,xMax,xDim[0],yMin,yMax,yDim,f,df,procName,xName,yName);
   else 
   {
-     plot_1(xMin,xMax,xDim,f,df,procName, xName, yName);
+     plot_1(xMin,xMax,xDim[0],f,df,procName, xName, yName);
   }
   fclose(F);
   finish();

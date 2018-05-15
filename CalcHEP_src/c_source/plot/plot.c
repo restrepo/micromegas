@@ -27,7 +27,7 @@ static   int pictureX=300;
 static   int pictureY=200;
 static   char  letterSize[14]="normalsize";
 
-static int  logScale=1;
+static int  logY=1;
 static int  fgcolor = FGmain,  bkcolor = BGmain; 
 
                            
@@ -48,7 +48,7 @@ static void axisDesign(double xmin,double xmax, int islog,
   { 
     n=1+log10(xmax/xmin)/10;
     *step=pow((double)10,(double)n);     
-    *xfirst=pow((double)10,(double)nlog10(xmin));
+    *xfirst=pow(10, nlog10(xmin));
     *nsub=9; 
   }else
   {      
@@ -98,6 +98,8 @@ static void  gminmax(double *f ,double * df,int dim, double *ymin,double*ymax)
    { *ymin=MIN(*ymin, f[i]); 
      *ymax=MAX(*ymax, f[i]);
    } 
+   double z=(*ymax-*ymin)/50;
+   *ymax+=z;
 }
 
 
@@ -111,7 +113,7 @@ static int scx(double  x)
 
 static int  scy(double  x)
 {  
-   if (logScale)   x = log10(x / grafminmax.ymin); 
+   if (logY)   x = log10(x / grafminmax.ymin); 
    else            x -= grafminmax.ymin; 
    return Y1 - chpround(yscale * x);
 } 
@@ -126,7 +128,7 @@ static double  dscx(double x)
 
 static double  dscy(double  x)
 { 
-   if (logScale) 
+   if (logY) 
    {  
      if(x>0)  x = log10(x / grafminmax.ymin);
      else     x=   -10000*log10(grafminmax.ymax/grafminmax.ymin) ;
@@ -142,7 +144,7 @@ static double xPhys(void)
 }
 
 static double yPhys(void)
-{  if(logScale)
+{  if(logY)
    return pow(10,(Y1-mouse_info.y)/yscale)*grafminmax.ymin;  
    else   return -(mouse_info.y -Y1)/yscale + grafminmax.ymin;
 }
@@ -176,7 +178,6 @@ static int colList[]={Black,Blue,Red,Yellow,Magenta, Green,Cyan, Brown,LightGray
 static char*colListTxt[]={"Black","Blue","Red","Yellow","Magenta", "Green","Cyan", "Brown","LightGray",
               "DarkGray", "LightBlue","LightGreen","LightCyan","LightRed","LightMagenta","White"};
 
-
 static void  gaxes(char* upstr, char* xstr, int N, char**Y)
 {
 
@@ -204,7 +205,7 @@ static void  gaxes(char* upstr, char* xstr, int N, char**Y)
    grafminmax.ymin = ymin; 
    grafminmax.ymax = ymax; 
   
-   if (logScale && ( ymin <= 0.0 || log10(ymax/ymin)<1 )) logScale=0;
+   if (logY && ( ymin <= 0.0 || log10(ymax/ymin)<1 )) logY=0;
 
    tg_setlinestyle(SolidLn,NormWidth);
 
@@ -212,7 +213,7 @@ static void  gaxes(char* upstr, char* xstr, int N, char**Y)
    Y1 = tg_getmaxy() - 5*th; Y2 = 5*th/2; 
 
    xscale = (X2 - X1) / ( logX    ? log10(xmax/xmin) :  xmax - xmin);
-   yscale = (Y1 - Y2) / (logScale ? log10(ymax/ymin) :  ymax - ymin); 
+   yscale = (Y1 - Y2) / (logY ? log10(ymax/ymin) :  ymax - ymin); 
 
    tg_settextjustify(CenterText,TopText);
    tg_outtextxy((X1+X2)/2,CenterText,upstr);  
@@ -235,15 +236,22 @@ static void  gaxes(char* upstr, char* xstr, int N, char**Y)
      } else
      { 
         xy='Y';
-        islog = logScale; 
+        islog = logY; 
         tg_settextjustify(RightText,CenterText);
         zmin=ymin;
         zmax=ymax;
         xend=X1;
         yend=Y2;              
      }
-     zmax1 = zmax + fabs(zmax-zmin)*1.E-4;
-     zmin1 = zmin - fabs(zmax-zmin)*1.E-4;
+     if(islog)
+     {
+       zmax1 = zmax*(1+1E-4*log(zmax/zmin));
+       zmin1 = zmin/(1+1E-4*log(zmax/zmin));
+     } else
+     { 
+       zmax1 = zmax + fabs(zmax-zmin)*1.E-4;
+       zmin1 = zmin - fabs(zmax-zmin)*1.E-4;
+     }  
      axisDesign(zmin,zmax, islog,&aa, &step,&n_sub);
 
      tg_line(X1,Y1,xend,yend);
@@ -282,7 +290,8 @@ static void  gaxes(char* upstr, char* xstr, int N, char**Y)
         goto_xy(10,2);
         for(i=0;i<N;i++)   
         {  scrcolor(colList[i],bkcolor);
-           print("%s; ",Y[i]);
+           print("%s",Y[i]);
+           if(i<N-1) print("; ");
         }       
      }
    }
@@ -297,7 +306,6 @@ static void plot_curve(double xMin,double xMax,int dim, double *f)
    double step= logX? pow(xMax/xMin,1./dim) : (xMax-xMin)/dim;
    double ymax = dscy(grafminmax.ymin);
    double ymin = dscy(grafminmax.ymax);
-   
    for(i=1;i<dim;i++)
    {
       if(logX)
@@ -327,7 +335,7 @@ static void plot_curve(double xMin,double xMax,int dim, double *f)
       
 }
 
-static void plot_spline(double xMin,double xMax,int dim, int lScale, double *f)
+static void plot_spline(double xMin,double xMax,int dim, double *f)
 {  double   x,y,xx,yy;
    int i;
    double step=(xMax-xMin)/dim;
@@ -335,15 +343,23 @@ static void plot_spline(double xMin,double xMax,int dim, int lScale, double *f)
    double ymin = dscy(grafminmax.ymax);
    double xgrid[300];
    double sdim=300;
+
+   double * fLn;
+   if(logY)
+   { fLn=malloc(dim*sizeof(double));
+     for(i=0;i<dim;i++) fLn[i]=log(f[i]);
+   }       
+
+
    
-   if(lScale)for(i=0;i<dim;i++) xgrid[i]=xMin*pow(xMax/xMin, (i+0.5)/(double)dim);
+   if(logX)for(i=0;i<dim;i++) xgrid[i]=log(xMin*pow(xMax/xMin, (i+0.5)/(double)dim));
    else      for(i=0;i<dim;i++) xgrid[i]=xMin+(i+0.5)*step; 
 
    step=(xMax-xMin)/sdim;
           
    for(i=1;i<sdim;i++)
    {  double x1,x2;
-      if(lScale)
+      if(logX)
       { x1=xMin*pow(xMax/xMin,(i+0.5)/sdim);
         x2=xMin*pow(xMax/xMin,(i+1.5)/sdim);
       } else  
@@ -352,8 +368,22 @@ static void plot_spline(double xMin,double xMax,int dim, int lScale, double *f)
       }  
       x =dscx(x1);
       xx=dscx(x2); 
-      y =dscy(polint3(x1,dim,xgrid,f));
-      yy=dscy(polint3(x2,dim,xgrid,f));
+      if(logX) { x1=log(x1);x2=log(x2);}
+      if(logY)
+      { y =exp(polint3(x1,dim,xgrid,fLn));
+        if( !isfinite(y)) y =exp(polint1(x1,dim,xgrid,fLn));
+        if( !isfinite(y)) y = polint3(x1,dim,xgrid,f);
+
+        yy=exp(polint3(x2,dim,xgrid,fLn));
+        if( !isfinite(yy)) yy =exp(polint1(x2,dim,xgrid,fLn));
+        if( !isfinite(yy)) yy = polint3(x2,dim,xgrid,f);
+      } else 
+      {  
+        y =polint3(x1,dim,xgrid,f);
+        yy=polint3(x2,dim,xgrid,f);
+      }  
+      y  = dscy(y);
+      yy = dscy(yy);
       if ( yy < y) 
       { double z;
         z=yy;yy=y;y=z;
@@ -366,13 +396,14 @@ static void plot_spline(double xMin,double xMax,int dim, int lScale, double *f)
         if(y<ymin) {  x=  x-((x-xx)*(y -ymin))/(y-yy); y=ymin;}
         tg_line((int)x,(int)y,(int)xx,(int)yy);
       }
-   }      
+   }
+   if(logY) free(fLn);      
 }
 
 
 
 static void plot_hist(double xMin,double xMax,int dim, double *f,double *df)
-{  double   x,y,yy;
+{  double   x,y,yp,ym;
    int i;
 
    double ymax = dscy(grafminmax.ymin);
@@ -382,19 +413,26 @@ static void plot_hist(double xMin,double xMax,int dim, double *f,double *df)
    for(i=0;i<dim;i++)
    {  
      y =dscy(f[i]);
-     if(y<ymax && y>ymin) tg_line((int)dscx(xMin+i*step),  (int)y,
-                                    (int)dscx(xMin+(i+1)*step),(int)y);
-     y =MIN(dscy(f[i]-df[i]),ymax);
-     yy=MAX(dscy(f[i]+df[i]),ymin);
-     x=(dscx(xMin+i*step)+dscx(xMin+(i+1)*step))/2;
-     if(y>yy) tg_line((int)x,(int)y, (int)x,(int)yy );        
+     yp=MAX(dscy(f[i]+df[i]),ymin);
+     ym=MIN(dscy(f[i]-df[i]),ymax); 
+     if(y<ymax && y>ymin)
+     { if(logX)
+       {  tg_line((int)dscx(xMin*pow(xMax/xMin,(double)i/dim)),  (int)y, (int)dscx(xMin*pow(xMax/xMin,(double)(i+1)/dim)),(int)y);
+          x=dscx(xMin*pow(xMax/xMin,(i+0.5)/dim));
+       }   
+       else
+       {  tg_line((int)dscx(xMin+i*step),  (int)y, (int)dscx(xMin+(i+1)*step),(int)y);
+          x=dscx(xMin+(i+0.5)*step);
+       } 
+       if(yp<ym) tg_line((int)x,(int)ym, (int)x,(int)yp );  
+     }  
    }
 }
 
 
-static int writetable1(char * filename, double xMin,double xMax, double yMin, double yMax, int logScale, 
-     int dim,char*x_str,char*upstr, 
- int N, double**f,double**df,char**Y)  
+static int writetable1(char * filename, double xMin,double xMax, double yMin, double yMax,
+     char*x_str,char*upstr, 
+ int N, int*Dim, double**f,double**df,char**Y)  
 { 
    FILE *     outfile;
    int        i,k;
@@ -403,8 +441,9 @@ static int writetable1(char * filename, double xMin,double xMax, double yMin, do
    double x1=xMin+0.35*dx, x2=xMin+0.43*dx, x3=xMin+0.45*dx;
    double  yl;
    int ilab=0;
-   double step=(xMax-xMin)/dim;
-
+   int maxDim=0;
+   
+   for(i=0;i<N;i++) if(maxDim<Dim[i]) maxDim=Dim[i];
    outfile=fopen(filename,"w");
    if(outfile==NULL) return 1;
    fprintf(outfile,"#title %s\n",upstr);
@@ -417,7 +456,8 @@ static int writetable1(char * filename, double xMin,double xMax, double yMin, do
    fprintf(outfile,"#xName %s\n",x_str);
    fprintf(outfile,"#xMin %E\n",xMin);
    fprintf(outfile,"#xMax %E\n",xMax);
-   fprintf(outfile,"#xDim %d\n",dim);
+   fprintf(outfile,"#xDim "); for(i=0;i<N;i++) fprintf(outfile," %d",Dim[i]); fprintf(outfile,"\n");
+   
    fprintf(outfile,"#xScale %d\n",logX);
        
    fprintf(outfile,"#---   starting of data ---\n#");
@@ -431,20 +471,23 @@ static int writetable1(char * filename, double xMin,double xMax, double yMin, do
    }
    
    fprintf(outfile,"\n");        
-   for(i=0;i<dim;i++)
-   { for(k=0;k<N;k++)  
+   for(i=0;i<maxDim;i++)
+   { for(k=0;k<N;k++) if(i<Dim[k]) 
      { fprintf(outfile," %-12E  ",f[k][i]);
        if(df[k]) fprintf(outfile,"  %-12E",df[k][i]);
      } 
+     else 
+     { fprintf(outfile," %-12E  ",0.);
+       if(df[k]) fprintf(outfile,"  %-12E",0.);
+     }  
      fprintf(outfile,"\n");
    }
    fclose(outfile);
    return 0;
 }
 
-static void  writeGNU(char*fname, double xMin,double xMax, double yMin, double yMax, int logScale, 
-     int dim,char*x_str,char*upstr, 
- int N, char* type,char**Y)  
+static void  writeGNU(char*fname, double xMin,double xMax, double yMin, double yMax, 
+     char*x_str,char*upstr,  int N, int*Dim, char* type,char**Y)  
 {  char       filename[100], buff[STRSIZ],command[100];
    FILE *     outfile;
    int        i,k;
@@ -453,28 +496,29 @@ static void  writeGNU(char*fname, double xMin,double xMax, double yMin, double y
    double x1=xMin+0.35*dx, x2=xMin+0.43*dx, x3=xMin+0.45*dx;
    double  yl;
    int ilab=0;
-   double step=(xMax-xMin)/dim;
+
    strcpy(filename,fname);
    for(i=strlen(filename)-1; i>=0;i--) if(filename[i]=='.') { filename[i]=0; break; }
-   strcat(filename,".gnu");
+   strcat(filename,".gp");
    outfile=fopen(filename,"w");
 
-
-   fprintf(outfile," set title  '%s'\n",upstr);
+   fprintf(outfile,"# set terminal postscript eps 22\n");
+   fprintf(outfile,"# set terminal latex \n");
+   fprintf(outfile,"# set title  '%s'\n",upstr);
    fprintf(outfile," set xlabel '%s'\n",x_str);
-   
+   if(N==1) fprintf(outfile," set ylabel '%s'\n",Y[0]);
    fprintf(outfile," xMin=%E\n",xMin);
    fprintf(outfile," xMax=%E\n",xMax);
    fprintf(outfile," yMin=%E\n",yMin);
    fprintf(outfile," yMax=%E\n",yMax);
-   fprintf(outfile," dim=%d\n",dim);
+
    
-   if(logScale)  fprintf(outfile," set logscale y\n");
+   if(logY)  fprintf(outfile," set logscale y\n");
    if(logX)
-   {  fprintf(outfile," set logscale x\n"); 
-      fprintf(outfile," X(n)=xMin*(xMax/xMin)**((n+0.5)/dim)\n");
+   {  fprintf(outfile," set logscale x\n");
+      for(k=0;k<N;k++) fprintf(outfile," X%d(n)=xMin*(xMax/xMin)**((n+0.5)/%d)\n",k,Dim[k]);
    } 
-   else fprintf(outfile," X(n)=xMin+(n+0.5)/dim*(xMax-xMin)\n");
+   else for(k=0;k<N;k++)  fprintf(outfile," X%d(n)=xMin+(n+0.5)/%d*(xMax-xMin)\n",k,Dim[k]);
 
    fprintf(outfile," plot[xMin:xMax][yMin:yMax]");
    
@@ -482,18 +526,19 @@ static void  writeGNU(char*fname, double xMin,double xMax, double yMin, double y
    { 
 //      printf("type[%d]=%c\n",k,type[k]);
       if(type[k]=='h')              
-      {  fprintf(outfile,"'%s' using (X($0)):%d:%d  w error ti '%s'",
-                 fname,i,i+1,Y[k]);
+      {  fprintf(outfile,"'%s' using (X%d($0)):%d:%d  w error ", fname,k,i,i+1);
+        if(N>1)  fprintf(outfile," ti '%s'",Y[k]); else fprintf(outfile," noti");
          i++;
       } else 
       {
          fprintf(outfile,
-           "'%s' using (X($0)):%d w l ti '%s'",
-                  fname,i,Y[k]);
+           "'%s' using (X%d($0)):%d w l ",
+                  fname,k,i);
+         if(N>1) fprintf(outfile," ti '%s'",Y[k]); else fprintf(outfile," noti");
          if(type[k]=='s')  fprintf(outfile," smooth csplines");
    
       }      
-       if(k<N-1) fprintf(outfile,", ");else fprintf(outfile,"\n");               
+      if(k<N-1) fprintf(outfile,", ");else fprintf(outfile,"\n");               
    } 
         
    fclose(outfile);
@@ -503,18 +548,21 @@ static void  writeGNU(char*fname, double xMin,double xMax, double yMin, double y
 
 
 
-static void  writePAW(char *fname,  double xMin,double xMax, double yMin, double yMax, int logScale, 
-     int dim,char*x_str,char*upstr, 
- int N, char*type,char**Y)  
+static void  writePAW(char *fname,  double xMin,double xMax, double yMin, double yMax,
+     char*x_str,char*upstr, 
+ int N, int*Dim, char*type,char**Y)  
 {  char       filename[100], buff[STRSIZ],command[100];
    FILE *     outfile;
    int        i,k;
    
-   double dx=xMax-xMin;
-   double x1=xMin+0.35*dx, x2=xMin+0.43*dx, x3=xMin+0.45*dx;
+   double x1,x2,x3;
+   
+   if(logX)  {double dx=xMax/xMin;  x1=xMin*pow(dx,0.35);  x2=xMin*pow(dx,0.43);  x3=xMin*pow(dx,0.45); }    
+   else      {double dx=xMax-xMin;  x1=xMin+0.35*dx;       x2=xMin+0.43*dx;       x3=xMin+0.45*dx;      }
+
    double  yl;
    int ilab=0;
-   double step=(xMax-xMin)/dim;
+//   double step=(xMax-xMin)/dim;
 
    strcpy(filename,fname);
 
@@ -526,22 +574,34 @@ static void  writePAW(char *fname,  double xMin,double xMax, double yMin, double
    fprintf(outfile,"*  http://paw.web.cern.ch/paw/allfaqs.html\n");
    fprintf(outfile," opt zfl\n");
    fprintf(outfile,"set *FON -60\n");
-   if(logScale)  fprintf(outfile,"opt  logy\n");
+   if(logY)  fprintf(outfile,"opt  logy\n");
    if(logX) fprintf(outfile,"opt  logx\n");   
-   fprintf(outfile," TITLE '%s'\n",upstr);
-   fprintf(outfile," vector/Create XX(%d)  \n",dim);
-   if(logX)
-   {
-     fprintf(outfile,   " sigma XX=ARRAY(%d,0#%d)\n",dim,dim-1);
-     fprintf(outfile,   " sigma XX=%E*(%E)**((0.5+XX)/%d)\n",xMin,xMax/xMin,dim);
-   }
-   else fprintf(outfile," sigma XX=ARRAY(%d,%G#%G)\n",dim,xMin+0.5*step,xMax-0.5*step);
+   fprintf(outfile,"* TITLE '%s'\n",upstr);
+
    sprintf(buff,"");
 
    for(k=0;k<N;k++)
    {  
-     fprintf(outfile," vector/Create Y%d(%d)\n",k+1,dim);
-     if(type[k]=='h')fprintf(outfile," vector/Create dY%d(%d)\n",k+1,dim);  
+     fprintf(outfile," vector/Create X%d(%d)  \n",k+1,Dim[k]);
+     if(logX)
+     { if(type[k]=='h')
+       { 
+          fprintf(outfile," sigma X%d=ARRAY(%d,0#%d)\n",k+1,Dim[k]+1,Dim[k]);
+          fprintf(outfile," sigma X%d=%E*(%E)**(X%d/%d)\n",k+1,xMin,xMax/xMin,k+1,Dim[k]);
+       }else 
+       {
+          fprintf(outfile," sigma X%d=ARRAY(%d,0#%d)\n",k+1,Dim[k],Dim[k]-1);
+          fprintf(outfile," sigma X%d=%E*(%E)**((0.5+X%d)/%d)\n",k+1,xMin,xMax/xMin,k+1,Dim[k]);
+       
+       
+       }
+          
+     }
+     else fprintf(outfile," sigma X%d=ARRAY(%d,%G#%G)\n",k+1,Dim[k],xMin+0.5*(xMax-xMin)/Dim[k],xMax-0.5*(xMax-xMin)/Dim[k]);
+     
+
+     fprintf(outfile," vector/Create Y%d(%d)\n",k+1,Dim[k]);
+     if(type[k]=='h')fprintf(outfile," vector/Create dY%d(%d)\n",k+1,Dim[k]);  
    }
 
    fprintf(outfile," vector/Read ");
@@ -564,32 +624,37 @@ static void  writePAW(char *fname,  double xMin,double xMax, double yMin, double
      if(type[k]=='h' ) fprintf(outfile," set HCOL %d\n",k+1); 
      fprintf(outfile," set plci %i ; set txci %i  \n",k+1,k+1);
      
-     if(logScale) yl=exp(log(yMax)-0.05*(k+1)*log(yMax/yMin));
+     if(logY) yl=exp(log(yMax)-0.05*(k+1)*log(yMax/yMin));
      else  yl=yMax -0.05*(k+1)*(yMax-yMin);
              
      
-     fprintf(outfile," dline %G %G %G %G ; itx %G %G '%s' \n",
-     x1,x2, yl, yl, x3, yl, Y[k]);
+     if(N>1 && Y[k][0]) fprintf(outfile," dline %G %G %G %G ; itx %G %G '%s' \n",
+                 x1,x2, yl, yl, x3, yl, Y[k]);
  
      if(type[k]=='h')
      {
        fprintf(outfile," set dmod 1\n");
-       fprintf(outfile," histogram/create/1dhisto %d '%s' %d %G %G\n",
-                         k+1,upstr,dim,xMin,xMax);                
+       if(logX)
+           fprintf(outfile," histogram/create/bins %d '%s' %d  X%d\n",
+                         k+1,upstr,Dim[k],k+1);  
+       else 
+           fprintf(outfile," histogram/create/1dhisto %d '%s' %d %G %G\n",
+                         k+1,upstr,Dim[k],xMin,xMax);  
        fprintf(outfile," histogram/put/contents %d Y%d\n",k+1,k+1);
        fprintf(outfile," histogram/put/errors   %d dY%d\n",k+1,k+1);   
        fprintf(outfile," histogram/plot %d  s\n",k+1);
 //       fprintf(outfile,"#PAW  atitle  '%s' '%s' \n",x_str,y_str);
      }
      else 
-     { fprintf(outfile," GRAPH %d XX Y%d ",dim,k+1);
+     { fprintf(outfile," GRAPH %d X%d Y%d ",Dim[k],k+1,k+1);
        if(type[k]=='l')  fprintf(outfile," l\n");
        else fprintf(outfile," c\n");
      }  
    }
           
    fprintf(outfile," set txci 1 \n" );
-   fprintf(outfile," atitle  '%s'\n",x_str);
+   if(N==1) fprintf(outfile," atitle  '%s' '%s'\n",x_str,Y[0]);
+   else     fprintf(outfile," atitle  '%s'\n",x_str);
    fprintf(outfile," pic/print  %s.eps\n",fname); 
 
    fclose(outfile);
@@ -598,9 +663,8 @@ static void  writePAW(char *fname,  double xMin,double xMax, double yMin, double
 }
 
 
-static void  writeROOT(char *fname,  double xMin,double xMax, double yMin, double yMax, int logScale, 
-     int dim,char*x_str,char*upstr, 
- int N, char*type,char**Y)  
+static void  writeROOT(char *fname,  double xMin,double xMax, double yMin, double yMax, 
+     char*x_str,char*upstr, int N, int*Dim, char*type,char**Y)  
 {  char       filename[100],basename[100], buff[STRSIZ];
    FILE *     outfile;
    int        i,k;
@@ -631,78 +695,325 @@ fprintf(outfile,
    if(i<0) i=0;
    fprintf(outfile,"void %s(void)\n{\n",basename+i);
    
-   fprintf(outfile," TCanvas *Can = new TCanvas(\"c\",\"Plot\",200,10,600,400);\n");
+   fprintf(outfile," TCanvas *Can = new TCanvas(\"c\",\"%s\",200,10,600,400);\n",upstr);
    fprintf(outfile," double xMin=%E, xMax=%E, yMin=%E, yMax=%E;\n",xMin,xMax,yMin,yMax);
-   fprintf(outfile," char buff[2000];\n");          
-   fprintf(outfile," double  X[%d];\n",dim);
+   fprintf(outfile," char buff[2000];\n");
+   fprintf(outfile," double "); 
+   for(k=0;k<N;k++){ fprintf(outfile," X%d[%d],dX%d[%d]",k,Dim[k],k,Dim[k]); 
+                     if(k<N-1) fprintf(outfile,","); else  fprintf(outfile,";\n");
+                   }           
    if(logX)
    { 
-        fprintf(outfile," Can->SetLogx();\n"); 
-        fprintf(outfile," for(int i=0;i<%d;i++) X[i]=xMin*pow(Xmax/Xmin,(i+0.5)/%d);\n", dim,dim);
+        fprintf(outfile," Can->SetLogx();\n");
+        for(k=0;k<N;k++) fprintf(outfile," for(int i=0;i<%d;i++){ X%d[i]=xMin*pow(xMax/xMin,(i+0.5)/%d);dX%d[i]=X%d[i]*(pow(xMax/xMin,0.333/%d)-1);} \n", Dim[k],k,Dim[k],k,k,Dim[k]);    
    } 
-   else fprintf(outfile," for(int i=0;i<%d;i++) X[i]=xMin+(i+0.5)*(xMax-xMin)/%d;\n", dim,dim); 
+   else for(k=0;k<N;k++) fprintf(outfile," for(int i=0;i<%d;i++){ X%d[i]=xMin+(i+0.5)*(xMax-xMin)/%d; dX%d[i]=(xMax-xMin)/3./%d;}\n", Dim[k],k,Dim[k],k,Dim[k]);
+         
 
-   fprintf(outfile," double Xtext = xMin+0.3*(xMax-xMin);\n");  
+   if(logX)fprintf(outfile," double Xtext = xMin*pow(xMax/xMin,0.3);\n");  
+   else    fprintf(outfile," double Xtext = xMin+0.3*(xMax-xMin);\n");  
    fprintf(outfile," double Ytext= yMax;\n");
 
-   if(logScale)   
+   if(logY)   
    {
      fprintf(outfile," Can->SetLogy();\n");
-     fprintf(outfile," double dYtext=pow(yMax/yMin,0.05);\n");
-   } else fprintf(outfile," double dYtext= (yMax-yMin)/20.;\n");
+     fprintf(outfile," double dYtext=pow(yMax/yMin,0.055);\n");
+   } else fprintf(outfile," double dYtext= (yMax-yMin)/15;\n");
    
        
    fprintf(outfile," TH1F *hr = Can->DrawFrame(xMin,yMin,xMax,yMax);\n");
    fprintf(outfile," hr->SetXTitle(\"%s\");\n",x_str);   
-   
+   if(N==1) fprintf(outfile," hr->SetYTitle(\"%s\");\n",Y[0]);   
 
+   int maxDim=0;
+   for(k=0;k<N;k++) if(Dim[k]>maxDim) maxDim=Dim[k];
+   
    for(k=0;k<N;k++)
    {  
-     fprintf(outfile," double  Y%d[%d];\n",k+1,dim);
+     fprintf(outfile," double  Y%d[%d];\n",k,maxDim);
      sprintf(format+strlen(format)," %%lf");
-     sprintf(read+strlen(read)," ,Y%d+i",k+1);
+     sprintf(read+strlen(read)," ,Y%d+i",k);
      if(type[k]=='h')
-     {  fprintf(outfile," double  dY%d[%d];\n",k+1,dim);  
+     {  fprintf(outfile," double  dY%d[%d];\n",k,maxDim);  
         sprintf(format+strlen(format)," %%lf");
-        sprintf(read+strlen(read)," ,dY%d+i",k+1);
+        sprintf(read+strlen(read)," ,dY%d+i",k);
      }
    }
    
-   fprintf(outfile, "  FILE*f=fopen(\"%s\",\"r\");\n",fname);
-   fprintf(outfile, "  for(int i=0;i<%d;)\n {\n",dim);
+   fprintf(outfile, " FILE*f=fopen(\"%s\",\"r\");\n",fname);
+   fprintf(outfile, " for(int i=0;i<%d;)\n {\n",maxDim);
    fprintf(outfile, "  fscanf(f,\"%%[^\\n]%%*c\",buff);\n");
-   fprintf(outfile, "  if(buff[0]!='#')\n  {\n");
-   fprintf(outfile, "  sscanf(buff,\"%s\" %s); i++;\n", format, read);
-   fprintf(outfile,"    }\n }\n");
-   fprintf(outfile,"   fclose(f);\n");
+   fprintf(outfile, "  if(buff[0]!='#') {");
+   fprintf(outfile, "  sscanf(buff,\"%s\" %s); i++;", format, read);
+   fprintf(outfile, "    }\n }\n");
+   fprintf(outfile, " fclose(f);\n");
 
-   fprintf(outfile,"   double dX[%d];\n",dim);
-   fprintf(outfile,"   for(int i=0;i<%d;i++) dX[i]=(xMax-xMin)/%d/3.;\n",dim,dim);
-      
-   for(k=1;k<=N;k++)
-   { if(type[k-1]=='h') 
-     {  fprintf(outfile,"   TGraphErrors *gr%d =new TGraphErrors(%d,X,Y%d,dX,dY%d);\n",k,dim,k,k);
-        fprintf(outfile,"   gr%d->SetLineColor(%d);\n",k,k); 
+//   fprintf(outfile, " double dX[%d];\n",dim);
+//   fprintf(outfile, " for(int i=0;i<%d;i++) dX[i]=(xMax-xMin)/%d/3.;\n",dim,dim);
+
+   fprintf(outfile, " TLatex ltx;\n");
+   fprintf(outfile, " ltx.SetTextFont(42);\n");
+   fprintf(outfile, " ltx.SetTextSize(0.04);\n");
+           
+   for(k=0;k<N;k++)
+   { if(type[k]=='h') 
+     {  fprintf(outfile,"   TGraphErrors *gr%d =new TGraphErrors(%d,X%d,Y%d,dX%d,dY%d);\n",k,Dim[k],k,k,k,k);
+        fprintf(outfile,"   gr%d->SetLineColor(%d);\n",k,k+1); 
         fprintf(outfile,"   gr%d->Draw(\"P\");\n",k);
      } else 
      {   
-       fprintf(outfile, "   TGraph *gr%d = new TGraph (%d,X,Y%d);\n",k,dim,k); 
-       fprintf(outfile, "   gr%d->SetLineColor(%d);\n",k,k);
-       if(type[k-1]=='l') fprintf(outfile, "   gr%d->Draw(\"L\");\n",k);
+       fprintf(outfile, "   TGraph *gr%d = new TGraph (%d,X%d,Y%d);\n",k,Dim[k],k,k); 
+       fprintf(outfile, "   gr%d->SetLineColor(%d);\n",k,k+1);
+       if(type[k]=='l') fprintf(outfile, "   gr%d->Draw(\"L\");\n",k);
        else fprintf(outfile, "   gr%d->Draw(\"C\");\n",k);
      }
-     if(logScale) fprintf(outfile,"  Ytext/=dYtext;\n"); else  fprintf(outfile,"  Ytext-=dYtext;\n");
-     fprintf(outfile,"  TText *t%d = new TText(Xtext,Ytext,\"%s\");\n",k,Y[k-1]);
-     fprintf(outfile,"  t%d->SetTextColor(%d);\n",k,k);
-     fprintf(outfile,"  t%d->Draw();\n",k); 
+     if(N>1 && Y[k][0])
+     {
+        if(logY) fprintf(outfile,"   Ytext/=dYtext;\n"); else  fprintf(outfile,"  Ytext-=dYtext;\n");
+/*
+        fprintf(outfile,"  TText *t%d = new TText(Xtext,Ytext,\"%s\");\n",k,Y[k]);
+        fprintf(outfile,"  t%d->SetTextColor(%d);\n",k,k+1);
+        fprintf(outfile,"  t%d->SetTextFont(42);\n",k);
+        fprintf(outfile,"  t%d->SetTextSize(0.03);\n",k);
+        fprintf(outfile,"  t%d->Draw();\n",k);
+*/        
+        fprintf(outfile,"    ltx.SetTextColor(%d);\n",k+1);
+        fprintf(outfile,"    ltx.DrawLatex(Xtext,Ytext,\"%s\");\n",Y[k]);         
+     } 
    }  
-   fprintf(outfile,"  Can->Print(\"%s.pdf\");\n",basename);
+   fprintf(outfile," Can->Print(\"%s.pdf\");\n",basename);
    
    fprintf(outfile,"}\n");
    fclose(outfile);
    
    messanykey(10,12,filename);
 }
+
+static void  writePython(char *fname,  double xMin,double xMax, double yMin, double yMax,
+     char*x_str, char*upstr, int N, int*Dim, char*type, char**Y)  
+{  char       filename[100],basename[100], buff[STRSIZ];
+   FILE *     outfile;
+   int        i,k;
+   char  format[150]={}, read[150]={};   
+   
+   strcpy(basename,fname);
+
+   for(i=strlen(basename)-1; i>=0;i--) if(basename[i]=='.') { basename[i]=0; break; }
+   sprintf(filename,"%s.py",basename);
+   
+   outfile=fopen(filename,"w");
+   fprintf(outfile,          
+     "import os\n"
+     "import matplotlib.pyplot as plt\n"
+     "import numpy as np\n"
+     "from math import exp, log, sqrt\n"
+     "from scipy import interpolate\n");
+   
+      
+   
+   fprintf(outfile,"#--------------- data input -----------------------#\n");
+   format[0]=0;
+   for(k=0;k<N;k++) 
+   { if(k) fprintf(outfile,", "); 
+     fprintf(outfile,"y%d",k);
+     if(type[k]=='h') fprintf(outfile,", dy%d",k);
+   } 
+   fprintf(outfile," = np.genfromtxt('%s',dtype=float, comments='#',unpack=True)\n",fname);  
+    
+   fprintf(outfile,"#--------------- writing plots -----------------#\n");
+   fprintf(outfile,"#fig, ax = plt.subplots(figsize=(6,3.8))\n");
+   fprintf(outfile,"#plt.subplots_adjust(bottom=0.20,right=0.75,left=0.15)\n");
+
+   fprintf(outfile,"plt.title('%s')\n", upstr);
+   fprintf(outfile,"plt.xlabel('%s',fontsize=16)\n", x_str);
+   if(N==1) fprintf(outfile,"plt.ylabel('%s',fontsize=16)\n", Y[0]);
+   if(logX) fprintf(outfile,"plt.xscale('log')\n");    else fprintf(outfile,"plt.xscale('linear')\n"); 
+   if(logY)fprintf(outfile,"plt.yscale('log')\n"); else fprintf(outfile,"plt.yscale('linear')\n");
+   fprintf(outfile,"xmin=%E\n",xMin);
+   fprintf(outfile,"xmax=%E\n",xMax); 
+   fprintf(outfile,"plt.xlim(xmin,xmax)\n");
+   fprintf(outfile,"plt.ylim(%E,%E)\n",yMin,yMax);
+   for(k=0;k<N;k++) if(type[k]=='s') break;
+   if(k!=N) // interpalation is needed
+   { if(logX)
+     { fprintf(outfile,"li=np.linspace(log(xmin), log(xmax),300)\n");
+       fprintf(outfile,"xi=np.exp(li)\n");
+     }
+     else     fprintf(outfile,"xi=np.linspace(xmin, xmax,300)\n");
+   }
+   for(k=0;k<N;k++)
+   { if(logX) 
+     {  
+       fprintf(outfile,"xfirst=xmin*pow(xmax/xmin,0.5/%d)\n",Dim[k]); 
+       fprintf(outfile,"xlast=xmax/pow(xmax/xmin,0.5/%d)\n",Dim[k]);
+       fprintf(outfile,"l%d=np.linspace(log(xfirst),log(xlast),%d)\n",k,Dim[k]);
+       fprintf(outfile,"x%d=np.exp(l%d)\n",k,k);
+     }else 
+     {   
+       fprintf(outfile,"xfirst=xmin+0.5*(xmax-xmin)/%d\n",Dim[k]);
+       fprintf(outfile,"xlast=xmax -0.5*(xmax-xmin)/%d\n",Dim[k]);  
+       fprintf(outfile,"x%d=np.linspace(xfirst,xlast,%d)\n",k,Dim[k]);   
+     }
+     if(type[k]=='h')
+     { if(logX)
+       { fprintf(outfile,"c=sqrt(x%d[1]/x%d[0])\n",k,k);
+         fprintf(outfile,"errL=x%d*(1-1/c)\n",k);
+         fprintf(outfile,"errR=x%d*(c-1)\n",k); 
+         fprintf(outfile,"plt.errorbar(x%d, y%d[0:%d], dy%d[0:%d], xerr=[errL,errR], fmt=None,label='%s')\n",k,k,Dim[k],k,Dim[k],Y[k]);
+       }
+       else     fprintf(outfile,"plt.errorbar(x%d, y%d[0:%d], dy%d[0:%d], xerr=%e, fmt=None,label='%s')\n",k,k,Dim[k],k,Dim[k],0.45*(xMax-xMin)/Dim[k],Y[k]);
+     }else  if(type[k]=='s') // interpolation  
+     { 
+       if(logY) 
+       {  double Y_=yMin*sqrt(yMin/yMax);
+          fprintf(outfile,"for i in xrange(%d):\n",Dim[k]);
+          fprintf(outfile,"  if y%d[i] < %.1E:\n",k,Y_);
+          fprintf(outfile,"     y%d[i]=%.1E\n",k,Y_);
+       }
+       if(logX)
+       { if(logY)
+         {
+           fprintf(outfile,"tck=interpolate.splrep(l%d, np.log(y%d[0:%d]),s=0)\n",k,k,Dim[k]);
+           fprintf(outfile,"plt.plot(xi, np.exp(interpolate.splev(li, tck, der=0)), alpha=0.7, label='%s', linestyle='-')\n",Y[k]);   
+         }else
+         {  
+           fprintf(outfile,"tck=interpolate.splrep(l%d, y%d[0:%d],s=0)\n",k,k,Dim[k]);
+           fprintf(outfile,"plt.plot(xi, interpolate.splev(li, tck, der=0), alpha=0.7, label='%s', linestyle='-')\n",Y[k]);
+         }
+       }else
+       { if(logY)
+         { fprintf(outfile,"tck=interpolate.splrep(x%d, np.log(y%d[0:%d]),s=0)\n",k,k);
+           fprintf(outfile,"plt.plot(xi, np.exp(interpolate.splev(xi, tck, der=0)), alpha=0.7, label='%s', linestyle='-')\n",Y[k]); 
+         } else 
+         {
+           fprintf(outfile,"tck=interpolate.splrep(x%d, y%d[0:%d],s=0)\n",k,k);
+           fprintf(outfile,"plt.plot(xi, interpolate.splev(xi, tck, der=0), alpha=0.7, label='%s', linestyle='-')\n",Y[k]);
+         }  
+       }
+     } 
+     else fprintf(outfile,"plt.plot(x%d, y%d[0:%d],alpha=0.7, label='%s', linestyle='-')\n",k,k,Dim[k],Y[k]);
+/*
+        else if(type[k]=='s') // interpolation 
+        {  fprintf("fi = interpolate.interp1d(x%d, y%d)\n");
+           fprintf(outfile,"dxi=dx*%d/300\n",Dim[k]); // to use 300 points  
+           if(logX) 
+           { fprintf(outfile,"lx=np.linspace(log(xmin)+dxi, log(xmax)-dxi,%d)\n",300);
+             fprintf(outfile,"xi=np.exp(lx)\n");    
+           } else fprintf(outfile,"xi=np.linspace(xmin+dx, xmax-dx,%d)\n",300);
+           fprintf(outfile,"plt.plot(xi, fi(xi),alpha=0.7, label='%s', linestyle='-')\n",Y[k]);
+        }   
+     
+        if(N>1) fprintf(outfile,"plt.plot(x%d, y%d[0:%d],alpha=0.7, label='%s', linestyle='-')\n",k,k,Dim[k],Y[k]); 
+        else    fprintf(outfile,"plt.plot(x%d, y%d[0:%d],alpha=0.7, linestyle='-')\n",k,k,Dim[k],Y[k]);
+     }
+*/     
+   }
+   if(N>1) fprintf(outfile,"plt.legend()\n");
+   fprintf(outfile,"plt.savefig('%s.pdf')\n", basename);
+   fprintf(outfile,"plt.show()\n"); 
+        
+#ifdef UseDeleted 
+    
+   for(i=strlen(basename)-1; i>=0 && basename[i]!='/';i--);
+   if(i<0) i=0;
+   fprintf(outfile,"void %s(void)\n{\n",basename+i);
+   
+   fprintf(outfile," TCanvas *Can = new TCanvas(\"c\",\"%s\",200,10,600,400);\n",upstr);
+   fprintf(outfile," double xMin=%E, xMax=%E, yMin=%E, yMax=%E;\n",xMin,xMax,yMin,yMax);
+   fprintf(outfile," char buff[2000];\n");
+   fprintf(outfile," double "); 
+   for(k=0;k<N;k++){ fprintf(outfile," X%d[%d],dX%d[%d]",k,Dim[k],k,Dim[k]); 
+                     if(k<N-1) fprintf(outfile,","); else  fprintf(outfile,";\n");
+                   }           
+   if(logX)
+   { 
+        fprintf(outfile," Can->SetLogx();\n");
+        for(k=0;k<N;k++) fprintf(outfile," for(int i=0;i<%d;i++){ X%d[i]=xMin*pow(xMax/xMin,(i+0.5)/%d);dX%d[i]=X%d[i]*(pow(xMax/xMin,0.333/%d)-1);} \n", Dim[k],k,Dim[k],k,k,Dim[k]);    
+   } 
+   else for(k=0;k<N;k++) fprintf(outfile," for(int i=0;i<%d;i++){ X%d[i]=xMin+(i+0.5)*(xMax-xMin)/%d; dX%d[i]=(xMax-xMin)/3./%d;}\n", Dim[k],k,Dim[k],k,Dim[k]);
+         
+
+   if(logX)fprintf(outfile," double Xtext = xMin*pow(xMax/xMin,0.3);\n");  
+   else    fprintf(outfile," double Xtext = xMin+0.3*(xMax-xMin);\n");  
+   fprintf(outfile," double Ytext= yMax;\n");
+
+   if(logY)   
+   {
+     fprintf(outfile," Can->SetLogy();\n");
+     fprintf(outfile," double dYtext=pow(yMax/yMin,0.055);\n");
+   } else fprintf(outfile," double dYtext= (yMax-yMin)/15;\n");
+   
+       
+   fprintf(outfile," TH1F *hr = Can->DrawFrame(xMin,yMin,xMax,yMax);\n");
+   fprintf(outfile," hr->SetXTitle(\"%s\");\n",x_str);   
+   if(N==1) fprintf(outfile," hr->SetYTitle(\"%s\");\n",Y[0]);   
+
+   int maxDim=0;
+   for(k=0;k<N;k++) if(Dim[k]>maxDim) maxDim=Dim[k];
+   
+   for(k=0;k<N;k++)
+   {  
+     fprintf(outfile," double  Y%d[%d];\n",k,maxDim);
+     sprintf(format+strlen(format)," %%lf");
+     sprintf(read+strlen(read)," ,Y%d+i",k);
+     if(type[k]=='h')
+     {  fprintf(outfile," double  dY%d[%d];\n",k,maxDim);  
+        sprintf(format+strlen(format)," %%lf");
+        sprintf(read+strlen(read)," ,dY%d+i",k);
+     }
+   }
+   
+   fprintf(outfile, " FILE*f=fopen(\"%s\",\"r\");\n",fname);
+   fprintf(outfile, " for(int i=0;i<%d;)\n {\n",maxDim);
+   fprintf(outfile, "  fscanf(f,\"%%[^\\n]%%*c\",buff);\n");
+   fprintf(outfile, "  if(buff[0]!='#') {");
+   fprintf(outfile, "  sscanf(buff,\"%s\" %s); i++;", format, read);
+   fprintf(outfile, "    }\n }\n");
+   fprintf(outfile, " fclose(f);\n");
+
+//   fprintf(outfile, " double dX[%d];\n",dim);
+//   fprintf(outfile, " for(int i=0;i<%d;i++) dX[i]=(xMax-xMin)/%d/3.;\n",dim,dim);
+
+   fprintf(outfile, " TLatex ltx;\n");
+   fprintf(outfile, " ltx.SetTextFont(42);\n");
+   fprintf(outfile, " ltx.SetTextSize(0.04);\n");
+           
+   for(k=0;k<N;k++)
+   { if(type[k]=='h') 
+     {  fprintf(outfile,"   TGraphErrors *gr%d =new TGraphErrors(%d,X%d,Y%d,dX%d,dY%d);\n",k,Dim[k],k,k,k,k);
+        fprintf(outfile,"   gr%d->SetLineColor(%d);\n",k,k+1); 
+        fprintf(outfile,"   gr%d->Draw(\"P\");\n",k);
+     } else 
+     {   
+       fprintf(outfile, "   TGraph *gr%d = new TGraph (%d,X%d,Y%d);\n",k,Dim[k],k,k); 
+       fprintf(outfile, "   gr%d->SetLineColor(%d);\n",k,k+1);
+       if(type[k]=='l') fprintf(outfile, "   gr%d->Draw(\"L\");\n",k);
+       else fprintf(outfile, "   gr%d->Draw(\"C\");\n",k);
+     }
+     if(N>1 && Y[k][0])
+     {
+        if(logY) fprintf(outfile,"   Ytext/=dYtext;\n"); else  fprintf(outfile,"  Ytext-=dYtext;\n");
+/*
+        fprintf(outfile,"  TText *t%d = new TText(Xtext,Ytext,\"%s\");\n",k,Y[k]);
+        fprintf(outfile,"  t%d->SetTextColor(%d);\n",k,k+1);
+        fprintf(outfile,"  t%d->SetTextFont(42);\n",k);
+        fprintf(outfile,"  t%d->SetTextSize(0.03);\n",k);
+        fprintf(outfile,"  t%d->Draw();\n",k);
+*/        
+        fprintf(outfile,"    ltx.SetTextColor(%d);\n",k+1);
+        fprintf(outfile,"    ltx.DrawLatex(Xtext,Ytext,\"%s\");\n",Y[k]);         
+     } 
+   }  
+   fprintf(outfile," Can->Print(\"%s.pdf\");\n",basename);
+   
+   fprintf(outfile,"}\n");
+#endif   
+   fclose(outfile);
+   
+   messanykey(10,12,filename);
+}
+
+
 
 
 static void  writeROOT2D(char *fname,  double xMin,double xMax, double yMin, double yMax,
@@ -757,58 +1068,11 @@ fprintf(outfile,
    fprintf(outfile," h2->Draw(\"LEGO2\");\n");      
    fprintf(outfile," Can->Print(\"%s.pdf\");\n",basename);
       
-         fprintf(outfile,"}\n");
-            fclose(outfile);
-               
-                  messanykey(10,12,filename);
-}                  
-
-#ifdef OLD
-   fprintf(outfile," double Xtext = xMin+0.3*(xMax-xMin);\n");  
-   fprintf(outfile," double Ytext= yMax;\n");
-
-   if(logScale)   
-   {
-     fprintf(outfile," Can->SetLogy();\n");
-     fprintf(outfile," double dYtext=pow(yMax/yMin,0.05);\n");
-   } else fprintf(outfile," double dYtext= (yMax-yMin)/20.;\n");
-   
-       
-   fprintf(outfile," TH1F *hr = Can->DrawFrame(xMin,yMin,xMax,yMax);\n");
-   fprintf(outfile," hr->SetXTitle(\"%s\");\n",x_str);   
-   
-
-   
-
-   fprintf(outfile,"   double dX[%d];\n",dim);
-   fprintf(outfile,"   for(int i=0;i<%d;i++) dX[i]=(xMax-xMin)/%d/3.;\n",dim,dim);
-      
-   for(k=1;k<=N;k++)
-   { if(type[k-1]=='h') 
-     {  fprintf(outfile,"   TGraphErrors *gr%d =new TGraphErrors(%d,X,Y%d,dX,dY%d);\n",k,dim,k,k);
-        fprintf(outfile,"   gr%d->SetLineColor(%d);\n",k,k); 
-        fprintf(outfile,"   gr%d->Draw(\"P\");\n",k);
-     } else 
-     {   
-       fprintf(outfile, "   TGraph *gr%d = new TGraph (%d,X,Y%d);\n",k,dim,k); 
-       fprintf(outfile, "   gr%d->SetLineColor(%d);\n",k,k);
-       if(type[k-1]=='l') fprintf(outfile, "   gr%d->Draw(\"L\");\n",k);
-       else fprintf(outfile, "   gr%d->Draw(\"C\");\n",k);
-     }
-     if(logScale) fprintf(outfile,"  Ytext/=dYtext;\n"); else  fprintf(outfile,"  Ytext-=dYtext;\n");
-     fprintf(outfile,"  TText *t%d = new TText(Xtext,Ytext,\"%s\");\n",k,Y[k-1]);
-     fprintf(outfile,"  t%d->SetTextColor(%d);\n",k,k);
-     fprintf(outfile,"  t%d->Draw();\n",k); 
-   }  
-   fprintf(outfile,"  Can->Print(\"%s.pdf\");\n",basename);
-   
    fprintf(outfile,"}\n");
    fclose(outfile);
-   
+               
    messanykey(10,12,filename);
-}
-
-#endif
+}                  
 
 static int  writetable2(char*baseF, double xMin, double xMax, int dimX, 
                          double yMin,double yMax, int dimY, 
@@ -830,18 +1094,6 @@ double * f, double *df, char*  upstr,  char*  x_str, char*  y_str)
    fprintf(outfile,"#yMin %E\n",yMin);
    fprintf(outfile,"#yMax %E\n",yMax);
    fprintf(outfile,"#yDim %d\n",dimY);
-
-//   fprintf(outfile,"#--- PAW section ---\n");
-//   fprintf(outfile,"#PAW   histogram/create/2dhisto %d '%s' %d %G %G %d %G %G\n",
-//                         ID,upstr,dimY,yMin,yMax, dimX,xMin,xMax);
-//    fprintf(outfile,"#PAW  vector/Create  Y%d(%d,%d)\n",ID,dimY,dimX);
-//    fprintf(outfile,"#PAW  vector/Create dY%d(%d,%d)\n",ID,dimY,dimX);
-//    fprintf(outfile,"#PAW  vector/Read Y%d,dY%d '%s' ' ' 'OC' '-/#/' \n",ID,ID,filename);                      
-//    fprintf(outfile,"#PAW  histogram/put/contents %d Y%d\n",ID,ID);
-//    fprintf(outfile,"#PAW  histogram/put/errors   %d dY%d\n",ID,ID);   
-//    fprintf(outfile,"#PAW  histogram/2d/lego %d\n",ID);
-//    fprintf(outfile,"#PAW  atitle  '%s' '%s' \n",y_str,x_str);
-                                                                                
      
    fprintf(outfile,"#---   starting of data ---\n");
    fprintf(outfile,"#--- F ---    --- dF ---\n");
@@ -1052,19 +1304,19 @@ double * f, double *df, char*  upstr,  char*  x_str, char*  y_str)
 
 
    
-int  plot_Nar( char*file, char*  title, double xMin, double xMax, char*xName,  int dim, int xScale,
-               int N, double **f,double**ff,char**Y)
+int  plot_Nar( char*file, char*  title, double xMin, double xMax, char*xName, int xScale,
+               int N, int*Dim, double **f,double**ff,char**Y)
 {   
   void *     prtscr;  
   int i,k,nCol0,nRow0,key;
   double      ymin, ymax;
   char        f_name[STRSIZ], menustr[STRSIZ], buff[STRSIZ];
   char * type=malloc(sizeof(char)*N);
-  static int mouseXY=1;
+  static int mouseXY=0;
   
   for(i=0;i<N;i++) 
-  {            for(k=0;k<dim;k++) if(!isfinite( f[i][k])) return 1;
-     if(ff[i]) for(k=0;k<dim;k++) if(!isfinite(ff[i][k])) return 1; 
+  {            for(k=0;k<Dim[i];k++) if(!isfinite( f[i][k])) return 1;
+     if(ff[i]) for(k=0;k<Dim[i];k++) if(!isfinite(ff[i][k])) return 1; 
   }
   
 #define MESS "Esc - exit; Mouse - position; Other keys - menu"
@@ -1073,10 +1325,9 @@ int  plot_Nar( char*file, char*  title, double xMin, double xMax, char*xName,  i
    grafminmax.xmax=xMax;
    grafminmax.xmin=xMin;
 
-      
-   gminmax(f[0],ff[0],dim,&grafminmax.ymin,&grafminmax.ymax);
+   gminmax(f[0],ff[0],Dim[0],&grafminmax.ymin,&grafminmax.ymax);
    for(i=1;i<N;i++)
-   { gminmax(f[i],ff[i],dim, &ymin,&ymax);
+   { gminmax(f[i],ff[i],Dim[i], &ymin,&ymax);
      if(grafminmax.ymin>ymin) grafminmax.ymin=ymin;
      if(grafminmax.ymax<ymax) grafminmax.ymax=ymax;   
    }
@@ -1086,7 +1337,7 @@ int  plot_Nar( char*file, char*  title, double xMin, double xMax, char*xName,  i
    ymax=grafminmax.ymax;
    
    logX=xScale;
-   logScale=0;//(ymin >0 && grafminmax.ymax/grafminmax.ymin >10);   
+   logY=0;//(ymin >0 && grafminmax.ymax/grafminmax.ymin >10);   
    k = 0;      
 REDRAW:
    nCol0=maxCol();
@@ -1097,9 +1348,9 @@ REDRAW:
 
    for(i=0;i<N;i++)
    {   fColor=colList[i];
-       if(ff[i]) plot_hist(xMin,xMax,dim,f[i],ff[i]); 
-          else  if( type[i]=='l') plot_curve(xMin,xMax,dim,f[i]);
-          else  plot_spline(xMin,xMax,dim,xScale,f[i]);
+       if(ff[i]) plot_hist(xMin,xMax,Dim[i],f[i],ff[i]); 
+          else  if( type[i]=='l') plot_curve(xMin,xMax,Dim[i],f[i]);
+          else  plot_spline(xMin,xMax,Dim[i],f[i]);
    }                    
    tg_settextjustify(BottomText,LeftText);
    scrcolor(Red,bkcolor);
@@ -1116,29 +1367,30 @@ REDRAW:
 //     if(y<=yMin||y>=yMax) continue;
      int  w=2+log10(fabs((xMax+xMin)/(xMax-xMin) ));    
      goto_xy(1,maxRow()-1); scrcolor(Blue,bkcolor); print("Mouse: X=%.*E ",w,x);
-     if(mouseXY) print(" Y=%.2E ",yPhys()); else
-     { double x0,h,al;
-       int i0;
-       if(logX)
-       {
-         h=log(xMax/xMin)/dim;
-         i= log(x/xMin)/h;
-         i0=log(x/xMin)/h -0.5;
-         if(i0<0) i0=0; if(i0>=dim-1) i0=dim-2;
-         x0=xMin*exp(h*(0.5+i0*h));
-         al=log(x/x0)/h;
-       }else
-       {
-         h=(xMax-xMin)/dim;
-         i= (x-xMin)/h;
-         i0=(x-xMin)/h -0.5;
-         if(i0<0) i0=0; if(i0>=dim-1) i0=dim-2;
-         x0=xMin+h/2+i0*h;
-         al=(x-x0)/h;
-       }
-       print(" Func =");    
+     if(mouseXY) print(" Y=%.2E ",yPhys()); else     
+     { 
+       print(" Func =");
        for(k=0;k<N;k++) 
-       {  scrcolor(colList[k],bkcolor);
+       {  double x0,h,al;
+          int i0;
+          if(logX)                                       
+          {
+            h=log(xMax/xMin)/Dim[k];
+            i= log(x/xMin)/h;
+            i0=log(x/xMin)/h -0.5;
+            if(i0<0) i0=0; if(i0>=Dim[k]-1) i0=Dim[k]-2;
+            x0=xMin*exp(h*(0.5+i0));
+            al=log(x/x0)/h;
+          }else
+          {
+            h=(xMax-xMin)/Dim[k];
+            i= (x-xMin)/h;
+            i0=(x-xMin)/h -0.5;
+            if(i0<0) i0=0; if(i0>=Dim[k]-1) i0=Dim[k]-2;
+            x0=xMin+h/2+i0*h;
+            al=(x-x0)/h;
+          }    
+          scrcolor(colList[k],bkcolor);
           if(ff[k]) print(" %.2E+/-%.1E ",f[k][i],ff[k][i]);
           else print(" %.2E ",f[k][i0]*(1-al)+f[k][i0+1]*al);
        }
@@ -1152,7 +1404,7 @@ REDRAW:
    {  char sScale[20];
       void * pscr = NULL;
 
-      if(logScale) strcpy(sScale,"Log.   "); else strcpy(sScale,"Lin.   ");  
+      if(logY) strcpy(sScale,"Log.   "); else strcpy(sScale,"Lin.   ");  
    
       sprintf(menustr,"%c Y-max = %-9.3G Y-min = %-9.3G Y-scale = %s"
       " Spline           "
@@ -1171,21 +1423,21 @@ REDRAW:
            case 2:
              correctDouble(33,11,"Y-min = ",&grafminmax.ymin,1 );
              break;
-           case 3:  logScale=!logScale; break;
+           case 3:  logY=!logY; break;
            case 4: 
-           {  char * splineMenu=malloc((2+N*24)*sizeof(char));
+           {  char * splineMenu=malloc((2+N*30)*sizeof(char));
               int m=1;
-              splineMenu[0]=24;
+              splineMenu[0]=30;
               for(;;)
               { int l=0; 
                 splineMenu[1]=0;
                 for(i=0;i<N;i++)
-                { if(type[i]=='l')sprintf(splineMenu+strlen(splineMenu)," %-19.19s OFF",Y[i]);
-                  if(type[i]=='s')sprintf(splineMenu+strlen(splineMenu)," %-19.19s ON ",Y[i]);           
+                { if(type[i]=='l')sprintf(splineMenu+strlen(splineMenu)," %-25.25s OFF",Y[i]);
+                  if(type[i]=='s')sprintf(splineMenu+strlen(splineMenu)," %-25.25s ON ",Y[i]);           
                 }               
                 if(strlen(splineMenu)>1)
                 {             
-                  menu1(nCol0-26, 6, "Spline for",splineMenu,"",NULL,&m);
+                  menu1(nCol0-32, 6, "Spline for",splineMenu,"",NULL,&m);
                   if(m==0) break;
 
                   for(i=0,l=0; ;l++,i++) { if(type[i]=='h')i++;  if(l==m-1) break;  }
@@ -1213,8 +1465,8 @@ REDRAW:
                 nextFileName(baseF,"plot_",".tab");
                 correctStr(10,17,"File name: ",baseF,29,1);
                 trim(baseF);
-                err=writetable1(baseF,xMin,xMax,grafminmax.ymin,grafminmax.ymax,logScale,
-                    dim,xName,title,N, f,ff,Y);
+                err=writetable1(baseF,xMin,xMax,grafminmax.ymin,grafminmax.ymax,
+                    xName,title,N, Dim, f,ff,Y);
                 if(err) 
                 {         
                    sprintf(buff,"Can not create file '%s'\n",baseF);
@@ -1224,25 +1476,29 @@ REDRAW:
              }
                    
              char  fileMenu[]="\011"
-             " PAW     "
              " Root    "
+             " PAW     "
              " Gnuplot "
+             " Python  "
 //             " Math    "
               ;
              int m=1;
 contin:                                                   
              
              while(m)
-             {  menu1(nCol0-15, 6, "For  Package",fileMenu,"n_graph_*",NULL,&m);             
+             {  menu1(nCol0-15, 6, "For Package",fileMenu,"n_graph_*",NULL,&m);             
                 switch(m)        
-                {  case 1: writePAW(baseF,xMin,xMax,grafminmax.ymin,grafminmax.ymax,logScale,
-                                    dim,xName,title,N, type,Y); 
-                   case 2: writeROOT(baseF,xMin,xMax,grafminmax.ymin,grafminmax.ymax,logScale,
-                                                        dim,xName,title,N, type,Y);
-                   break;          
+                {  case 1: writeROOT(baseF,xMin,xMax,grafminmax.ymin,grafminmax.ymax,
+                                    xName,title,N,Dim,type,Y);
                    break;
-                   case 3: writeGNU(baseF,xMin,xMax,grafminmax.ymin,grafminmax.ymax,logScale,           
-                                     dim,xName,title,N, type,Y);
+                   case 2: writePAW(baseF,xMin,xMax,grafminmax.ymin,grafminmax.ymax,
+                                    xName,title,N,Dim,type,Y);
+                   break;                  
+                   case 3: writeGNU(baseF,xMin,xMax,grafminmax.ymin,grafminmax.ymax,           
+                                    xName,title,N,Dim,type,Y);
+                   case 4: writePython(baseF,xMin,xMax,grafminmax.ymin,grafminmax.ymax,
+                                    xName,title,N,Dim,type,Y);
+                                                       
                    break;
 //                   case 4:
 //                     writeMath1(baseF,xMin,xMax,dim,f[0],ff[0],title,xName,Y[0]);  
@@ -1256,15 +1512,15 @@ contin:
              { messanykey(10,10," Wrong Y-range");
                break;
              } 
-             if(logScale && (grafminmax.ymax <=0)) 
+             if(logY && (grafminmax.ymax <=0)) 
              {  messanykey(10,10," Can not implement log_Y scale because Ymax<0");
-                logScale = 0;
+                logY = 0;
              }
                  
-             if(logScale && (grafminmax.ymin <=0)) grafminmax.ymin=grafminmax.ymax*1E-4;
+             if(logY && (grafminmax.ymin <=0)) grafminmax.ymin=grafminmax.ymax*1E-4;
              
               
-             if(logScale &&  grafminmax.ymax/grafminmax.ymin <=10 ) grafminmax.ymin=grafminmax.ymax/10.;
+             if(logY &&  grafminmax.ymax/grafminmax.ymin <=10 ) grafminmax.ymin=grafminmax.ymax/10.;
                             
              goto REDRAW;
       }   
@@ -1278,11 +1534,11 @@ exi:
    return 0;
 }
 
-int  plot_N(char*title, double xMin, double xMax,  char*  xName,   int dim, int xScale, int N,...)
+int  plot_N(char*title, double xMin, double xMax,  char*  xName, int xScale, int N,...)
 { int err, k,i;
                                                                
   double **f; double**ff; char**Y;
-  
+  int *Dim;
   va_list ap;
 
    if (  1.e-4 * (fabs(xMax) + fabs(xMin)) >= fabs(xMax - xMin))
@@ -1293,24 +1549,26 @@ int  plot_N(char*title, double xMin, double xMax,  char*  xName,   int dim, int 
    f= malloc(N*sizeof(double*));
    ff=malloc(N*sizeof(double*));
    Y= malloc(N*sizeof(char*));
+   Dim=malloc(N*sizeof(int));
    va_start(ap,N);
    
    for(i=0;i<N;i++) 
-   { f[i]=va_arg(ap,double*);
+   { Dim[i]=va_arg(ap,int); 
+     f[i]=va_arg(ap,double*);
      ff[i]=va_arg(ap,double*);
      Y[i]=va_arg(ap,char*);
    }  
    va_end(ap);
 
-   err=plot_Nar(NULL,title,xMin,xMax,xName,dim,xScale, N,f,ff,Y);
+   err=plot_Nar(NULL,title,xMin,xMax,xName,xScale, N,Dim,f,ff,Y);
 
-   free(f);free(ff);free(Y);
+   free(f);free(ff);free(Y),free(Dim);
    return err;
 }
 
 void   plot_1(double xMin, double xMax, int dim,
                     double *f, double *ff,char* title, char* xstr, char* ystr)
-{ plot_Nar(NULL,title,xMin, xMax,xstr,dim,0, 1,&f,&ff, &ystr); } 
+{  plot_Nar(NULL,title,xMin, xMax,xstr,0, 1,&dim,&f,&ff, &ystr); } 
                     
 
 void plot_2D(double hMin1,double hMax1,int nBin1,double hMin2,double hMax2,int nBin2,
@@ -1322,7 +1580,7 @@ void plot_2D(double hMin1,double hMax1,int nBin1,double hMin2,double hMax2,int n
   void *     prtscr;
   double     P=1;
 
-   logScale = 0;
+   logY = 0;
    logX=0;
    get_text(1,1,maxCol(),maxRow(),&prtscr);
 

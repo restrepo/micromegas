@@ -1,8 +1,9 @@
 
 .PHONY: all clean flags
 
+
 all:include/microPath.h
-	$(MAKE) -C CalcHEP_src
+	$(MAKE) -C CalcHEP_src  MICROMEGAS=MICROMEGAS
 	$(MAKE) -C sources
 
 include/microPath.h:

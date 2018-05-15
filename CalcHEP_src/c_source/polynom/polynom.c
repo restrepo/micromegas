@@ -143,7 +143,7 @@ void  sewpoly(poly*p1, poly*p2)
    *p1 = ans_str.next;  
 } 
 
-void  multpolyint(poly* p,long i)
+void  multpolyint(poly* p, NUM_TYPE i)
 {
    if(i)
    { poly pp=*p;
@@ -334,7 +334,7 @@ void  sewtens(tensor* t1,tensor* t2)
 
 
 
-void  multtensint(tensor * t,long i)
+void  multtensint(tensor * t, NUM_TYPE i)
 { tensor      tt;
 
    if (i == 0)

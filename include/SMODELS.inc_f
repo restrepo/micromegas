@@ -1,6 +1,4 @@
-      call pythonVersion(vPython1,vPython2)
-      if(vPython1.eq.2) then 
-        call    smodels(5, 0.1D0, 'smodels.in',0)
+        call    smodels(LHCrun, 5, 0.1D0, 'smodels.in',0)
         call system('make -C ../Packages/smodels-v1.1.0patch1  1>/dev/null') 
         call system("../Packages/smodels-v1.1.0patch1/smodelsTools.py -particles ./ xseccomputer -p -s 8 -N -v warning  -O -f smodels.in 2>smodels.out");
         call system("../Packages/smodels-v1.1.0patch1/runSModelS.py -f smodels.in -o ./ -particles ./ -v error 2>> smodels.out");
@@ -19,8 +17,4 @@ C           write(*,*) "highest R=", Rvalue, " from ", analysis, topology
 c        if(result.eq.-1) write(*,*) "no channels for testing."
 c        if(result.eq. 0) write(*,*) "not excluded."
 c        if(result.eq. 1) write(*,*) "excluded."  
-      else
-        write(*,*) 'SMODELS can not work with Python version > 2'
-        result=0
-        Rvalue=0
       endif

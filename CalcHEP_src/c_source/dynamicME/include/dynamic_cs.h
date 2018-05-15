@@ -7,7 +7,6 @@
 extern "C" {
 #endif 
 
-#ifndef  __MICROMEGAS__
 #include "../../../include/num_out.h"
 #include "../../../include/nType.h"
 
@@ -29,10 +28,6 @@ typedef struct numout
 
   typedef txtListStr * txtList;
 
-#endif
-
-//typedef  struct { int GGpower; int nVar; char **varNames; int nTerms; char **SymbVert;  int (*calcCoeff)(double *,double*); } vertex_info;
-//typedef  struct { int GGpower; int nVar; char **varNames; double *varValues; int nTerms; char **SymbVert;  int (*calcCoeff)(double*); } vertex_info;
 
 typedef struct  lVert
 {
@@ -69,7 +64,7 @@ extern txtList  makeProcList(char ** InNames, char** OutNames, int nx);
 extern void cleanTxtList(txtList L);
 extern void printTxtList(txtList L, FILE *f);
 
-extern lVert* getLagrVertex(char*n1,char*n2,char*n3,char*n4);
+extern lVert* getVertex(char*n1,char*n2,char*n3,char*n4);
 int  getNumCoeff(lVert*vv, double * coeff);
 /*===========================================================*/
 typedef struct{ double width; txtList pdList[2]; int status;}  decayTableStr;
@@ -102,6 +97,16 @@ extern int passParameters(numout*cc);
 
 extern int slhaDecayPrint(char*name, int dVirt, FILE*f);
 extern void setQforParticle(REAL *Q,char*pname);
+#ifndef __cplusplus
+extern int HiggsLambdas(double Q,char * Higgs,  double complex*lGG,double complex *lGG5, double complex *lAA, double complex *lAA5);
+
+extern double complex lAAhiggs(double Q, char* hName);
+extern double complex lGGhiggs(double Q, char* hName);
+extern double complex lAA5higgs(double Q,char* hName);
+extern double complex lGG5higgs(double Q,char* hName);
+#endif
+
+extern void cleanHiggs_AA_GG(void);
 
 extern double BWrange;
 

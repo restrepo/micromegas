@@ -3,7 +3,7 @@
 #include <math.h>
 #include "polint.h"
 
-static int  leftXN(int n,int dim,  double * xa, double x)
+static int  leftXN(int n,int dim, const  double * xa, const double x)
 {  int k1,k2,k3;
 
    k1=n/2;                         
@@ -29,7 +29,7 @@ static int  leftXN(int n,int dim,  double * xa, double x)
    return k1+1-n/2;
 }
 
-double  polintN(double x, int n,  double *xa, double *ya)
+double  polintN(double x, int n,  const double *xa, const double *ya)
 {  double z[20];
    int i,m;
    for(i=0;i<n;i++) z[i]=ya[i];
@@ -39,7 +39,7 @@ double  polintN(double x, int n,  double *xa, double *ya)
 }
 
 
-double polint3(double x, int dim,  double *xa, double *ya)
+double polint3(double x, int dim, const  double *xa, const double *ya)
 { 
   if(dim<4) return  polintN(x,dim,xa, ya);
   if((xa[0]<xa[dim-1] && x<=xa[1]) || 
@@ -76,3 +76,16 @@ double polint1Exp(double x, int n,  double *xa, double *ya)
   return  y1*(1-alpha)+y2*alpha;  
 }
 
+double polintDiff(int n, const  double *xa, const double *ya, double * dxdy)
+{
+  for(int i=0;i<n;i++)
+  { double x0=xa[i], y0=ya[i], x1,x2,y1,y2;
+    if(i==0)       { x1=xa[1];  y1=ya[1];  x2=xa[2];  y2=ya[2];}
+    else if(i==n-1){ x1=xa[n-2];y1=ya[n-2];x2=xa[n-3];y2=ya[n-3];}
+    else           { x1=xa[i-1];y1=ya[i-1];x2=xa[i+1];y2=ya[i+1];}
+    
+    dxdy[i]=y0*(2*x0-(x1+x2))/(x0-x1)/(x0-x2)
+           +y1*(x0-x2)       /(x1-x0)/(x1-x2)
+           +y2*(x0-x1)       /(x2-x0)/(x2-x1);
+  }                   
+}    

@@ -37,7 +37,7 @@ int hbBlocksMO(char *fname, int *nHiggsCh)
   char  *Wm=  antiParticle(Wp);
   double MW=pMass(Wp);
    
-  lVert* WWA=getLagrVertex(Wp,Wm,A,NULL); if(!WWA) { printf(" %s %s %s is absent\n", Wp,Wm,A); return -2;}
+  lVert* WWA=getVertex(Wp,Wm,A,NULL); if(!WWA) { printf(" %s %s %s is absent\n", Wp,Wm,A); return -2;}
   getNumCoeff(WWA,coeff);
 //for(k=0;k<WWA->nTerms;k++) printf("%s ",WWA->SymbVert[k]);
 //printf("\n");  
@@ -46,7 +46,7 @@ int hbBlocksMO(char *fname, int *nHiggsCh)
 //for(k=0;k<WWA->nTerms;k++) printf( "%e ", coeff[k]);
 //printf("\n"); 
   
-  lVert* WWZ=getLagrVertex(Wp,Wm,Z,NULL); if(!WWZ) { printf(" %s %s %s is absent\n", Wp,Wm,Z); return -2;}
+  lVert* WWZ=getVertex(Wp,Wm,Z,NULL); if(!WWZ) { printf(" %s %s %s is absent\n", Wp,Wm,Z); return -2;}
   getNumCoeff(WWZ,coeff);
   for(k=0;k<WWZ->nTerms;k++) if( strcmp(WWZ->SymbVert[k],"p1.m1*m3.m2")==0) break;
   double SW=sin(atan(EE/coeff[k]));
@@ -82,7 +82,7 @@ int hbBlocksMO(char *fname, int *nHiggsCh)
    {  char *fe=pdg2name(ferm[j]); if(!fe) continue;
       char *Fe=antiParticle(fe);  if(!Fe) continue; 
       double mf=pMass(fe); if(mf==0) continue;
-      lVert *hff=getLagrVertex(Fe,fe,Higgs[i],NULL); 
+      lVert *hff=getVertex(Fe,fe,Higgs[i],NULL); 
       double c[2]={0,0};
       if(hff)
       {  getNumCoeff(hff,coeff); 
@@ -99,7 +99,7 @@ int hbBlocksMO(char *fname, int *nHiggsCh)
    for(i=0;i<nHiggs;i++) for(j=0;j<2;j++)
    {  char *ve=pdg2name(vbm[j]); if(!ve) continue;
       char *Ve=antiParticle(ve); if(!Ve) continue; 
-      lVert *hvv=getLagrVertex(Ve,ve,Higgs[i],NULL);
+      lVert *hvv=getVertex(Ve,ve,Higgs[i],NULL);
 //printf("bosons: %s %s\n", ve,Ve);             
       double c=0;
       if(hvv)
@@ -111,7 +111,7 @@ int hbBlocksMO(char *fname, int *nHiggsCh)
 
    for(i=0;i<nHiggs;i++) for(j=i+1;j<nHiggs;j++)
    {  char *ve=pdg2name(23); if(!ve) continue;
-      lVert *hhv=getLagrVertex(Higgs[i],Higgs[j],ve,NULL);
+      lVert *hhv=getVertex(Higgs[i],Higgs[j],ve,NULL);
       double c=0;
       if(hhv)
       {  getNumCoeff(hhv,coeff); 
@@ -127,7 +127,7 @@ int hbBlocksMO(char *fname, int *nHiggsCh)
       if(charge3==3) ve=pdg2name(-24);
       else if(charge3==-3) ve=pdg2name(24);
       if(!ve) continue;
-      lVert *hhv=getLagrVertex(Higgs[i],chHiggs[j],ve,NULL);
+      lVert *hhv=getVertex(Higgs[i],chHiggs[j],ve,NULL);
       double c[2]={0,0};
       if(hhv)
       {  getNumCoeff(hhv,coeff); 
@@ -139,70 +139,21 @@ int hbBlocksMO(char *fname, int *nHiggsCh)
    
    
 // Gluon  and photon decays  
-   double complex * ffE=(double complex *)malloc(nHiggs*sizeof(double complex));  // FmunuFmunu couplings      for photons
-   double complex * faE=(double complex *)malloc(nHiggs*sizeof(double complex));  // FmunuEps()Fmunu couplings for photons
-   double complex * ffC=(double complex *)malloc(nHiggs*sizeof(double complex));  // FmunuFmunu couplings      for gluons
-   double complex * faC=(double complex *)malloc(nHiggs*sizeof(double complex));  // FmunuEps()Fmunu couplings for gluons
    double *lamQGG      =(double *)malloc(nHiggs*sizeof(double));
    double *lamQAA      =(double *)malloc(nHiggs*sizeof(double));          
    for(i=0;i< nHiggs;i++)
-   {  ffE[i]=faE[i]=ffC[i]=faC[i]=0; 
-      txtList L = makeDecayList(Higgs[i],2), l=L;
+   {  double complex ffE,faE,ffC,faC; 
       double mH=pMass(Higgs[i]);
-      double a=alphaQCD(mH)/M_PI;
-      for(l=L;l;l=l->next)
-      { char Xp[10], Xm[10];
-        sscanf(strstr(l->txt,"->")+2, "%[^,],%s",Xp,Xm);
-        trim(Xp); trim(Xm); 
-        if(strcmp(Xp,antiParticle(Xm))==0)
-        {  
-          int pdg,spin2,charge3,cdim;
-          double mX=pMass(Xp);
-          double dffE=0,dfaE=0,dffC=0,dfaC=0;
-          pdg=qNumbers(Xp, &spin2, &charge3, &cdim);
-          if((charge3 !=0 || cdim!=1) && mX>0.5)
-          {  double mXp; // pole mass
-             switch(abs(pdg))
-             { case 4: mXp=Mcp;    break;
-               case 5: mXp=Mbp;      break;
-               case 6: mXp=Mtp; break;
-               default:mXp=mX;
-             }             
-             double mN= (spin2&1)?  mX : mX*mX;   
-             lVert *xxh=getLagrVertex(Xm,Xp,Higgs[i],NULL);
-             if(!xxh) continue;
-             getNumCoeff(xxh,coeff);
-             for(k=0;k<xxh->nTerms;k++)  
-             { int addFF=0,addFA=0;
-               switch(spin2)
-               {
-                 case 0:  if(strcmp(xxh->SymbVert[k],"1")==0) addFF=1;    break;
-                 case 1:  if(strcmp(xxh->SymbVert[k],"1")==0) addFF=1; else
-                          if(strcmp(xxh->SymbVert[k],"G5*i")==0) addFA=1; break;
-                 case 2:  if(strcmp(xxh->SymbVert[k],"m2.m1")==0) addFF=1;break; 
-               }
-               if(addFF)
-               { if(cdim!=1) ffC[i]+=hGGeven(mH,a,1,spin2,cdim,mXp,coeff[k]/mN); 
-                 if(charge3) ffE[i]+=hAAeven(mH,a,1,spin2,cdim,mXp,coeff[k]/mN)*charge3*charge3/9.;
-               }
-               if(addFA) 
-               { if(cdim!=1) faC[i]+=0.5*hGGodd(mH,a,1,spin2,cdim,mXp,coeff[k]/mN); 
-                 if(charge3) faE[i]+=0.5*hAAodd(mH,a,1,spin2,cdim,mXp,coeff[k]/mN)*charge3*charge3/9.; 
-               } 
-             }   
-          }                     
-        }    
-      }
-      
+   
+      HiggsLambdas(mH,Higgs[i], &ffE,&ffC, &faE, &faC);
+           
       double  LGGSM=lGGhSM(mH,alphaQCD(mH)/M_PI, Mcp,Mbp,Mtp,vev);
       double  LAASM=lAAhSM(mH,alphaQCD(mH)/M_PI, Mcp,Mbp,Mtp,vev);
-              lamQGG[i]=(ffC[i]*conj(ffC[i]) +4*faC[i]*conj(faC[i]));
-              lamQAA[i]=(ffE[i]*conj(ffE[i]) +4*faE[i]*conj(faE[i]));      
+              lamQGG[i]=(ffC*conj(ffC) +4*faC*conj(faC));
+              lamQAA[i]=(ffE*conj(ffE) +4*faE*conj(faE));      
       fprintf(f," %E  3  %d  %d  %d  # %s %s %s\n", lamQGG[i]/LGGSM/LGGSM, pNum(Higgs[i]) ,pNum(G), pNum(G), Higgs[i] ,G ,G);
       fprintf(f," %E  3  %d  %d  %d  # %s %s %s\n", lamQAA[i]/LAASM/LAASM, pNum(Higgs[i]) ,pNum(A), pNum(A), Higgs[i] ,A ,A);
-      cleanTxtList(L); 
    }
-   free(ffE); free(faE), free(ffC); free(faC);    
   
    if(VZdecay==0 || VWdecay==0) 
    { VZdecay=1; VWdecay=1; cleanDecayTable(); changeVirtual=1;}

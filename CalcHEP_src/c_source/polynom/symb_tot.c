@@ -47,7 +47,7 @@ symb_data symb_copy(symb_data S)
 }
 
 
-symb_data symb_imult(symb_data S,int del,int factor)
+symb_data symb_imult(symb_data S,int del,NUM_TYPE factor)
 {
   symb_data ans;
   if(S.type==errortp||S.type==indextp)

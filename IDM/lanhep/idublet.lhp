@@ -4,8 +4,8 @@
 
 keys gauge_fixing=Feynman.
 
-keys hgg=Off.
-model 'Inert Dublet'/2.
+keys hgg=On.
+model 'Inert Dublet'/1.
 
 
 option ReduceGamma5=0.
@@ -45,8 +45,6 @@ parameter Mc=McEff(Q).
 
 
 parameter PI=acos(-1).
-parameter Mbp=MbMb*(1+4/3*alphaQCD(MbMb)/PI).
-parameter Mcp=Mc*(1+4/3*alphaQCD(Mc)/PI). 
 
 parameter MHX=111,MH3=222,MHC=333.
 parameter laL=0.01, la2=0.01.

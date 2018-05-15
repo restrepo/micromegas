@@ -38,7 +38,7 @@ static FILE * events_;
 static pthread_mutex_t wrt_key=PTHREAD_MUTEX_INITIALIZER;
 
 
-#define buffSize 100
+#define buffSize 1000
 
 static void writeEvent(double *x,  double  w)
 { 
@@ -54,12 +54,12 @@ static void writeEvent(double *x,  double  w)
    mkmom(x, &factor_0,&x1,&x2,pvectR);
    
    for(i=0;i<4*(nin_int+nout_int);i++) pvect[i]=pvectR[i];   
-   Scale(pvect,&qR,&qF1,&qF2,&qS);
+   Scale(Nsub,pvect,&qR,&qF1,&qF2,&qS);
    
    if(cb_pow)
    {  double sum=0;
       int err;
-      if(buffSize<cb_pow) cb_coeff=cb_coeff_; else cb_coeff=malloc(sizeof(REAL)*buffSize);
+      if(buffSize>cb_pow) cb_coeff=cb_coeff_; else cb_coeff=malloc(sizeof(REAL)*cb_pow);
       GG=sqrt(4*M_PI*alpha_2(qR));    
       sqme_int(Nsub,GG,pvectR,cb_coeff,&err);
          
@@ -129,10 +129,9 @@ static void write_event_cap(void)
   fprintf(events_,"#Initial_state\n");
   if(nin_int==1) fprintf(events_,"  P1_3=0\n");
   else
-  {  fprintf(events_,"   P1_3=%E  P2_3=%E\n" , inP1,-inP2);
+  {  fprintf(events_,"   P1_3=%E  P2_3=%E\n" , inP1,-inP2); 
      wrt_sf__(events_);
   }
-
   fprintf(events_,"#PROCESS  ");
   for(i=1;i<=nin_int+nout_int; i++)
   { int pcode;
@@ -157,7 +156,6 @@ static void write_event_cap(void)
   if(nin_int==2) fprintf(events_,"     P1_3 [Gev]        P2_3 [Gev]   ");
   for(i=1;i<=nout_int; i++) for(j=1;j<=3;j++) 
                           fprintf(events_,"     P%d_%d [Gev]   ",i+nin_int,j);
-
 //  fprintf(events_,"  QCD SCALE    Color  !chains\n");
   fprintf(events_,"  Q_factor   alpha_QCD  Color chains\n");
 
@@ -372,7 +370,7 @@ static double func_(double *x, double wgt)
     factor_0 *= calcCutFactor(pvect)*usrFF(nin_int,nout_int,pvect,p_names,p_codes); 
     if (!factor_0)   goto exi;
 
-    Scale(pvect,&qR,&qF1,&qF2,&qS);
+    Scale(Nsub,pvect,&qR,&qF1,&qF2,&qS);
 /* **  structure function  multiplication */
     if (nin_int == 2) 
     {

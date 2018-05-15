@@ -1,10 +1,5 @@
 #include "SLHAplus.h"
- 
-double MbPole=4.967923;  
-static double MtPole=174.1; 
-static double qMin=3.125347E-1, qLim=1;
-static double m_fact(int nf, double alpha1, double alpha2);
-static int nfMax=6;
+
 /*
    this file contains routines for running QCD coupling, 
    running quark masses,  and  effective quarks masses 
@@ -12,21 +7,42 @@ static int nfMax=6;
 */
 
 
+// default parameter
+static double MtPole=173.21; 
+static double MbMb=4.18;
+static double McMc=1.28;
+static double alphaMZ=0.1181;
+#define MZ 91.1876
+// ==========
+
+static double qMin=3.274942E-01, qLim=1;
+double MbPole=4.931978;
+
+static double qMass[7] ={ 0,0,0,      0,       1.280000E+00, 4.180000E+00, 1.635602E+02};
+static double lambda[7]={ 0,0,0, 3.274942E-01, 2.888141E-01, 2.095375E-01, 8.929726E-02};
+
+
+static double m_fact(int nf, double alpha1, double alpha2);
+static int nfMax=6;
+
 double bPoleMass(void) { return MbPole;}
 double tPoleMass(void) { return MtPole;}
 
+
+// https://pos.sissa.it/archive/conferences/260/010/LL2016_010.pdf
 static double alpha3(double Q, double lambda, int nf)
-{
-  double b0,b1,b2,lg,lg2,x;
+{ 
+  double   b0=  (11-(2./3.)*nf)/4,
+           b1=  (102-(38./3.)*nf)/16,
+           b2=  (2857./2. -5033./18.*nf +325./54.*nf*nf)/64,
+           b3=   114.23-27.1339+1.58238*nf*nf+0.0058567*nf*nf*nf; 
+//  b_i  RG coefficients for  a=alpha/pi  b_i=beta_i*pi^{i+1}             
+  double t=2*log(Q/lambda), Lt=log(t), b0t=b0*t;
+  double d1=b1/(b0*b0t), d2=b2/(b0*b0t*b0t), d3=b3/(b0*b0t*b0t*b0*t);
 
-  b0 =   11 -    (2./3.)*nf;
-  b1 =   51 -   (19./3.)*nf;
-  b2 = 2857 - (5033./9.)*nf + (325./27.) *nf*nf;
-  lg = 2*log(Q/lambda);
-  lg2= log(lg);
-  x  = 2*b1/(b0*b0*lg);
-
-  return 4*M_PI*(1-x*(lg2 -x*((lg2-0.5)*(lg2-0.5)+b2*b0/(8*b1*b1)-1.25) ))/(b0*lg);
+// http://pdg.lbl.gov/2016/reviews/rpp2016-rev-qcd.pdf
+  return  (M_PI/b0t)*(1-d1*Lt+ d1*d1*( Lt*Lt-Lt-1) +d2 
+   - d1*d1*d1*(Lt*Lt*Lt-2.5*Lt*Lt-2*Lt+0.5) -3*d1*d2*Lt +0.5*d3);   
 }
 
 
@@ -45,9 +61,6 @@ static double findLambda(int nf,double alpha, double M)
     } while (fabs(a) > 0.00001*alpha);
   return l;
 }      
-
-static double qMass[7]={0,0,0,0, 1.200000E+00, 4.230000E+00, 1.619152E+02};
-static double lambda[7]={0,0,0,3.125347E-01, 2.763267E-01, 1.991586E-01, 8.449407E-02};
 
 
 double poleQmass(double mm, double alpha, int nf)
@@ -72,7 +85,7 @@ double  initQCD(double MZalphaS, double McMc, double MbMb, double MtP)
 { 
   double Mq,Mq_;
 
-  lambda[5]= findLambda(5,MZalphaS, 91.187);
+  lambda[5]= findLambda(5,MZalphaS, MZ);
 
   MtPole=MtP;
 

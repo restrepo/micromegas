@@ -15,7 +15,7 @@ extern  int nvar_int;
 extern  int nfunc_int;
 
 extern char * (*pinf_int)(int nsub, int nprtcl,  REAL* pmass, int*pnum);
-extern int (*pinfAux_int)(int nsub, int nprtcl, int* spin2, int*color,int*neutral);
+extern int (*pinfAux_int)(int nsub, int nprtcl, int* spin2, int*color,int*neutral,int*ndf);
 extern char ** polarized_int;
 extern char ** varName_int;
 

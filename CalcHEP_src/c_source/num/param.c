@@ -35,14 +35,13 @@ static void exportParam(void)
     }
   }
 
-  for(i=0;i<nvar_int;i++) if(link[i])va_int[i+1]=*link[i]; 
+  for(i=0;i<nvar_int;i++) if(link[i]) va_int[i+1]=*link[i]; 
   else if( strcmp("i", varName_int[i+1]))  printf(" '%s' not found\n",varName_int[i+1]);
   cleanDecayTable();   
 }
 
 int checkParam(void)
 { int err;
-
 
   err=calcMainFunc();
 

@@ -356,6 +356,23 @@ void  viewfeyndiag(int del_mode)
    if(del_mode){ f3_key[4]=NULL; f3_key[5]=NULL;} 
 }
 
+void cleanResults(void)
+{   struct dirent **namelist;
+    int n,i;
+    n = scandir("./results", &namelist, NULL, NULL);
+    for(i=0; i<n;i++)
+    { 
+      char buff[100];
+      if(strcmp(namelist[i]->d_name,"aux") && strcmp(namelist[i]->d_name,"..") && strcmp(namelist[i]->d_name,".")  )
+      { 
+        sprintf(buff,"rm -rf results/%s",namelist[i]->d_name);  
+        if(unlink(buff+7)) system(buff);
+      }  
+    }
+    for(i=0; i<n;i++) free(namelist[i]);
+    free(namelist);
+ }
+
 
 
 int  viewresults(void)
@@ -390,22 +407,7 @@ label_1:
         if(blind) { printf("%s\n",mess); sortie(102);} 
         else { messanykey(3,13,mess); break;}
       } 
-      if ( mess_y_n( 6,13," Delete files ") ) 
-      {  struct dirent **namelist;
-         int n,i;
-         n = scandir("./results", &namelist, NULL, NULL);
-         for(i=0; i<n;i++)
-         { 
-           char buff[100];
-           if(strcmp(namelist[i]->d_name,"aux") && strcmp(namelist[i]->d_name,"..") && strcmp(namelist[i]->d_name,".")  )
-           { 
-             sprintf(buff,"rm -rf results/%s",namelist[i]->d_name);  
-             if(unlink(buff+7)) system(buff);
-           }  
-         }
-         for(i=0; i<n;i++) free(namelist[i]);
-         free(namelist);
-      }
+      if ( mess_y_n( 6,13," Delete files ") )  cleanResults();
       put_text(&pscr);
       return 1;
      case 3:

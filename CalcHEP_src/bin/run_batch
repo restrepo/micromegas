@@ -1,9 +1,20 @@
 #!/usr/bin/perl
 # (c) 2008 Neil Christensen
-$version="1.37";
+$version="1.41";
 #############################################################################################################
 #Version Notes:
 #############################################################################################################
+#1.41 : March 15, 2018
+#       Added support for missing parts of the cuts specification.
+#       Added polarization to the html help files.
+#1.40 : March 14, 2018
+#       Added support for polarization.  
+#1.39 : August 20, 2017
+#       added support for "cteq6l" PDF name which is set to be equivalent to cteq6l1
+#       for backward compatibility with old calchep and batch files
+#1.38 : July 5, 2017
+#       added batch_results folder where results of batch runs are collected.
+#       Events and html folder still exists for backward compatibility
 #1.37 : March 22, 2017
 #       The limit on number of models to match the mattern was extended from 100 to 1000
 #1.36 : March 2, 2017
@@ -516,6 +527,8 @@ $widths_in_lib=0;
 @all_subprocesses = ();
 @all_subproc_dir = ();
 @all_subproc_in_lib = ();
+$pol1 = 0.0;
+$pol2 = 0.0;
 $pdf1="";
 $pdf2="";
 $pdf1_name="\"OFF\"";
@@ -681,6 +694,8 @@ LINE: while($line = <BATCH_FILE>){
 	elsif ($line =~ /Decay\s*:(.+)/){$tmp=$1;$tmp =~ s/\s//g;push(@decays,$tmp);}
 	elsif ($line =~ /Composite\s*:([^:]+)/){$tmp=$1;$tmp =~ s/\s//g;push(@partons,$tmp);}
 	elsif ($line =~ /[Aa]lias[^:]*:([^:]+)/){$tmp=$1;$tmp =~ s/\s//g;push(@partons,$tmp);}
+	elsif ($line =~ /[Pp]ol[^:]*1:([^:]+)/){$pol1=$1;$pol1 =~ s/\s//g;}
+	elsif ($line =~ /[Pp]ol[^:]*2:([^:]+)/){$pol2=$1;$pol2 =~ s/\s//g;}
 	elsif ($line =~ /pdf1\s*:\s*(.+)$/){$pdf1=$1;$pdf1 =~ s/\s//g;}
 	elsif ($line =~ /pdf2\s*:\s*(.+)$/){$pdf2=$1;$pdf2 =~ s/\s//g;}
 	elsif ($line =~ /[Bb]unch[^:]*[Ss]ize[^:]*:([^:]+)/){$bunch_size = $1;$bunch_size =~ s/\s//g;}
@@ -731,8 +746,16 @@ LINE: while($line = <BATCH_FILE>){
 	elsif ($line =~ /alpha\s*[Rf]en[^:]*Q[^:]*:([^:]*)/){push(@alphaRenNumber,-1);$tmp=$1;$tmp =~ s/\s//g;push(@alphaRenScale,$tmp);}
 	elsif ($line =~ /alpha\s*[Ss]how[^:]*Q[^:]*:\s*([0-9]*)\s*:([^:]*)/){push(@alphaShowNumber,$1-1);$tmp=$2;$tmp =~ s/\s//g;push(@alphaShowScale,$tmp);}
 	elsif ($line =~ /alpha\s*[Ss]how[^:]*Q[^:]*:([^:]*)/){push(@alphaShowNumber,-1);$tmp=$1;$tmp =~ s/\s//g;push(@alphaShowScale,$tmp);}
-	elsif ($line =~ /Cut parameter\s*:\s*([0-9]*)\s*:\s*([^\s]+)/){push(@cut_Number,$1-1);$tmp=$2;$tmp =~ s/\s//g;push(@cut_param,$tmp);}
-	elsif ($line =~ /Cut parameter\s*:\s*([^:]+)/){push(@cut_Number,-1);$tmp=$1;$tmp =~ s/\s//g;push(@cut_param,$tmp);}
+	elsif ($line =~ /Cut parameter\s*:\s*([0-9]*)\s*:\s*([^\s]+)/){push(@cut_Number,$1-1);$tmp=$2;$tmp =~ s/\s//g;push(@cut_param,$tmp);
+								       if($#cut_param>$#cut_invert+1){push(@cut_Number,"False");}
+								       if($#cut_param>$#cut_min+1){push(@cut_min,"");}
+								       if($#cut_param>$#cut_max+1){push(@cut_max,"");}
+								     }
+	elsif ($line =~ /Cut parameter\s*:\s*([^:]+)/){push(@cut_Number,-1);$tmp=$1;$tmp =~ s/\s//g;push(@cut_param,$tmp);
+								       if($#cut_param>$#cut_invert+1){push(@cut_Number,"False");}
+								       if($#cut_param>$#cut_min+1){push(@cut_min,"");}
+								       if($#cut_param>$#cut_max+1){push(@cut_max,"");}
+								     }
 	elsif ($line =~ /Cut inver[^:]*:\s*([0-9]*)\s*:\s*([^:]*)/){$tmp=$2;$tmp =~ s/\s//g;push(@cut_invert,$tmp);}
 	elsif ($line =~ /Cut inver[^:]*:\s*([^:]*)/){$tmp=$1;$tmp =~ s/\s//g;push(@cut_invert,$tmp);}
 	elsif ($line =~ /Cut min\s*:\s*([0-9]*)\s*:\s*([^:]*)/){$tmp=$2;$tmp =~ s/\s//g;push(@cut_min,$tmp);}
@@ -836,6 +859,8 @@ print("Progress information can be found in the html directory.\nSimply open the
 ####################################################
 if   ($pdf1 =~ m/cteq6l1[\s\(]*anti-proton/i)     {$pdf1_name="\"PDT:cteq6l1(anti-proton)\" -2212";}
 elsif ($pdf1 =~ m/cteq6l1[\s\(]*proton/i)          {$pdf1_name="\"PDT:cteq6l1(proton)\" 2212";}
+elsif ($pdf1 =~ m/cteq6l[\s\(]*anti-proton/i)     {$pdf1_name="\"PDT:cteq6l1(anti-proton)\" -2212";}
+elsif ($pdf1 =~ m/cteq6l[\s\(]*proton/i)          {$pdf1_name="\"PDT:cteq6l1(proton)\" 2212";}
 elsif ($pdf1 =~ m/NNPDF23_lo_as_0130.LHgrid[\s\(]*anti-proton/i)     {$pdf1_name="\"PDT:NNPDF23_lo_as_0130.LHgrid(anti-proton)\" -2212";}
 elsif ($pdf1 =~ m/NNPDF23_lo_as_0130.LHgrid[\s\(]*proton/i)     {$pdf1_name="\"PDT:NNPDF23_lo_as_0130.LHgrid(proton)\" 2212";}
 elsif ($pdf1 =~ m/grv98_higherTwist[\s\(]*anti-proton/i)     {$pdf1_name="\"PDT:grv98_higherTwist(anti-proton)\" -2212";}
@@ -856,6 +881,8 @@ else                                            {$pdf1_name="\"OFF\"";}
 
 if   ($pdf2 =~ m/cteq6l1[\s\(]*anti-proton/i)     {$pdf2_name="\"PDT:cteq6l1(anti-proton)\" -2212";}
 elsif ($pdf2 =~ m/cteq6l1[\s\(]*proton/i)          {$pdf2_name="\"PDT:cteq6l1(proton)\" 2212";}
+elsif ($pdf2 =~ m/cteq6l[\s\(]*anti-proton/i)     {$pdf2_name="\"PDT:cteq6l1(anti-proton)\" -2212";}
+elsif ($pdf2 =~ m/cteq6l[\s\(]*proton/i)          {$pdf2_name="\"PDT:cteq6l1(proton)\" 2212";}
 elsif ($pdf2 =~ m/NNPDF23_lo_as_0130.LHgrid[\s\(]*anti-proton/i)     {$pdf2_name="\"PDT:NNPDF23_lo_as_0130.LHgrid(anti-proton)\" -2212";}
 elsif ($pdf2 =~ m/NNPDF23_lo_as_0130.LHgrid[\s\(]*proton/i)     {$pdf2_name="\"PDT:NNPDF23_lo_as_0130.LHgrid(proton)\" 2212";}
 elsif ($pdf2 =~ m/grv98_higherTwist[\s\(]*anti-proton/i)     {$pdf2_name="\"PDT:grv98_higherTwist(anti-proton)\" -2212";}
@@ -904,6 +931,16 @@ if($#alphaScale>=0){
   @alphaShowScale=@alphaScale;
   @alphaShowNumber=@alphaNumber;
 }
+
+
+
+####################################################
+#               Cuts                               #
+####################################################
+if($#cut_param>$#cut_invert+1){push(@cut_Number,"False");}
+if($#cut_param>$#cut_min+1){push(@cut_min,"");}
+if($#cut_param>$#cut_max+1){push(@cut_max,"");}
+
 
 ####################################################
 #            Determine model number                #
@@ -1232,7 +1269,7 @@ foreach $composite (@partons){
 		}
 		if ($in_model == 0){
 			print_particle_not_found($piece);
-			print "Mistake in batch file: A particle name is wrong.\n";
+			print "Mistake in batch file: The particle name $piece is wrong.\n";
 			exit(6);
 		}
 	}
@@ -1243,6 +1280,8 @@ foreach $process ((@processes,@decays)){
 	@pieces1 = split("->",$process);
 	@pieces = split(",",@pieces1[0]);
 	push(@pieces,split(",",@pieces1[1]));
+	$pieces[0] =~ s/%//g;
+	$pieces[1] =~ s/%//g;
 	foreach $piece (@pieces){
 		$in_model=0;
 		foreach $particle (@prtcl_names){
@@ -1260,7 +1299,7 @@ foreach $process ((@processes,@decays)){
 		}
 		if ($in_model == 0){
 			print_particle_not_found($piece);
-			print "Mistake in batch file: A particle name is wrong.\n";
+			print "Mistake in batch file: The particle name $piece is wrong.\n";
 			exit(6);
 		}
 	}
@@ -3636,6 +3675,7 @@ print_numerical(2);
 
 chdir($working_dir);
 if (!(-d "batch_results")){system("mkdir batch_results");}
+if (!(-e "Events")){system("ln -s  batch_results Events");}
 system("cp -r html $fileName ;  tar -zcf $fileName.tgz $fileName;  rm -rf $fileName; mv $fileName.tgz batch_results/");
 
 #END OF RUN #
@@ -3688,14 +3728,14 @@ sub generate_cs_plot {
   print GP_INST "set output 'gnuplot.jpg'\n";
   
   if($#run_param==0){
-    if($max_param[0]/$min_param[0]>100){print GP_INST "set logscale x\n";}
+    if($min_param[0]!=0){if($max_param[0]/$min_param[0]>100){print GP_INST "set logscale x\n";}}
     if($min!=0&&$max/$min>100){print GP_INST "set logscale y\n";}
     print GP_INST "set ylabel 'cs (fb)'\n";
     print GP_INST "set xlabel '$run_param[0]'\n";
     print GP_INST "plot 'gnuplot_dat' using 1:2 with lines\n";
   }
   elsif($#run_param==1){
-    if($max_param[0]/$min_param[0]>100){print GP_INST "set logscale x\n";}
+    if($min_param[0]!=0){if($max_param[0]/$min_param[0]>100){print GP_INST "set logscale x\n";}}
     if($min!=0&&$max/$min>100){print GP_INST "set logscale y\n";}
     print GP_INST "set ylabel 'cs (fb)'\n";
     print GP_INST "set xlabel '$run_param[0]'\n";
@@ -4105,7 +4145,7 @@ sub update_session {
 		if ($init_section==1){
 			printf NEW_SESSION_FILE "#Initial_state  inP1=%.6E  inP2=%.6E\n",
 				$p1,$p2;
-			printf NEW_SESSION_FILE " Polarizations= { 0.000000E+00  0.000000E+00 }\n";
+			printf NEW_SESSION_FILE " Polarizations= { %.6E  %.6E }\n", $pol1, $pol2;
 			printf NEW_SESSION_FILE "  StrFun1=%s\n", $pdf1_name;
 			printf NEW_SESSION_FILE "  StrFun2=%s\n\n", $pdf2_name;
 			$init_section=2;
@@ -7157,6 +7197,13 @@ sub print_help_process {
 			</table>
 			As many processes as desired can be specified.  When more than one process is specified, the processes are numbered by the order in which they are specified in the batch file.  So, in this example, p,p->E,ne is process 1 and p,p->M,nm is process 2.  This numbering can be useful when specifying <a href='qcd.html'>QCD scale</a>, <a href='cuts.html'>cuts</a>, <a href='kinematics.html'>kinematics</a>, <a href='regularization.html'>regularization</a> and <a href='distributions.html'>distributions</a> allowing these to be specified separately for each process.  There is no default for this keyword.  It must be specified.
 		</p>
+                <p>
+                       If initial particles are polarized (and the particles are massless), the user can include the \"%\" symbol as in a gui session.  So, polarized e<sup>+</sup>, e<sup>-</sup> collisions can be specified as:<br>
+			<table>
+				<tr><td>Process</td><td>:</td><td>e%,E%->A,A</td></tr>
+			</table>
+                       In this case, the user can can take advantage of the keywords \"Polarization1\" and \"Polarization2\" to set the <a href='pdf.html'>polarizations</a>.  The values should be the same as used in the gui.  The default is no polarization.
+                </p>
 		<h3>Decay</h3>
 		<p>
 			Decays are specified using the \"Decay\" keyword and are also in standard CalcHEP notation as in:<br>
@@ -7273,6 +7320,15 @@ sub print_help_pdf {
 				<tr><td>Pt cut of outgoing proton</td><td>:</td><td>0.11</td></tr>
 			</table>
 			The defaults are the same as in CalcHEP.
+		</p>
+		<h3>Polarizations</h3>
+		<p>
+			If the initial particles are to be polarized and the process was specified using the \"%\" symbol as described in <a href='process.html'>Processes</a>, then the polarization of the beams can be specified using the \"Polarization1\" and \"Polarization2\" keywords as in:<br>
+			<table>
+				<tr><td>Polarization1</td><td>:</td><td>0.5</td></tr>
+				<tr><td>Polarization2</td><td>:</td><td>-0.5</td></tr>
+			</table>
+			The allowed values and defaults are the same as in CalcHEP.
 		</p>
 	</div>
 </body>
@@ -7471,7 +7527,7 @@ sub print_help_cuts {
 				<tr><td>Cut max</td><td>:</td><td></td></tr>
 				<tr><td></td></tr>
 				<tr><td>Cut parameter</td><td>:2:</td><td>J(j,j)</td></tr>
-				<tr><td>Cut invert</td><td>:</td><td>False</td></tr>
+				<tr><td>Cut invert</td><td>:2:</td><td>False</td></tr>
 				<tr><td>Cut min</td><td>:2:</td><td>0.4</td></tr>
 				<tr><td>Cut max</td><td>:2:</td><td></td></tr>
 				</table>

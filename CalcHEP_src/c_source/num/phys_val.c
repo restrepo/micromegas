@@ -246,6 +246,8 @@ int  checkPhysValN(char * name, char * key, physValRec **pLists)
   char *chB,*chE;
   char pnum[10][10];
   int kk[10];
+  char*toAdd=NULL;
+  
   errorText[0]=0;
   *pLists=NULL;
   for(chB=name;*chB==' ';chB++) continue;
@@ -290,7 +292,12 @@ int  checkPhysValN(char * name, char * key, physValRec **pLists)
     strcpy((*pLists)->pstr,chB);
     return 1;
   }
-
+  
+  if(*key=='S')
+  {  if(*chB=='1'){ toAdd="\1"; *chB++;}
+     if(*chB=='2'){ toAdd="\2"; *chB++;}
+  }    
+  
   if(*chB=='^'||*chB=='_') { key[1]=*chB; chB++; } 
    
   if(*chB!='(') { sprintf(errorText," bracket '(' expected");  return 0;}
@@ -302,10 +309,12 @@ int  checkPhysValN(char * name, char * key, physValRec **pLists)
   for(ln=0; chB ;chB=strchr(chB,','),ln++)
   {
     char pname[100];
+    char *ch;
     int isComp=-1,j;
     if(ln==9) return 0;
     chB++;
     sscanf(chB,"%[^,)]",pname);
+    ch= strchr(pname,'"');  if(ch){ch[0]=' ';  ch= strchr(pname,'"'); if(ch) ch[0]=' ';}
     trim(pname);
     pnum[ln][0]=0;
     k=0;
@@ -373,6 +382,16 @@ int  checkPhysValN(char * name, char * key, physValRec **pLists)
     } 
     if(i<0) break;
   }
+  
+  if(toAdd) 
+  { physValRec *p=*pLists;
+    for(;p;p=p->next)
+    {  char buff[30];
+       strcpy(buff,p->pstr);
+       sprintf(p->pstr,"%s%s",toAdd,buff); 
+    }
+  }
+  
 
   return 1;
 }

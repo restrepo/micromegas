@@ -12,7 +12,7 @@ typedef struct Etens_str
 typedef struct Etens_str  * Etens;
 
 extern void    delEtens(Etens s);
-extern void    multEtensInt(Etens *t , long l);
+extern void    multEtensInt(Etens *t , NUM_TYPE l);
 extern void    multEtensPoly(Etens*, poly);
 extern void    multEtensTens(Etens * spn, tensor tns);
 extern void    addEtens(Etens * t1, Etens t2);

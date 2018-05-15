@@ -18,7 +18,7 @@ extern const int nvar_ext;
 extern const int nfunc_ext;
 
 extern char * pinf_ext(int nsub,int nprtcl,REAL* pmass,int*num);
-extern int   pinfAux_ext(int nsub, int nprtcl,int *spin2, int* color,int*neutral);
+extern int   pinfAux_ext(int nsub, int nprtcl,int *spin2, int* color,int*neutral,int*ndf);
 extern char * varName_ext[];
 
 extern double sqme_ext(int nsub,double GG, REAL * momenta, REAL*cb_coeff,int * err);
@@ -28,7 +28,7 @@ extern int twidth_ext, gtwidth_ext, gswidth_ext;
 extern double (*aWidth_ext)(char *);
 extern REAL va_ext[];
 
-extern  char * den_info_ext(int nsub, int n, int * mass, int * width);
+extern  char * den_info_ext(int nsub, int n, int * mass, int * width,int *pnum);
 
 
 typedef  struct  { int pow; int nC; int * chains;} colorBasis;
@@ -54,7 +54,7 @@ typedef struct CalcHEP_interface
   int nout;
   int nprc;
   char* (*pinf)(int, int , REAL*,int *);
-  int  (*pinfAux)(int, int,int *,int*,int*);
+  int  (*pinfAux)(int, int,int *,int*,int*,int*);
   char** polarized;
   int (*calcFunc)(void);
   double * BWrange;
@@ -65,7 +65,7 @@ typedef struct CalcHEP_interface
 
   double (*sqme)(int,double,REAL*,REAL*,int*);
 
-  char * (*den_info)(int, int, int *, int*);
+  char * (*den_info)(int, int, int *, int*,int*);
   colorBasis *cb;  
 } CalcHEP_interface;
 

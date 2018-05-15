@@ -1,0 +1,42 @@
+LesHouchesModel-FeynmanGauge-1 Parameters
+ Parameters
+  Name         | Value       |> Comment                                                                <|
+aEWM1          |127.9        |Inverse of the EW coupling constant at the Z pole
+Gf             |0.0000116637 |Fermi constant
+aS             |0.1184       |Strong coupling constant at the Z pole
+ymdo           |0.00504      |Down Yukawa mass
+ymup           |0.00255      |Up Yukawa mass
+yms            |0.101        |Strange Yukawa mass
+ymc            |1.27         |Charm Yukawa mass
+ymb            |4.7          |Bottom Yukawa mass
+ymt            |172          |Top Yukawa mass
+yme            |0.000511     |Electron Yukawa mass
+ymm            |0.10566      |Muon Yukawa mass
+ymtau          |1.777        |Tau Yukawa mass
+QS             |100          |QCD scale for running quark masses in CalcHEP
+yHEs0lR        |0.00002      |Dark scalar - heavy electron - SM RH lepton Yukawa
+lams0h         |0.02         |Dark scalar - Higgs doublet coupling
+lams0          |0.1          |Dark scalar quartic interaction
+GG             |1.21977796370|Strong coupling constant at the Z pole   This value will be ignored and ca
+MZ             |91.1876      |Mass of G0.
+Me             |0.000511     |Mass of e.
+MMU            |0.10566      |Mass of mu.
+MTA            |1.777        |Mass of ta.
+MU             |0.00255      |Mass of u.
+MC             |1.27         |Mass of c.
+MT             |172          |Mass of t.
+MD             |0.00504      |Mass of d.
+MS             |0.101        |Mass of s.
+MB             |4.7          |Mass of b.
+mh             |125          |Mass of h.
+ms0            |125          |Mass of s0.
+mHE            |100.         |Mass of HE.
+%WZ            |2.4952       |Width of G0.
+%WW            |2.085        |Width of GP.
+%WT            |1.50833649   |Width of t.
+%wh            |0.005        |Width of h.
+%ws0           |0.           |Width of s0.
+%wHE           |1.           |Width of HE.
+E              |2.71828182845|The base of the natural logarithm.
+Pi             |3.14159265358|The circumference of a circle divided by the diameter.
+=========================================================================================================

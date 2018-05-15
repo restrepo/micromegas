@@ -167,7 +167,7 @@ void  addSpin(SpinTensor* t1, SpinTensor t2)
    *t1 = ans_str.next;
 }
 
-void multSpinInt(SpinTensor *t , long l)
+void multSpinInt(SpinTensor *t , NUM_TYPE l)
 { SpinTensor tt;
   if(l==0) { delSpin(*t); *t=NULL;} else 
   for(tt=*t;tt;tt=tt->next) multtensint(&(tt->tcoef),l);

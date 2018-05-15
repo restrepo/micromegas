@@ -4,7 +4,7 @@
 #include "../../include/VandP.h"
 #include"SLHAplus.h"
 #include"../ntools/include/vegas.h"
-#include"../ntools/include/simpson.h"
+#include"../ntools/include/1d_integration.h"
 #include"../num/include/alphas2.h"
 
 #include"dynamic_cs.h"
@@ -62,7 +62,7 @@ static double  intDecay1(double y1)
    y21=atan(-m2_p/w2_);
    y22=atan( ((m0_-m1_)*(m0_-m1_)-m2_p*m2_p)/(m2_p*w2_));
    if(nGauss) return  gauss(intDecay2_,0,1,nGauss);
-   else       return  simpson(intDecay2_,0,1,1.E-3);
+   else       return  simpson(intDecay2_,0,1,1.E-3,NULL);
 //   return  simpson(intDecay2, atan(-m2_p/w2_), atan( ((m0_-m1_)*(m0_-m1_)-m2_p*m2_p)/(m2_p*w2_)), 1.E-3);
 }
 
@@ -85,7 +85,7 @@ double decayPcmW(double m0,double m1,double m2,double w1,double w2, int N)
     y21=atan(-m2/w2);
     y22=atan( ((m0-m1)*(m0-m1)  -m2*m2)/(m2*w2));
     if(nGauss) return gauss( intDecay2_,0,1,nGauss)/M_PI/ME(m0,m1,m2);
-     else      return simpson( intDecay2_,0,1,1.E-3)/M_PI/ME(m0,m1,m2); 
+     else      return simpson( intDecay2_,0,1,1.E-3,NULL)/M_PI/ME(m0,m1,m2); 
   }
   else if(w2==0)
   { if(m2>m0) return 0;
@@ -95,7 +95,7 @@ double decayPcmW(double m0,double m1,double m2,double w1,double w2, int N)
     y21=atan(-m1/w1);
     y22=atan( ((m0-m2)*(m0-m2)-m1*m1)/(m1*w1));
     if(nGauss) return gauss( intDecay2_,0,1,nGauss)/M_PI/ME(m0,m1,m2);  
-    else       return simpson(intDecay2_,0,1,1.E-3)/M_PI/ME(m0,m1,m2);
+    else       return simpson(intDecay2_,0,1,1.E-3,NULL)/M_PI/ME(m0,m1,m2);
   }
   else 
   { w1_=w1;
@@ -105,7 +105,7 @@ double decayPcmW(double m0,double m1,double m2,double w1,double w2, int N)
    y11=atan(-m1/w1); y12=atan( (m0*m0-m1*m1)/(m1*w1));
 
    if(nGauss) return gauss(intDecay1_,0,1,nGauss)/(M_PI*M_PI)/ME(m0,m1,m2);
-   else       return simpson(intDecay1_,0,1,1E-3)/(M_PI*M_PI)/ME(m0,m1,m2);
+   else       return simpson(intDecay1_,0,1,1E-3,NULL)/(M_PI*M_PI)/ME(m0,m1,m2);
 
   }
 }
@@ -255,7 +255,7 @@ static double dWidthdCos(double xcos)
 static double dWidthdM(double M)
 { double r;
 
-  M_=M; r= simpson(dWidthdCos,-1.,1.,1.E-4);
+  M_=M; r= simpson(dWidthdCos,-1.,1.,1.E-4,NULL);
   
 //  printf("M=%e dWidthdM= %E\n", M_,r);
   return r;
@@ -268,12 +268,12 @@ static double width13(numout * cc, int nsub, int * err)
   if(passParameters(cc)){ *err=4; return 0;}
 
   for(i=0;i<4;i++) cc->interface->pinf(nsub,1+i,Pmass+i,NULL);
-  if(cc->SC ) GG=*(cc->SC); else  GG=sqrt(4*M_PI*alpha_2(Pmass[0]));
+  if(cc->SC ) GG=*(cc->SC); else  GG=sqrt(4*M_PI*alphaQCD(Pmass[0]));
   *err=0;  
  i3_=1; 
   sqme=cc->interface->sqme;
   nsub_stat=nsub; 
-  return simpson(dWidthdM,Pmass[2]+Pmass[3], Pmass[0]-Pmass[1],1.E-2);
+  return simpson(dWidthdM,Pmass[2]+Pmass[3], Pmass[0]-Pmass[1],1.E-2,NULL);
 }
 
 
@@ -303,7 +303,7 @@ static double width14(numout * cc, int * err)
   if(passParameters(cc)){ *err=4; return 0;}
     
   for(i=0;i<5;i++) cc->interface->pinf(1,1+i,Pmass+i,NULL);  
-  if(cc->SC ) GG=*(cc->SC); else  GG=sqrt(4*M_PI*alpha_2(Pmass[0]));
+  if(cc->SC ) GG=*(cc->SC); else  GG=sqrt(4*M_PI*alphaQCD(Pmass[0]));
   *err=0;
 
   sqme=cc->interface->sqme;
@@ -507,7 +507,7 @@ double pWidth2(numout * cc, int nsub)
   cc->interface->pinf(nsub,1,&m1,NULL);
   cc->interface->pinf(nsub,2,&m2,NULL); 
   cc->interface->pinf(nsub,3,&m3,NULL);
-  if(cc->SC) GG=*(cc->SC); else GG=sqrt(4*M_PI*alpha_2(m1));
+  if(cc->SC) GG=*(cc->SC); else GG=sqrt(4*M_PI*alphaQCD(m1));
   
   if(m1 >m2 + m3)
   {   int i,err_code=0; 
@@ -722,7 +722,7 @@ static double decay22List(char * pname, txtList *LL)
            {  double Mmin,Mmax;
               Mmax=Pmass[0]-Pmass[i3_];
               for(Mmin=0,j=1;j<4;j++) if(j!=i3_) Mmin+=Pmass[j]; 
-              w=simpson(dWidthdM, Mmin*1.00001 , Mmax*0.9999,1.E-3);
+              w=simpson(dWidthdM, Mmin*1.00001 , Mmax*0.9999,1.E-3,NULL);
                   
 //             if(findVal(ModelPrtcls[abs(pTabPos(name[l]))-1].width,&wVt)) K=1;else K=wVt/wV; 
               w/=brV;
@@ -884,10 +884,9 @@ double pWidth(char *name, txtList * LL)
                            decayTable[i0].pdList[j0]=conBrList(L);
            }                
            if(LL) *LL=decayTable[i0].pdList[j0];
-
            return width;
         }
-     }
+     }          
   }
   decayTable[i0].status=-1;
   if(Q==NULL) for(i=0;i<nModelVars;i++) if(strcmp(varNames[i],"Q")==0){ Q= varValues+i; break;}
@@ -1017,7 +1016,7 @@ int procInfo2(numout*cc,int nsub,char**name,REAL*mass)
 
   if(mass)
   {  
-    if(passParameters(cc)){ printf("cannot calculate constr\n"); return 4;}
+    if(passParameters(cc)){ return 4;}
     for(i=0;i<ntot ;i++) cc->interface->pinf(nsub,i+1,mass+i,NULL);     
   }
   return 0;
@@ -1036,6 +1035,7 @@ int procInfo2(numout*cc,int nsub,char**name,REAL*mass)
      decayTable[i].width=0;
      decayTable[i].status=0;
    }
+   cleanHiggs_AA_GG();
  }
 
 /*============= Export of parameters ============*/
@@ -1043,7 +1043,8 @@ int passParameters(numout*cc)
 {
    int i;
    for(i=1;i<=cc->interface->nvar;i++) if(cc->link[i]) cc->interface->va[i]=*(cc->link[i]);
-   if(cc->interface->calcFunc()>0) { printf("cannot calculate constr\n"); return 1;}
+   int err=cc->interface->calcFunc();
+   if(err>0) { printf("cannot calculate constraint %s\n",cc->interface->varName[err]); return 1;}
    return 0;
 }
 

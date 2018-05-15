@@ -433,7 +433,7 @@ int N0, double Nfact, double eps,double * dI,void (*clean)(void))
   { double s0=0,s1=0,s2=0; 
     vegas_int(vegPtr, N0 , 1.5, nPROCSS, ti+k, dti+k);
     if(clean) clean();
-//    printf("ti=%E dti=%E\n",ti[k], dti[k]);
+    printf("ti=%E dti=%E\n",ti[k], dti[k]);
     if(dti[k]==0) { ii=ti[k];  break;}
     for(l=k;l>=k/2;l--)
     { s0+=1/(dti[l]*dti[l]);
@@ -558,6 +558,6 @@ double ch2pval(int nexp, double ch2obs)
    alpha=1/(1+p_exp/log(2));
   cc=exp(lgamma(nexp/2.))*alpha;
 //   displayFunc(ch2pva_int,0,exp(-alpha*ch2obs/2),"ch2pva_int");   
-   return simpson(ch2pva_int, 0, exp(-alpha*ch2obs/2), 1.E-3);///exp(lgamma(nexp/2.))/alpha;
+   return simpson(ch2pva_int, 0, exp(-alpha*ch2obs/2), 1.E-3,NULL);///exp(lgamma(nexp/2.))/alpha;
 }
 

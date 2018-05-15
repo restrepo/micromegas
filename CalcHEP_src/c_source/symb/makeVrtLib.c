@@ -6,7 +6,7 @@
 #include "procvar.h"
 #include "reader_c.h"
 #include "parser.h"
-
+#include "symbolic.h"
 #include "nType.h"
 
 int menulevel; // for compilation 
@@ -21,8 +21,8 @@ int main(int argv, char**argc)
   char * CalcHEP=NULL;
   
 //  printf("argv=%d\n",  argv);
-  if(argv<7 || argv>8) { printf("6 or 7 arguments expected: 1)path to model files; 2) model number  3) label for labrary\n");
-                         printf("4-6[,7] - particle names.\n"); return 1;}
+  if(argv<7 || argv>8) { printf("6 or 7 arguments expected:  1) path To models 2) model number  3) label for library\n");
+                         printf("4-7[,7] - particle names.\n"); return 1;}
 
   L=strlen(argc[0]);
   CalcHEP=malloc(L+10);
@@ -37,7 +37,7 @@ int main(int argv, char**argc)
 
    
 //   if(argv>=4)sscanf(argc[3],"%d",&mode); else mode=0;
-   err=getVertex(argc[1],M,N,field,argc[3]);  
+   err= writeVertexCode("models",M,N,field,argc[3]);  
    return err;
 }
 

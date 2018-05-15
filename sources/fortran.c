@@ -104,7 +104,7 @@ void antiparticle_(char*aname,char*name,int alen,int len)
 }
 
                                                                                                    
-double darkomega_(double * Xf,int*Fast,double *Beps){return darkOmega(Xf,*Fast,*Beps);}
+double darkomega_(double * Xf,int*Fast,double *Beps,int*err){return darkOmega(Xf,*Fast,*Beps,err);}
 double darkomegafo_(double*Xf,int*fast,double*Beps){return darkOmegaFO(Xf,*fast,*Beps);}
 double darkomega2_(int*Fast,double *Beps){return darkOmega2(*Fast,*Beps);}
 
@@ -244,5 +244,16 @@ double captureaux_(double(*fDv)(double*),int*forSun, double *Mass, double*csIp,d
   _fDv=fDv; 
   return captureAux(fDv_, *forSun,*Mass, *csIp, *csIn,*csDp,*csDn);
 }
+
+double yf_(double*T)  { return YF(*T);} 
+double yeq_(double *T){return Yeq(*T);} 
+
+double yeq1_(double*T) { return Yeq1(*T);}  
+double y1f_(double *T) { return Y1F(*T);}
+double dy1f_(double*T) { return dY1F(*T);}
+
+double yeq2_(double*T) { return Yeq2(*T);}
+double y2f_(double *T) { return Y2F(*T);} 
+double dy2f_(double*T) { return dY2F(*T);}
 
 

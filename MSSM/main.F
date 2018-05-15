@@ -30,10 +30,10 @@ C     Display  deltarho, B_>sgamma, Bs->mumu, gmuon and
 C     check LEP mass limits 
 
 
-#define HIGGSBOUNDS 
-#define HIGGSSIGNALS
-#define LILITH
-#define SMODELS
+C#define HIGGSBOUNDS 
+C#define HIGGSSIGNALS
+C#define LILITH
+C#define SMODELS
 C#define MONOJET
 
 #define OMEGA
@@ -71,9 +71,6 @@ C      reactions specified by the user
 C================ end of Modules  ======
 
 C===== Options ========
-
-C#define SHOWPLOTS
-C     Display  graphical plots on the screen
 
 #define CLEAN    to clean intermidiate files
 
@@ -121,7 +118,7 @@ C for HIGGSBOUNDS/HIGGSSIGNALS
       character*70 HB_chan
       character*7 HB_version, HS_version
 C for SMODELS 
-      integer result 
+      integer result,LHCrun 
       real*8 Rvalue
       character*30 analysis,topology,smodels_version
 C for LILITH 
@@ -498,6 +495,7 @@ C      CALL printVar(6)
 
 #ifdef SMODELS
       write(*,*) "SMODELS:"
+      LHCrun=LHC8+LHC13
 #include "../include/SMODELS.inc_f"
       if(result.ge.0) write(*,fmt='("highest R=",1PE10.2," from ",A," topology ",A)') Rvalue,analysis,topology
       if(result.eq.-1) write(*,*) 'no channels for testing.'
@@ -527,9 +525,8 @@ C     call setVVdecay(2,2)
           call o1Contents(6)
       endif
 
-      Omega=darkOmega(Xf,fast,Beps)
+      Omega=darkOmega(Xf,fast,Beps,err)
       write(*,'(a,3x,1PE10.2)') 'Omega=',Omega
-
       if(Omega.gt.0)OmegaAppr=printChannels(Xf,cut,Beps,1,6)
 
 C!  See an  example of direct access to annihilation channels    
@@ -568,21 +565,13 @@ C  Use SpectdNdE(E, SpX) to calculate energy distribution in 1/GeV units.
      < F4.2,'[rad]')") fi
       write(*,fmt="('and spherical region described by cone with angle '
      >,F7.4,'[rad]' )") 2*dfi
-#ifdef SHOWPLOTS      
-      write(mess,fmt="('gamma flux[cm^2 s GeV]^{-1} at fi=',F4.2,
-     > ' from cone with angle=',F4.2,'[rad]')")fi,dfi*2  
-      err= displaySpectrum(mess,Emin,Mcdm,FluxA)
-#endif
+
       write(*,fmt="('Photon flux =',1PE8.2,
      >'[cm^2 s GeV]^{-1} for E=',0PF5.1,'[GeV]')")
      > SpectdNdE(Etest, FluxA), Etest
       write(*,*) 'Positrons'
       call  posiFluxTab(Emin, sigmaV, SpE, FluxE)
-#ifdef SHOWPLOTS      
-      err= 
-     >displaySpectrum('positron flux [cm^2 s sr GeV]^{-1}',
-     >Emin,Mcdm,FluxE)
-#endif
+
       SMmev=320 
       if(SMmev.gt.0) call solarModulation(SMmev,0.0005d0,FluxE,FluxE)
       write(*,fmt="('Positron flux  = ',1PE8.2,
@@ -593,11 +582,6 @@ C  Use SpectdNdE(E, SpX) to calculate energy distribution in 1/GeV units.
       call  pbarFluxTab(Emin, sigmaV, SpP,  FluxP)
 
       if(SMmev.gt.0) call solarModulation(SMmev,1.d0,FluxP,FluxP)
-#ifdef SHOWPLOTS      
-      err= 
-     >displaySpectrum('a-proton flux [cm^2 s sr GeV]^{-1}',Emin,
-     >Mcdm,FluxP)
-#endif
       write(*,fmt="('Anti proton flux  = ',1PE8.2,
      >'[cm^2 sr s GeV]^{-1} for E=',0PF6.1,'[GeV]')")
      > SpectdNdE(Etest, FluxP),  Etest
@@ -638,16 +622,17 @@ C   calculates and rewrites Scalar form factors
       write(*,fmt='(" protonFF (default)  d, u, s ", 1PE10.2,E10.2,E10.2)') ScalarFFPd,ScalarFFPu,ScalarFFPs
       write(*,fmt='(" neutronFF(default)  d, u, s ", 1PE10.2,E10.2,E10.2)') ScalarFFNd,ScalarFFNu,ScalarFFNs                          
       write(*,*) '===========Redefinition of form factors========='  
-      
-      call calcScalarQuarkFF(0.46d0,27.5d0,34.d0,42.d0)
-
-
 C    To restore default form factors of  version 2  call
-C      call  calcScalarQuarkFF(0.553d0,18.9d0,55.d0,243.5d0)
+      call  calcScalarQuarkFF(0.553d0,18.9d0,55.d0,243.5d0)
+
+
 
 
       write(*,fmt='(" protonFF (new)      d, u, s ", 1PE10.2,E10.2,E10.2)') ScalarFFPd,ScalarFFPu,ScalarFFPs                           
       write(*,fmt='(" neutronFF(new)      d, u, s ", 1PE10.2,E10.2,E10.2)') ScalarFFNd,ScalarFFNu,ScalarFFNs                    
+C    To restore default form factors of  current  version  call
+C      call  calcScalarQuarkFF(0.56d0,20.2d0,34d0,42d0)
+
 
 #endif
 
@@ -695,10 +680,6 @@ C  velocity distribution.
      >cutRecoilResult(dNdE,10.d0,50.d0) 
 
 
-#ifdef SHOWPLOTS
-       err=displayRecoilPlot(dNdE,
-     >           'Distribution of recoil energy of 73Ge',0.d0,199.d0)
-#endif
        write(*,*)
        write(*,*) '131Xe:'  
        nEvents=nucleusRecoil(Maxwell,131,Z_Xe,J_Xe131,
@@ -709,10 +690,6 @@ C  velocity distribution.
       write(*,fmt="(' Number of events in 10 - 50 KeV region=',
      >   1PE9.2, ' /day/kg')")cutRecoilResult(dNdE,1.d1,5.d1)
 
-#ifdef SHOWPLOTS
-      err=displayRecoilPlot(dNdE,
-     >    'Distribution of recoil energy of 131Xe',0.d0,199.d0)
-#endif
 
 #endif
 
@@ -732,10 +709,6 @@ C rhoDet - detector density
       endif 
 
       err=neutrinoFlux(Maxwell,forSun, FluxN,FluxNb)
-#ifdef SHOWPLOTS
-      err=displaySpectrum("nu flux from Sun [1/Year/km^2/GeV]",Emin,Mcdm,FluxN)
-      err=displaySpectrum("nu-bar from Sun  [1/Year/km^2/GeV]",Emin,Mcdm,FluxNb)
-#endif
       write(*,fmt='("E>", 1PE8.2," GeV neutrino flux =", E8.2," [1/Year/km^2]")') Emin,spectrInfo(Emin,FluxN,NULL)
       write(*,fmt='("E>", 1PE8.2," GeV anti-neutrino flux =", E8.2," [1/Year/km^2]")') Emin, spectrInfo(Emin,FluxNb,NULL) 
  
@@ -746,17 +719,11 @@ C!  ICE CUBE
 C ======  Upward events
   
       call muonUpward(FluxN,FluxNb,FluxMu)
-#ifdef SHOWPLOTS  
-      err= displaySpectrum("Upward muons[1/Year/km^2/GeV]",Emin,Mcdm/2,FluxMu)
-#endif
 
       write(*,fmt='("E>", 1PE8.2," GeV Upward muon flux =", E8.2," [1/Year/km^2]")') Emin,spectrInfo(Emin,FluxMu,NULL)
   
 C ======  Contained events 
       call muonContained(FluxN,FluxNb,rhoDet, FluxMu)
-#ifdef SHOWPLOTS  
-      err=displaySpectrum("Contained  muons[1/Year/km^3/GeV]",Emin,Mcdm,FluxMu)
-#endif
       write(*,fmt='("E>", 1PE8.2," Contained muon flux =", E8.2," [1/Year/km^3]")') Emin,spectrInfo(Emin,FluxMu,NULL)
 #endif
 

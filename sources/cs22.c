@@ -14,7 +14,7 @@ static  int PC[5];
 static  int chan=0; 
 
 
-static double eps=0.001;
+static double eps=0.0001;
 
 double GGscale=91.187;
 /*
@@ -102,7 +102,12 @@ double cs22(numout * cc, int nsub, double P, double cos1, double cos2 , int * er
   *err=0;
   sqme22=cc->interface->sqme;
   nsub22=nsub; 
-  if(kin22(P,pmass)) return 0; else return 3.8937966E8*simpson(dSigma_dCos,cos1,cos2,0.3*eps);
+  if(kin22(P,pmass)) return 0; else 
+  { int err;
+    double res= 3.8937966E8*simpson(dSigma_dCos,cos1,cos2,0.3*eps,&err);
+    if(err)  printf("error in simpson: cs22.c line 108\n");
+    return res;
+  }
 }
 
 /*===================  Collider production ==========*/
@@ -180,7 +185,7 @@ static double  cos_integrand(double xcos)
 
 static double  s_integrand(double y)
 {  double r,pcmIn,q;
-
+   int  err;
    double pp=1.5;
    
    double  s=sMin*pow(1+ y*( pow(sMax/sMin,1-pp) -1) ,1/(1-pp));
@@ -201,7 +206,9 @@ static double  s_integrand(double y)
    if(pcmOut<=pTmin_) return 0;
    double sn=pTmin_/pcmOut;
    double cs=sqrt((1-sn)*(1+sn)); 
-   r=  3.8937966E8*pcmOut/(32*M_PI*pcmIn*s)*simpson(cos_integrand,-cs,cs,1.E-3);
+   r=  3.8937966E8*pcmOut/(32*M_PI*pcmIn*s)*simpson(cos_integrand,-cs,cs,1.E-3,&err);
+   if(err)  printf("error in simpson cs22 line 210\n");
+   
    q=Q_fact>0? Q_fact:sqrt(s);
      r*=convStrFun2(x0,q,pc1_,pc2_,ppFlag);
    r*=pow(s/sMax,pp)*(1- pow(sMin/sMax,1-pp))/(1-pp);
@@ -510,7 +517,7 @@ static void getPoles(numout*cc, int nsub, char * s0,double mMin, double mMax, in
      } else i++;
   }
   
-  for(n=1;(s=CI->den_info(nsub,n,&m,&w));n++) 
+  for(n=1;(s=CI->den_info(nsub,n,&m,&w,NULL));n++) 
   if(strcmp(s0,s)==0 && fabs(CI->va[m])>mMin && fabs(CI->va[m]) < mMax)
   { 
 //printf(" %s %E %E  x= %E \n",CI->varName[m],CI->va[m], CI->va[w],(CI->va[m]-mMin)/(mMax-mMin) );
@@ -686,7 +693,7 @@ static double hColliderStat(double Pcm, int pp, int nf, double Qren,double Qfact
                   printf("( %.2f%%)\n",100*dI/metArr_[0]);
                   vegas_finish(vegPtr);
                 }
-                else{tmp=simpson(s_integrand,0.,1.,1.E-2);}
+                else{int err;  tmp=simpson(s_integrand,0.,1.,1.E-2,&err); if(err) printf("error in simpson cs22 line 696\n"); }
                  
                 if(!MET && wrt)printf("cs=%E \n", tmp);  
                 break;
@@ -859,9 +866,13 @@ double plazmaWidth(char *process,double T)
    plazmaWidth_T=T;
    process2Lib(process,libName);
    process2Mass(process,plazmaWidth_m);
-   plazmaWidth_cc=getMEcode(0,ForceUG,process,NULL,NULL,libName); 
-   return simpson(plazmaWidth_integrand,0., 5*T,1.E-3)/(4*M_PI*M_PI*plazmaWidth_m[1]*plazmaWidth_m[1]*bessk2(plazmaWidth_m[1]/T))
-   /3.8937966E8;    
+   plazmaWidth_cc=getMEcode(0,ForceUG,process,NULL,NULL,libName);
+   { int err;
+     double r=simpson(plazmaWidth_integrand,0., 5*T,1.E-3,NULL)/(4*M_PI*M_PI*plazmaWidth_m[1]*plazmaWidth_m[1]*bessk2(plazmaWidth_m[1]/T))
+        /3.8937966E8;
+     if(err) printf("error in simpson cs22 line 873\n");
+     return r;
+   }      
 }
 #endif
 /*============ Fortran ==========*/

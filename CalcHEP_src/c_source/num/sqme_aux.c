@@ -1,7 +1,7 @@
 #include"num_in.h"
 
 REAL Helicity[2]={0.,0.};
-double Fmax=0; 
+
 int  CalcConst=0;
 
 
@@ -95,7 +95,6 @@ int prepDen(int nden, int nin,double BWrange2, REAL*dmass,REAL*dwidth, char** Qt
      continue;
    } 
    if(WIDTH_FOR_OMEGA && !stype(nin,Qtxt[i])) dwidth[i]=0.01*fabs(dmass[i]);
-
 #endif
 
   Q1[i]=dmass[i]*dmass[i]-sqrMom(nin,Qtxt[i],momenta);   
@@ -103,13 +102,16 @@ int prepDen(int nden, int nin,double BWrange2, REAL*dmass,REAL*dwidth, char** Qt
   {  REAL w,w2, q2=Q1[i]*Q1[i];
      w=dmass[i]*dwidth[i];
      w2=w*w;
-     if(q2>BWrange2*w2) {if(q2<(BWrange2+1)*w2) q2=(BWrange2+1) *w2; w2=0; }
+     if(q2>BWrange2*w2) { if(q2<(BWrange2+1)*w2) q2=(BWrange2+1) *w2; w2=0; }
 
      Q2[i]=1/(q2+w2);
      Q0[i]=Q2[i]*Q1[i]*Q1[i];
      Q1[i]=1/(Q1[i] + I*sqrt(w2));
   } else
-  {  if(cabs(Q1[i]) < 10*s0max) err=2;
+  {  if(cabs(Q1[i]) < 100*s0max) err=2;
+//     if(cabs(Q1[i]) < 100*s0max)   printf("i=%d s0max=%E cabs(Q1[i]=%E  eps=%E E=%E\n",i, (double)s0max,(double)cabs(Q1[i]),(double)computer_eps,
+//     (double)(momenta[0]+momenta[4]));
+//     if(cabs(Q1[i]) < 1000*s0max*computer_eps){ err=2; } 
      if(!Q1[i]) Q1[i]=s0max;
      Q1[i]=1/Q1[i];
      Q2[i]=Q1[i]*Q1[i];

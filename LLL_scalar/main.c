@@ -130,16 +130,20 @@ exit(0);
 
 #if defined(HIGGSBOUNDS) || defined(HIGGSSIGNALS)
 {  int NH0,NHch;  // number of neutral and charged Higgs particles.
-   double HB_result,HB_obsratio,HS_observ,HS_chi2, HS_pval;
-   char HB_chan[100]={""}, HB_version[50], HS_version[50];
+   int HB_id[3],HB_result[3];
+   double  HB_obsratio[3],HS_observ,HS_chi2, HS_pval;
+   char HB_chan[3][100]={""}, HB_version[50], HS_version[50]; 
+
    NH0=hbBlocksMO("HB.in",&NHch);
    system("echo 'BLOCK DMASS\n 25  2  '>> HB.in");
 #include "../include/hBandS.inc"
 #ifdef HIGGSBOUNDS
-   printf("HB(%s): result=%.0f  obsratio=%.2E  channel= %s \n", HB_version,HB_result,HB_obsratio,HB_chan);
+   printf("  HB(%s)\n", HB_version);
+   for(int i=0;i<3;i++) printf("  id= %d  result = %d  obsratio=%.2E  channel= %s \n", HB_id[i],HB_result[i],HB_obsratio[i],HB_chan[i]);
 #endif
 #ifdef HIGGSSIGNALS
-   printf("HS(%s): Nobservables=%.0f chi^2 = %.2E pval= %.2E\n",HS_version,HS_observ,HS_chi2, HS_pval);
+   printf("  HS(%s)\n",HS_version); 
+   printf(" Nobservables=%.0f chi^2 = %.2E pval= %.2E\n",HS_observ,HS_chi2, HS_pval);
 #endif
 }
 #endif
@@ -340,41 +344,41 @@ printf("\n==== Calculation of CDM-nucleons amplitudes  =====\n");
 
 printf("\n======== Direct Detection ========\n");
 
-  nEvents=nucleusRecoil(Maxwell,73,Z_Ge,J_Ge73,SxxGe73,NULL,dNdE);
+  nEvents=nucleusRecoil(Maxwell,73,Z_Ge,J_Ge73,SxxGe73,dNdE);
 
   printf("73Ge: Total number of events=%.2E /day/kg\n",nEvents);
   printf("Number of events in 10 - 50 KeV region=%.2E /day/kg\n",
                                    cutRecoilResult(dNdE,10,50));
 
 #ifdef SHOWPLOTS
-    displayPlot("Distribution of recoil energy of 73Ge","E[KeV]",0,200,0,1,"dN/dE",0,dNdERecoil,dNdE);
+    displayPlot("Distribution of recoil energy of 73Ge","E[KeV]",1,50,0,1,"dN/dE",0,dNdERecoil,dNdE);
 #endif
 
-  nEvents=nucleusRecoil(Maxwell,131,Z_Xe,J_Xe131,SxxXe131,NULL,dNdE);
+  nEvents=nucleusRecoil(Maxwell,131,Z_Xe,J_Xe131,SxxXe131,dNdE);
 
   printf("131Xe: Total number of events=%.2E /day/kg\n",nEvents);
   printf("Number of events in 10 - 50 KeV region=%.2E /day/kg\n",
                                    cutRecoilResult(dNdE,10,50));
 #ifdef SHOWPLOTS
-    displayPlot("Distribution of recoil energy of 131Xe","E[KeV]",0,200,0,1,"dN/dE",0,dNdERecoil,dNdE);
+    displayPlot("Distribution of recoil energy of 131Xe","E[KeV]",1,50,0,1,"dN/dE",0,dNdERecoil,dNdE);
 #endif
 
-  nEvents=nucleusRecoil(Maxwell,23,Z_Na,J_Na23,SxxNa23,NULL,dNdE);
+  nEvents=nucleusRecoil(Maxwell,23,Z_Na,J_Na23,SxxNa23,dNdE);
 
   printf("23Na: Total number of events=%.2E /day/kg\n",nEvents);
   printf("Number of events in 10 - 50 KeV region=%.2E /day/kg\n",
                                    cutRecoilResult(dNdE,10,50));
 #ifdef SHOWPLOTS
-    displayPlot("Distribution of recoil energy of 23Na","E[KeV]",0,200,0,1,"dN/dE",0,dNdERecoil,dNdE);
+    displayPlot("Distribution of recoil energy of 23Na","E[KeV]",1,50,0,1,"dN/dE",0,dNdERecoil,dNdE);
 #endif
 
-  nEvents=nucleusRecoil(Maxwell,127,Z_I,J_I127,SxxI127,NULL,dNdE);
+  nEvents=nucleusRecoil(Maxwell,127,Z_I,J_I127,SxxI127,dNdE);
 
   printf("I127: Total number of events=%.2E /day/kg\n",nEvents);
   printf("Number of events in 10 - 50 KeV region=%.2E /day/kg\n",
                                    cutRecoilResult(dNdE,10,50));
 #ifdef SHOWPLOTS
-  displayPlot("Distribution of recoil energy of 127I","E[KeV]",0,200,0,1,"dN/dE",0,dNdERecoil,dNdE);
+  displayPlot("Distribution of recoil energy of 127I","E[KeV]",1,50,0,1,"dN/dE",0,dNdERecoil,dNdE);
 #endif
 
 }

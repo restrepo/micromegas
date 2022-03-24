@@ -1,4 +1,3 @@
-#include"spheno_path.h"
 
 /*===================================*/
 #include"pmodel.h"
@@ -10,6 +9,8 @@
 #define FIN  "LesHouches.in"
 #define FOUT "SPheno.spc"
 
+#define VERSION "4.0.3" 
+
 static int SystemCall(int mode)
 { 
   char buff[2000];
@@ -18,20 +19,26 @@ static int SystemCall(int mode)
 
   if(!access(FOUT,R_OK)) unlink(FOUT);
 
-  sprintf(buff,"%s/SPheno",SPHENO);
+  sprintf(buff,"%s/Packages/SPheno-%s/bin/SPheno",micrO,VERSION);
   if(access( buff,X_OK))
-  { printf("Executable \n %s\n is not found. Program stops.\n",buff);
-    exit(13);
+  { sprintf(buff,"cd %s/Packages;  make -f SPHENO.makef  VERSION=%s",micrO,VERSION);
+    system(buff);
+    sprintf(buff,"%s/Packages/SPheno-%s/bin/SPheno",micrO,VERSION);
+    if(access( buff,X_OK))
+    {
+      printf("Executable \n %s\n is not found. Program stops.\n",buff);
+      exit(13);
+    }  
   }  
-
+/*
    f=fopen("Control.in","w");
    fprintf(f,"0       | ErrorLevel\n"
              ".false. ! Calculation of branching ratios\n"
              ".false. ! Calculation of cross sections\n");
    fclose(f);
-
+*/
   err=system(buff);   
-  if(err>=0) err=slhaRead(FOUT,4); else cleanSLHAdata();
+  if(err>=0)   err=slhaRead(FOUT,0); else cleanSLHAdata();
   return err;
 }
 

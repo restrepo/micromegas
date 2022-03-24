@@ -44,7 +44,6 @@ int checkParam(void)
 { int err;
 
   err=calcMainFunc();
-
   if(err>0)
   {  char mess[100];
      sprintf(mess,"Can not evaluate constrained parameter '%s' ",
@@ -323,7 +322,7 @@ void show_depend(int x, int y)
                *vPos=val2; 
                for(i=0;i<nModelFunc;i++) varValues[1+nModelVars+i]=allfunc[i];
 
-               if(!(NaN||Esc)) plot_1(xMin,xMax,nPoints,f,NULL,"Plot",
+               if(!(NaN||Esc)) plot_1(xMin,xMax,nPoints,f,NULL,"Parameter dependence",
                                name2,name1);
                                
             } else messanykey(16,5," Correct input is \n"

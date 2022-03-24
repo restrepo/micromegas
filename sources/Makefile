@@ -5,7 +5,7 @@ ifneq ($(MAKECMDGOALS),clean)
 include ../CalcHEP_src/FlagsForMake
 endif
 
-CC+= -I../include
+CFLAGS+= -I../include
 all:../lib/micromegas.a 
 
 OBJ = $(notdir $(subst .c,.o,$(filter-out $(special),$(wildcard *.c))))

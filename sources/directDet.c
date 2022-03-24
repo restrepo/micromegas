@@ -694,58 +694,10 @@ double FermiFF(int A, double Qfermi)
   return simpson(FermiNDP,0., R_+5, 1.E-4,NULL)/simpson(FermiND0,0., R_+5, 1.E-4,NULL)/p_;
 }
 
-/*===== Maxwell velosity distribution =====*/ 
-
-static double vMaxwell(double v){ return v*Maxwell(v);}
-
-double Maxwell(double v) 
-{  double res,vsum,vdif,DV2;
-   static double vmax_=-1,vrot_=0, norm_=1;
-   if(vmax_!=Vesc || vrot_!=Vrot)
-   { norm_=1;
-     vmax_=Vesc;
-     vrot_=Vrot;
-     norm_=1/simpson(vMaxwell,0,Vesc+Vrot, 1.E-5,NULL);
-//     printf("norm=%E\n",norm_);
-   }  
-   
-   if(v>Vesc+Vearth) return 0;
-   DV2=Vrot*Vrot;
-   if(Vearth*v<0.001*DV2) res= 4*v*exp((-v*v-Vearth*Vearth)/(DV2))/(DV2);
-   else 
-   {   
-     vsum=Vearth+v;
-     if(vsum>Vesc) vsum=Vesc;
-     vdif=Vearth-v;
-     res=(exp(-vdif*vdif/DV2)-exp(-vsum*vsum/DV2))/Vearth;
-   }
-   return res*norm_/(Vrot*sqrt(M_PI));
-}
-
-
-/*===== Delta-function velosity distribution =====*/ 
-static double deltaV_=220;
-
-
-void SetfDelta(double V0){ deltaV_=V0;}
-
-double fDvDelta(double v) {  return 1;}
-
 
 /*==== nucleusRecoil: main functions ================*/
-static double eStep=1;
-static int    eGrid=200;
-
-void setRecoilEnergyGrid(double step, int nSteps)
-{ eStep=step; eGrid=nSteps;
-  if(eStep<0) eStep=1;
-  if(eGrid<0) eGrid=200;
-} 
-
-void setrecoilrnergygrid_(double * step, int * nSteps)
-{  setRecoilEnergyGrid(*step, *nSteps); }
-
-
+static double eStep=1.08;
+static double eStart=1E-2;
 
 static double nucleusRecoil_stat(double M_cdm, double(*vfv)(double),
       int A, int Z, double J,
@@ -767,11 +719,7 @@ static double nucleusRecoil_stat(double M_cdm, double(*vfv)(double),
   double FFs=1, s00,s01,s11;
   double E0,vmin,vmax;
 
-//  s00=S00(0.),s01=S01(0.),s11=S11(0.);
-  Sxx(0., &s00,&s01,&s11);
-
   if(vfv==Maxwell) vmax=Vesc+Vearth; 
-  else if(vfv==fDvDelta) vmax=deltaV_;
   else vmax=1200.;
   
   MA=0.94*A;
@@ -799,30 +747,32 @@ static double nucleusRecoil_stat(double M_cdm, double(*vfv)(double),
     ffs=simpson(FermiND0,0., R_+10*0.5, 1.E-4,NULL);
   }
   
-  for(i=0,sum=0;i<eGrid;i++)
-  { double E=i*step;
+  for(i=0,sum=0;i<REDIM;i++)
+  { double E=eStart*1E-6*pow(eStep,i);
 
     vmin=sqrt(E/E0)*vC;
+    double p=sqrt(E*MA*2)/0.197327;
     
     if(vmin>=vmax)  { dNdE[i]=0;continue;}
     if(i && A>1)
-    { double p=sqrt(E*MA*2)/0.197327;
-      if(J){ Sxx(p,&s00,&s01,&s11);
-//      s00=S00(p); s01=S01(p); s11=S11(p);
-      }
+    { 
       p_=p;    
       R_=Rs; a_=A_; 
       FFs=simpson(FermiNDP,0., R_+10*0.5, 1.E-4,NULL)/p_/ffs;      
-    }  
+    } else FFs=1;
     
     dNdE[i]=FFs*FFs*css;
-    if(J) dNdE[i]+=(csv00*s00+csv01*s01+csv11*s11);
-    if(vfv==fDvDelta) dNdE[i]/=deltaV_;
-    else dNdE[i]*=simpson(vfv,vmin,vmax,1.E-4,NULL);
+    if(J && Sxx)
+    {  Sxx(p,&s00,&s01,&s11);
+       dNdE[i]+=(csv00*s00+csv01*s01+csv11*s11);
+    }   
+    dNdE[i]*=simpson(vfv,vmin,vmax,1.E-4,NULL);
     dNdE[i]*=1/E0*1.E5*vC*vC*(rhoDM/M_cdm)*lDay*(Kg/MA)*1.E-6;
-    if(i==0 ||i==eGrid-1) sum+=dNdE[i]/2; else sum+=dNdE[i];
+    if(i==0)            sum+=1E6*E*sqrt(eStep)*dNdE[i];
+    else if(i==REDIM-1) sum+=1E6*E/sqrt(eStep)*dNdE[i];
+    else                sum+=1E6*E*(sqrt(eStep)+1/sqrt(eStep))*dNdE[i];
   }
-  return sum*eStep;
+  return sum;
 }
 
 static double S00_0,S01_0,S11_0, RS_;
@@ -884,17 +834,16 @@ double * dNdE)
    if(CDM1  && !CDM2)   return nucleusRecoil1(CDM1,vfv,A,Z,J,Sxx,dNdE); 
    if(!CDM1 &&  CDM2)   return nucleusRecoil1(CDM2,vfv,A,Z,J,Sxx,dNdE); 
    if(CDM1  &&  CDM2) 
-   { double* dNdE1=malloc(eGrid*sizeof(double));
+   { double dNdE1[REDIM];
      double r1=0,r2=0;
      if(fracCDM2!=1) r1= nucleusRecoil1(CDM1,vfv,A,Z,J,Sxx,dNdE1); 
      if(fracCDM2!=0) r2= nucleusRecoil1(CDM2,vfv,A,Z,J,Sxx,dNdE);
-     if(fracCDM2==1) { free(dNdE1);   return r2;}
-     if(fracCDM2==0) { for(i=0;i<NZ;i++) dNdE[i]=dNdE1[i]; free(dNdE1);   return r1;}
+     if(fracCDM2==1) {   return r2;}
+     if(fracCDM2==0) { for(i=0;i<NZ;i++) dNdE[i]=dNdE1[i];    return r1;}
       
      NfracCDM2=  fracCDM2*Mcdm1/(fracCDM2*Mcdm1 +(1-fracCDM2)*Mcdm2);      
      
      for(i=0;i<NZ;i++) dNdE[i]=(1-NfracCDM2)*dNdE1[i]+ NfracCDM2*dNdE[i];
-     free(dNdE1); 
      return r1*(NfracCDM2-1)+r2*NfracCDM2;
    }
 }
@@ -981,37 +930,35 @@ double * dNdE)
 
 /*====== Auxilarry service functions ======*/
 int displayRecoilPlot(double * tab, char * text, double  E1, double E2)
-{ 
-  int i1=(E1/eStep), i2=(E2/eStep), dim=i2-i1+1;
-  
-  if(E1<0 || E1>=E2-eStep|| i2>eGrid-1|| i2-i1>299  ) return 1;
-  displayPlot(text,"E[keV]", i1*eStep, i2*eStep,0,1,"dM/dE", dim, tab+i1,NULL);
+{   
+  displayPlot(text,"E[keV]", E1, E2,0,1,"dM/dE", 0, dNdERecoil, tab);
   return 0;
 }
+
 
 
 double dNdERecoil(double E, double *tab)
 {  double kE,alpha;
    int k;
    
-   kE=E/eStep;
-   if(kE<0 || kE>eGrid) return 0;
+   kE= log(E/eStart)/log(eStep);
+   if(kE<0 || kE>REDIM-1) return 0;
    k=kE;
-   if(k>eGrid-2) k=eGrid-2;
+   if(k>REDIM-2) k=REDIM-2;
    alpha= kE-k;
    return (1-alpha)*tab[k]+alpha*tab[k+1];
 }
 
 
 
-double cutRecoilResult(double *tab, double E1, double E2)
+double cutRecoilResult(double *tab, double E1, double E2)  // ????
 { int i,i1,i2;
   double sum,dx;
-  if(E2>eStep*(eGrid-1)) 
+  if(E2>eStep*(REDIM-1)) 
   { 
     printf("cutRecoilResult:  Maximal bound %.3E is larger than data limit %.3E\n",
-       E2,eStep*(eGrid-1));
-    E2=eStep*(eGrid-1); 
+       E2,eStep*(REDIM-1));
+    E2=eStep*(REDIM-1); 
   } 
   if(E1<0)   E1=0;
   if(E1>=E2) return 0;
@@ -1410,6 +1357,22 @@ void SxxXe131B(double q,double*S00,double*S01,double*S11)
   *S11= polint3(x,11,q2,s11);
 }
 
+void SxxXe131Me(double q,double*S00,double*S01,double*S11) // Menendez et al.;  1208.1094
+{
+  double data00[10]={ 0.0417889, -0.111171 , 0.171966, -0.133219 ,  0.0633805, -0.0178388,  0.00282476, -2.31681E-4, 7.78223E-6, -4.49287E-10};
+  double data11[10]={ 0.022446 , -0.0733931, 0.110509, -0.0868752,  0.0405399, -0.0113544,  0.00187572, -1.75285E-4, 8.40043E-6, -1.53632E-7 };
+  double data01[10]={-0.0608808,  0.181473 ,-0.272533,  0.211776 , -0.0985956,  0.027438 , -0.0044424 ,  3.97619E-4,-1.74758E-5,  2.55979E-7 };
+
+  double b=2.2905; // fm 
+  double u=q*q*b*b/2;
+  
+  *S00=data00[0],*S01=data01[0]; *S11=data11[0];
+  double un=u;
+  for(int i=1;i<10;i++) { *S00+=un*data00[i];*S01+=un*data01[i];*S11+=un*data11[i]; un*=u;}
+  *S00*=exp(-u); *S01*=exp(-u); *S11*=exp(-u);  
+}
+
+
 /*
 double S00Xe131B(double q)
 {
@@ -1510,6 +1473,22 @@ void SxxXe129(double q,double*S00,double*S01,double*S11)
   *S01=SSxxYYzz(q,data01,9,129,1,0.,10.);
   *S11=SSxxYYzz(q,data11,9,129,1,2.11016,10.);  
 }
+
+void SxxXe129M(double q,double*S00,double*S01,double*S11)
+{
+double data00[10]={ 0.054731, -0.146897,  0.182479,-0.128112,  0.0539978, -0.0133335,  0.00190579, -1.48373E-4,  5.11732E-6, -2.06597E-8};
+double data11[10]={ 0.02933,  -0.0905396, 0.122783,-0.0912046, 0.0401076, -0.010598,   0.00168737, -1.56768E-4,  7.69202E-6, -1.48874E-7};
+double data01[10]={-0.0796645, 0.231997, -0.304198, 0.222024, -0.096693,   0.0251835, -0.00392356,  3.53343E-4, -1.65058E-5,  2.88576E-7};
+
+  double b=2.2853; // fm 
+  double u=q*q*b*b/2;
+  
+  *S00=data00[0],*S01=data01[0]; *S11=data11[0];
+  double un=u;
+  for(int i=1;i<10;i++) { *S00+=un*data00[i];*S01+=un*data01[i];*S11+=un*data11[i]; un*=u;}
+  *S00*=exp(-u); *S01*=exp(-u); *S11*=exp(-u);  
+}
+
 
 /*
 double S00Xe129(double q)

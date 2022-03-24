@@ -16,6 +16,7 @@ static int height=20;
 
 static void f6_key_prog (int x){  viewDir("."); }
 
+int useSLHAwidth=1;
 
 static void drawList(void)
 {

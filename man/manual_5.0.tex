@@ -120,7 +120,7 @@ All annihilation and coannihilation channels are included in the computation of 
 This manual gives an up-to-date description of all \micro\ functions.  
 The methods used to compute the different dark matter properties are described 
 in references 
-~\cite{Belanger:2001fz,Belanger:2004yn,Belanger:2006is,Belanger:2008sj,Belanger:2010gh,Belanger:2013oya}.
+~\cite{Belanger:2001fz,Belanger:2004yn,Belanger:2006is,Belanger:2008sj,Belanger:2010gh,Belanger:2013oya,Belanger:2014vza,Barducci:2016pcb,Belanger:2018ccd}.
 These references also contain  a more complete description of the code. In the following
 the cold dark matter candidate also called LOP or weakly-interactive massive particle (WIMP)
 will be denoted by $\chi$. 
@@ -209,12 +209,12 @@ In case of problems and questions\\
 \verb|   lib/             |      directory for routines specific to this model   \\
 \verb|       Makefile     |   to compile the auxiliary code library {\it lib/aLib.a}    \\
 \verb|       *.c *.f  *.h *.inc   |      source codes of auxiliary functions             \\
-\verb|   lanhep/            |          directory containing lanhep source model files   \\
 \verb|   work/            |              \calchep\ working directory for the generation of   \\
 \verb|                    |             matrix elements                                    \\
 \verb|       Makefile     |  to compile the library {\it work/work\_aux.a}           \\ 
 %\verb|       work_aux.a   | information about  parameters and particles.      \\
 % \verb|  |{\it Directories for CalcHEP sessions for generation of matrix elements}\\
+\verb|       lanhep/      |          directory containing lanhep source model files   \\
 \verb|       models/      |  directory for files  which specifies the model\\
 \verb|                    | files *1.mdl are used in micrOMEGAs sessions. Other *.mdl files\\
 \verb|                    | are intended for CalcHEP interactive sessions\\
@@ -327,6 +327,8 @@ Note that HiggsBounds and HiggsSinals are no longer included in the \micro's dis
 All these modules are completely independent. The user can comment or
 uncomment any set of {\it define} instructions to suit his/her need. 
 
+
+
 \subsection{Compilation of codes for specific models.}
  After the compilation of \micro\ one has to compile
 the executable to compute DM related observables in a specific model. To
@@ -345,6 +347,27 @@ For {\it ext}  we support 3 options: {\it 'c'} , {\it 'F'}, {\it 'cpp'} which co
 in subdirectories {\it lib} and {\it work} to compile \\
  \verb|     lib/aLib.a|   - library of auxiliary model functions, e.g. constraints,\\
  \verb|     work/work_aux.a| - library of model particles, free and dependent parameters.\\
+ 
+\subsection{External packages}
+
+All external codes are stored in the directory {\tt /Packages}.
+Some  are included in micrOMEGAs distribution, others are downloaded automatically when
+they are required.
+ 
+The packages included in micrOMEGAs distribution are:
+ {\tt Suspect}  spectrum calculator  for MSSM, 
+ {\tt NMSSMTools} spectrum calculator  for NMSSM, 
+ {\tt CPsuperH2.3 } spectrum calculator for CPVMSSM, 
+ {\tt Lilith} that checks the Higgs properties,  and {\tt LanHEP} that generates model
+ file.  
+
+Automatically downloaded packages are: SMODELS\cite{Kraml:2014sna}, HiggsBounds\cite{Bechtle:2013wla}, 
+HiggsSignals\cite{Bechtle:2013xfa}, SPheno\cite{Porod:2011nf}, SOFTSUSY \cite{Allanach:2001kg},
+superIso\cite{Ambrogi:2017neo}.
+The version of the code to be downloaded   can be modified by the user. It is defined via the  parameter
+VERSION   in the corresponding files:\\
+ \verb|    include/SMODELS.in,        include/hBandS.inc  sources/superIso.c|,\\
+ \verb|    MSSM/lib/spheno_call.c,    MSSM/lib/ssusy_call.c|.
 
 \subsection{Command line parameters of main programs.}
 \label{sec:command}
@@ -415,9 +438,11 @@ Fermi\_c    &  1.23        &  fm   &  $R_A=c A^{1/3} +b$ \\
 Rsun        & 8.5          & kpc   & Distance from the Sun to the center of the Galaxy\\
 Rdisk       & 20           & kpc   & Radius of the galactic diffusion disk \\
 rhoDM       &  0.3         & GeV/$cm^3$ & Dark Matter density at Rsun\\
-Vearth      &  225.2   & km/s     & Galaxy velocity of the Earth     \\
+Vearth      &  232       & km/s     & Galaxy velocity of the Earth     \\
 Vrot       &  220   & km/s     & Galaxy rotation velocity at Rsun     \\
-Vesc     &  600   & km/s     & Escape velocity at Rsun     \\
+Vesc       &  544   & km/s     & Escape velocity at Rsun     \\
+etaSHMpp   &  0.2   &          & $\eta$ parameter of {\tt SHM++}\\
+betaSHMpp  &  0.9   &          & $\beta$ parameter of {\tt SHM++}\\
 \hline
 \end{tabular}
 \end{center}
@@ -639,10 +664,15 @@ switches and calls {\tt cleanDecayTable()}.
 The   {\tt sortOddParticles} command which must be used 
 to recompute the particle spectrum after changing the model parameters also clears  the decay table.
 
-If the particle widths  were stored in a SLHA file (Susy Les Houches Accord~\cite{Skands:2003cj})  downloaded by \micro, then the SLHA value will be used,
-the widths  then do not depend on  the {\tt VW/VZdecay} switches. To avoid downloading particle widths, one can use  
-{\tt slhaRead({\it fileName},mode=4)} to read the content of the SLHA file, see the description in Section
-\ref{SLHA}. 
+\noindent
+$\bullet$ \verb|useSLHAwidth|\\
+Switch to  determine how the particle widths are computed. 
+If {\tt =1} the particle widths  stored in  a SLHA file (Susy Les Houches Accord~\cite{Skands:2003cj})  are downloaded by \micro. 
+These widths  then do not depend on  the {\tt VW/VZdecay} switches. 
+If {\tt =0} micrOMEGAs will calculate the widths, it will also do so if the switch is set to 1 and the widths  are not provided in the SLHA file. By default this swith is set to 0. 
+
+
+ 
 
 The temperature dependence of the effective number of degrees of freedom can be set with
 
@@ -945,8 +975,18 @@ temperature profile for DM production obtained by \verb|darkOmegaFiDecay| and \v
 4: the reheating temperature is too small, ($T_R<1 keV$)\\
 5: one of the incoming particles belong to ${\cal F}$.\\
 6: None of the outgoing particles are odd  and feeble.\\
-7: There is an  on-shell particle in t/u channel\\
-8: A numerical integral cannot be performed precisely.\\
+ 7: Lost of precision in  temperature integrand\\
+ 8: Pole in temperature integrand\\
+ 9: NaN in temperature intergrand\\
+10: Lost of precision in  sqrt(s) integrand\\
+11: Pole in sqrt(s) integrand\\
+12: NaN  in sqrt(s) intergrand\\
+13: Lost of precision in angle integrand\\
+14: Pole in angle  integrand\\
+15: NaN  in angle  intergrand\\
+16: lost of precision caused by diagramm cancelation\\
+
+
  When substituting \verb|NULL| for the error code, the error message is displayed on the screen and in this case the message does not appear in the address of the variable used for passing the error code.
  \\
  \\
@@ -1025,7 +1065,10 @@ input parameters are:
 \begin{itemize}
 \item[$\diamond$]
 \verb|f| -  the DM velocity distribution   normalized such that 
-$$ \int_0^{\infty} v f(v) dv =1$$ 
+\begin{equation}
+\label{v_norm} 
+\int_0^{\infty} v f(v) dv =1
+\end{equation} 
 The units  are $km/s$ for v and $s^2/km^2$ for  f(v).
 \item[$\diamond$]
 \verb|A| - atomic number of nucleus;
@@ -1043,11 +1086,13 @@ transfer in $fm^{-1}$. The available form factors are
 \begin{verbatim}
 SxxF19   SxxNa23   SxxNa23A  SxxAl27   SxxSi29   SxxSi29A  
 SxxK39   SxxGe73   SxxGe73A  SxxNb92   SxxTe125  SxxTe125A 
-SxxI127  SxxI127A  SxxXe129  SxxXe129A 
-SxxXe131 SxxXe131A SxxXe131B
+SxxI127  SxxI127A  SxxXe129  SxxXe129A SxxXe129M 
+SxxXe131 SxxXe131A SxxXe131B SxxXe131Me
 \end{verbatim}
 The last character is used to distinguish different implementations of
-the form factor for the same isotope, see details in~\cite{Belanger:2008sj}.
+the form factor for the same isotope, the  form factors SxxXe129M and SxxXe131Me were
+added recently,  see details in~\cite{Belanger:2008sj}.
+For nucleus with zero spin one can substitute NULL for this parameter. 
 \end{itemize}
 The form factors for the spin independent (SI) cross section are defined by a Fermi distribution
 and depend on the global parameters \verb|Fermi_a|, \verb|Fermi_b|,
@@ -1057,12 +1102,11 @@ The returned value gives the number of events per day and per kilogram of
 detector material. The  result depends  implicitly on the  global  parameter \verb|rhoDM|, the
 density of DM near the Earth.
 The distribution over recoil energy is stored in the array 
-\verb|dNdE| which by default has $Nstep=200$ elements.  
-The value in the $i^{th}$ element corresponds to
+\verb|dNdE| which  has \verb|NRDIM| elements with \verb|NRDIM = 150|.   The value in the $n^{th}$ element corresponds to
 $$
-dNdE[i] = \frac{dN}{dE}|_{E=i*keV*step}
+dNdE[n] = \frac{dN}{dE}|_{E= 0.01 \cdot 1.08^{n}[eV]}
 $$
-in units of ${\rm (1/keV/kg/day)}$. By default $step$  is set to 1.\\ 
+in units of ${\rm (1/keV/kg/day)}$.\\ 
 \verb|dNdERecoil(E,dNdE)| interpolates the {\tt dNdE} table.
 
 For a complex WIMP, \verb|nucleusRecoil| averages over $\chi$ and
@@ -1070,12 +1114,6 @@ $\overline{\chi}$. For example for $^{73}Ge$, a call to this routine will be:
 \begin{verbatim}
 nucleusRecoil(Maxwell,73,Z_Ge,J_Ge73,SxxGe73,dNdE);
 \end{verbatim}
-
-
-\noindent
-$\bullet$ \verb|setRecoilEnergyGrid(step,Nstep)| \\
-changes the values of \verb|step| and \verb|Nstep| for the computation of \verb|dNdE|.
-
 
 \noindent
 $\bullet$ \verb|Maxwell(v)| \\
@@ -1087,10 +1125,30 @@ $$f(\mbox{v})= \frac{c_{\rm{norm}}}{\mbox{v}}\int\limits_{|\vec{v}|<v_{max}} d^3
 -\frac{(\vec{v}-V_{Earth})^2}{\Delta v^2}\right)\delta(\mbox{v} -|\vec{v}|)
 $$
 which corresponds to the isothermal model. Default values for the global parameters 
-$\Delta v ={\rm Vrot}$,  $v_{max}={\rm Vesc}$, \verb|Vearth| are listed in Table~\ref{paramTab}.
+$\Delta v ={\rm Vrot}$,  $v_{max}={\rm Vesc}$ and \verb|Vearth| are listed in Table~\ref{paramTab}.
 $c_{norm}$ is the normalization factor.  This function is an
 argument of the \verb|nucleusRecoil| function described above.
 
+\noindent
+$\bullet$ \verb|SHMpp(v)|\\
+returns the  velocity distribution {\tt SHM++}  proposed in \cite{Evans:2018bqy}.
+This distribution consists of two components. The first, with weight  $(1-\eta)$,  
+is  the standard Maxwell velocity distribution described above.   The second component has weight $\eta$, it  is not spherically symmetric and is defined by the
+anisotropy parameter $\beta$ and
+\begin{equation}
+\Delta v_r= \frac{\rm{Vrot}}{\sqrt{1-\frac{2}{3}\beta}}\;,\;\; \Delta v_\phi=\Delta v_\Theta=\frac{\rm{Vrot} \sqrt{1-\beta}}{\sqrt{1-\frac{2}{3}\beta}} 
+\end{equation}    
+The central values  and uncertainties   of   the {\tt SHM++} parameters are 
+\begin{eqnarray} 
+\textsf{rhoDM} &=&0.55\pm 0.17 ~{\rm GeV}/{\rm cm}^3\\
+\textsf{Vrot}&=& 233\pm 3 ~{\rm km/s}\\
+\textsf{Vesc}&=& 580\pm 63~ {\rm km/s}\\
+ \beta=\textsf{betaSHMpp} &=&0.9\pm 0.05\\
+\eta= \textsf{etaSHMpp} &=& 0.2\pm 0.1  
+\end{eqnarray}
+\noindent
+Note that these central values are different than the default values used for the global parameters. Both {\tt Maxwell} and {\tt SHMpp} velocity distributions are normalized by the condition
+Eq.\ref{v_norm}. 
 
 \noindent
 $\bullet$ \verb|nucleusRecoil0(f,A,Z,J,Sp,Sn,dNdE)|\\
@@ -1132,12 +1190,7 @@ interpolates the tabulated spectra  and returns the
 particle distribution $dN/dE$  where \verb|E| is the energy  in GeV. 
 For a particle number  distribution the returned value is given in \verb|GeV|$^{-1}$
 while  a particle flux is expressed in \verb|(sec cm|$^2$ \verb|sr GeV )|$^{-1}$.\\
-To display the  spectra  as a function of energy one can use \\
-
-\noindent
-$\bullet$ \verb|displaySpectra(title, Emin, Emax, N, nu1,lab1,...)|\\
-which displays several spectra. Here {\tt title  } contains some text, {\tt Emin,Emax} are the lower and upper limits, and {\tt N} is the number of spectra to display.
-Each spectrum is defined with  two arguments, \verb|nu1| designates the spectrum array and \verb|lab1| contains  some text to label the spectrum.
+To display the  spectra  as a function of energy one can use function {\tt displayPlot}.\\
 
 
 Even though the user does not need to know the structure of the  spectrum array, we describe it below.
@@ -1298,6 +1351,16 @@ plane). Both $l$ and $b$ are given in radians. The relation between the angle {\
 above and the galactic coordinates is  {\tt fi}$=\cos^{-1}(\cos(l)\cos(b))$.  
  {\tt gammaFluxTabGC} integrates the flux over a     
 rectangle $[(l,b) - (l+dl,b+db)]$. 
+
+
+\noi$\bullet$ \verb|loopGamma(&vcs_gz,&vcs_gg)|\\
+calculates $\sigma v$ for  loop induced processes of DM pair
+annihilation into $\gamma Z$ and into $\gamma \gamma$. The result is given in  
+$\frac{cm^3}{s}$. The function returns a non-zero value to signal a problem. 
+This function is  available only for MSSM~\cite{Boudjema:2005hb}, NMSSM~\cite{Chalons:2011ia}, CPVMSSM and  IDM. 
+Note that this function does not include non-perturbative effects that are in particular  important when the mass of DM is much above the weak scale~\cite{Hisano:2004ds,Hryczuk:2011vi}.
+
+
 
 
 \noindent
@@ -1531,7 +1594,7 @@ The returned  parameter \verb|address|
 gives  an address where information about the decay channels is stored.
 In C, the address should be of type {\tt  txtList}.
 For models which read a SLHA parameter file, the values of the widths and branchings are taken from the SLHA
-file unless the user chooses not to read this data, see (Section~\ref{SLHA}) for details.
+file when \verb|useSLHAwidth=1| .
   
 
 \noindent
@@ -1545,7 +1608,13 @@ finds the branching fraction for a specific decay channel specified in
 {\tt pattern},  a string containing the particle names 
 in the \calchep\ notation. The names are separated by commas or spaces and can be specified in any
 order. 
+ 
+ \noindent
+ $\bullet$ \verb|printPartialWidth(width,address,FD)|\\ 
+prints the branching fractions and partial widths for each decay channel of a particle in the file {\tt FD}.   Here {\tt width} and {\tt address} are the result of the function  {\tt pWidth} described above.
 
+
+ 
 \noindent
 $\bullet$ \verb|slhaDecayPrint(pname,delVirt,FD)|\\
 uses \verb|pWidth| described above to calculate the width and branching ratios of particle \verb|pname| and writes down the result
@@ -1806,23 +1875,26 @@ Two  functions can be used to generate the input SLHA file, \verb|HB.in|\\
 \verb| hbBlocksMO("HB.in",&NchHiggs) | \\
 
 Both return the  number of neutral Higgses and {\tt NchHiggs} gives the number of charged Higgs particles.
-The function \verb|hbBlocksMDL|  is located in  \verb|lib/hbBlocks.c| for each model and contains the appropriate definition of the reduced couplings, it needs to be rewritten for new models implemented by the user. The function \verb|hbBlocksMDL|  generates automatically the required input file for any model and is thus very convenient to use  for new  models. 
-The content of this function is described in Section~\ref{sec:auto}. 
-Note that the theoretical uncertainty  on the  mass of the Higgs boson should be specified in the SLHA BLOCK DMASS, see the example given in  main.[c/F] to set the uncertainty at 2 GeV.
+The function \verb|hbBlocksMDL|  is located in  \verb|lib/hbBlocks.c| for each MSSM-like model and contains the appropriate definition of the reduced couplings. The function \verb|hbBlocksMO|  generates automatically the required input file for any model and is thus very convenient to use  for new  models. The content of this function is described in Section~\ref{sec:auto}.  Note that the PDG numbers that will be considered by HiggsBounds for Higgs-like particles are only 25,35,36,37,45,46. Moreover HiggsBounds will check the contribution to the Higgs invisible width only for particles with PDG codes  1000022, 1000012, 1000014, 1000016, 1000017, 1000018 or 1000019.
+Also note that the theoretical uncertainty  on the  mass of the Higgs boson should be specified in the SLHA BLOCK DMASS, see the example given in  main.[c/F] to set the uncertainty at 2 GeV.
 
 %
 The complete outputs of \HB\ and \HS\ are stored in the files  \verb|HB.out| and \verb|HS.out| respectively and can be accessed  and read  by the user using the \verb|slhaval| function~\cite{Belanger:2014hqa}.
 The screen output of \micro\ contains the following information\\
  
-\verb| HB(version number): result  obsratio  channel |\\
+\noindent
+\verb|HiggsBounds(version number)|\\
+\verb|id   result  obsratio  channel |\\
  
 \noindent
-where \verb|result| = $0,1,-1$ denotes respectively whether a parameter point is excluded at 95\% CL, not excluded, or invalid; \verb|obsratio| gives the ratio of the theoretical expectation relative to the observed value  for the most constraining channel specified in \verb|channel|. 
+where three channels are listed,  \verb|result| = $0,1,-1$ denotes respectively whether a parameter point is excluded at 95\% CL, not excluded, or invalid; \verb|obsratio| gives the ratio of the theoretical expectation relative to the observed value  for the channel specified in \verb|channel|. The first channel in this list is the one with the highest expected sensitivity and is the one that determines the overall exclusion, see~\cite{Bechtle:2013wla}, other channels are to be interpreted by the user. 
 
 
 The \HS\ output displayed on the screen is simply \\
 
-\verb| HS(version number): Nobservables chi^2  pval|\\
+\noindent
+\verb|HiggsSignals(version number)|\\
+\verb|Nobservables chi^2  pval|\\
 
 \noindent
 where \verb|Nobservables| gives the number of observables used in the fit, \verb|chi^2| the associated $\chi^2$ and \verb|pval| the p-value. 
@@ -2013,31 +2085,38 @@ should add up to 1.
 The {\tt MSSM} has a long list of low scale  independent model 
 parameters, those are specified in the SLHA file~\cite{Skands:2003cj,Allanach:2008qq}.
 They are directly implemented as parameters of the model.
+micrOMEGAs can either read an SLHA file computed externally or
+generate  this file in the  framework of  popular  SUSY scenarios, these are specified by one of the instructions
+\begin{verbatim}
+#define SUGRA
+#define SUGRANUH
+#define AMSB 
+#define EWSB
+\end{verbatim}  
+If none of these instructions are given then micrOMEGAs reads the external SLHA file which should be passed as an argument  when executing the {\it main} routine. 
+To generate  an SLHA file,  micrOMEGAs uses either SuSpect, SPHENO, or SoftSusy. These codes, if need be, solve the RGE equations and calculate the masses of Higgs and SUSY particles including one-loop corrections.  Note that SuSpect  is included within the micrOMEGAs distribution while  {\tt SPHENO} or {\tt SOFTSUSY} will be downloaded automatically when needed (see section 3.4).
+To specify  the spectrum calculator  the user has to define the parameter RGE  in {\it main.c/main.cpp}. For instance
+\begin{verbatim}
+#define RGE suspect
+\end{verbatim}  
+Other possibilities for \verb|RGE| are  \verb|softSusy|, \verb|spheno| and \verb|tree|. The option \verb|tree| will generate the needed SLHA file for the spectrum  using  EWSB input parameters and tree-level formulas. One-loop corrections to the Higgs masses and to the effective Higgs potential are based on ~\cite{Carena:1995wu}. In this case, the realization of the MSSM is  completely gauge invariant. This option can be useful to check the 
+effect of loop corrections.    
+
+
 For {\bf EWSB} scenarios the input parameters are  the soft parameters, the names 
 of these parameters are given in the {\tt MSSM/mssm[1/2].par} files.
-%For {\bf EWSB} scenario namely these parameters are treated as input.
 The user  can assign new values to these parameters by means of {\tt assignVal}
-or {\tt readVarMSSM}.
+or {\tt readVarMSSM}.  
 
 \noindent $\bullet$ {\it spect}\verb|EwsbMSSM()|\\
  calculates the  masses of Higgs  and
 supersymmetric particles in the MSSM including one-loop
 corrections starting from weak scale input parameters. \\
-In these functions {\it spect} stands for one of
-the spectrum calculators {\tt suspect}, {\tt isajet},
-{\tt spheno}, or {\tt softSusy}.
-The  default spectrum calculator package is {\suspect}. To work
-with another package one has to specify the appropriate path in
-\verb|MSSM/lib/Makefile|. For this,  the environment variables
-\verb|ISAJET|, \verb|SPHENO| or \verb|SOFTSUSY| must be redefined
-accordingly. Note that we also provide a special interface for
-\verb|ISAJET| to read a SLHA file. This means that the user must
-first compile the executable \verb|isajet_slha| which sets up the  SLHA 
-interface in  {\tt ISAJET}. Specific instructions are provided in the \verb|README| file.\\
+In these functions {\it spect}  is defined by \verb|RGE|.
  
 
 For other MSSM scenarios, the   parameters at the electroweak symmetry breaking scale are derived from 
-an  input at high scale. The same codes {\tt suspect}, {\tt isajet},
+an  input at high scale. The same codes {\tt suspect}, 
 {\tt spheno}, or {\tt softSusy} are used for this.The corresponding
 routines are:
 
@@ -2060,14 +2139,6 @@ explicitly.
 $\bullet${\it spect}\verb|AMSB(am0,m32,tb,sng)|.\\
 does  the same as above within the {\tt AMSB} model.\\
 
-
-%As mentioned the \micro~ interface with spectrum calculators is based on the
-%SLHA file interface. By default all intermediate files are deleted.
-%To keep those files, the user must write in the main file the instruction \\
-%\verb|      delFiles=0;|\\
-%In Fortran programs the same result can be obtained by\\ 
-%\verb|      call delFiles(0)|
-
 We  have an option to directly read a {\tt SLHA}  input file, this uses the  function \\
 \noi$\bullet$ \verb|lesHinput(file_name) |\\
 which returns a non-zero number in case of problem.
@@ -2086,10 +2157,9 @@ We have included some new contributions beyond the leading order that are
 especially important for high $\tan\beta$. \verb|SMbsg| gives the SM contribution.
 
 \noi$\bullet$ \verb|bsmumu()|\\ returns the value of the branching ratio $\bsmu$ in the
-MSSM.
-It includes the loop contributions
+MSSM. It includes the loop contributions
 due to chargino, sneutrino, stop and Higgs exchange. The $\dMb$ 
-effect relevant for high $\tan \beta$ is taken into account.
+effect relevant for high $\tan \beta$ is taken into account. Code is bases on \cite{Bobeth:2001sq}.
 %The current bound from  CDF experiment at Fermilab is B.R.($\bsmu<9\times 10^{-6}$) \cite{CDFbsmumu} and the expected bound from RunIIa
 %should reach  B.R.($\bsmu<2\times 10^{-7}$) \cite{bsmu_leptonphoton}.
 
@@ -2115,22 +2185,25 @@ returns a positive value  and
 direct accelerator limits on sparticle masses from LEP.
 The constraint on the light Higgs mass from the LHC is included.  
 
-We have added a routine for an interface with {\tt superIso}
-\cite{Arbey:2011zz}. This code is not 
-included in \micro\ so one has first to define 
-the global environment  variable {\it superIso} 
-to specify the path to the package.\\ 
-\noi$\bullet$ \verb|callSuperIsoSLHA()|\\
-launches superIso and downloads the SLHA file which  contains the results. The
-return value is zero when the program was  executed successfully.  Results
-for specific  observables can be obtained by the command {\tt slhaValFormat}
-described in  section (\ref{SLHA}).  Both {\tt superIso} and {\tt
-callSuperIsoSLHA} use a file interface to exchange data. The {\tt delFiles} flag specifies whether
-to save or delete the intermediate files.\\
-\noi$\bullet$ \verb|loopGamma(&vcs_gz,&vcs_gg)|\\
-calculates $\sigma v$ for  loop induced processes of neutralino
-annihilation into $\gamma Z$ and into $\gamma \gamma$. The result is given in  
-$\frac{cm^3}{s}$. In case of a problem the function returns a non-zero value. 
+%We have added a routine for an interface with {\tt superIso}
+%\cite{Arbey:2011zz}. This code is not 
+%included in \micro\ so one has first to define 
+%the global environment  variable {\it superIso} 
+%to specify the path to the package.\\ 
+%\noi$\bullet$ \verb|callSuperIsoSLHA()|\\
+%launches superIso and downloads the SLHA file which  contains the results. The
+%return value is zero when the program was  executed successfully.  Results
+%for specific  observables can be obtained by the command {\tt slhaValFormat}
+%described in  section (\ref{SLHA}).  Both {\tt superIso} and {\tt
+%callSuperIsoSLHA} use a file interface to exchange data. The {\tt delFiles} flag specifies whether
+%to save or delete the intermediate files.\\
+
+
+\noi $\bullet$ \verb|treeMSSM()|\\
+This function transforms a loop improved model defined in an SLHA file  into a tree level one. The masses and mixing angles are stored in the file
+ {\tt tree.slha}. This option can be useful to check the effect of loop induced
+masses and mixings. This option  guarantees gauge invariance for all processes.  
+
 
 \subsection{The NMSSM}
 
@@ -2163,10 +2236,6 @@ is similar to {\tt masslimits\_} except that it also checks the
 constraints on the Higgs masses, returns the number of warnings and 
 writes down  warnings in the file \verb|FD|.  
 
-\noi$\bullet$ \verb|loopGamma(&vcs_gz,&vcs_gg)|\\
-calculates $\sigma v$ for  loop induced processes of neutralino
-annihilation into $\gamma Z$ and into $\gamma \gamma$. The result is given in  
-$\frac{cm^3}{s}$. In case of a problem the function returns a non-zero value. 
 
 
 \subsection{The CPVMSSM}
@@ -2327,8 +2396,7 @@ We recommend to use the
 automatic width calculation for all particles from the 'odd' sector and for
 Higgs particles. 
 For models which use SLHA parameter transfer (Section~\ref{SLHA}), 
-the automatic width option will use the widths contained in the SLHA file unless the user chooses the option to
-ignore this data in the SLHA file, see section~\ref{SLHA}. 
+the automatic width option will use the widths computed internally unless the user chooses to use those contained  in the SLHA file  by setting {\tt useSLHAwidth=1}. 
 % For models which use SLHA parameter transfer (Section~\ref{SLHA}),
 %there is a possibility to use the width calculated by an external program
 %and read it via the SLHA protocol.  The corresponding function is
@@ -2696,12 +2764,17 @@ performs Gauss N-point integration for $N<8$.
 \noindent$\bullet$ \verb|simpson(F, x1, x2, eps,&err)|\\
 numerical integration of the function $F(x)$ in the interval $[x1,x2]$  
 with relative precision \verb|eps|. \verb|simpson| uses an adaptive algorithm 
-for integrand evaluation and increases the number of function calls in 
-the regions where the  integrand has peaks. Non-zero error code {\it err} means\\
-1: NaN in integrand\\
-2: Integration needs too many points\\
-3: Too deep recursion\\
-In case of error {\it simpson} returns result of 7 points Gauss integration. 
+for integrand evaluation and  recursively increases the number of function calls in 
+the regions where the  integrand has peaks. A non-zero error code {\it err} means\\
+1: NaN in integrand:  \verb|simpson| replaces NaN by zero and continues integration\\
+2: Too deep recursion: the recursion stops at  $10^{-15}|x1-x2|$. One can meet this problem when integrating 
+a function with a pole $|x-a|^{-\gamma}$ when $\gamma > 0.75$.  \\
+4: Lost of precision:   If in a small interval $\approx 10^{-4}|x1-x2|$ the derivative of the 
+function  changes  sign more than twice, it is treated as a lost of precision in the integrand and  \verb|simpson| stops without reaching 
+the  required  precision. The result of integration can be  correct despite this error code.\\
+In case of several error messages, $err$ contains their sum.  If the last argument of \verb|simpson| is $NULL$, the error message is displayed on  the screen.  \\
+
+
 
 
 \noindent$\bullet$ \verb|odeint(Y, Dim, x1, x2, eps,h1, deriv)|\\
@@ -2768,7 +2841,7 @@ of points in the  constructed grid. $X$ and $Y$ are variables of the
 
 \noindent$\bullet$ \verb|K1pole(x)=|$K_1(\frac{1}{x}) e^\frac{1}{x}
 \sqrt{\frac{2}{\pi x}}$  \\
-\noindent$\bullet$\verb|K2pole(x)=|$K_2(\frac{1}{x}) e^\frac{1}{x}
+\noindent$\bullet$ \verb|K2pole(x)=|$K_2(\frac{1}{x}) e^\frac{1}{x}
 \sqrt{\frac{2}{\pi x}}$   \\
 \micro\ uses these functions for calculating the  relic density. For 
 small values of $x=T/M_{cdm}$, these functions are written as polynomials in $x$, thus the large exponentials are cancelled symbolically when taking ratios 
@@ -2886,7 +2959,7 @@ With these default values  the NLO- improved SM contribution
 is $B(\bar{B}\rightarrow X_s \gamma)|_{\rm SM}=3.27\times 10^{-4}$ which corresponds to the result of Gambino
 and Giordano~\cite{Gambino:2008fj} after correcting for the slightly different CKM parameter used ($ckmf=0.963$).
 
-We have performed a comparison with superIso$3.1$ which includes the NNLO SM calculation for 
+We have performed a comparison with superIso which includes the NNLO SM calculation for 
 $10^5$ randomly generated MSSM scenarios. The results are presented in Fig.~\ref{fig:iso}  after applying a
 correction factor in superISO to account for the different value for the overall factor
 $F=B(\bar{B}\rightarrow X_c e\bar\nu) \left|\frac{V_{ts}^* V_{tb}}

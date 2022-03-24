@@ -2,13 +2,27 @@
    char smodels_database[100];
    char smodels_version[100];
    system("rm -f smodels.*");
+   char *VERSION="1.2.2";
  
    printf("\nSMODELS:\n");
    smodels(LHCrun,5/*nf*/, 0.1/*fb*/,  "smodels.in",0);
-   if(access( "../Packages/smodels-v1.1.1/smodelsTools.py",X_OK )) system("cd ../Packages;  make -f SMODELS.make");
+   
+   char*command=(char*)malloc(strlen(micrO)+200 );
+    
+   sprintf(command,"%s/Packages/smodels-%s/runSModelS.py",micrO,VERSION);
+   if(access(command,X_OK ))
+   {
+      sprintf(command,"cd  %s/Packages;  make -f  SMODELS.makef VERSION=%s", micrO,VERSION); 
+      system(command);
+   }   
 
-   system("../Packages/smodels-v1.1.1/smodelsTools.py -particles ./ xseccomputer -p  -N -v warning  -O -f smodels.in 2>smodels.out");
-   system("../Packages/smodels-v1.1.1/runSModelS.py -f smodels.in -o ./ -particles ./ -v error 2>> smodels.out");
+//   sprintf(command,"micrO=%s; python3  $micrO/Packages/smodels-%s/smodelsTools.py xseccomputer -p -N -v warning  -O -f smodels.in 2>smodels.out",micrO,VERSION),
+//   system(command);
+//printf("%s\n", command);
+   sprintf(command,"micrO=%s; python3  $micrO/Packages/smodels-%s/runSModelS.py -f smodels.in -p $micrO/include/micromegasInterfaceParams.ini -o ./ -v error 2>>smodels.out",micrO,VERSION);
+   system(command);
+//printf("%s\n", command);   
+   free(command);   
    slhaRead("smodels.in.smodelsslha", 1);
    slhaSTRFormat("SModelS_Settings"," 0 %s",smodels_version);
    slhaSTRFormat("SModelS_Settings"," 1 %s",smodels_database);

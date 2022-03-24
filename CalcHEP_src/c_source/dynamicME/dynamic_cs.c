@@ -234,7 +234,7 @@ numout*getMEcode(int twidth,int Gauge, char*Process, char*excludeVirtual,
    for(test=allProc;test; test=test->next) if(strcmp(lib_,test->libname)==0) 
    {
      *(test->cc->interface->gtwidth)=0;
-     *(test->cc->interface->twidth) =0;
+     *(test->cc->interface->twidth) =twidth;
      *(test->cc->interface->gswidth)=0;
      *(test->cc->interface->BWrange)=BWrange; 
      free(lib_);
@@ -311,6 +311,7 @@ numout*getMEcode(int twidth,int Gauge, char*Process, char*excludeVirtual,
       test->cc=cc;
    } else if(new) dClose(handle);  
     free(command); free(proclibf); free(lib_);
+    if(cc) *(cc->interface->twidth) =twidth;
     return cc; 
 }
 
@@ -336,7 +337,7 @@ static  lVert* loadVert(void* handle, char * lib)
      vv->link=malloc(sizeof(REAL*)*(vv->nVar));
      for(i=0;i<vv->nVar;i++) 
      { char *name=vv->varNames[i];
-       vv->link[i]=varAddress(name);  
+       vv->link[i]=varAddress(name);
      }  
   }
   return vv;
@@ -374,8 +375,7 @@ lVert* getVertex(char*n1,char*n2,char*n3,char*n4)
    int Len;
    char *fields[4]={n1,n2,n3,n4};
 
-   
-   int err=vert2name(fields,lib);      
+   int err=vert2name(fields,lib);
    if(err) return NULL;
    
    for(test=allVert;test; test=test->next) if(strcmp(lib,test->libname)==0)
@@ -402,7 +402,7 @@ lVert* getVertex(char*n1,char*n2,char*n3,char*n4)
         
         delWorkDir=prepareWorkPlace();
         sprintf(command,"cd %s; %s/sbin/newVertex models  %d  %s  %s %s",
-                       compDir, calchepDir,  modelNum, lib, libDir, vert_txt);                         
+                       compDir, calchepDir,  modelNum, lib, libDir, vert_txt);
         ret=system(command);
       
 //        if(ret<0 || WIFSIGNALED(ret)>0 ) exit(10);
@@ -440,11 +440,15 @@ int  getNumCoeff(lVert*vv, double * coeff)
 {
    int i;   
    if(!vv) { printf("Call of  getNumCoeff with NULL argument. Program terminated\n"); exit(1);}
-   REAL**link=(REAL**)(vv->link);
-   for(i=0;i<vv->nVar;i++) vv->varValues[i+1]=*(link[i]); 
+ 
+   for(i=0;i<vv->nVar;i++) if(vv->link[i] &&  ((REAL*)(vv->link[i])-varValues) < *currentVarPtr)  vv->varValues[i+1]=*((REAL*)(vv->link[i])); else 
+   { 
+     printf("!Value of variable  '%s' needed for calculation of '%s' is not known yet\n",
+     vv->varNames[i], varNames[*currentVarPtr]);  
+     vv->varValues[i]=0; FError=1;
+   }
                                      
    int err= vv->calcCoeff(coeff);
-//   for(i=0;i<vv->vertPtr->nVar;i++) printf("vv->vertPtr->varValues[%d+1]=%E\n",i, vv->vertPtr->varValues[i+1]);   
    return err;
 }
 
@@ -577,7 +581,21 @@ void delAllLib(void)
      curProc=curProc->next;
      free(tmp);
   }
+ 
   allProc=NULL;
+
+  vertRec*curVert=allVert;
+  
+  while(curVert)
+  {  vertRec*tmp=curVert;
+     free(curVert->libname);
+     free(curVert->vv->link);
+     dClose(curVert->vv->handle);
+     curVert=curVert->next;
+     free(tmp);
+  }
+                                       
+  allVert=NULL;
 }
 
 numout*newProcess(char*Process)
@@ -585,7 +603,7 @@ numout*newProcess(char*Process)
    char lib[100];
    err=process2Lib(Process,lib);
    if(err) return NULL;
-   return getMEcode(0,ForceUG,Process,NULL,"",lib);
+   return getMEcode(1,ForceUG,Process,NULL,"",lib);
 }
 
 
@@ -619,7 +637,7 @@ int HiggsLambdas(double Q, char * Higgs, double complex*lAA,double complex *lGG,
         double dffE=0,dfaE=0,dffC=0,dfaC=0;
         pdg=qNumbers(Xp, &spin2, &charge3, &cdim);
 
-        if(charge3 !=0 || cdim!=1)
+        if((charge3 !=0 || cdim!=1) && mX>0)
         {  
            double coeff[10]; 
            int k;

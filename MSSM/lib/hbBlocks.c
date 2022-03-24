@@ -4,21 +4,40 @@
 
 #define SQR(x) (x)*(x)
 int  hbBlocksMDL(char*fname,int *nHch)
-{ 
-  slhaWrite("HB.in");
-  FILE * f=fopen(fname,"a");
+{ if(nHch) *nHch=1;
+  if(useSLHAwidth && 
+       (  blockExists("HiggsBoundsInputHiggsCouplingsBosons")
+        ||blockExists("HiggsBoundsHiggsCouplingsBosons")
+       )
+    )
+  {   
+       slhaWrite(fname);
+       return 3;
+  }        
+  FILE * f=fopen(fname,"w");
+   
+  fprintf(f," Block MODSEL  # Model selection\n");
+  fprintf(f,"  1    0       # general MSSM\n");
+  fprintf(f,"  3    0       # MSSM particles\n");
+      
   double tb,sb,cb,alpha,sa,ca,ta,samb,camb,dMb,MbHl,MbSM,MbH,MbH3;
   double vev= 2*findValW("MW")*findValW("SW")/findValW("EE"),
   Mcp=findValW("Mcp"),Mbp=findValW("Mbp"),Mtp=findValW("Mtp"),
   Mh=findValW("Mh"),MH=findValW("MH"),MH3=findValW("MH3");
   double LGGSM,LAASM; 
     
-  if(!f) return 1;
-  if(slhaDecayExists(pNum("h")) <0)  slhaDecayPrint("h", 0, f);
-  if(slhaDecayExists(pNum("H")) <0)  slhaDecayPrint("H", 0, f);
-  if(slhaDecayExists(pNum("H3"))<0)  slhaDecayPrint("H3",0, f);
-  if(slhaDecayExists(pNum("t")) <0)  slhaDecayPrint("t", 0, f);
-  if(slhaDecayExists(pNum("H+"))<0)  slhaDecayPrint("H+",0, f);
+  fprintf(f,"BLOCK MASS\n");
+  fprintf(f,"  25 %E  # h\n",pMass("h"));
+  fprintf(f,"  35 %E  # h\n",pMass("H"));
+  fprintf(f,"  36 %E  # h\n",pMass("H3"));
+  fprintf(f,"  37 %E  # h\n",pMass("H+"));
+  
+
+  slhaDecayPrint("h", 0, f);
+  slhaDecayPrint("H", 0, f);
+  slhaDecayPrint("H3",0, f);
+  slhaDecayPrint("t", 0, f);
+  slhaDecayPrint("H+",0, f);
 
   tb=findValW("tB");  
     sb=tb/sqrt(1+tb*tb);
@@ -30,7 +49,6 @@ int  hbBlocksMDL(char*fname,int *nHch)
     samb=sa*cb-ca*sb;
     camb=ca*cb+sa*sb;
   dMb=findValW("dMb");
-
 
   MbSM=findValW("Mb");
   MbH= MbSM/(1+dMb)*(1+dMb*ta/tb);  
@@ -89,6 +107,5 @@ int  hbBlocksMDL(char*fname,int *nHch)
   fprintf(f," %12.4E   %12.4E   3    36    15   15 # higgs-tau-tau \n",0.,SQR(tb)            );
      
   fclose(f);
-  if(nHch) *nHch=1; 
   return 3;
 }

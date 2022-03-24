@@ -27,6 +27,7 @@
 #include "spectrum.h"
 #include "num_in.h"
 #include "comp.h"
+#include "dynamic_cs.h"
 
 #include"../../include/version.h"
 
@@ -330,14 +331,15 @@ L1:
       char strmen[] ="\030"
                       " BreitWigner range XXX  "
                       " T-channel widths   YYY "
-                      " GI in t-channel    ZZZ "
-                      " GI in s-channel    WWW ";   
+                      " GI in t-channel    TTT "
+                      " GI in s-channel    SSS "
+                      " useSLHAwidth       WWW ";   
 
       improveStr(strmen,"XXX","%.1f",*BWrange_int);
       improveStr(strmen,"YYY", (*twidth_int)? "ON" : "OFF");
-      improveStr(strmen,"ZZZ",(*gtwidth_int)? "ON" : "OFF");
-      improveStr(strmen,"WWW",(*gswidth_int)? "ON" : "OFF");
-
+      improveStr(strmen,"TTT",(*gtwidth_int)? "ON" : "OFF");
+      improveStr(strmen,"SSS",(*gswidth_int)? "ON" : "OFF");
+      improveStr(strmen,"WWW",(useSLHAwidth)? "ON" : "OFF");
       menu1(54,6,"",strmen,"n_width_*",&pscr ,&key);
    }
 
@@ -347,9 +349,10 @@ L1:
               if(*BWrange_int<0) *BWrange_int=-*BWrange_int;
               if(*BWrange_int>999.9) *BWrange_int=999.9;
               break;
-     case 2:  *twidth_int = ! *twidth_int; break;
+     case 2:  *twidth_int = ! *twidth_int;  break;
      case 3:  *gtwidth_int =! *gtwidth_int; break; 
      case 4:  *gswidth_int =! *gswidth_int; break;
+     case 5:  useSLHAwidth= ! useSLHAwidth; break;
    }    
     goto L1;
 } /* w_men__ */

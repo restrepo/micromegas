@@ -8,7 +8,7 @@
     exit 1
   fi 
   
-  rm -rf Packages/HiggsBounds  Packages/HiggsSignals Packages/smodels-v1.1.1
+  rm -rf Packages/HiggsBounds*  Packages/HiggsSignals* Packages/smodels-* Packages/softsusy* Packages/SPheno-* Packages/superiso_v*
   
   if(test -x "`which gmake`") then
      MAKE=gmake

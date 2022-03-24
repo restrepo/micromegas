@@ -27,11 +27,12 @@ typedef struct numout
   CalcHEP_interface * interface; 
 } numout;
 */
+
 extern int VVdecay;
 
 extern int sortOddParticles(char * name);
 
-typedef  struct { double par[41]; }  MOcommonSTR;
+typedef  struct { double par[43]; }  MOcommonSTR;
 extern   MOcommonSTR  mocommon_;
 
 #define Mcdm        mocommon_.par[1]
@@ -74,11 +75,13 @@ extern   MOcommonSTR  mocommon_;
 #define dmAsymm     mocommon_.par[33]
 #define Vesc        mocommon_.par[34]
 #define Vrot        mocommon_.par[35]
-#define fracCDM2    mocommon_.par[36]
-#define Mcdm1       mocommon_.par[37]
-#define Mcdm2       mocommon_.par[38]
-#define Tstart      mocommon_.par[39]
-#define Tend        mocommon_.par[40]
+#define etaSHMpp    mocommon_.par[36]
+#define betaSHMpp   mocommon_.par[37]
+#define fracCDM2    mocommon_.par[38]
+#define Mcdm1       mocommon_.par[39]
+#define Mcdm2       mocommon_.par[40]
+#define Tstart      mocommon_.par[41]
+#define Tend        mocommon_.par[42]
 
 typedef  struct { int flag[4];}     MOflagsSTR;
 extern   MOflagsSTR moflags_;
@@ -119,6 +122,7 @@ extern int process2Lib(char * process,char * lib);
 extern void cleanTxtList(txtList L);
 extern double findBr(txtList L, char * pattern);
 extern void printTxtList(txtList L, FILE *f);
+extern void printPartialWidth(double width,txtList l,FILE*f);
 
 /*=============================
      (1)2->2 matrix elements
@@ -376,10 +380,9 @@ extern double FermiFF(int A, double Qfermi);
 
 extern double Maxwell(double v);
 extern double maxwell_(double*v);
-extern void SetfDelta(double V0);
-extern double fDvDelta(double v);
 
-extern void setRecoilEnergyGrid(double step, int dim);
+
+#define REDIM 150
 
 extern double nucleusRecoil(
 double(*fDv)(double),   /*  f(v)/v where f(v) is velocity distribution, 
@@ -435,8 +438,9 @@ extern void smodels(int Run, int nf,double csMinFb, char*fileName,int wrt);
 
 typedef void (SxxType)(double,double*,double*,double*);
 
-extern SxxType SxxF19,SxxNa23, SxxAl27, SxxSi29, SxxK39, SxxGe73, SxxNb93,SxxTe125,SxxI127,SxxXe129,SxxXe131,SxxPb207,
-SxxNa23A,SxxSi29A,SxxTe125A,SxxI127A,SxxXe129A,SxxXe131A,SxxGe73A,SxxXe131B;
+extern SxxType SxxF19,SxxNa23, SxxAl27, SxxSi29, SxxK39, SxxGe73, SxxNb93,SxxTe125,SxxI127,SxxXe129,
+SxxXe129M,SxxXe131,SxxPb207,
+SxxNa23A,SxxSi29A,SxxTe125A,SxxI127A,SxxXe129A,SxxXe131A,SxxXe131Me,SxxGe73A,SxxXe131B;
 
 
 typedef double (double2double)(double);
@@ -448,6 +452,7 @@ extern  int Plot3SS(double xiP,double xiN,
          int A, double J, char * title, double Emax);
 extern  int Plot3SS0(double xiP,double xiN, double Sp, double Sn,
     int A, double J, char* title, double Emax);
+
      
       
 #define Sp_H1     ( 0.5)
@@ -520,6 +525,7 @@ http://www.nndc.bnl.gov/nudat2/indx_sigma.jsp
 #define LHC8   1
 #define LHC13  2
 
+extern int callSuperIsoSLHA(void);
 
 #ifdef __cplusplus
 }

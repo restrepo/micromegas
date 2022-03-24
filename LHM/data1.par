@@ -1,8 +1,8 @@
-f 750
-sa 0.8
-MH 125
-kappa 0.9
-kappal 0.116
-Mm 1.057000E-01
-Ml 1.777000E+00
-wtop 1.442000E+00
+f 750             # symmetry breaking scale
+sa 0.8            # ratio of Yukawa couplings in top sector
+MH 125            # Higgs mass
+kappa 0.9         #Yukawa for odd d-quark
+kappal 0.116      #Yukawa for odd charged lepton
+Mm 1.057000E-01   #Mass of muon
+Ml 1.777000E+00   #Mass of tau
+wtop 1.442000E+00 #Top width

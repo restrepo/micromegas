@@ -343,13 +343,14 @@ static int getDecBrKE(double T, txtList L, double eta, double * brTot, double * 
   {
     char name[4][20];
     double br;
-    if(4 < sscanf(l->txt,"%lf %s -> %[^,],%[^,],%[^,]",&br,name[0],name[1],name[2],name[3])) continue;
+    if(4 < sscanf(l->txt,"%lf %s -> %[^,], %[^,], %[^,]",&br,name[0],name[1],name[2],name[3])) continue;
     for(int i=0;i<3;i++)mu[i]=pMass(name[i])/T;
     for(int i=1;i<3;i++)   if(isFeeble(name[i])) s[i]=0; else
     {  
        qNumbers(name[i], s+i ,NULL,NULL);
        if(s[i]&1) s[i]=-1; else s[i]=1;
      }
+
 //     if(mu[0]<25)  printf("mu=%E s[1]=%d,s[2]=%d eta=%e K=%E\n",mu[0],s[1],s[2], eta, K1to2(mu[0],mu[1],mu[2],eta,s[1],s[2])/K1to2(mu[0],0,0,eta,0,0));    
      if((s[1]||s[2])&& mu[0]<25) br*=K1to2(mu[0],mu[1],mu[2],eta,s[1],s[2])/K1to2(mu[0],0,0,eta,0,0);
      *brTot+=br;
@@ -441,13 +442,14 @@ static int getDecBr(double T, double P,  txtList L,double * brTot, double * brBa
   {
     char name[4][20];
     double br;
-    if(4 < sscanf(l->txt,"%lf %s -> %[^,],%[^,],%[^,]",&br,name[0],name[1],name[2],name[3])) continue;
+    if(4 < sscanf(l->txt,"%lf %s -> %[^,], %[^,], %[^,]",&br,name[0],name[1],name[2],name[3])) continue;
     for(int i=0;i<3;i++)mu[i]=pMass(name[i]);
     for(int i=1;i<3;i++) if(isFeeble(name[i])) s[i]=0; else
     {  
        qNumbers(name[i], s+i ,NULL,NULL);
        if(s[i]&1) s[i]=-1; else s[i]=1;
     }
+  
     br*=Stat2(P/T,mu[0]/T,mu[1]/T,mu[2]/T,s[1],s[2]);
     *brTot+=br;
     if(s[1] && s[2]) *brBath+=br;
@@ -918,7 +920,7 @@ static void fillMediatorArr(double Tr,par_22 *arg)
              int s[3],pdgD[3],q3[3],cdim[3];
              double mu[3];
              double br;
-             if(4 < sscanf(l->txt,"%lf %s -> %[^,],%[^,],%[^,]",&br,name[0],name[1],name[2],name[3])) continue;
+             if(4 < sscanf(l->txt,"%lf %s -> %[^,], %[^,], %[^,]",&br,name[0],name[1],name[2],name[3])) continue;
              for(int i=0;i<3;i++) mu[i]=pMass(name[i])/T;
              for(int i=1;i<3;i++)
              { pdgD[i]=qNumbers(name[i], s+i ,q3+i,cdim+i);
@@ -987,7 +989,7 @@ static void fillMediatorArr(double Tr,par_22 *arg)
             int s[3],pdgD[3],q3[3],cdim[3];
             double mu[3];
             double br;
-            if(4 < sscanf(l->txt,"%lf %s -> %[^,],%[^,],%[^,]",&br,name[0],name[1],name[2],name[3])) continue;
+            if(4 < sscanf(l->txt,"%lf %s -> %[^,], %[^,], %[^,]",&br,name[0],name[1],name[2],name[3])) continue;
 
             for(int i=1;i<3;i++) pdgD[i]=qNumbers(name[i], s+i ,q3+i,cdim+i);
     
@@ -1062,20 +1064,19 @@ static double * intervals=NULL;
 static int nIntervals=0; 
 static int maxIntervals=0;
 
-/*
+
 static void printIntervals(void) 
 { printf("Intervals: ");
   for(int i=0;i<nIntervals;i++) printf("[%e,%e] ",intervals[2*i],intervals[2*i+1]);
   printf("\n");
 } 
-*/
+
 
 static void delInterval(double x1,double x2)
 { 
 
 //printf("delInterval [%e,%e]\n",x1,x2);
-
-  
+ 
   int i1,i2;
   for(i1=0;i1<2*nIntervals;i1++) if(x1<=intervals[i1]) break; i1--; 
   for(i2=0;i2<2*nIntervals;i2++) if(x2<intervals[i2]) break; i2--;
@@ -1102,7 +1103,7 @@ static void delInterval(double x1,double x2)
 
 //========= Multiple integrtion
 
-static double eps=1E-3;
+static double eps=1E-2;
 
 
 static double sIntegrand_y(double y, void*arg_)
@@ -1121,10 +1122,10 @@ static double sIntegrand_y(double y, void*arg_)
      calcMainFunc(); 
      passParameters(arg->cc);
      for(int n=0;n<nMed;n++) arg->cc->interface->va[mediatorArr[n].widthPos]=mediatorArr[n].Twidth;
-     mass22_par(arg);
+     mass22_par(arg,T);
   }   
      
-  if(kin22_par(arg,sqrtS, sqrt(4*M_PI*parton_alpha(sqrtS)))){  return 0;}
+  if(kin22_par(arg,sqrtS, sqrt(4*M_PI*parton_alpha(sqrtS)))){  printf("kin22 problem\n");   return 0;}
 //  if(arg->err) return 0;
   err=0;
 
@@ -1139,8 +1140,7 @@ static double sIntegrand_y(double y, void*arg_)
   if((arg->eta[2] || arg->eta[3]) && sqrtS/T<25  ) 
       res*=K1to2(sqrtS/T,arg->pmass[2]/T,arg->pmass[3]/T,0,arg->eta[2],arg->eta[3])/
            K1to2(sqrtS/T,arg->pmass[2]/T,arg->pmass[3]/T,0,0,0);
-           
-//printf("y=%e res=%E\n", y,res);           
+
   return res;
  
 }
@@ -1158,14 +1158,14 @@ static double lnTIntegrand(double lnT,void*arg_)
   double J=(1+hEffLnDiff(T)/3)/H;                             // dt => dlnT
  
   double Tx=T*2;
-  
+
   if(Taddress) *Taddress=T;
   if(Qaddress) *Qaddress=1;
   if(Taddress || Qaddress)
   {  calcMainFunc(); 
      passParameters(arg->cc);
   }   
-  mass22_par(arg);
+  mass22_par(arg,T);
   double sqrtSmin=arg->pmass[0]+arg->pmass[1];   
   double mout=arg->pmass[2]+arg->pmass[3];
   if(mout>sqrtSmin) sqrtSmin=mout;
@@ -1199,11 +1199,9 @@ static double lnTIntegrand(double lnT,void*arg_)
 #ifndef ONSHELL             
       if( wEff/Tx < e0 )
 #endif     
-      {
-//printIntervals();      
+      {      
          double d0 = e0>100*wEff/Tx? e0: 100*wEff/Tx;   
          delInterval(exp(-Mm/Tx -d0)  ,exp(-Mm/Tx+d0));
-//printIntervals();
          double c=1;   
          if((arg->eta[2] || arg->eta[3]) && Mm/T<25  ) 
             c=K1to2(Mm/T,arg->pmass[2]/T,arg->pmass[3]/T,0,arg->eta[2],arg->eta[3])/
@@ -1214,7 +1212,7 @@ static double lnTIntegrand(double lnT,void*arg_)
       
     } else mediatorArr[n].Twidth=polint3(lnT,tGridDim,ltGrid,mediatorArr[n].wEff);
   }
-
+//printf("sum=%e\n",sum);
   double NdfIn=arg->ndf[0]*arg->ndf[1];
   if(arg->pdg[0]==arg->pdg[1]) NdfIn/=2;
   sum/=NdfIn; 
@@ -1223,21 +1221,18 @@ static double lnTIntegrand(double lnT,void*arg_)
   for(int i=0;i<nIntervals;i++)
   { int err;
 //    char txt[40];
-//    sprintf(txt,"s_Integrand_y %d T=%E\n",Nplot++,T); 
+//    sprintf(txt,"s_Integrand_y %d T=%E\n",Nplot++,T);
     sum+= simpson_arg(sIntegrand_y,arg,intervals[2*i], intervals[2*i+1],1E-3,&err);
     if(err)
-    { arg->err=arg->err|ErrIS;
-      if(err==1) printf("Warning from Simpson. Nan in integrand (freezein.c line 1222)\n");
-      else 
-     { printf("Warning from Simpson. Precision is not reached (freezein.c line 1222 code=%d)\n",err);
-//#ifdef ERROR_PLOT
-printf("[%e %e]\n", intervals[2*i],intervals[2*i+1]);
-      displayPlot("s_Integrand_y", "y",intervals[2*i], intervals[2*i+1]/1000000000, 0,1, "dI/dy", 0, sIntegrand_y,arg);
-     exit(0);
-//#endif
-      }
+    {  arg->err=arg->err|(2*8*err);
+#ifdef ERROR_PLOT
+      { printf("Warning from Simpson. Precision is not reached (freezein.c line 1222 code=%d  arg->err=%d ErrIS=%d )\n",err,arg->err,ErrIS);
+       printf("i=%d interval: %e %e  \n",i, intervals[2*i],intervals[2*i+1]);
+       displayPlot("s_Integrand_y", "y",intervals[2*i], intervals[2*i+1], 0,1, "dI/dy", 0, sIntegrand_y,arg);
+       exit(0);
+      } 
+#endif
     } 
-    if(arg->err==4) return 0;
   }
 #endif
 
@@ -1261,8 +1256,9 @@ static    double lnsFntegrandForVegas(double lns)
      calcMainFunc();
      passParameters(arg_stat.cc);
      for(int n=0;n<nMed;n++) arg_stat.cc->interface->va[mediatorArr[n].widthPos]=mediatorArr[n].Twidth;
-     mass22_par(&arg_stat);
   }                         
+  mass22_par(&arg_stat,T);
+
  
   if(kin22_par(&arg_stat, sqrtS, sqrt(4*M_PI*parton_alpha(sqrtS)))) return 0;           
   if(arg_stat.err==4) { tPoleDetected=1; return 0;}
@@ -1390,12 +1386,17 @@ static int printFi22Error(FILE*f, int err)
        case  4: fprintf(f,"reheating temperature is too small\n");break;       
        case  5: fprintf(f,"there are incoming feeble particles\n"); break;
        case  6: fprintf(f,"there is no odd  feeble particles among outgoing ones\n");break;
-       case  7: fprintf(f,"there is no convergence for temperature integral\n");break;
-       case  8: fprintf(f,"there is no convergence for integral over energy\n");break;
-       case  9: fprintf(f,"there is no convergence for angle integral\n");break;  
-       case 10: fprintf(f,"there is an on shell particle in t/u channel\n");break;
-       case 11: fprintf(f,"can not treat small angle pole contribution\n");break;
-       case 12: fprintf(f,"lost of precision caused by diagramm cancelation\n");
+
+       case   7: fprintf(f,"Lost of precision in  temperature integrand\n");break;
+       case   8: fprintf(f,"Pole in temperature integrand\n");break;
+       case   9: fprintf(f,"NaN in temperature intergrand\n");break;
+       case  10: fprintf(f,"Lost of precision in  sqrt(s) integrand\n");break;
+       case  11: fprintf(f,"Pole in sqrt(s) integrand\n");break;
+       case  12: fprintf(f,"NaN  in sqrt(s) intergrand\n");break;
+       case  13: fprintf(f,"Lost of precision in angle integrand\n");break;
+       case  14: fprintf(f,"Pole in angle  integrand\n");break;
+       case  15: fprintf(f,"NaN  in angle  intergrand\n");break;
+       case  16: fprintf(f,"lost of precision caused by diagramm cancelation\n");
      }
 }
 
@@ -1425,7 +1426,7 @@ double  darkOmegaFi22(double Tr, char *Proc, int vegas,  int plot, int *err_)
    }
    if(!err)   
    {  if(Tr<=10*Tzero) err=4; else 
-      {  mass22_par(&arg);
+      {  mass22_par(&arg,Tzero);
          Tmin=(arg.pmass[2]+arg.pmass[3])/15;
          if(Tmin<(arg.pmass[0]+arg.pmass[1])/15) Tmin=(arg.pmass[0]+arg.pmass[1])/15;
          if(Tmin>Tr/10) Tmin=Tr/10;
@@ -1485,7 +1486,7 @@ double  darkOmegaFi22(double Tr, char *Proc, int vegas,  int plot, int *err_)
 
         if(plot)                                                                                                                                                                             
         {                                                                                                                                                                                    
-          mass22_par(&arg);
+          mass22_par(&arg,Tmin);
           if(arg.err==0)                                                                                                                                                                     
           {                                                                                                                                                                                  
             double arr[100];
@@ -1499,28 +1500,24 @@ double  darkOmegaFi22(double Tr, char *Proc, int vegas,  int plot, int *err_)
             displayPlot(txt,"T",Tmin,Tr,1,1,"Omega(T)",100,arr,NULL);                                                                                                                    
           }                                                                                                                                                                                  
         }      
-        arg.err=0;                                                                                                                                                                              
-        omega= totOmegaCoeff*simpson_arg(lnTIntegrand,&arg,log(Tmin),log(Tr),0.001,&err);                                                                                                    
-        if(err)                                                                                                                                                                              
-        { 
-          err=7;                                                                                                                                                                            
-          printf("Warning from Simpson. Precison is not reached (freezein.c line 1498 code=%d)\n",intErr);                                                                                    
-   #ifdef ERROR_PLOT                                                                                                                                                                         
-          displayPlot("lnTIntegrand","log(T)", log(Tmin),log(Tr), 0,1,"lnTIntegrand",0, lnTIntegrand, &arg);                                                                                 
-          exit(0);                                                                                                                                                                         
-   #endif                                                                                                                                                                                    
-        }else if(arg.err) 
-        { 
-                if(arg.err&ErrIS) err=8;
-           else if(arg.err&ErrIA) err=9; 
-           else if(arg.err&Errt) err=10;
-           else if(arg.err&ErrP) err=11;
-           else if(arg.err&ErrC) err=12; 
-        }
+        arg.err=0; 
+        omega= totOmegaCoeff*simpson_arg(lnTIntegrand,&arg,log(Tmin),log(Tr),0.001,&err);
+        if(err) arg.err=arg.err|(2*8*8*err);
+             if(arg.err & 2*8*8*4)  err=7; 
+        else if(arg.err & 2*8*8*2)  err=8;
+        else if(arg.err & 2*8*8*1)  err=9;
+        else if(arg.err & 2*8*  4)  err=10;
+        else if(arg.err & 2*8*  2)  err=11;
+        else if(arg.err & 2*8*  1)  err=12;
+        else if(arg.err & 2*    4)  err=13;
+        else if(arg.err & 2*    2)  err=14;
+        else if(arg.err & 2*    1)  err=15;
+        else if(arg.err &       1)  err=16;
+
+                                                                                                                                                                                     
       }                                                                                                                                                                                      
    }
    if(!saveMediators) cleanMediatorArr();
-
    if(err_)  *err_=err; else  printFi22Error(stdout,err);
 
    return omega;
@@ -1555,7 +1552,8 @@ double darkOmegaFi(double TR,int *err)
     if(minFeebleMass<0) minFeebleMass=m;
     else if(m<minFeebleMass) minFeebleMass=m;   
   }
-  
+
+ 
   if(minFeebleMass<0) 
   { printf("Feeble particles are not detected\n"); 
     free(feebleDm);
@@ -1623,9 +1621,9 @@ double darkOmegaFi(double TR,int *err)
        if(i<4 && n[i]<n_[i]) continue;
        char proc[100];
        sprintf(proc,"%s,%s->%s,%s", p[0],p[1],p[2],p[3]);
+
+       
        dOmega=darkOmegaFi22(TR,proc,0,0,&err);
-//printf("proc=%s err=%d dOmega=%E \n", proc,err,dOmega );
-       if(err==7 || err==11) dOmega=0;
        if(dOmega||err)
        {         
          for(int i=0;i<4;i++) if(n[i]>0) omegaFiCh[nFiCh].prtcl[i]=ModelPrtcls[n[i]-1].name;
@@ -1678,12 +1676,15 @@ void printChannelsFi(double cut, int prcn, FILE * f)
     } 
 
     for(int i=0; omegaFiCh[i].prtcl[0];i++) if(omegaFiCh[i].weight/omega>cut || omegaFiCh[i].err )
-    {  if(prcn) fprintf(f," %6.2f%%  %s", 100*omegaFiCh[i].weight/omega,omegaFiCh[i].prtcl[0]);
-        else    fprintf(f," %.3E  %s", omegaFiCh[i].weight/omega,omegaFiCh[i].prtcl[0]);
-       if(omegaFiCh[i].prtcl[3]==NULL) fprintf(f," -> %s, %s", omegaFiCh[i].prtcl[1],omegaFiCh[i].prtcl[2]);
-       else  fprintf(f,", %s ->  %s,%s ", omegaFiCh[i].prtcl[1],omegaFiCh[i].prtcl[2],omegaFiCh[i].prtcl[3]);
-       if(omegaFiCh[i].err) { fprintf(f,"Error %d:",omegaFiCh[i].err);  printFi22Error(f,omegaFiCh[i].err);}
-       else fprintf(f,"\n"); 
+    {  if(prcn) fprintf(f," %6.2f%%  ", 100*omegaFiCh[i].weight/omega);
+        else    fprintf(f," %.3E  ", omegaFiCh[i].weight/omega);
+        char proc[40];
+        sprintf(proc,"%s",omegaFiCh[i].prtcl[0]);
+        if(omegaFiCh[i].prtcl[3]==NULL) sprintf(proc+strlen(proc)," -> %s, %s", omegaFiCh[i].prtcl[1],omegaFiCh[i].prtcl[2]);
+        else  sprintf(proc+strlen(proc),", %s ->  %s,%s ", omegaFiCh[i].prtcl[1],omegaFiCh[i].prtcl[2],omegaFiCh[i].prtcl[3]);
+        fprintf(f,"%-30.30s ",proc); 
+        if(omegaFiCh[i].err) { fprintf(f,"Warning %d:",omegaFiCh[i].err);  printFi22Error(f,omegaFiCh[i].err);}
+        else fprintf(f,"\n"); 
     }
 
   }  

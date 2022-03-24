@@ -138,7 +138,7 @@ c      fiAl=atan2(Ali,Alr)
       end
 
 
-      subroutine ModelConstIni(mode, err)
+      integer function ModelConstIni(mode, err)
       implicit none
       integer fail
 
@@ -562,6 +562,11 @@ c      mui = amu*sin(fimu/180D0*pi)
       call aaini01
       call aaini02
       call mtrini
+      if(2*MNE1.gt.MZ) then 
+         ModelConstIni=2
+      else 
+         ModelConstIni=1
+      endif
       end
 
       subroutine aaini01

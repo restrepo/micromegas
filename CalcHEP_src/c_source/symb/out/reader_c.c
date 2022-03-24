@@ -115,7 +115,9 @@ void * act_c(char * name,int n, void ** args)
   
   if(strcmp(name,"aWidth")==0) name="aWidth_ext";
   l=n+10+strlen(name);
-  for(i=0;i<n;i++) l+=strlen((char*)args[i]); 
+  for(i=0;i<n;i++) l+=strlen((char*)args[i]);
+  int prnf=0;
+  if(strcmp(name,"aPrintF")==0 || strcmp(name,"printf")==0) {l+=10*(n-1); prnf=1;}
   ans=m_alloc(l);
   if(!strcmp(name,"if") && n==3)
   {
@@ -125,13 +127,15 @@ void * act_c(char * name,int n, void ** args)
                (char*)args[2]+3);
   }             
   else     
-  { sprintf(ans,"M%c|%s(",tp,name);
-    for(i=0;i<n;i++) 
+  { if(prnf) tp='N';
+    sprintf(ans,"M%c|%s(",tp,name);
+    if(n) strcat(ans,(char*)args[0]+3);
+    for(i=1;i<n;i++) 
     { 
-      strcat(ans,(char*)args[i]+3);
-      strcat(ans,",");
+      if(prnf && ((char*)args[i])[1]=='R')  sprintf(ans+strlen(ans),",(double)(%s)", (char*)args[i]+3);
+      else      sprintf(ans+strlen(ans),",%s", (char*)args[i]+3);
     }
-    if(n) ans[strlen(ans)-1]=')'; else strcat(ans,")");
+    strcat(ans,")");
   }
   return ans;
 }

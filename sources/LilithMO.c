@@ -87,7 +87,7 @@ printf("LILITH_MO\n");
    {  fprintf(f,"  <reducedcouplings part=\"%s\">\n",Higgs[i]);
       fprintf(f,"  <mass> %E </mass>\n",pMass(Higgs[i]));
       int ferm[4]={5,6,13,15};
-      char* fn[4]={"bb","uu","mm","tautau"};
+      char* fn[4]={"bb","uu","mumu","tautau"};
       for(j=0;j<4;j++) 
       {  char *fe=pdg2name(ferm[j]); if(!fe) continue;
          char *Fe=antiParticle(fe);  if(!Fe) continue;

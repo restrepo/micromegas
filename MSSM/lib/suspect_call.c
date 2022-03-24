@@ -24,7 +24,7 @@ static int SystemCall(int mode)
   }  
   
   err=System(buff);   
-  if(err>=0)  err=slhaRead(FOUT,4); else cleanSLHAdata();   
+  if(err>=0)  err= slhaRead(FOUT,0);  else cleanSLHAdata();   
   return err;
 }
 

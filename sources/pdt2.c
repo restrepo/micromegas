@@ -304,8 +304,8 @@ static double x_integrand(double x)
 double parton_x( int pNum, double  Q)
 {
   double x1;
-  
- if(!pdfName[0])  setPDT(dptDefault);  
+  if(Q>1.E4) Q=1.E4; 
+  if(!pdfName[0])  setPDT(dptDefault);  
   q_=Q;
 
   pc1_=pNum;

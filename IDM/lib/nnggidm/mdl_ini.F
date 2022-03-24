@@ -34,7 +34,7 @@
       end
 
 
-      subroutine ModelConstIni(fail)
+      integer function ModelConstIni(fail)
       implicit none
       integer fail
 
@@ -74,6 +74,14 @@
 
       call aaini01
       call mtrini
+
+      if(2*MHX.gt.MZ) then 
+         ModelConstIni=2
+      else 
+         ModelConstIni=1
+      endif
+
+
       end
 
       subroutine aaini01

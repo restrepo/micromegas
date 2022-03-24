@@ -54,11 +54,11 @@ Qu     |2/3
 Qd     |-1/3
 Fodd   |1+aQCD*(221/12+aQCD*(171.5-5*lnTop))
 LGGH   |-aQCD/8*1/2*sqrt(Rqcd)*cabs(((rhF_b+i*ihF_b)*ahF_b+(rhF_c+i*ihF_c)*ahF_c)*Cq+(rhF_t+i*ihF_t)*ahF_t*Ctop)
-LAAH   |-alphaE0/(8*PI)*cabs(3*Qd^2*(rhF1_b+i*ihF1_b)*ahF_b+3*Qu^2*((rhF1_t+i*ihF1_t)*ahF_t+(rhF1_c+i*ihF1_c)*ahF_c)+(rhF_l+i*ihF_l)*ahF_l-(rhV_W+i*ihV_W)*a_hV_W+(rhS_Hc+i*ihS_Hc)*a_hS_Hc)
+*LAAH  |-alphaE0/(8*PI)*cabs(3*Qd^2*(rhF1_b+i*ihF1_b)*ahF_b+3*Qu^2*((rhF1_t+i*ihF1_t)*ahF_t+(rhF1_c+i*ihF1_c)*ahF_c)+(rhF_l+i*ihF_l)*ahF_l-(rhV_W+i*ihV_W)*a_hV_W+(rhS_Hc+i*ihS_Hc)*a_hS_Hc)
 aSMhF_f|-EE/MW/SW/2
 aSMhV_W|EE/SW/MW/2
 LGGSM  |-aQCD/8*1/2*sqrt(Rqcd)*aSMhF_f*cabs((rhF_b+i*ihF_b+(rhF_c+i*ihF_c))*Cq+(rhF_t+i*ihF_t)*Ctop)
-LAASM  |-alphaE0/(8*PI)*cabs(3*Qd^2*(rhF1_b+i*ihF1_b)*aSMhF_f+3*Qu^2*((rhF1_t+i*ihF1_t)*aSMhF_f+(rhF1_c+i*ihF1_c)*aSMhF_f)+(rhF_l+i*ihF_l)*aSMhF_f-(rhV_W+i*ihV_W)*aSMhV_W)
+*LAASM |-alphaE0/(8*PI)*cabs(3*Qd^2*(rhF1_b+i*ihF1_b)*aSMhF_f+3*Qu^2*((rhF1_t+i*ihF1_t)*aSMhF_f+(rhF1_c+i*ihF1_c)*aSMhF_f)+(rhF_l+i*ihF_l)*aSMhF_f-(rhV_W+i*ihV_W)*aSMhV_W)
 B00000 |1-2*SW^2
 B00001 |-1+2*SW^2
 B00002 |la4-la5

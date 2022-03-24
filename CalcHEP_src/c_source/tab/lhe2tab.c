@@ -12,6 +12,7 @@ hepeup_str E_;
 heprup_str R_;
 int nout_int;
 
+int useSLHAwidth=1;
 
 double sum;
 

@@ -22,7 +22,8 @@
      > Fermi_a,Fermi_b,Fermi_c,Rsun,
      > rhoDM,Vearth,
      > K_dif,L_dif,Delta_dif,Tau_dif,Vc_dif,Rdisk,
-     > deltaY,dmAsymm,Vesc,Vrot,FracCDM2,Mcdm1,Mcdm2,Tstart,Tend
+     > deltaY,dmAsymm,Vesc,Vrot, betaSHMpp,etaSHMpp,
+     > FracCDM2,Mcdm1,Mcdm2,Tstart,Tend
 
 
        character CDM1*20, CDM2*20

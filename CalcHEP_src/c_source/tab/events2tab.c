@@ -10,6 +10,7 @@
 
 #include"num1.h"
 
+int useSLHAwidth=1;
 
 static void wrongParam(int N)
 { 

@@ -634,7 +634,7 @@ static long double  complex cslhaVal_(char * Block, double Q, int nKey, va_list 
   long double complex val[3];
   int found[3]={0,0,0};
 
-  if(strlen(Block)>19) {FError=1; return 0;}
+  if(strlen(Block)>BlckLn-1) {FError=1; return 0;}
       
   for(i=0;i<nKey;i++)keys[i]=va_arg(ap, int);
 
@@ -1089,5 +1089,43 @@ int slhaWrite(char *fname)
     }            
   }  
   fclose(f);
+  return 0;
+}
+
+int blockExists( char * block)
+{ char Block[BlckLn]; 
+  if(strlen(block)>BlckLn-1) return 0;
+  strcpy(Block,block);
+   
+  for(int i=0; Block[i];i++) Block[i]=toupper(Block[i]);
+    
+  for(blockStr*blck=blockList;  blck; blck=blck->next)if(strcmp(Block,blck->name)==0) return 1;
+  return 0; 
+}
+
+int writeBlock(char*block,  FILE*f)
+{
+  char Block[BlckLn]; 
+  if(strlen(block)>BlckLn-1) return 0;
+  strcpy(Block,block);
+
+  for(int i=0; Block[i];i++) Block[i]=toupper(Block[i]);
+              
+  for(blockStr*blck=blockList;  blck; blck=blck->next)if(strcmp(Block,blck->name)==0)
+  { fprintf(f,"Block %s ", Block);
+    if(blck->scale>0 ) fprintf(f," Q=%E ",blck->scale);
+    if(blck->txt) fprintf(f,"# %s\n", blck->txt); else fprintf(f,"\n");
+    blockRec*line=blck->dataList;
+
+    int j1; for(j1=0 ;line;line=line->next) j1++;
+   
+    for(int l=0;l<j1;l++)
+    { line=blck->dataList;
+      for(int i=0;i<l;i++) line=line->next;
+      fprintf(f," %s",line->body);
+      if(line->txt) fprintf(f," # %s\n",line->txt); else fprintf(f,"\n");
+    }
+    return 1;
+  }
   return 0;
 }

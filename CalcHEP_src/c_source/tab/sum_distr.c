@@ -1,5 +1,6 @@
 #include "histogram.h"
 
+int useSLHAwidth=1;
  
 int main(int np, char ** par)
 {

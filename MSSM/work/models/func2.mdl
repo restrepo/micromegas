@@ -13,11 +13,11 @@ Mbp    |MbMb*(1+4/3*alphaQCD(MbMb)/pi)
 Mcp    |McMc*(1+4/3*alphaQCD(McMc)/pi)
 open   |openAppend("suspect2_lha.in")
 input0 |aPrintF("Block MODSEL # Select model\n 1 0 # EWSM scale input\n")
-input1 |aPrintF3("Block SMINPUTS \n  3 % E # alpha_s(MZ)\n 5 %E # mb(mb)SM MSbar\n 6 %E # Mtop(Pole)\n", alfSMZ, MbMb, Mtp)
-input2 |aPrintF1("BLOCK MINPAR\n 3 %E # tb\n", tb)
-input3 |aPrintF6("Block EXTPAR\n 0 -1 # EWSB scale\n 1  %E # MG1\n 2  %E # MG2\n 3  %E # MG3\n 11 %E # At\n 12 %E # Ab\n 13 %E # AL\n", MG1, MG2, MG3, At, Ab, Al)
-input4 |aPrintF8(" 23 %E # mu  \n 26 %E # MH3\n 31 %E # Ml1\n 32 %E #Ml2 \n 33 %E # Ml3\n 34 %E # Mr1\n 35 %E # Mr2\n 36 %E # Mr3\n", mu, MH3, Ml1, Ml2, Ml3, Mr1, Mr2, Mr3)
-input5 |aPrintF9(" 41 %E # Mq1\n 42 %E # Mq2\n 43 %E # Mq3\n 44 %E # Mu1\n 45 %E #Mu2 \n 46 %E # Mu3\n 47 %E # Md1\n 48 %E # Md2\n 49 %E # Md3\n", Mq1, Mq2, Mq3, Mu1, Mu2, Mu3, Md1, Md2, Md3)
+input1 |aPrintF("Block SMINPUTS \n  3 %E # alpha_s(MZ)\n 5 %E # mb(mb)SM MSbar\n 6 %E # Mtop(Pole)\n", alfSMZ, MbMb, Mtp)
+input2 |aPrintF("BLOCK MINPAR\n 3 %E # tb\n", tb)
+input3 |aPrintF("Block EXTPAR\n 0 -1 # EWSB scale\n 1  %E # MG1\n 2  %E # MG2\n 3  %E # MG3\n 11 %E # At\n 12 %E # Ab\n 13 %E # AL\n", MG1, MG2, MG3, At, Ab, Al)
+input4 |aPrintF(" 23 %E # mu  \n 26 %E # MH3\n 31 %E # Ml1\n 32 %E #Ml2 \n 33 %E # Ml3\n 34 %E # Mr1\n 35 %E # Mr2\n 36 %E # Mr3\n", mu, MH3, Ml1, Ml2, Ml3, Mr1, Mr2, Mr3)
+input5 |aPrintF(" 41 %E # Mq1\n 42 %E # Mq2\n 43 %E # Mq3\n 44 %E # Mu1\n 45 %E #Mu2 \n 46 %E # Mu3\n 47 %E # Md1\n 48 %E # Md2\n 49 %E # Md3\n", Mq1, Mq2, Mq3, Mu1, Mu2, Mu3, Md1, Md2, Md3)
 suAlso |aPrintF("Block SU_ALGO # ichoice\n %s\n %s\n %s\n %s\n %s\n %s\n %s\n %s\n %s\n", "2    21  # 2-loop RGE", "3    1   # 1: g_1(gut) = g_2(gut) consistently calculated from input", "4    2   # RGE accuracy: accurate, but slow", "6    0   # MA_pole, MU(EWSB) input", "7    2   #  choice for sparticles masses rad. corr. (=/= h)", "8    1   # 1 (defaut): EWSB scale=(mt_L*mt_R)^(1/2)", "9    2   # Final spectrum accuracy: 1 -> 1% acc.; 2 -> 0.01 % acc.", "10   2   # Higgs boson masses: One-loop  + dominant DSVZ 2-loop   ", "11   0   # RUNNING DRbar Higgs masses at loop-level at mZ")
 sys    |System("../../../Packages/SuSpect_2.41/suspect.exe")
 rd     |slhaRead("suspect2_lha.out", 0)
@@ -113,6 +113,24 @@ la5    |-la1*cb^2/sb^2+2*la6*cb/sb-EE^2*(-Mhh11+(MH3*sb)^2)/(2*MW*SW*sb)^2
 la4    |la5-1/2*EE^2*(MHc^2-MH3^2)/(MW*SW)^2
 la7    |cb/sb*(la3+la4-cb/sb*la6-1/4*EE^2*(Mhh12/cb/sb+MH3^2)/(MW*SW)^2)
 la2    |-la5*cb^2/sb^2+2*la7*cb/sb-EE^2*(-Mhh22+(MH3*cb)^2)/(2*MW*SW*sb)^2
+nmm11  |Zn11*MNE1*Zn11+Zn21*MNE2*Zn21+Zn31*MNE3*Zn31+Zn41*MNE4*Zn41
+nmm12  |Zn11*MNE1*Zn12+Zn21*MNE2*Zn22+Zn31*MNE3*Zn32+Zn41*MNE4*Zn42
+nmm13  |Zn11*MNE1*Zn13+Zn21*MNE2*Zn23+Zn31*MNE3*Zn33+Zn41*MNE4*Zn43
+nmm14  |Zn11*MNE1*Zn14+Zn21*MNE2*Zn24+Zn31*MNE3*Zn34+Zn41*MNE4*Zn44
+nmm22  |Zn12*MNE1*Zn12+Zn22*MNE2*Zn22+Zn32*MNE3*Zn32+Zn42*MNE4*Zn42
+nmm23  |Zn12*MNE1*Zn13+Zn22*MNE2*Zn23+Zn32*MNE3*Zn33+Zn42*MNE4*Zn43
+nmm24  |Zn12*MNE1*Zn14+Zn22*MNE2*Zn24+Zn32*MNE3*Zn34+Zn42*MNE4*Zn44
+nmm33  |Zn13*MNE1*Zn13+Zn23*MNE2*Zn23+Zn33*MNE3*Zn33+Zn43*MNE4*Zn43
+nmm34  |Zn13*MNE1*Zn14+Zn23*MNE2*Zn24+Zn33*MNE3*Zn34+Zn43*MNE4*Zn44
+nmm44  |Zn14*MNE1*Zn14+Zn24*MNE2*Zn24+Zn34*MNE3*Zn34+Zn44*MNE4*Zn44
+nmmEps |(fabs(nmm12)+fabs(nmm44)+fabs(nmm33))/MNE4/3
+MG1I   |nmm11
+MG2I   |nmm22
+NMM34  |if(nmmEpsMax-nmmEps, nmm34, -mu)
+NMM23  |if(nmmEpsMax-nmmEps, nmm23, MZ*cb*CW)
+NMM13  |if(nmmEpsMax-nmmEps, nmm13, -MZ*cb*SW)
+NMM14  |if(nmmEpsMax-nmmEps, nmm14, MZ*sb*SW)
+NMM24  |if(nmmEpsMax-nmmEps, nmm24, -MZ*sb*CW)
 dMb    |deltaMb()
 dMl    |deltaMl()
 Td3    |dMb/(1+dMb)
@@ -120,18 +138,6 @@ Tl3    |dMl/(1+dMl)
 Mb     |MbEff(Q)
 Mt     |MtEff(Q)
 Mc     |McEff(Q)
-NMM11  |Zn11*MNE1*Zn11+Zn21*MNE2*Zn21+Zn31*MNE3*Zn31+Zn41*MNE4*Zn41
-NMM12  |Zn11*MNE1*Zn12+Zn21*MNE2*Zn22+Zn31*MNE3*Zn32+Zn41*MNE4*Zn42
-NMM13  |Zn11*MNE1*Zn13+Zn21*MNE2*Zn23+Zn31*MNE3*Zn33+Zn41*MNE4*Zn43
-NMM14  |Zn11*MNE1*Zn14+Zn21*MNE2*Zn24+Zn31*MNE3*Zn34+Zn41*MNE4*Zn44
-NMM22  |Zn12*MNE1*Zn12+Zn22*MNE2*Zn22+Zn32*MNE3*Zn32+Zn42*MNE4*Zn42
-NMM23  |Zn12*MNE1*Zn13+Zn22*MNE2*Zn23+Zn32*MNE3*Zn33+Zn42*MNE4*Zn43
-NMM24  |Zn12*MNE1*Zn14+Zn22*MNE2*Zn24+Zn32*MNE3*Zn34+Zn42*MNE4*Zn44
-NMM33  |Zn13*MNE1*Zn13+Zn23*MNE2*Zn23+Zn33*MNE3*Zn33+Zn43*MNE4*Zn43
-NMM34  |Zn13*MNE1*Zn14+Zn23*MNE2*Zn24+Zn33*MNE3*Zn34+Zn43*MNE4*Zn44
-NMM44  |Zn14*MNE1*Zn14+Zn24*MNE2*Zn24+Zn34*MNE3*Zn34+Zn44*MNE4*Zn44
-MG1I   |NMM11
-MG2I   |NMM22
 B00000 |Zh11*sb-Td3*Zh11*sb+Td3*Zh12*cb
 B00001 |sb^2-Td3
 B00002 |Zh21*sb-Td3*Zh21*sb+Td3*Zh22*cb

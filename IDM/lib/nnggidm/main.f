@@ -5,6 +5,8 @@
       character*20  fOutput
       real *8 v,vcsnngg,vcsnngz,vcsgg,vcsgz,zero
       integer nArgs,err ,slharead, fail
+      integer ModelConstIni,Nch
+      external ModelConstIni
       
       call getarg(1,fInput)
       call getarg(2,fOutput)      
@@ -12,10 +14,14 @@
       OPEN(UNIT=77,FILE=fInput,STATUS='OLD')     
       call ModelVarIni(77)
       close(77)
-      call ModelConstIni(fail)
+      Nch= ModelConstIni(fail)
       v=0D0
       vcsgg=vcsnngg(v)
-      vcsgz=vcsnngz(v)      
+      if(Nch.gt.1 ) then 
+         vcsgz=vcsnngz(v)
+      else 
+         vcsgz=0
+      endif              
 
       OPEN(UNIT=77,FILE=fOutput,STATUS='UNKNOWN')   
       write(77,fmt='("BLOCK lGamma  # AZ and AA cross sections")')

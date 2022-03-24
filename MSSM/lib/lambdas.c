@@ -58,7 +58,7 @@ static double c_b98 = .5;
 
 #include <stdio.h>
 
-double calcLambdas(void)
+double calcLambdas(double tB, double MH3, double MU, double QSUSY, double Mtp, double MSG, double MC2, double Mq3, double Mu3, double Md3, double Ab, double At)
 {  
    FILE*f;
     /* System generated locals */
@@ -98,37 +98,48 @@ double calcLambdas(void)
 /*<       zero=0 >*/
     zero = 0.;
 /*<       MTOP=     slhaVal1('SMINPUTS',zero,6) >*/
-    mtop = slhaVal("SMINPUTS", zero, 1,c__6);
+//    mtop = slhaVal("SMINPUTS", zero, 1,c__6);
+      mtop=Mtp;
 /*      MA=       slhaVal1('EXTPAR',zero,26) */
 /*<       MA=       slhaVal1('MASS',zero,36) >*/
-    ma = slhaVal("MASS", zero, 1,c__36);
+//    ma = slhaVal("MASS", zero, 1,c__36);
+      ma=MH3;
 /*<       MGLU=     slhaVal1('MASS',zero,1000021)   >*/
-    mglu = slhaVal("MASS", zero,1, c_b17);
+//    mglu = slhaVal("MASS", zero,1, c_b17);
+      mglu=MSG;
 /*<       MCHI0=    slhaVal1('MASS',zero,1000037) >*/
-    mchi0 = slhaVal("MASS", zero,1, c_b19);
-/*<       MGLU=     slhaVal1('MASS',zero,1000021)   >*/
-    mglu = slhaVal("MASS", zero,1, c_b17);
+//    mchi0 = slhaVal("MASS", zero,1, c_b19);
+    mchi0= MC2;
 /*<        >*/
-    d__1 = slhaVal("SMINPUTS", zero,1,c__3);
-    d__2 = slhaVal("SMINPUTS", zero,1,c__5);
-    qcdl = initQCD(d__1, c_b24, d__2, mtop);
+//    d__1 = slhaVal("SMINPUTS", zero,1,c__3);
+//    d__2 = slhaVal("SMINPUTS", zero,1,c__5);
+
+    qcdl = initQCD( 1.18400000E-01, c_b24, 4.23, mtop);
 /*<        >*/
-    susy = sqrt(slhaVal("MASS", zero,1, c_b28) * slhaVal("MASS", zero,1,c_b30));
+    susy = QSUSY;
 /*<       AMSQ= slhaVal1('MSOFT',susy,43) >*/
-    amsq = slhaVal("MSOFT", susy,1, c__43);
+
+//    amsq = slhaVal("MSOFT", susy,1, c__43);
+    amsq=Mq3;
 /*<       AMUR= slhaVal1('MSOFT',susy,46) >*/
-    amur = slhaVal("MSOFT", susy,1, c__46);
+//    amur = slhaVal("MSOFT", susy,1, c__46);
+    amur = Mu3;
 /*<       AMDR= slhaVal1('MSOFT',susy,49) >*/
-    amdr = slhaVal("MSOFT", susy,1, c__49);
+//    amdr = slhaVal("MSOFT", susy,1, c__49);
+      amdr=  Md3;
 /*     susy = DSQRT(2*AMSQ**2+AMUR**2+AMDR**2)/2 */
 /*<       TANB=     slhaVal1('HMIX',susy,2) >*/
-    tanb = slhaVal("HMIX", susy,1, c__2);
+//    tanb = slhaVal("HMIX", susy,1, c__2);
+      tanb=tB;
 /*<       MU=       slhaVal1('HMIX',susy,1)  >*/
-    mu = slhaVal("HMIX", susy,1, c__1);
+//    mu = slhaVal("HMIX", susy,1, c__1);
+      mu=MU;
 /*<       AD=slhaVal2('AD',susy,3,3) >*/
-    ad = slhaVal("AD", susy,2, c__3, c__3);
+//    ad = slhaVal("AD", susy,2, c__3, c__3);
+    ad=Ab;
 /*<       AU=slhaVal2('AU',susy,3,3) >*/
-    au = slhaVal("AU", susy,2, c__3, c__3);
+//    au = slhaVal("AU", susy,2, c__3, c__3);
+      au=At;
 /*<       ft=1.017363287 >*/
     ft = 1.017363287f;
 /*<         BET=DATAN(TANB) >*/

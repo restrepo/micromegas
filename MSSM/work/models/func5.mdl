@@ -140,18 +140,24 @@ Tl3    |dMl/(1+dMl)
 Mb     |MbEff(Q)
 Mt     |MtEff(Q)
 Mc     |McEff(Q)
-NMM11  |Zn11*MNE1*Zn11+Zn21*MNE2*Zn21+Zn31*MNE3*Zn31+Zn41*MNE4*Zn41
-NMM12  |Zn11*MNE1*Zn12+Zn21*MNE2*Zn22+Zn31*MNE3*Zn32+Zn41*MNE4*Zn42
-NMM13  |Zn11*MNE1*Zn13+Zn21*MNE2*Zn23+Zn31*MNE3*Zn33+Zn41*MNE4*Zn43
-NMM14  |Zn11*MNE1*Zn14+Zn21*MNE2*Zn24+Zn31*MNE3*Zn34+Zn41*MNE4*Zn44
-NMM22  |Zn12*MNE1*Zn12+Zn22*MNE2*Zn22+Zn32*MNE3*Zn32+Zn42*MNE4*Zn42
-NMM23  |Zn12*MNE1*Zn13+Zn22*MNE2*Zn23+Zn32*MNE3*Zn33+Zn42*MNE4*Zn43
-NMM24  |Zn12*MNE1*Zn14+Zn22*MNE2*Zn24+Zn32*MNE3*Zn34+Zn42*MNE4*Zn44
-NMM33  |Zn13*MNE1*Zn13+Zn23*MNE2*Zn23+Zn33*MNE3*Zn33+Zn43*MNE4*Zn43
-NMM34  |Zn13*MNE1*Zn14+Zn23*MNE2*Zn24+Zn33*MNE3*Zn34+Zn43*MNE4*Zn44
-NMM44  |Zn14*MNE1*Zn14+Zn24*MNE2*Zn24+Zn34*MNE3*Zn34+Zn44*MNE4*Zn44
-MG1I   |NMM11
-MG2I   |NMM22
+nmm11  |Zn11*MNE1*Zn11+Zn21*MNE2*Zn21+Zn31*MNE3*Zn31+Zn41*MNE4*Zn41
+nmm12  |Zn11*MNE1*Zn12+Zn21*MNE2*Zn22+Zn31*MNE3*Zn32+Zn41*MNE4*Zn42
+nmm13  |Zn11*MNE1*Zn13+Zn21*MNE2*Zn23+Zn31*MNE3*Zn33+Zn41*MNE4*Zn43
+nmm14  |Zn11*MNE1*Zn14+Zn21*MNE2*Zn24+Zn31*MNE3*Zn34+Zn41*MNE4*Zn44
+nmm22  |Zn12*MNE1*Zn12+Zn22*MNE2*Zn22+Zn32*MNE3*Zn32+Zn42*MNE4*Zn42
+nmm23  |Zn12*MNE1*Zn13+Zn22*MNE2*Zn23+Zn32*MNE3*Zn33+Zn42*MNE4*Zn43
+nmm24  |Zn12*MNE1*Zn14+Zn22*MNE2*Zn24+Zn32*MNE3*Zn34+Zn42*MNE4*Zn44
+nmm33  |Zn13*MNE1*Zn13+Zn23*MNE2*Zn23+Zn33*MNE3*Zn33+Zn43*MNE4*Zn43
+nmm34  |Zn13*MNE1*Zn14+Zn23*MNE2*Zn24+Zn33*MNE3*Zn34+Zn43*MNE4*Zn44
+nmm44  |Zn14*MNE1*Zn14+Zn24*MNE2*Zn24+Zn34*MNE3*Zn34+Zn44*MNE4*Zn44
+nmmEps |(fabs(nmm12)+fabs(nmm44)+fabs(nmm33))/MNE4/3
+MG1I   |nmm11
+MG2I   |nmm22
+NMM34  |if(nmmEpsMax-nmmEps, nmm34, -mu)
+NMM23  |if(nmmEpsMax-nmmEps, nmm23, MZ*cb*CW)
+NMM13  |if(nmmEpsMax-nmmEps, nmm13, -MZ*cb*SW)
+NMM14  |if(nmmEpsMax-nmmEps, nmm14, MZ*sb*SW)
+NMM24  |if(nmmEpsMax-nmmEps, nmm24, -MZ*sb*CW)
 ahF_c  |(-EE)/MW*Mc/SW*Zh22/sb/2/Mc
 ahF_b  |(-EE)/MW*Mb/SW/cb/sb*(sb*Zh21-sb*Td3*Zh21+Td3*Zh22*cb)/2/Mb
 ahF_t  |(-EE)/MW*Mt/SW*Zh22/sb/2/Mt
@@ -979,3 +985,4 @@ B00742 |4*SW^2*Zh21^2*Zt11*Zt21-3*Zh21^2*Zt11*Zt21-4*SW^2*Zh22^2*Zt11*Zt21+3*Zh2
 B00743 |B00742+4*SW^2*Zh22^2*Zt12*Zt22
 B00744 |3*MW^2*Zh21^2*Zt21^2*sb^2-4*MW^2*SW^2*Zh21^2*Zt21^2*sb^2-3*MW^2*Zh22^2*Zt21^2*sb^2+4*MW^2*SW^2*Zh22^2*Zt21^2*sb^2+4*MW^2*SW^2*Zh21^2*Zt22^2*sb^2
 B00745 |B00744-4*MW^2*SW^2*Zh22^2*Zt22^2*sb^2+6*CW^2*MtMM^2*Zh22^2
+=======================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================

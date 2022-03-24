@@ -15,55 +15,6 @@ C              ENDDO
 C           END 
 
 
-      real*8 function CheckNCsector(m1_, m2_, mu_,tb_,mz_,sw_)
-      real*8 m1_, m2_, mu_, tb_, mz_, sw_
-      real*8 Z(4,4),M(4),MM(4,4),Q,s
-      integer  i,j,k,l;
-      real*8  slhaVal1,slhaVal2
-      real*8  tw,w,b,sb,cb
-      Q=100
-      M(1)=slhaVal1('MASS',Q,1000022)
-      M(2)=slhaVal1('MASS',Q,1000023)
-      M(3)=slhaVal1('MASS',Q,1000025)
-      M(4)=slhaVal1('MASS',Q,1000035)
-      Q=dabs(M(1))
-
-C      write(*,*) 'M=', M(1),M(2),M(3),M(4)
-
-      DO i=1,4 
-      DO j=1,4
-      Z(i,j)=slhaVal2('NMIX',Q,j,i)
-C      write(*,*) 'Z',i,j,' =', Z(i,j) 
-      ENDDO
-      ENDDO
-      mTot=0
-
-      DO  i=1,4
-      DO l=1,4
-      s=0 
-      DO k=1,4 
-       s=s+Z(i,k)*M(k)*Z(l,k)
-      ENDDO
-      MM(i,l)=s
-      ENDDO
-      ENDDO
-      
-
-      m1_=MM(1,1)
-      m2_=MM(2,2)
-      mu_=-MM(4,3) 
-
-      tw=-MM(1,3)/MM(2,3)
-      w=datan(tw)
-      SW_=sin(w)
-      tb_=-MM(1,4)/MM(1,3)
-      cb=cos(datan(tb_))
-      MZ_= -MM(3,1)/cb/sw_
-
-      CheckNCsector=dabs(MM(1,2))
-      if(CheckNCsector.lt.dabs(MM(3,3))) CheckNCsector=dabs(MM(3,3))
-      if(CheckNCsector.lt.dabs(MM(4,4))) CheckNCsector=dabs(MM(4,4)) 
-      end 
 
       subroutine ModelDefaults
       implicit none
@@ -185,40 +136,31 @@ CC      write(*,*) 'wH3=',wH3
       end
 
 
-      real*8 function ModelConstIni( GI )
+      integer  function  ModelConstIni( MW_, SW_,EE_,Mb_ )
       implicit none
 
 #include "model.h"
 
       double precision neut1,neut2
-      double precision findValW	
+      double precision MW_, SW_, EE_, Mb_
       real*8 alpha,Q,slhaval0,slhaval1,slhaval2
       double complex Z(4,4)
-      real*8 CheckNCsector,zero
       real*8 MNE(4),dI,dJ
-      integer i,j,NCgi,k,l,GI
+      integer i,j,k,l,GI
       double complex sc
 
-      NCgi=GI
-CC      write(*,*) 'NCgi=',NCgi
       Q=0
-      ModelConstIni=0
       call ModelDefaults
 
-      if(NCgi.eq.1) then
-c         write(*,*) 
-c     >'odl M1=', MG1,' M2=',MG2,' tb=',tb,' mu=',muE,' MZ=',MZ,' SW=',SW
-       ModelConstIni=CheckNCsector(MG1,MG2,MUE,tb,MZ,SW)
-       
-c         write(*,*) 'zero=',zero
-c         write(*,*) 
-c     >'new M1=', MG1,' M2=',MG2,' tb=',tb,' mu=',muE,' MZ=',MZ,' SW=',SW
-      endif
-
+      SW=SW_
       CW = sqrt(1D0-SW**2)
       S2W = 2D0*SW*CW
       C2W = CW**2-SW**2
-      MW = MZ*CW
+      MW = MW_
+      MZ= MW/CW
+      EE=EE_
+      Mb=Mb_
+
       c12 = sqrt(1D0-s12**2)
       c23 = sqrt(1D0-s23**2)
       c13 = sqrt(1D0-s13**2)
@@ -228,70 +170,8 @@ c     >'new M1=', MG1,' M2=',MG2,' tb=',tb,' mu=',muE,' MZ=',MZ,' SW=',SW
       c2b = cb**2-sb**2
       s2b = 2D0*sb*cb
 
-      
-      if(NCgi.gt.0) then  
-        Zcsx = (MG2**2+mue**2)/2D0+MW**2
-        Zctx = (MG2**2-mue**2)**2/4D0+MW**4*c2b**2+MW**2*(MG2
-     &      **2+mue**2+2D0*mue*MG2*s2b)
-        MC01 = sqrt(Zcsx-sqrt(Zctx))
-        MC02 = sqrt(Zcsx+sqrt(Zctx))
-        Zcc2u = -(MG2**2-mue**2-2D0*MW**2*c2b)/(MC02**2-MC01
-     &      **2)
-        Zcc2v = -(MG2**2-mue**2+2D0*MW**2*c2b)/(MC02**2-MC01
-     &      **2)
-        Zcsigu = -(MG2*cb+mue*sb)/sqrt((MG2*cb+mue*sb)**2)
-        Zcsigv = -(MG2*sb+mue*cb)/sqrt((MG2*sb+mue*cb)**2)
-        Zccu = sqrt((1D0+Zcc2u)/2D0)
-        Zcsu = sqrt((1D0-Zcc2u)/2D0)*Zcsigu
-        Zccv = sqrt((1D0+Zcc2v)/2D0)
-        Zcsv = sqrt((1D0-Zcc2v)/2D0)*Zcsigv
-        ZcdetM = mue*MG2-MW**2*s2b
-        Zcsig1 = (mue*MG2-MW**2*s2b)/sqrt((mue*MG2-MW**2*s2b
-     &      )**2)
-        Zcsig2 = MW*Sqrt2*(cb*Zcsu*Zccv+sb*Zccu*Zcsv)+mue*Zcsv
-     &      *Zcsu+MG2*Zccu*Zccv
-        Zcsig3 = Zcsig1*Zcsig2/sqrt(Zcsig2**2)
-        Zcsig4 = -MW*Sqrt2*(cb*Zccu*Zcsv+sb*Zcsu*Zccv)+mue
-     &      *Zccv*Zccu+MG2*Zcsu*Zcsv
-        MC1 = Zcsig2**2/sqrt(Zcsig2**2)
-        MC2 = Zcsig4**2/sqrt(Zcsig4**2)
-        Zm11 = Zccu*Zcsig1*Zcsig3
-        Zm12 = -Zcsu*Zcsig3
-        Zm21 = Zcsu*Zcsig1*Zcsig3
-        Zm22 = Zccu*Zcsig3
-        Zp11 = Zccv
-        Zp12 = -Zcsv
-        Zp21 = Zcsv
-        Zp22 = Zccv
-        neutk = neut1(MZ, MW, SW, MG1, MG2, mue, tb)
-        DO i=1,4
-          dI=i 
-C          MNE(i)=neut2(neutk, 3D0, 1D0,dI)
-           MNE(i)=neut2(neutk, 3D0 ,dI,1d0)
-          DO j=1,4
-            dJ=j
-            Z(i,j)=neut2(neutk,1D0,dI,dJ)+cI*neut2(neutk, 2D0,dI,dJ)
-          ENDDO
-        ENDDO
-
-c        DO i=1,4
-c          DO j=1,4
-c          sc=0
-c          DO k=1,4
-c            sc=sc+Z(i,k)*MNE(k)*Z(j,k)
-c          ENDDO
-c          write(*,*) 'M',i,j,'=',sc          
-c          ENDDO
-c        ENDDO
-
-c        write(*,*) 'LSP mass=',MNE(1) 
-       
-c        write(*,*) 'LSP Components:', Z(1,1),Z(2,1),Z(3,1),Z(4,1)       
-      else 
-
         MC1   =slhaVal1('MASS',Q, 1000024)
         MC2   =slhaVal1('MASS',Q, 1000037)
-c       zero=CheckNCsector(MG1,MG2,MUE,tb,MZ,SW)
 
         Zm11  =slhaVal2('UMIX',Q, 1,1)
         Zm12  =slhaVal2('UMIX',Q, 2,1)
@@ -319,7 +199,6 @@ c       zero=CheckNCsector(MG1,MG2,MUE,tb,MZ,SW)
             ENDDO 
           endif 
         ENDDO
-      endif
 
 
       MNE1=MNE(1)
@@ -349,20 +228,15 @@ c      write(*,*)'Zn4k=',Zn41,Zn42,Zn43,Zn44
 c      write(*,*) 'Zm=',Zm11,Zm12,Zm21,Zm22
 c      write(*,*) 'Zp=',Zp11,Zp12,Zp21,Zp22
  
-C*      MSG = findValW('MSG')
       MSG = slhaVal1('MASS',Q,1000021)
       ls3 = Ml*Al/Sqrt2*EE/SW/MW/cb
       ls2 = Mm*Am/Sqrt2*EE/SW/MW/cb
       ls1 = Me*Ae/Sqrt2*EE/SW/MW/cb
-c      MSne = sqrt(c2b*MW**2/2D0+CW**2*Ml1**2)/CW
-c      MSnmu = sqrt(c2b*MW**2/2D0+CW**2*Ml2**2)/CW
-c      MSntau = sqrt(c2b*MW**2/2D0+CW**2*Ml3**2)/CW
-C*      MSne=findValW('MSne')
+
       MSne=slhaVal1('MASS',Q,1000012)
-C*      MSnmu=findValW('MSnm')
       MSnmu=slhaVal1('MASS',Q,1000014)
-C*      MSntau=findValW('MSnl')
       MSntau=slhaVal1('MASS',Q,1000016)	  
+
       MSeLL = Ml1**2+Me**2-MW**2/CW**2*(1D0/2D0-SW**2)*c2b
       MSeRR = Mr1**2+Me**2-MW**2/CW**2*SW**2*c2b
       MSeLR = MW*SW*Sqrt2*cb*ls1/EE-Me*mue*tb
@@ -370,8 +244,7 @@ C*      MSntau=findValW('MSnl')
      &      *MSeLR**2))/2D0)
       MSe2 = sqrt((MSeLL+MSeRR+sqrt((MSeLL-MSeRR)**2+4D0
      &      *MSeLR**2))/2D0)
-C*      MSe1=findValW('MSeL')
-C*      MSe2=findValW('MSeR')
+
       MSe1=slhaVal1('MASS',Q,1000011)
       MSe2=slhaVal1('MASS',Q,2000011)
 
@@ -648,6 +521,13 @@ c         MHc    =MHc    *1000
       call aaini09
       call aaini10
       call mtrini
+
+        if(2*MNE1.gt.MZ) then 
+              ModelConstIni= 2 
+        else 
+              ModelConstIni= 1
+        endif 
+
       end
 
       subroutine aaini01
@@ -26113,7 +25993,6 @@ c         MHc    =MHc    *1000
       MTR426(2)=AAABR(8508)
       MTR427(1)=AAABR(8510)
       MTR427(2)=AAABR(8509)
-
       end
 
 ***********************************************

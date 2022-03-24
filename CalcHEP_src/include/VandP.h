@@ -15,6 +15,7 @@ typedef struct
 extern ModelPrtclsStr*ModelPrtcls;
 extern int nModelVars;
 extern int nModelFunc;
+extern int*currentVarPtr;
 extern char**varNames;
 extern REAL *varValues;
 extern int calcMainFunc(void);

@@ -1,5 +1,3 @@
-#include"ssusy_path.h"
-
 /*===================================*/
 #include"../../include/micromegas_aux.h"
 #include"pmodel.h"
@@ -11,17 +9,33 @@
 #define FIN  "LesHin"
 #define FOUT "LesHout"
 
+#define VERSION "4.1.7"
+
 static int SystemCall(int mode)
 { 
   char buff[2000];
   int err;
 
   if(!access(FOUT,R_OK)) unlink(FOUT);
-
-  sprintf(buff,"%s/softpoint.x",SOFTSUSY);
+  
+  FILE*f=fopen(FIN,"a");
+  fprintf(f,"\nBlock SOFTSUSY\n");
+  fprintf(f," 0   1  # Calculate decays\n");
+//  fprintf(f," 2   1  # Quark mixing\n");
+  fprintf(f," 22  1  # Include 2-loop terms in gluino/squark masses\n"); 
+  fclose(f);
+   
+  sprintf(buff,"%s/Packages/softsusy-%s/softpoint.x",micrO,VERSION);
   if(access( buff,X_OK))
-  { printf("Executable \n %s\n is not found. Program stops.\n",buff);
-    exit(13);
+  { 
+     sprintf(buff,"cd %s/Packages;  make -f SSUSY.makef VERSION=%s",micrO,VERSION); 
+     system(buff);
+     sprintf(buff,"%s/Packages/softsusy-%s/softpoint.x",micrO,VERSION);
+     if(access( buff,X_OK))
+     {
+       printf("Executable \n %s\n is not found. Program stops.\n",buff);
+       exit(13);
+     }  
   }
 
 /*    
@@ -32,10 +46,10 @@ static int SystemCall(int mode)
   }  
 */
 
-  sprintf(buff,"pwd=`pwd`; cd %s ;  ./softpoint.x leshouches < $pwd/%s > $pwd/%s; echo OK",SOFTSUSY,FIN,FOUT);
+  sprintf(buff,"%s/Packages/softsusy-%s/softpoint.x leshouches < %s > %s", micrO, VERSION,FIN,FOUT);
  
   err=System(buff);     
-  if(err>=0)   err=slhaRead(FOUT,4); else cleanSLHAdata();
+  if(err>=0)  err= slhaRead(FOUT,0); else cleanSLHAdata();
 
   return err;
 }

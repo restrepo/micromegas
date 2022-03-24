@@ -186,7 +186,7 @@ case "`$CONF_FC --version -c 2>&1`" in
 *G95*)
   CONF_FFLAGS="$FFLAGS -O0 -g -ffixed-line-length-132 -freal-loops $CONF_M $CONF_STATIC ${CONF_DEBUG:+-Wall}" ;;
 *GNU*)
-  CONF_FFLAGS="$FFLAGS ${CONF_DEBUG:--O1 -g} -ffixed-line-length-none $CONF_M $CONF_STATIC ${CONF_DEBUG:+-Wall}"
+  CONF_FFLAGS="$FFLAGS ${CONF_DEBUG:--O0 -g} -ffixed-line-length-none $CONF_M $CONF_STATIC ${CONF_DEBUG:+-Wall}"
   case "$CONF_FC" in
   *gfortran*)
 	CONF_FFLAGS="$CONF_FFLAGS ${CONF_DEBUG:+-Wtabs -ffpe-trap=invalid,overflow,zero} -fno-range-check -ff2c ${CONF_STATIC_EXT:+-static-libgfortran -static-libgcc}" ;;
@@ -195,20 +195,20 @@ case "`$CONF_FC --version -c 2>&1`" in
   CONF_FFLAGS="${FFLAGS-default}"
   test "$CONF_FFLAGS" = default && case "$CONF_FC$CONF_MACH" in
   *pgf*)
-	CONF_FFLAGS="${CONF_DEBUG:--O3 -g} ${CONF_DEBUG:+-Ktrap=fp} -Mextend -Minform=inform -g77libs ${CONF_STATIC:+-Bstatic} $CONF_M" ;;
+	CONF_FFLAGS="${CONF_DEBUG:--O0 -g} ${CONF_DEBUG:+-Ktrap=fp} -Mextend -Minform=inform -g77libs ${CONF_STATIC:+-Bstatic} $CONF_M" ;;
   *ifort*)
-	CONF_FFLAGS="${CONF_DEBUG:--O3 -g} -extend_source -warn truncated_source $CONF_STATIC ${CONF_STATIC_EXT:+-static-intel} $CONF_M" ;;
+	CONF_FFLAGS="${CONF_DEBUG:--O0 -g} -extend_source -warn truncated_source $CONF_STATIC ${CONF_STATIC_EXT:+-static-intel} $CONF_M" ;;
   *alpha)
-	CONF_FFLAGS="${CONF_DEBUG:--O3 -g3} ${CONF_DEBUG:+-fpe0} -extend_source -warn truncated_source ${CONF_STATIC:+-non_shared}" ;;
+	CONF_FFLAGS="${CONF_DEBUG:--O0 -g3} ${CONF_DEBUG:+-fpe0} -extend_source -warn truncated_source ${CONF_STATIC:+-non_shared}" ;;
   *sun* | *sparc*)
-	CONF_FFLAGS="${CONF_DEBUG:--O3 -g} ${CONF_DEBUG:+-ftrap=common} -e ${CONF_STATIC:+-Bstatic}" ;;
+	CONF_FFLAGS="${CONF_DEBUG:--O0 -g} ${CONF_DEBUG:+-ftrap=common} -e ${CONF_STATIC:+-Bstatic}" ;;
   *hp*)
-	CONF_FFLAGS="${CONF_DEBUG:--O2 -g} ${CONF_DEBUG:++FPVZO} +es +U77 ${CONF_STATIC:+-Wl,-noshared}" ;;
+	CONF_FFLAGS="${CONF_DEBUG:--O0 -g} ${CONF_DEBUG:++FPVZO} +es +U77 ${CONF_STATIC:+-Wl,-noshared}" ;;
   *xlf*)
-	CONF_FFLAGS="${CONF_DEBUG:--O2 -g} ${CONF_DEBUG:+-qflttrap=enable:invalid:overflow:zerodivide} -qfixed=132 -qmaxmem=-1 -qextname"
+	CONF_FFLAGS="${CONF_DEBUG:--O0 -g} ${CONF_DEBUG:+-qflttrap=enable:invalid:overflow:zerodivide} -qfixed=132 -qmaxmem=-1 -qextname"
 	CONF_DEF="-WF,-D" ;;
   *)
-	CONF_FFLAGS="${CONF_DEBUG:--O -g}" ;;
+	CONF_FFLAGS="${CONF_DEBUG:--O0 -g}" ;;
   esac ;;
 esac
 
@@ -243,9 +243,9 @@ case "`$CONF_CC --version -c 2>&1`" in
 *gcc*) CONF_STATIC_GCC="$CONF_STATIC_EXT" ;;
 esac
 
-CONF_CFLAGS="${CFLAGS-${CONF_DEBUG:--O3 -g} -fomit-frame-pointer -ffast-math -Wall} $CONF_M $CONF_STATIC ${CONF_STATIC_GCC:+-static-libgcc}"
+CONF_CFLAGS="${CFLAGS-${CONF_DEBUG:--O0 -g} -fomit-frame-pointer -ffast-math -Wall} $CONF_M $CONF_STATIC ${CONF_STATIC_GCC:+-static-libgcc}"
 
-CONF_CXXFLAGS="${CXXFLAGS-${CONF_DEBUG:--O3 -g} -fomit-frame-pointer -ffast-math -Wall} $CONF_M $CONF_STATIC ${CONF_STATIC_GCC:+-static-libstdc++ -static-libgcc}"
+CONF_CXXFLAGS="${CXXFLAGS-${CONF_DEBUG:--O0 -g} -fomit-frame-pointer -ffast-math -Wall} $CONF_M $CONF_STATIC ${CONF_STATIC_GCC:+-static-libstdc++ -static-libgcc}"
 
 
 ## does f77 support REAL*16?

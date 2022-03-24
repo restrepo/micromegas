@@ -180,7 +180,7 @@ static void*  act_33(char* ch,int n, void**args)
   
    if(MathFunc) for(i=0;i<n;i++) if(args[i]==&String) {rderrcode=typemismatch; return NULL;}
      
-   if(!MathFunc) { if(!strcmp(ch,"aWidth")) aWidth=1; else  ExtFunc=1;}     
+   if(!MathFunc) { if(!strcmp(ch,"aWidth")) aWidth=1; else ExtFunc=1;}     
    return &Number;
 }
 
@@ -347,7 +347,7 @@ static int  readvars(int  check)
       nLine=modelvars[vSorted[i]].line;  
       rderrpos=1;
       errorMessage("Name","duplicate name '%s'",modelvars[vSorted[i]].varname);  
-      return 1;
+      goto errExi1;
    }
    if(check) rd=rd_33;else rd=rd_33_nocheck;
 // Completeness 
@@ -378,7 +378,7 @@ static int  readvars(int  check)
        if(depQ   &&  depQ1>i)  depQ1=i;
        if(check&&aWidth)
        { errorMessage("Expression","%s","'aWidth()' - unlegal function");
-         return 0;
+         goto errExi1;
        }  
    }   
          
@@ -1477,6 +1477,8 @@ int makeVandP(int rd ,char*path,int L, int mode,char*CalcHEP)
 
   fprintf(f,"int nModelVars=%d;\n",nVar);
   fprintf(f,"int nModelFunc=%d;\n",nFunc);
+  fprintf(f,"static int nCurrentVars=0;\n");
+  fprintf(f,"int*currentVarPtr=&nCurrentVars;\n");
   fprintf(f,"static char*varNames_[%d]={\n ", nVar+nFunc);
  
   for(first=1,i10=0, i=nv0;i<nmodelvar;i++) if( (i<=nCommonVars|| modelvars[i].pub==1) &&   vararr[i].used) 
@@ -1523,8 +1525,9 @@ int makeVandP(int rd ,char*path,int L, int mode,char*CalcHEP)
   for(i=1;i<=nmodelvar;i++) if( (i<=nCommonVars|| modelvars[i].pub==1) &&   vararr[i].used)
   {
      if (vararr[i].used &&  modelvars[i].func)
-     { checkNaN=0;
-if(i==depQ1) fprintf(f," FirstQ:\n cErr=1;\n");     
+     {  checkNaN=0;
+if(i==depQ1) fprintf(f," FirstQ:\n cErr=1;\n");
+        fprintf(f,"   nCurrentVars=%d;\n", vararr[i].num);
         {  char * ss=(char *)readExpression(modelvars[i].func,rd_c,act_c,free);
            fprintf(f,"   %s=%s;\n",vararr[i].alias,ss+3);
            free(ss);
@@ -1541,6 +1544,7 @@ if(i==depQ1) fprintf(f," FirstQ:\n cErr=1;\n");
   fprintf(f,"   }\n");
   fprintf(f,"   for(i=0;i<nModelVars;i++) VV[i]=V[i];\n");
   fprintf(f,"   cErr=0;\n");
+  fprintf(f,"   nCurrentVars++;\n");
   fprintf(f,"   return 0;\n}\n");
 
 

@@ -17,3 +17,17 @@ void printHiggs(FILE* f)
      }
    }  
 }
+
+
+void printPartialWidth(double width,txtList l,FILE*f)
+{ 
+   double br;
+   char txt[50];  
+   fprintf(f," Branching  Partial width   Channel\n");
+   for(;l;l=l->next)
+   {
+       sscanf(l->txt, "%lf %[^\n]", &br,txt); 
+       fprintf(f," %.3E  %.3E GeV   %s\n", br, br*width,txt); 
+   }   
+}   
+

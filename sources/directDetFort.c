@@ -38,9 +38,6 @@ double fermiff_(int *A, double * Qfermi)
 
 double maxwell_(double *v){ return Maxwell(*v); }
 
-double fdvdelta_(double *v){return 1;}
-void   setfdelta_(double *v){SetfDelta(*v);}
-
 
 
 static double(*_fDv)(double*);
@@ -56,10 +53,7 @@ double nucleusrecoil_(
 {  
   _Sxx=Sxx;
   
-  if(fDv  == maxwell_)
-    return  nucleusRecoil(Maxwell, *A,*Z,*J,Sxx_,dNdE);
-  else  if(fDv==fdvdelta_)  
-    return  nucleusRecoil(fDvDelta, *A,*Z,*J,Sxx_,dNdE);
+  if(fDv  == maxwell_)  return  nucleusRecoil(Maxwell, *A,*Z,*J,Sxx_,dNdE);
   else  
   { _fDv=fDv;
     return  nucleusRecoil(fDv_, *A,*Z,*J,Sxx_,dNdE);
@@ -75,7 +69,6 @@ double nucleusrecoilaux_(
   _Sxx=Sxx;
   
   if(fDv  == maxwell_) c_fDv=Maxwell;
-  else  if(fDv==fdvdelta_) c_fDv=fDvDelta;
   else { _fDv=fDv; c_fDv=fDv_;}
    
     return  nucleusRecoilAux(c_fDv, *A,*Z,*J,Sxx_,*LmbdP,*XiP,*LmbdN,*XiN, dNdE);
@@ -102,7 +95,6 @@ double nucleusrecoil0aux_( double (*fDv)(double*),
   double (*c_fDv)(double);
 
   if(fDv  == maxwell_) c_fDv=Maxwell;
-  else  if(fDv==fdvdelta_) c_fDv=fDvDelta;
   else { _fDv=fDv; c_fDv=fDv_;}
 
   return nucleusRecoil0Aux(c_fDv,*A,*Z,*J,*Sp,*Sn,*LmbdP,*XiP,*LmbdN,*XiN,dNdE);

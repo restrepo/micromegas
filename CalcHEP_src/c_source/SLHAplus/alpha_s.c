@@ -208,7 +208,7 @@ double MtRun(double Q)
    return runningMass(qMass[6], qMass[6], Q); 
 } 
 
-static double DeltaQCD(double Q)
+static double DeltaQCD(double Q)   // M. Spira, Fortsch. Phys. 46 (1998) 203 [arXiv:hep-ph/9705337]
 {
  double  a=alphaQCD(Q)/M_PI;
  int nf=NF(Q);

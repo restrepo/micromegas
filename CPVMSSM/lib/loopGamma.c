@@ -36,11 +36,15 @@ int loopGamma(double * cs1, double *cs2)
   
   sprintf(buff+strlen(buff)," cpsuperh2_slha.out %s",FOUT);
   err=System(buff);   
+ 
+  double ee=findValW("EE");
+  double aFac=4*M_PI/ee/ee/137.036;
+        
   
   if(err>=0) 
   {  err=slhaRead(FOUT,1);
-     *cs1=slhaVal("Lgamma",0.,1,1)*2.9979E-26;
-     *cs2=slhaVal("Lgamma",0.,1,2)*2.9979E-26;
+     *cs1=slhaVal("Lgamma",0.,1,1)*2.9979E-26*aFac;
+     *cs2=slhaVal("Lgamma",0.,1,2)*2.9979E-26*aFac*aFac;
   }  
 
   if(!access(FOUT,R_OK)) unlink(FOUT);

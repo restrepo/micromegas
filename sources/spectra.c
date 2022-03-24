@@ -235,6 +235,7 @@ static double dSigmadEe(double E)
 */
      if(csMin<-1) csMin=-1;
      if(csMax> 1) csMax=1;
+     csMin+=0.001; // !!!!!!!! Problem in  case of zero mass of electron. Reason is not clear 
 int err;
      r= simpson(FEfi,acos(csMax),acos(csMin),1.E-4,NULL);
 //if(err) displayPlot("dSigmadEe", "fi",acos(csMax),acos(csMin),0,1,"FEfi",0,FEfi,NULL);
@@ -309,7 +310,7 @@ if(Spectra[0])
          nAnCh++;                     
        }
      }
-     if(Spectra[1] && abs(code[iX])==11 && code[ix]+code[iX]==0  && pmass[ix]==0 && 
+     if(Spectra[1] && abs(code[iX])==11 && code[ix]+code[iX]==0  /*&& pmass[ix]==0*/ &&   // !!! was blocked for Me!=0. Reason not clear.  
        code[0]==code[1] && spin2Dm==1 && dSigmadEe(X1*Mcdm0) > X1CUT*dSigmadE_x1_e  ) 
      {
         
@@ -424,8 +425,7 @@ double zInterp(double zz, double * tab)
    if(j0>=NZ-1) return tab[NZ-1];
    
    dz= (zz-Zi(j0))/(Zi(j0+1)-Zi(j0));
-
-   r=(1-dz)*tab[j0]+dz*tab[j0+1];
+   if(tab[j0]>0 && tab[j0+1]>0) r= pow(tab[j0],(1-dz))*pow(tab[j0+1],dz); else  r=(1-dz)*tab[j0]+dz*tab[j0+1];
    if(r<0)r=0;
    return r; 
 }
@@ -568,7 +568,7 @@ void boost(double Y, double M0, double mx, double*tab)
     }       
      
     if(e2>tab[0]) e2=tab[0];
-    if (e1>=e2) tab_out[l]=0; else tab_out[l]=e*simpson(FUNB,e1,e2,1.E-4,NULL)/2/shY;
+    if (e1>=e2) tab_out[l]=0; else tab_out[l]=e*simpson(FUNB,e1,e2,1.E-3,NULL)/2/shY;
 
     
 /*     

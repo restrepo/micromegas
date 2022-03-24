@@ -1,0 +1,37 @@
+do_if gi_neutralino==On.
+
+
+_i=1-4 in _j=_i-4 in parameter nmm_i_j= 
+                Zn1_i*MNE1*Zn1_j
+               +Zn2_i*MNE2*Zn2_j
+               +Zn3_i*MNE3*Zn3_j 
+               +Zn4_i*MNE4*Zn4_j.
+
+parameter MG1I=nmm11.
+parameter MG2I=nmm22.
+
+ lterm  eps2*mu*f_h1*f_h2 +AddHermConj.
+
+ lterm  -i*Sqrt2*(  (g*taump*f_W/2 -g1*f_B0/2 )*f_h1*s_H1
+                 +(g*taump*f_W/2 +g1*f_B0/2 )*f_h2*s_H2  ) + AddHermConj.
+%=====================
+
+parameter nmmEps=(fabs(nmm12)+fabs(nmm33)+fabs(nmm44))/MNE4**2/3.
+parameter nmmEpsMax=1E-6.
+parameter NMM34= if(nmmEpsMax-nmmEps,  nmm34, mu      ).
+parameter NMM23= if(nmmEpsMax-nmmEps,  nmm23, MZ*cb*CW). 
+parameter NMM13= if(nmmEpsMax-nmmEps,  nmm13,-MZ*cb*SW).
+parameter NMM14= if(nmmEpsMax-nmmEps,  nmm14, MZ*sb*SW).
+parameter NMM24= if(nmmEpsMax-nmmEps,  nmm24,-MZ*sb*CW).
+
+
+ lterm  eps2*NMM34*f_h1*f_h2 +AddHermConj.
+
+ lterm   2*i*(  ( NMM23*taump*f_W/2 + NMM13*f_B0/2 )*f_h1*s_H1/vev1
+             +(-NMM24*taump*f_W/2 +NMM14*f_B0/2 )*f_h2*s_H2/vev2  ) + AddHermConj.
+do_else. 
+
+  let MG1I=MG1.
+  let MG2I=MG2.
+
+end_if.

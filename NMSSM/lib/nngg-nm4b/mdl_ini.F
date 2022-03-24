@@ -40,7 +40,7 @@
       end
 
 
-      subroutine ModelConstIni(mode,Wh,err)
+      integer function ModelConstIni(mode,Wh,err)
       implicit none
       integer mode, err
       real*8 Wh(5)
@@ -495,6 +495,13 @@ C      MSP = slhaVal1('NMSSMRUN', QSUSY, 12)
 
       call aaini01
       call mtrini
+      if(2*MNE1.gt.MZ) then 
+         ModelConstIni= 2
+      else 
+         ModelConstIni= 1
+      endif 
+
+
       end
 
       subroutine aaini01

@@ -105,17 +105,21 @@ int main(int argc,char** argv)
 
 #if defined(HIGGSBOUNDS) || defined(HIGGSSIGNALS)
 {  int NH0=3, NHch=1; // number of neutral and charged Higgs particles.
-   double HB_result,HB_obsratio,HS_observ,HS_chi2, HS_pval;
-   char HB_chan[100]={""}, HB_version[50], HS_version[50]; 
+
+   int HB_id[3],HB_result[3];
+   double  HB_obsratio[3],HS_observ,HS_chi2, HS_pval;
+   char HB_chan[3][100]={""}, HB_version[50], HS_version[50]; 
 
    NH0=hbBlocksMDL("HB.in",&NHch);
    system("echo 'BLOCK DMASS\n 25  2  '>> HB.in");
 #include "../include/hBandS.inc"
 #ifdef HIGGSBOUNDS
-   printf("HB(%s): result=%.0f  obsratio=%.2E  channel= %s \n", HB_version,HB_result,HB_obsratio,HB_chan);
+   printf("  HB(%s)\n", HB_version);
+   for(int i=0;i<3;i++) printf("  id= %d  result = %d  obsratio=%.2E  channel= %s \n", HB_id[i],HB_result[i],HB_obsratio[i],HB_chan[i]);
 #endif
 #ifdef HIGGSSIGNALS
-   printf("HS(%s): Nobservables=%.0f chi^2 = %.2E pval= %.2E\n",HS_version,HS_observ,HS_chi2, HS_pval);
+   printf("  HS(%s)\n",HS_version); 
+   printf(" Nobservables=%.0f chi^2 = %.2E pval= %.2E\n",HS_observ,HS_chi2, HS_pval);
 #endif
 }     
 #endif
@@ -202,7 +206,7 @@ printf("\n==== Indirect detection =======\n");
      "and spherical region described by cone with angle %.2f[rad]\n",fi,2*dfi);
 #ifdef SHOWPLOTS
      sprintf(txt,"Photon flux[cm^2 s GeV]^{1} at f=%.2f[rad], cone angle %.2f[rad]",fi,2*dfi);
-     displaySpectrum(txt,Emin,Mcdm,FluxA);
+     displayPlot(txt,"E[GeV]",Emin,Mcdm,0,1,"flux",0,SpectdNdE,FluxA);
 #endif
      printf("Photon flux = %.2E[cm^2 s GeV]^{-1} for E=%.1f[GeV]\n",SpectdNdE(Etest, FluxA), Etest);       
   }
@@ -210,7 +214,7 @@ printf("\n==== Indirect detection =======\n");
   { 
     posiFluxTab(Emin, sigmaV, SpE,  FluxE);
 #ifdef SHOWPLOTS     
-    displaySpectrum("positron flux [cm^2 s sr GeV]^{-1}" ,Emin,Mcdm,FluxE);
+    displayPlot("positron flux [cm^2 s sr GeV]^{-1}" ,"E[GeV]",Emin,Mcdm,0,1,"flux",0,SpectdNdE,FluxE);
 #endif
     printf("Positron flux  =  %.2E[cm^2 sr s GeV]^{-1} for E=%.1f[GeV] \n",
     SpectdNdE(Etest, FluxE),  Etest);           
@@ -219,7 +223,7 @@ printf("\n==== Indirect detection =======\n");
   { 
     pbarFluxTab(Emin, sigmaV, SpP,  FluxP  ); 
 #ifdef SHOWPLOTS    
-     displaySpectrum(FluxP,"antiproton flux [cm^2 s sr GeV]^{-1}" ,Emin, Mcdm);
+     displayPlot("antiproton flux [cm^2 s sr GeV]^{-1}" ,"E[GeV]",Emin, Mcdm,0,1,"flux",0,SpectdNdE,FluxP);
 #endif
     printf("Antiproton flux  =  %.2E[cm^2 sr s GeV]^{-1} for E=%.1f[GeV] \n",
     SpectdNdE(Etest, FluxP),  Etest);             
@@ -293,7 +297,7 @@ printf("\n======== Direct Detection ========\n");
                                    cutRecoilResult(dNdE,10,50));
                                                                                                          
 #ifdef SHOWPLOTS
-    displayRecoilPlot(dNdE,"Distribution of recoil energy of 73Ge",0,199);
+    displayPlot("Distribution of recoil energy of 73Ge","E[keV]",1,50,0,1,"dNdE",0,dNdERecoil,dNdE);
 #endif
 
   nEvents=nucleusRecoil(Maxwell,131,Z_Xe,J_Xe131,SxxXe131,dNdE);
@@ -302,7 +306,7 @@ printf("\n======== Direct Detection ========\n");
   printf("Number of events in 10 - 50 KeV region=%.2E /day/kg\n",
                                    cutRecoilResult(dNdE,10,50));                                   
 #ifdef SHOWPLOTS
-    displayRecoilPlot(dNdE,"Distribution of recoil energy of 131Xe",0,199);
+    displayPlot("Distribution of recoil energy of 131Xe","E[keV]",1,50,0,1,"dNdE",0,dNdERecoil,dNdE);
 #endif
 
   nEvents=nucleusRecoil(Maxwell,23,Z_Na,J_Na23,SxxNa23,dNdE);
@@ -311,7 +315,7 @@ printf("\n======== Direct Detection ========\n");
   printf("Number of events in 10 - 50 KeV region=%.2E /day/kg\n",
                                    cutRecoilResult(dNdE,10,50));                                   
 #ifdef SHOWPLOTS
-    displayRecoilPlot(dNdE,"Distribution of recoil energy of 23Na",0,199);
+    displayPlot("Distribution of recoil energy of 23Na","E[keV]",1,50,0,1,"dNdE",0,dNdERecoil,dNdE);
 #endif
 
   nEvents=nucleusRecoil(Maxwell,127,Z_I,J_I127,SxxI127,dNdE);
@@ -320,7 +324,7 @@ printf("\n======== Direct Detection ========\n");
   printf("Number of events in 10 - 50 KeV region=%.2E /day/kg\n",
                                    cutRecoilResult(dNdE,10,50));                                   
 #ifdef SHOWPLOTS
-    displayRecoilPlot(dNdE,"Distribution of recoil energy of 127I",0,199);
+    displaylPlot("Distribution of recoil energy of 127I","E[keV]",1,50,0,1,"dNdE",0,dNdERecoil,dNdE);
 #endif
   
 }
@@ -336,7 +340,7 @@ printf("\n======== Direct Detection ========\n");
   
   err=neutrinoFlux(Maxwell,forSun, nu,nu_bar);
 #ifdef SHOWPLOTS
-  displaySpectra("neutrino fluxes [1/Year/km^2/GeV]",Emin,Mcdm,2,nu,"nu",nu_bar,"nu_bar");
+  displayPlot("neutrino fluxes [1/Year/km^2/GeV]","E[GeV]",Emin,Mcdm,0,2,"nu",0,SpectdNdE,nu,"nu_bar",0,SpectdNdE,nu_bar);
 #endif
   printf(" E>%.1E GeV neutrino/anti-neutrino fluxes   %.2E/%.2E [1/Year/km^2]\n",Emin,
           spectrInfo(Emin,nu,NULL), spectrInfo(Emin,nu_bar,NULL));
@@ -348,14 +352,14 @@ printf("\n======== Direct Detection ========\n");
 
   muonUpward(nu,nu_bar, mu);
 #ifdef SHOWPLOTS  
-  displaySpectrum("Upward muons[1/Year/km^2/GeV]",1,Mcdm/2,mu);
+  displayPlot("Upward muons[1/Year/km^2/GeV]","E[GeV]",1,Mcdm/2,0,1,"mu",0,SpectdNdE,mu);
 #endif
   printf(" E>%.1E GeV Upward muon flux    %.3E [1/Year/km^2]\n",Emin,spectrInfo(Emin,mu,NULL));
 
 /* Contained events */
   muonContained(nu,nu_bar,1., mu);
 #ifdef SHOWPLOTS  
-  displaySpectrum("Contained  muons[1/Year/km^3/GeV]",Emin,Mcdm,mu);
+  displayPlot("Contained  muons[1/Year/km^3/GeV]","E[GeV]",Emin,Mcdm,0,1,"mu",0,SpectdNdE,mu);
 #endif
   printf(" E>%.1E GeV Contained muon flux %.3E [1/Year/km^3]\n",Emin,spectrInfo(Emin,mu,NULL));
 }

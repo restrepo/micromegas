@@ -11,7 +11,8 @@
       character*20   rdBuff
       real *8 v,vcsnngg,vcsnngz,vcsgg,vcsgz
       integer nArgs,err ,slharead,mode
-      
+      integer ModelConstIni,Nch
+      external ModelConstIni       
       
       
 
@@ -32,13 +33,15 @@
           
       if(slharead(fInput,0).ne.0) return
                               
-      call ModelConstIni(mode,err)
+      Nch=ModelConstIni(mode,err)
 	  
       if(err.ne.0) return
       
       v=0D0
       vcsgg=vcsnngg(v)
-      vcsgz=vcsnngz(v)      
+      if(Nch.gt.1) then 
+          vcsgz=vcsnngz(v)
+      endif           
       OPEN(UNIT=78,FILE=fOutput,STATUS='UNKNOWN')
       write(78,fmt='("BLOCK lGamma  # AZ and AA cross sections")')
  

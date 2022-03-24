@@ -26,7 +26,7 @@ static int SystemCall(int mode)
   sprintf(buff+strlen(buff)," %s %s",FIN, FOUT);
   err=System(buff); 
    
-  if(err>=0) err=slhaRead(FOUT,4); else cleanSLHAdata();
+  if(err>=0) err= slhaRead(FOUT,0);  else cleanSLHAdata();
   return err;
 }
 

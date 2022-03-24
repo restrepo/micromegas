@@ -156,7 +156,7 @@ typedef  struct{ numout*cc;
 #define Errt 256
 
 extern int init22_par(par_22*arg, numout*cc, int nsub);
-extern void mass22_par(par_22*arg);
+extern void mass22_par(par_22*arg,double T);
 extern int  kin22_par(par_22*arg, REAL sqrtS,double GG);
 extern double sqmeInt(par_22*arg,double eps);
 
@@ -210,6 +210,7 @@ void  pythonversion_(int *n1,int *n2);
 
 //  LHAPDF
 
+extern double tWidth21(char *name, double T);
 
 #include"../CalcHEP_src/include/num_in.h"
 

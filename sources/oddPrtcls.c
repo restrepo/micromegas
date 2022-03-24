@@ -57,7 +57,7 @@ fprintf(f,"\nMasses of odd sector Particles:\n");
   { int k;
     if(sort)k=n[i];else k=nn[i];
   
-    fprintf(f,"%-4.4s : %-6.6s= %7.1f ", OddPrtcls[k].name,
+    fprintf(f,"%-8.8s : %-8.8s= %7.3f ", OddPrtcls[k].name,
            OddPrtcls[k].mass,mass[k]);
                         
     col++;

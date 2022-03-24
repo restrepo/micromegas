@@ -11,8 +11,8 @@ void smodels(int Run, int nf,double csMinFb,  char*fileName,int wrt)
    { printf("SMODELS: The third parameter has to be either  LHC8 or  LHC13 or  LHC8+LHC13 \n");      
      return;
    }  
-   if((Run & LHC8) == 0)  PcmMax=4000;
-   if((Run & LHC13) == 0) PcmMin=6500;
+   if((Run & LHC8) == 0)  PcmMin=6500;
+   if((Run & LHC13) == 0) PcmMax=4000;
    
    FILE*f=fopen(fileName,"w");
    int np=0;
@@ -135,20 +135,30 @@ void smodels(int Run, int nf,double csMinFb,  char*fileName,int wrt)
 
        qNumbers(plist[i], NULL, &q31,&c1);
        qNumbers(plist[j], NULL, &q32,&c2);
+       
        q3=q31+q32;
+
        if(q3<0) { q3*=-1; if(abs(c1)==3) c1*=-1; if(abs(c2)==3)  c2*=-1;}
        if(c1>c2){ int c=c1; c1=c2;c2=c;}
-       
-       if (  (c2==1 || (c1==1 && c2==8) || (c1==-3 && c2==3) || (c1==8 && c2==8) ) 
-        
-                                       && (q3!=0 && q3 !=3) ) continue;
-                                       
-       if ( ((c1==-3 && c2== 3)||(c1== 1 && c2== 1)||
-             (c1== 8 && c2== 8)||(c1== 1 && c2== 8))  && (q3!=0 && q3!=3) ) continue;                            
-       if ( ((c1== 3 && c2== 8)||(c1== 1 && c2== 3))  && (q3!=2)          ) continue;
-       if ( ((c1==-3 && c2== 8)||(c1==-3 && c2== 1))  && (q3!=1)          ) continue;
-       if (  (c1== 3 && c2== 3)                       && (q3!=4 && q3!=1) ) continue;
-       if (  (c1==-3 && c2==-3)                       && (q3!=2)          ) continue;
+       if(c1==8) c1=1;
+       if(c2==8) c2=1;
+
+       int ok=0;
+
+       switch(q3)
+       {  case 0:  if( (c1==-3 && c2==3 ) || (c1==1  && c2==1) ) ok=1;
+                   break;
+          case 1:  if( (c1==3  && c2==3 ) || (c1==-3 && c2==1) ) ok=1;
+                   break;
+          case 2:  if( (c1==-3 && c2==-3) || (c1==1  && c2==3) ) ok=1;
+                   break;
+          case 3:  if( (c1==-3 && c2==-3) || (c1==1  && c2==1) ) ok=1;
+                   break;
+          case 4:  if( (c1==3  && c2==3) ) ok=1;
+                   break;
+       }
+   
+       if(ok==0) continue;
         
        {  double dcs;
           double Qf=0.5*(pMass(plist[i])+pMass(plist[j]));

@@ -5,6 +5,8 @@
 #include "micromegas_f.h"
 #include "../CalcHEP_src/include/rootDir.h" 
 
+#define ZeroCS 1E-40
+
 
 char* CDM1=NULL, *CDM2=NULL,*aCDM1=NULL,*aCDM2=NULL;
 aChannel* omegaCh=NULL;
@@ -334,6 +336,9 @@ static int testSubprocesses(void)
   int err,k1,k2,i,j;
   CDM1=CDM2=NULL;
   Mcdm=Mcdm1=Mcdm2=0;
+  
+  err=calcMainFunc();
+  if(err>0) return err;
    
   if(first)
   {
@@ -437,9 +442,7 @@ static int testSubprocesses(void)
 
   cleanDecayTable(); 
   if(Qaddress) *Qaddress=100;
- 
-  err=calcMainFunc();
-  if(err>0) return err;
+  
    
   if(Nodd==0) { printf("No odd particles in the model\n"); return -1; }
 
@@ -1177,7 +1180,7 @@ static double vSigmaI(double T, double Beps, int fast,double * alpha_)
     vSigmaGrid.pow=1;
     vSigmaGrid.xtop=X;
     MassCut=Mcdm*(2-log(Beps)/X);
-    vSigmaGrid.data[0]= aRate(X,0,fast,&alpha,NULL,NULL);
+    vSigmaGrid.data[0]= aRate(X,0,fast,&alpha,NULL,NULL)+ZeroCS;
     vSigmaGrid.alpha[0]=alpha;
     if(alpha_) *alpha_=alpha;     
     return vSigmaGrid.data[0];
@@ -1192,7 +1195,7 @@ static double vSigmaI(double T, double Beps, int fast,double * alpha_)
     }
     vSigmaGrid.xtop=XX;
     MassCut=Mcdm*(2-log(Beps)/XX);
-    vSigmaGrid.data[0]=aRate(XX,0,fast,&alpha,NULL,NULL);
+    vSigmaGrid.data[0]=aRate(XX,0,fast,&alpha,NULL,NULL)+ZeroCS;
     vSigmaGrid.alpha[0]=alpha; 
     vSigmaGrid.pow++;
   }
@@ -1204,7 +1207,7 @@ static double vSigmaI(double T, double Beps, int fast,double * alpha_)
     XX=vSigmaGrid.xtop* pow(XSTEP,vSigmaGrid.pow)  ;
     checkSgridUpdate();
     MassCut=Mcdm*(2-log(Beps)/XX);
-    vSigmaGrid.data[vSigmaGrid.pow]=aRate(XX,0,fast,&alpha,NULL,NULL);
+    vSigmaGrid.data[vSigmaGrid.pow]=aRate(XX,0,fast,&alpha,NULL,NULL)+ZeroCS;
     vSigmaGrid.alpha[vSigmaGrid.pow]=alpha;
     vSigmaGrid.pow++;
   }
@@ -1224,16 +1227,22 @@ static double vSigmaI(double T, double Beps, int fast,double * alpha_)
     
     if(alpha_)
     { if(alpha1==0) *alpha_=0; 
-      else   *alpha_=  alpha0*       (X-X1)*(X-X2)*(X-X3)/        (X0-X1)/(X0-X2)/(X0-X3)
-                       +alpha1*(X-X0)*       (X-X2)*(X-X3)/(X1-X0)/        (X1-X2)/(X1-X3)
-                       +alpha2*(X-X0)*(X-X1)*       (X-X3)/(X2-X0)/(X2-X1)/        (X2-X3)
-                       +alpha3*(X-X0)*(X-X1)*(X-X2)       /(X3-X0)/(X3-X1)/(X3-X2)        ;
+      else 
+      { *alpha_=  alpha0*       (X-X1)*(X-X2)*(X-X3)/        (X0-X1)/(X0-X2)/(X0-X3)
+                 +alpha1*(X-X0)*       (X-X2)*(X-X3)/(X1-X0)/        (X1-X2)/(X1-X3)
+                 +alpha2*(X-X0)*(X-X1)*       (X-X3)/(X2-X0)/(X2-X1)/        (X2-X3)
+                 +alpha3*(X-X0)*(X-X1)*(X-X2)       /(X3-X0)/(X3-X1)/(X3-X2)        ;
+        if(*alpha_ <0) *alpha_=0;
+      }                  
     }
-    return exp( 
+    double  res=exp( 
     sigmav0*       (X-X1)*(X-X2)*(X-X3)/        (X0-X1)/(X0-X2)/(X0-X3)
    +sigmav1*(X-X0)*       (X-X2)*(X-X3)/(X1-X0)/        (X1-X2)/(X1-X3) 
    +sigmav2*(X-X0)*(X-X1)*       (X-X3)/(X2-X0)/(X2-X1)/        (X2-X3) 
-   +sigmav3*(X-X0)*(X-X1)*(X-X2)       /(X3-X0)/(X3-X1)/(X3-X2)        );                        
+   +sigmav3*(X-X0)*(X-X1)*(X-X2)       /(X3-X0)/(X3-X1)/(X3-X2)        
+                    ) -ZeroCS;
+    if(res<0) res=0;
+    return res;                             
   }
 }
 
@@ -1348,7 +1357,7 @@ static void XderivLn(double s3, double *Y, double *dYdx)
 
 double darkOmegaFO(double * Xf_, int Fast, double Beps)
 {
-  double Yf,Yi;
+  double Yf;
   double Z1=2.5;
   double dZ1=0.05;
   double Xf=25;
@@ -1367,12 +1376,12 @@ double darkOmegaFO(double * Xf_, int Fast, double Beps)
   Yf=  darkOmega1(&Xf, Z1, dZ1,Fast, Beps);
   if(FError||Xf<1||Yf<=0) {  return -1;}
   
-  Yi=1/( (Mcdm/Xf)*sqrt(M_PI/45)*MPlank*aRate(Xf, 1,Fast,NULL, NULL,NULL) );
+  double iColl=( (Mcdm/Xf)*sqrt(M_PI/45)*MPlank*aRate(Xf, 1,Fast,NULL, NULL,NULL) );
 
-  if(!isfinite(Yi)||FError)  {  return -1;}
   if(Xf_) *Xf_=Xf; 
   
-  return  2.742E8*Mcdm/(1/Yf +  1/Yi); /* 2.828-old 2.755-new 2.742 next-new */
+  if(FError) return -1;
+  return  2.742E8*Mcdm/(1/Yf +  iColl); /* 2.828-old 2.755-new 2.742 next-new */
 }
 
 
@@ -1384,7 +1393,7 @@ double YF(double T){ return polint3(T,Ntab,Ttab, Ytab) ;}
 
 double darkOmega(double * Xf, int Fast, double Beps,int *err)
 {
-  double Yt,Yi,Xt=27;
+  double Yt,Xt=27;
   double Z1=1.1,Z2=10,Zf=2.5; 
   int i;
   int Nt=25;
@@ -1499,18 +1508,18 @@ double darkOmega(double * Xf, int Fast, double Beps,int *err)
   }  
 
 
-  Yi=1/( (Mcdm/Xt)*sqrt(M_PI/45)*MPlank*aRate(Xt,1,Fast,NULL,NULL,NULL));
+  double iColl=( (Mcdm/Xt)*sqrt(M_PI/45)*MPlank*aRate(Xt,1,Fast,NULL,NULL,NULL));
   Mcdm=Mcdm_mem;
-  if(!isfinite(Yi)||FError) { if(err) *err=8;  return -1;}
+  if(FError) { if(err) *err=8;  return -1;}
   
   if(deltaY==0)
   { dmAsymm=0;
-    return  2.742E8*Mcdm/(1/Yt  +  1/Yi); /* 2.828-old 2.755-new,2.742 -newnew */
+    return  2.742E8*Mcdm/(1/Yt  + iColl); /* 2.828-old 2.755-new,2.742 -newnew */
   } else
   {  double a,f,z0,Y0;
      a=fabs(deltaY);
      if(Yt<a*1.E-5)  f=Yt*Yt/4/a; else f=(sqrt(Yt*Yt+a*a)-a)/(sqrt(Yt*Yt+a*a)+a);   
-     f*= exp(-2*a/Yi);
+     f*= exp(-2*a*iColl);
      z0=sqrt(f)*2*a/(1-f);
      Y0=sqrt(z0*z0+a*a);
      dmAsymm=deltaY/Y0;
@@ -1530,9 +1539,8 @@ double printChannels(double Xf ,double cut, double Beps, int prcn, FILE * f)
   if(omegaCh) {free(omegaCh); omegaCh=NULL;}
 
   MassCut=Mcdm*(2-log(Beps)/Xf);
-  Sum=aRate(Xf, 1,1,NULL,&omegaCh,&nPrc)*(Mcdm/Xf)*sqrt(M_PI/45)*MPlank/(2.742E8*Mcdm_mem);
-
-  if(FError)     { return -1;}
+  Sum=aRate(Xf, 1,1,NULL,&omegaCh,&nPrc)*(Mcdm/Xf)*sqrt(M_PI/45)*MPlank/(2.742E8*Mcdm_mem); 
+  if(Sum==0 || FError)     { return -1;}
   if(nform<0)nform=0;
    
   if(f)
@@ -2670,15 +2678,14 @@ double darkOmega2( double fast, double Beps0)
   
   if(!CDM1)
   {     
-     while(fabs(Y[1])>0.01 *Yeq2(Tstart)) { Tstart*=1.05; dYstart(Tstart,Y,&Lmin,&Lmax);}
-     while(fabs(Y[1])<0.005*Yeq2(Tstart)) { Tstart/=1.05; dYstart(Tstart,Y,&Lmin,&Lmax);}
+     while(  isfinite(Y[1])  &&  fabs(Y[1])<0.005*Yeq2(Tstart)) { Tstart/=1.05; dYstart(Tstart,Y,&Lmin,&Lmax);}
+     while( !isfinite(Y[1])  ||  fabs(Y[1])>0.01 *Yeq2(Tstart)) { Tstart*=1.05; dYstart(Tstart,Y,&Lmin,&Lmax);}
   } else if(!CDM2)
   {
-      while(fabs(Y[0])>0.01 *Yeq1(Tstart)) { Tstart*=1.05; dYstart(Tstart,Y,&Lmin,&Lmax);}
-      while(fabs(Y[0])<0.005*Yeq1(Tstart)) { Tstart/=1.05; dYstart(Tstart,Y,&Lmin,&Lmax);} 
+     while(  isfinite(Y[0])  &&  fabs(Y[0])<0.005*Yeq1(Tstart)) { Tstart/=1.05; dYstart(Tstart,Y,&Lmin,&Lmax);} 
+     while( !isfinite(Y[0])  ||  fabs(Y[0])>0.01 *Yeq1(Tstart)) { Tstart*=1.05; dYstart(Tstart,Y,&Lmin,&Lmax);}
   } else
-  {           
-
+  {
      while( Lmin<100/Tstart  ) { Tstart*=1.05; dYstart(Tstart,Y,&Lmin,&Lmax);} 
      while( Lmin>200/Tstart  ) { Tstart/=1.05; dYstart(Tstart,Y,&Lmin,&Lmax);} 
   }

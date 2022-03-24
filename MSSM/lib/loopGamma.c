@@ -41,13 +41,15 @@ int loopGamma(double * csAZ, double *csAA)
   fclose(f);    
   if(!access(FOUT,R_OK)) unlink(FOUT);
   
-  sprintf(buff+strlen(buff)," %s %s",FIN,FOUT);
+  sprintf(buff+strlen(buff)," %s %s  %E %E %E %E ",FIN,FOUT,findValW("MW"), findValW("SW"), findValW("EE"),findValW("Mb") );
   err=System(buff);   
-  
+  double ee=findValW("EE");
+  double aFac=4*M_PI/ee/ee/137.036;
+   
   if(err>=0) 
   {  err=slhaRead(FOUT,1);
-     *csAZ=slhaVal("Lgamma",0.,1,1)*2.9979E-26;
-     *csAA=slhaVal("Lgamma",0.,1,2)*2.9979E-26;
+     *csAZ=slhaVal("Lgamma",0.,1,1)*2.9979E-26*aFac;
+     *csAA=slhaVal("Lgamma",0.,1,2)*2.9979E-26*aFac*aFac;
   }  
 
 //  if(!access(FOUT,R_OK)) unlink(FOUT);

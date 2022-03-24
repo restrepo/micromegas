@@ -70,6 +70,8 @@ static void startForm(int nsub, int* prtclNum,int ncalc)
 
   outFileOpen("%sresults%csum%d.frm",pathtouser, f_slash,nsub);                                        
   writeLabel('*');
+  
+  writeF("\n** propDen(p,m)= 1/(m^2 -p.p) \n\n");  
   writeF("vector p1,p2,p3,p4,p5,p6;\n");         
   writeparameters(nsub);       
   writeF("CFunction den;\n");
@@ -91,7 +93,7 @@ static void  diagramForm(vcsect * vcs, catrec * cr )
    writeF("Local FACTOR%d = (",cr->ndiagr_); 
    rewritepolynom();writeF(")/(");rewritepolynom();writeF(");\n");
    clearvardef();
-   writeF("Local ANS%d = factor*(",cr->ndiagr_);
+   writeF("Local ANS%d = FACTOR%d*(",cr->ndiagr_,cr->ndiagr_);
    
    seekArchiv(cr->rnumpos);
    readvardef(archiv);
@@ -105,8 +107,9 @@ static void  diagramForm(vcsect * vcs, catrec * cr )
       char momStr[20];
                    
       momentToString(denom[i].momStr,momStr);
-      writeF("\n *den(%s,%s,%d)", momStr,
-      vararr[denom[i].mass].alias, -denom[i].power);
+      writeF("\n *propDen(%s,%s)", momStr,
+      vararr[denom[i].mass].alias);
+      if( abs(denom[i].power)!=1 ) writeF("^%d", abs(denom[i].power));
    }
    writeF(";\n");
    writeF( "\n#call userWork{%d}\n",cr->ndiagr_);

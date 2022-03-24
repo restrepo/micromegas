@@ -5,11 +5,10 @@
 #include"../../include/micromegas.h"
 
 
-
 int readLesH(char *fname, int mode)
 { /* mode 0 - EWSB;  1 - SUGRA/AMBS; 2 - FILE */
-  int err;  
-  err=slhaRead(fname,0);
+  int err; 
+  err=slhaRead(fname,0);  
   FillVal(2);
   if(err) 
   {  printf("Problem with file format. Probably '%s' is not SLHA format file\n",fname);

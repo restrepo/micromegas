@@ -1,0 +1,20 @@
+HS=HiggsSignals-$(VERSION)
+
+all:$(HS)/HiggsSignals
+
+$(HS)/HiggsSignals:$(HS)/README
+	cd $(HS); ./configure --hbpath=../HiggsBounds
+	make -C $(HS)
+
+$(HS)/README: 
+ifneq (, $(shell command -v curl 2> /dev/null))
+	curl https://www.hepforge.org/archive/higgsbounds/$(HS).tar.gz  -O -L
+else 
+ifneq (, $(shell command -v wget 2> /dev/null))
+	wget https://www.hepforge.org/archive/higgsbounds/$(HS).tar.gz 
+else 
+	$(error "Neither wget nor curl are available, please install wget or curl or change hBandS.make accordingly.")
+endif
+endif
+	tar -xvzf $(HS).tar.gz 
+	rm $(HS).tar.gz

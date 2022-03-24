@@ -29,10 +29,10 @@
 #include"../include/micromegas.h"
 #include"../include/micromegas_aux.h"
 
-
 int main(int argc,char** argv)
 {  int err,n,i;
 
+ 
 // data corresponding to MSSM/mssmh.dat     
 // cross sections of DM-nucleon interaction 
    double csSIp=5.489E-09,  csSIn=5.758E-09, csSDp=5.807E-05, csSDn=-4.503E-05;  //[pb] 
@@ -81,7 +81,7 @@ printf("\n==== Indirect detection =======\n");
      "and spherical region described by cone with angle %.2f[rad]\n",fi,2*dfi);
 #ifdef SHOWPLOTS
      sprintf(txt,"Photon flux[cm^2 s GeV]^{1} at f=%.2f[rad], cone angle %.2f[rad]",fi,2*dfi);
-     displaySpectrum(txt,Emin,Mcdm,FluxA);
+     displayPlot(txt,"E[GeV]",Emin,Mcdm,0,1,"flux",0,SpectdNdE,FluxA);
 #endif
      printf("Photon flux = %.2E[cm^2 s GeV]^{-1} for E=%.1f[GeV]\n",SpectdNdE(Etest, FluxA), Etest);       
   }
@@ -91,7 +91,7 @@ printf("\n==== Indirect detection =======\n");
     posiFluxTab(Emin, sigmaV, SpE,  FluxE);    
     if(SMmev>0)  solarModulation(SMmev,0.0005,FluxE,FluxE);
 #ifdef SHOWPLOTS     
-    displaySpectrum("positron flux [cm^2 s sr GeV]^{-1}" ,Emin,Mcdm,FluxE);
+    displayPlot("positron flux [cm^2 s sr GeV]^{-1}" ,"E[GeV]",Emin,Mcdm,0,1,"flux",0,SpectdNdE,FluxE);
 #endif
     printf("Positron flux  =  %.2E[cm^2 sr s GeV]^{-1} for E=%.1f[GeV] \n",
     SpectdNdE(Etest, FluxE),  Etest);           
@@ -102,7 +102,7 @@ printf("\n==== Indirect detection =======\n");
     pbarFluxTab(Emin, sigmaV, SpP,  FluxP  ); 
     if(SMmev>0)  solarModulation(SMmev,1,FluxP,FluxP);
 #ifdef SHOWPLOTS    
-     displaySpectrum("antiproton flux [cm^2 s sr GeV]^{-1}" ,Emin, Mcdm,FluxP);
+     displayPlot("antiproton flux [cm^2 s sr GeV]^{-1}" ,"E[GeV]",Emin, Mcdm,0,1,"flux",0,SpectdNdE,FluxP);
 #endif
     printf("Antiproton flux  =  %.2E[cm^2 sr s GeV]^{-1} for E=%.1f[GeV] \n",
     SpectdNdE(Etest, FluxP),  Etest);             
@@ -127,7 +127,7 @@ printf("\n==== Indirect detection =======\n");
                                    cutRecoilResult(dNdE,10,50));
                                                                                                          
 #ifdef SHOWPLOTS
-    displayRecoilPlot(dNdE,"Distribution of recoil energy of 73Ge",0,199);
+    displayPlot("Distribution of recoil energy of 73Ge","E[keV]",1,50,0,1,"dNdE",0,dNdERecoil,dNdE);
 #endif
 
   nEvents=nucleusRecoilAux(Maxwell,131,Z_Xe,J_Xe131,SxxXe131,csSIp,csSIn, csSDp,csSDn,dNdE);
@@ -136,7 +136,7 @@ printf("\n==== Indirect detection =======\n");
   printf("Number of events in 10 - 50 KeV region=%.2E /day/kg\n",
                                    cutRecoilResult(dNdE,10,50));                                   
 #ifdef SHOWPLOTS
-    displayRecoilPlot(dNdE,"Distribution of recoil energy of 131Xe",0,199);
+    displayPlot("Distribution of recoil energy of 131Xe","E[keV]",1,50,0,1,"dNdE",0,dNdERecoil,dNdE);
 #endif
 
   nEvents=nucleusRecoilAux(Maxwell,23,Z_Na,J_Na23,SxxNa23,csSIp,csSIn, csSDp,csSDn,dNdE);
@@ -145,7 +145,7 @@ printf("\n==== Indirect detection =======\n");
   printf("Number of events in 10 - 50 KeV region=%.2E /day/kg\n",
                                    cutRecoilResult(dNdE,10,50));                                   
 #ifdef SHOWPLOTS
-    displayRecoilPlot(dNdE,"Distribution of recoil energy of 23Na",0,199);
+    displayPlot("Distribution of recoil energy of 23Na","E[keV]",1,50,0,1,"dNdE",0,dNdERecoil,dNdE);
 #endif
 
   nEvents=nucleusRecoilAux(Maxwell,127,Z_I,J_I127,SxxI127,csSIp,csSIn, csSDp,csSDn,dNdE);
@@ -154,7 +154,7 @@ printf("\n==== Indirect detection =======\n");
   printf("Number of events in 10 - 50 KeV region=%.2E /day/kg\n",
                                    cutRecoilResult(dNdE,10,50));                                   
 #ifdef SHOWPLOTS
-    displayRecoilPlot(dNdE,"Distribution of recoil energy of 127I",0,199);
+    displayPlot("Distribution of recoil energy of 127I","E[keV]",1,50,0,1,"dNdE",0,dNdERecoil,dNdE);
 #endif
   
 }
@@ -195,7 +195,7 @@ printf("\n==== Indirect detection =======\n");
 
 //  Display  neutrino flux  
 #ifdef SHOWPLOTS
-  displaySpectra("neutrino fluxes [1/Year/km^2/GeV]",Emin,Mcdm,2, nu,"nu",nu_bar,"nu_bar");
+  displayPlot("neutrino fluxes [1/Year/km^2/GeV]","E[GeV]",Emin,Mcdm,0,2,"nu",0,SpectdNdE,  nu, "nu_bar",0,SpectdNdE,nu_bar);
 #endif
 { 
     printf(" E>%.1E GeV neutrino flux       %.3E [1/Year/km^2] \n",Emin,spectrInfo(Emin,nu,NULL));

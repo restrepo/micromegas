@@ -136,7 +136,6 @@ static void * act_rcode(char * ch, int n, void**args)
 static void*  rd_rcode(char* s)
 {  char    * p;
    int  num;
-
    p = (char *) m_alloc(4+VAR_NAME_SIZE);
    p[0]=0;
    if (strlen(s) == 2 && s[1] > '0' && s[1] <= '9')
@@ -171,7 +170,7 @@ static void*  rd_rcode(char* s)
       if (strcmp(s,"G5") == 0) 
       { if(forR_code) strcpy(p,"M|G(ln,A)"); else strcpy(p,"M|G5");}
    }
-   if (!strlen(p)) sprintf(p,"M|%s",s);
+   if (!strlen(p)) sprintf(p,"M|%s",s);   
    return (void*) p;
 }
 

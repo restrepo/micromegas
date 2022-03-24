@@ -12,13 +12,13 @@ int init22_par(par_22*arg, numout*cc, int nsub)
    if(nsub>ntot || nin!=2 || nout!=2) return 2;    
    for(i=0;i<4;i++) arg->pdg[i]=arg->cc->interface->pinfAux(arg->nsub,1+i,arg->spin2+i,NULL,NULL,(arg->ndf)+i);
 //   printf("arg->ndf = %d %d %d %d\n", arg->ndf[0], arg->ndf[1], arg->ndf[2], arg->ndf[3]);
-   arg->T=0;
+   arg->T=0;     
    arg->err=0;
    return 0;
 }
 
 
-static double statFactor(par_22*arg)
+static double statFactor(par_22*arg) // for Monte Carlo
 { double c=1;
   for(int i=0;i<4;i++)if(arg->eta[i])
   { double p=0; for(int j=0;j<3;j++) p+=arg->pvect[j+1+4*i]*arg->n[j]; 
@@ -28,12 +28,13 @@ static double statFactor(par_22*arg)
 } 
 
 
-void mass22_par(par_22*arg)
+void mass22_par(par_22*arg,double T)
 {
    int i;
    numout*cc=arg->cc; 
    int nsub=arg->nsub;
-   for(i=0;i<4;i++) cc->interface->pinf(nsub,1+i,arg->pmass+i,NULL);
+   char * p[5];
+   for(i=0;i<4;i++) p[i]=cc->interface->pinf(nsub,1+i,arg->pmass+i,NULL);
      
    
    arg->s13=arg->s14=0;
@@ -44,11 +45,22 @@ void mass22_par(par_22*arg)
      if(!s) break;
      if(s[0]==1 && s[1]==3)
      { 
-       double mass=cc->interface->va[m];      
+       double mass=cc->interface->va[m];
        if(arg->s13==0)
        { arg->s13=1- 2*((arg->spin2[0]+arg->spin2[2])&1);
          arg->M13=mass;  
        } else if(arg->M13>mass) arg->M13=mass;
+       char*p=ModelPrtcls[pnum].name; 
+       cc->interface->va[w]=pWidth(p,NULL)+tWidth21(p,T);
+//printf("width(%s,%E)=%E+%E\n", p, T, pWidth(p,NULL),tWidth21(p,T)); 
+             
+       if( (   arg->pmass[0] > mass + arg->pmass[2] 
+            && arg->pmass[3] > mass + arg->pmass[1]
+           ) ||
+           (   arg->pmass[1] > mass + arg->pmass[3]
+            && arg->pmass[2] > mass + arg->pmass[0] 
+           ) )  cc->interface->va[w]*=3;
+       
      }
      if(s[0]==1 && s[1]==4)
      { 
@@ -57,11 +69,20 @@ void mass22_par(par_22*arg)
        { arg->s14=1- 2*((arg->spin2[0]+arg->spin2[3])&1);
          arg->M14=mass;  
        } else if(arg->M14>mass) arg->M14=mass;
+        char*p=ModelPrtcls[pnum].name;
+        cc->interface->va[w]=pWidth(p,NULL)+tWidth21(p,T);
+       if( (   arg->pmass[1] > mass + arg->pmass[2] 
+            && arg->pmass[3] > mass + arg->pmass[0]
+           ) ||
+           (   arg->pmass[0] > mass + arg->pmass[3]
+            && arg->pmass[2] > mass + arg->pmass[1] 
+           ) )  cc->interface->va[w]*=3;
+       
+             
      }
    }
    arg->sqrtSmin=arg->pmass[0]+arg->pmass[1];
-   if(arg->sqrtSmin < arg->pmass[2]+arg->pmass[3]) arg->sqrtSmin=arg->pmass[2]+arg->pmass[3];
-//   arg->s13=arg->s14=0;      
+   if(arg->sqrtSmin < arg->pmass[2]+arg->pmass[3]) arg->sqrtSmin=arg->pmass[2]+arg->pmass[3]; 
 }
 
 
@@ -107,16 +128,12 @@ int  kin22_par(par_22*arg, REAL sqrtS,double GG)
      dE=arg->pvect[0]-arg->pvect[8];
      dP=Pin-Pout; 
      arg->e13=(arg->M13*arg->M13+(dP-dE)*(dP+dE))/2/Pin/Pout;
-     if(arg->e13<=0) {/* printf("pole in t__channel\n");*/ arg->err=arg->err|Errt; return 1;}
    }
    if(arg->s14)
    {  
      dE=(m[1]-m[4]-m[2]+m[3])/2/sqrtS;
      dP=Pin-Pout;
-//     dP=(m[1]+m[2]-m[3]-m[4])/2 - (m[1]-m[2])*(m[1]-m[2]) -(m[3]-m[4])*(m[3]-m[4])/4/sqrtS/sqrtS;
-//     dP/=(Pin+Pout);
      arg->e14=(arg->M14*arg->M14-dE*dE+dP*dP )/2/Pin/Pout;
-     if(arg->e14<=0) {/* printf("pole in u_channel\n");*/ arg->err=arg->err|Errt; return 1;}
    }    
    arg->totFactor=Pout /(32.0*M_PI*Pin*sqrtS*sqrtS);
    arg->GG=GG;
@@ -138,9 +155,7 @@ static double  dSqme_dCosR_arg(double  dCos,void*arg_)
    arg->pvect[10]= arg->PcmOut*sinf;
    arg->pvect[14]=-arg->pvect[10];
 
-//for(int i=0;i<16;i++) printf("pvec %d= %e\n",i, (double)arg->pvect[i]);      
-   r = arg->cc->interface->sqme(arg->nsub,arg->GG,arg->pvect,NULL,&err_code);
-//if(err_code)printf("sqme=%e err_codes=%d\n", r,err_code);   
+   r = arg->cc->interface->sqme(arg->nsub,arg->GG,arg->pvect,NULL,&err_code);  
    if(arg->T>0) r*=statFactor(arg);
    if(err_code)  arg->err= arg->err | err_code ;
    return r;
@@ -160,130 +175,22 @@ static double  dSqme_dCosL_arg(double  dCos,void*arg_)
    arg->pvect[10]= arg->PcmOut*sinf;
    arg->pvect[14]=-arg->pvect[10];
 
-//for(int i=0;i<16;i++) printf("pvec %d= %e\n",i, (double)arg->pvect[i]);      
    r = arg->cc->interface->sqme(arg->nsub,arg->GG,arg->pvect,NULL,&err_code);
-//if(err_code)printf("sqme=%e err_codes=%d\n", r,err_code);   
    if(arg->T>0) r*=statFactor(arg);
    if(err_code)  arg->err= arg->err | err_code ;
    return r;
 }
 
 
-
-
-static double  dSqme_dKsi13B(double ksi,void*arg_)
-{
-   double  r;
-   par_22*arg=arg_;
-   double e=  arg->e13;
-   if(ksi>=1/e) return 0;
-   REAL sinf=sin(2*asin(sqrt(0.5*(1/ksi-e)))); 
-   if(!isfinite(sinf)) sinf=0;
-   REAL cosf=sqrt(fabs((1-sinf)*(1+sinf)));
-   int err_code=0;
-
-//printf("arg->PcmOut=%E\n", arg->PcmOut);   
-   arg->pvect[10]=arg->PcmOut*sinf;  // p3[2]
-   arg->pvect[11]=arg->PcmOut*cosf;  // p3[3]
-   arg->pvect[14]=-arg->pvect[10];
-   arg->pvect[15]=-arg->pvect[11];   
-      
-   r = arg->cc->interface->sqme(arg->nsub,arg->GG,arg->pvect,NULL,&err_code)/ksi/ksi ;
-   if(arg->T>0) r*=statFactor(arg);
-   arg->sqme_err=err_code;
-   return r;
-}
-
-static double  dSqme_dKsi13F(double ksi,void*arg_)
-{
-   double  r;
-   par_22*arg=arg_;
-   double e=  arg->e13;
-
-   if( ksi>=-log(e)) return 0; 
-   REAL sinf=sin(2*asin(sqrt(0.5*fabs(exp(-ksi)-e))));
-   if(!isfinite(sinf)) sinf=0; 
-   REAL cosf=sqrt(fabs((1-sinf)*(1+sinf)));
-   int err_code=0;
-
-//printf("arg->PcmOut=%E\n", arg->PcmOut);   
-   arg->pvect[10]=arg->PcmOut*sinf;  // p3[2]
-   arg->pvect[11]=arg->PcmOut*cosf;  // p3[3]
-   arg->pvect[14]=-arg->pvect[10];
-   arg->pvect[15]=-arg->pvect[11];   
-      
-   r = arg->cc->interface->sqme(arg->nsub,arg->GG,arg->pvect,NULL,&err_code)*exp(-ksi) ;
-   if(arg->T>0) r*=statFactor(arg);
-   if(!isfinite(r)){
-    for(int i=0;i<16;i++) printf(" %e\n",  (double)arg->pvect[i]);
-    printf("!isfinite(r) err_code=%d  exp(-ksi)=%E ksi=%E Pin=%E Pout=%e   \n",err_code,(double)exp(-ksi), (double)(ksi), arg->PcmIn,arg->PcmOut);
-   } 
-   arg->sqme_err=err_code;
-   return r;
-
-}
-
-
-static double  dSqme_dKsi14B(double ksi,void*arg_)
-{
-   double  r;
-   par_22*arg=arg_;
-
-   double e=  arg->e14;
-
-   if(ksi>=1/e) return 0;
-   
-   REAL sinf=sin(2*asin(sqrt(0.5*(1/ksi-e)))); 
-   if(!isfinite(sinf)) sinf=0;
-   REAL cosf=sqrt(fabs((1-sinf)*(1+sinf)));
-   int err_code=0;
-
-// printf("arg->PcmOut=%E\n", arg->PcmOut);   
-   arg->pvect[14]=arg->PcmOut*sinf;   // p4[2]
-   arg->pvect[15]=arg->PcmOut*cosf;   // p4[3]   
-   arg->pvect[10]=-arg->pvect[14];    // p3[2]
-   arg->pvect[11]=-arg->pvect[15];    // p3[3]      
-   r = arg->cc->interface->sqme(arg->nsub,arg->GG,arg->pvect,NULL,&err_code)/ksi/ksi ;
-   if(arg->T>0) r*=statFactor(arg);
-   arg->sqme_err=err_code;
-   return r;
-}
-
-static double  dSqme_dKsi14F(double ksi,void*arg_)
-{
-   double  r;
-   par_22*arg=arg_;
-   double e=  arg->e14;
-   if(ksi>=-log(e)) return 0;
-   REAL sinf=sin(2*asin(sqrt(0.5*fabs(exp(-ksi)-e))));
-   if(!isfinite(sinf)) sinf=0; 
-   REAL cosf=sqrt(fabs((1-sinf)*(1+sinf)));
-   int err_code=0;
-
-//printf("arg->PcmOut=%E\n", arg->PcmOut);   
-   arg->pvect[14]=arg->PcmOut*sinf;   // p4[2]
-   arg->pvect[15]=arg->PcmOut*cosf;   // p4[3]   
-   arg->pvect[10]=- arg->pvect[14];   // p3[2]
-   arg->pvect[11]=-arg->pvect[15];    // p3[3]      
-   r = arg->cc->interface->sqme(arg->nsub,arg->GG,arg->pvect,NULL,&err_code)*exp(-ksi);
-   if(arg->T>0) r*=statFactor(arg);
-   arg->sqme_err=err_code ;
-   return r;
-}
-
 static double  poleSqme(double x0,double x1,double x2,double delta,double f0, double f1,double f2)
 {
-//  printf("x= %e %e %e\n", x0,x1,x2);
-//  printf("f= %e %e %e\n", f0,f1,f2);
-//  printf("delta=%e\n", delta);  
-  if(f2-f1==0) {  return f0*x0;}    
+  if(f2-f0<=0) {  return f0*x0;}    
   double r=(f1-f0)/(f2-f0),z1=(x0+delta)/(x1+delta),z2=(x0+delta)/(x2+delta);
-//printf("r=%E (%E %E  %E) \n", r, (1/z1-1)/(1/z2-1),   (z1-1)/(z2-1),  (z1*z1-1)/(z2*z2-1));   
   double p,a,b;
   if(r>=(1/z1-1)/(1/z2-1)) p=-1;
   else if(r<=(z1*z1-1)/(z2*z2-1)) p=2;
   else 
-  {      double p1=-1,p2=2;
+  {  double p1=-1,p2=2;
      double a1=(pow(z1,p1)-1)/(pow(z2,p1)-1)-r , a2=(pow(z1,p2)-1)/(pow(z2,p2)-1)-r;
      if(a1>a2) { a=a1;a1=a2;a2=a; p=p1;p1=p2;p2=p;}
 
@@ -316,8 +223,6 @@ static double  poleSqme(double x0,double x1,double x2,double delta,double f0, do
 
 // cross section [pb]= sqmeInt*3.8937966E8*arg.PcmOut/(32.0*M_PI*arg.PcmIn*sqrtS*sqrtS))
 
-//static double mone(double x,void*arg) { return dSqme_dCos_arg(-1+x,arg);}
-
 double sqmeInt(par_22*arg, double eps)
 {  
      
@@ -325,7 +230,7 @@ double sqmeInt(par_22*arg, double eps)
   int i;
   int err=0;
   double x0=0,f0,f1,f2,in;  
-//  if(arg->s13)printf("arg->e13=%e\n", arg->e13);
+  
   int err_tmp=arg->err;
   if(arg->s13!=0 && arg->e13 < smallDelta)
   { 
@@ -335,18 +240,18 @@ double sqmeInt(par_22*arg, double eps)
        f0=dSqme_dCosR_arg(x0,arg);
        f1=dSqme_dCosR_arg(x0/2,arg);
        f2=dSqme_dCosR_arg(x0/4,arg);
-       if(arg->err&ErrC && arg->err&ErrD) { arg->err=err_tmp|ErrP;  return 0;}
+//?       if(arg->err&ErrC && arg->err&ErrD) { arg->err=err_tmp|ErrP;  return 0;}
        if(arg->err&ErrD){x0*=2; continue;}
        if(arg->err&ErrC){x0/=2; continue;}      
        in=poleSqme(x0,x0/2,x0/4,arg->e13,f0,f1,f2);
        break;
      }     
-     res1+=in;
+     if(isfinite(in)) res1+=in;
   }
   
   arg->err=err_tmp;
   res1+= simpson_arg(dSqme_dCosR_arg,arg,x0,1,eps,&err); 
-  if(err)  arg->err=arg->err|ErrIA;
+  if(err)  arg->err=arg->err|(2*err);
 /*
   if(err)
   {
@@ -362,7 +267,6 @@ double sqmeInt(par_22*arg, double eps)
 #endif    
   }   
 */  
-  
   if(arg->pdg[0]==arg->pdg[1]) return 2*res1;
 
   err_tmp=arg->err;
@@ -377,18 +281,18 @@ double sqmeInt(par_22*arg, double eps)
       f1=dSqme_dCosL_arg(x0/2,arg);      
       f2=dSqme_dCosL_arg(x0/4,arg);  
       
-      if(arg->err&ErrC && arg->err&ErrD) { arg->err=err_tmp|ErrP;  return 0;}
+//?      if(arg->err&ErrC && arg->err&ErrD) { arg->err=err_tmp|ErrP;  return 0;}
       if(arg->err&ErrD){x0*=2; continue;}
       if(arg->err&ErrC){x0/=2; continue;}
                                                 
       in=poleSqme(x0,x0/2,x0/4,arg->e14,f0,f1,f2);
       break; 
     }        
-    res1+=in;
+    if(isfinite(in))  res1+=in;
   }                                                                     
   arg->err=err_tmp;
   res1+=simpson_arg(dSqme_dCosL_arg,arg,x0,1,eps,&err); 
-  if(err) arg->err=arg->err|ErrIA;   
+  if(err) arg->err=arg->err|(2*err);   
 /*
   if(err)
   {
@@ -403,7 +307,7 @@ double sqmeInt(par_22*arg, double eps)
     exit(0);
 #endif    
   }
-*/     
+*/  
   return res1;
 } 
  

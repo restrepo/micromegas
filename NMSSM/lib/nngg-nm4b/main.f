@@ -12,8 +12,8 @@
       real *8 v,vcsnngg,vcsnngz,vcsgg,vcsgz
       integer nArgs,err ,slharead,mode
 	  real*8 Wh(5), slhaWidth
-          
-      external slhaWidth  
+      integer ModelConstIni, Nch    
+      external slhaWidth,ModelConstIni  
       
       OPEN(UNIT=78,FILE='nngg.out',STATUS='UNKNOWN')
       write(78,fmt='("BLOCK lGamma  # AZ and AA cross sections")')
@@ -35,12 +35,15 @@
                                                      
 	  
 	                            
-      call ModelConstIni(mode,Wh,err)
+      Nch= ModelConstIni(mode,Wh,err)
       if(err.ne.0) goto 3
       v=0.0
       vcsgg=vcsnngg(v)
-      vcsgz=vcsnngz(v)      
- 
+      if(Nch.gt.1) then  
+        vcsgz=vcsnngz(v)      
+      else
+        vcsgz=0
+      endif    
       write(78,fmt='(A6, 1PE10.4,A20)') '  1   ', vcsgz,'# ~o1,~o1->A,Z [pb]'
       write(78,fmt='(A6, 1PE10.4,A20)') '  2   ', vcsgg,'# ~o1,~o1->A,A [pb]'
       close(78)

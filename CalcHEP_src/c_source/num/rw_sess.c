@@ -92,8 +92,9 @@ static int w_widths(FILE *mode)
    fprintf(mode,"BW range    %f\n"
                 "t-channel widths %d\n"
                 "GI trick in s-  %d\n"
-                "GI trick in t-  %d",
-           *BWrange_int,*twidth_int,*gswidth_int,*gtwidth_int);
+                "GI trick in t-  %d\n"
+                "useSLHAwidth    %d\n",
+           *BWrange_int,*twidth_int,*gswidth_int,*gtwidth_int,useSLHAwidth);
    return 0;             
 }
 
@@ -101,8 +102,9 @@ static int r_widths(FILE *mode)
 {    fscanf(mode,"BW range    %lf\n"     
                  "t-channel widths %d\n"
                  "GI trick in s-  %d\n"                  
-                 "GI trick in t-  %d",  
-           BWrange_int,twidth_int,gswidth_int,gtwidth_int);
+                 "GI trick in t-  %d\n"
+                 "useSLHAwidth    %d\n",   
+           BWrange_int,twidth_int,gswidth_int,gtwidth_int,&useSLHAwidth);
 
      return 0;
 }                                   

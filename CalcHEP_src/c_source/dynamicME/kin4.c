@@ -15,6 +15,7 @@
 extern  char * trim(char *);
 
 int ForceUG=0;
+int useSLHAwidth=0;
 decayTableStr* decayTable=NULL;
 
 /*=============   decayPcm   and decayPcmW ================*/      
@@ -818,6 +819,23 @@ void setQforParticle(REAL *Q,char*pname)
 } 
 
 
+static void sortWidthTxtList(txtList L)
+{
+  if(!L) return;
+  for(;;)
+  {
+    txtList l=L;
+    for(l=L; l && l->next; l=l->next)
+    { double n1,n2;
+      sscanf(l->txt,"%lf",&n1);
+      sscanf(l->next->txt,"%lf",&n2);
+      if(n1<n2) { char*m=l->txt; l->txt=l->next->txt; l->next->txt=m; break;} 
+    }
+    if(l->next==NULL) break;   
+  } 
+}
+
+
 double pWidth(char *name, txtList * LL)
 {
   txtList L,l,Lout;
@@ -827,6 +845,7 @@ double pWidth(char *name, txtList * LL)
   REAL Qstat;
   REAL*Q=NULL;
 
+  if(pMass(name)==0) { if(LL) *LL=NULL; return 0;}
   for(i=0;i<nModelParticles;i++)
   { char *pnames[2]={ModelPrtcls[i].name,ModelPrtcls[i].aname};
     for(j=0;j<2;j++) if(strcmp(name,pnames[j])==0) 
@@ -853,7 +872,7 @@ double pWidth(char *name, txtList * LL)
      double br;
      pdg0=ModelPrtcls[i0].NPDG;
      if(j0) pdg0=-pdg0;
-     for(i=1; allDecays(i,0,&pdg,&Len,decay,&width,&br) ;i++)
+     if(useSLHAwidth) for(i=1; allDecays(i,0,&pdg,&Len,decay,&width,&br) ;i++)
      {
         if(abs(pdg)==abs(pdg0))
         {  txtListStr*l,*L=NULL;
@@ -874,6 +893,7 @@ double pWidth(char *name, txtList * LL)
              }    
              L=l;
            }
+           sortWidthTxtList(L);
            if(pdg0==pdg) 
            {  decayTable[i0].pdList[j0]=L; 
               if(strcmp(ModelPrtcls[i0].name,ModelPrtcls[i0].aname))
@@ -895,7 +915,8 @@ double pWidth(char *name, txtList * LL)
   width=decay22List(name,&L);
 
   if(L) 
-  {
+  { 
+    sortWidthTxtList(L);
     if(LL) *LL=L;
     decayTable[i0].pdList[j0]=L;
     if(strcmp(ModelPrtcls[i0].name,ModelPrtcls[i0].aname)) 
@@ -942,6 +963,7 @@ double pWidth(char *name, txtList * LL)
     sscanf(L->txt,"%lf %[^\n]",&width,buff);
     sprintf(L->txt,"%E %s",width/sum,buff);  
   }   
+  sortWidthTxtList(Lout);
   if(LL) *LL=Lout;
   decayTable[i0].pdList[j0]=Lout;
   if(strcmp(ModelPrtcls[i0].name,ModelPrtcls[i0].aname)) 
@@ -1042,11 +1064,21 @@ int procInfo2(numout*cc,int nsub,char**name,REAL*mass)
 int passParameters(numout*cc)
 {
    int i;
-   for(i=1;i<=cc->interface->nvar;i++) if(cc->link[i]) cc->interface->va[i]=*(cc->link[i]);
+   for(i=1;i<=cc->interface->nvar;i++) if(cc->link[i] &&  ((REAL*)(cc->link[i])-varValues) < *currentVarPtr)  cc->interface->va[i]=*(cc->link[i]); else 
+   { 
+     printf("Value of variable  '%s' needed for calculation of '%s' is not known yet\n",
+     cc->interface->varName[i], varNames[*currentVarPtr]);  
+     cc->interface->va[i]=0; FError=1;
+   }
+   
    int err=cc->interface->calcFunc();
    if(err>0) { printf("cannot calculate constraint %s\n",cc->interface->varName[err]); return 1;}
    return 0;
 }
+
+
+
+
 
 #define P_NAME_SIZE 11
 int slhaDecayPrint(char * name, int dVirt, FILE*f)

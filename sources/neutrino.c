@@ -1077,15 +1077,15 @@ static double integrandX(double x)
    return  dSigmadE_nu2mu(inNu,  Enu_stat, Emu_prim )*ex*Psurv; 
 } 
 
-static double integrandEnuUpward(double e)
+static double integrandEnuUpward(double lnE)
 { double E;
-  if(e==0) return 0;
-  E=1/e;
+
+  E=exp(lnE);
   Enu_stat=E;
   double g=alpha_stat/beta_stat;
   double xMax=log((Enu_stat+g)/(Emu_stat+g))/beta_stat ;  
    
-  return  E*E*nuSpectrum(E)*simpson(integrandX,0,xMax,1.E-4,NULL);
+  return  E*nuSpectrum(E)*simpson(integrandX,0,xMax,1.E-4,NULL);
 }
 
 
@@ -1140,7 +1140,7 @@ void muonUpward(double*nu, double*Nu, double*mu)
          {
            inNu=1-2*k;
            SpN_stat=Sp[k];
-           mu[i]+=simpson(integrandEnuUpward,1/M,1/Emu_stat,1.E-4,NULL);
+           mu[i]+=simpson(integrandEnuUpward,log(Emu_stat),log(M),1.E-3,NULL);
            if(sigma) sigma[i]+=simpson(integrandEnuUpward_sigma,1/M,1/Emu_stat,1.E-4,NULL); 
          }    
          if(sigma) {  sigma_mem=sigma[i]= sqrt(sigma[i]/mu[i]); sigma[i]*=Emu_stat;}
@@ -1149,7 +1149,7 @@ void muonUpward(double*nu, double*Nu, double*mu)
    }
 }
 
-#define QQ
+//#define QQ
 #ifdef QQ
 
 static double integrandX_I(double Emu_prim)
@@ -1301,7 +1301,7 @@ double  ATMmuonUpward(double cosFi, double E)
    {
       inNu= 1-2*k;
       inPr=-1+2*l;
-      mu+= (k==0?1: 1.35/1.95)*simpson(integrandEnuUpward,0,1/E,1.E-4,NULL)*Nrate[l];
+      mu+= (k==0?1: 1.35/1.95)*simpson(integrandEnuUpward,log(E),log(1E6), 1.E-3,NULL)*Nrate[l];
    }   
    return  mu*rho*NA;
 }

@@ -15,13 +15,13 @@ void o1Contents(FILE * f)
 
 int readVarCPVMSSM(char * fname)
 {
-  char*vlist[42]={
+  char*vlist[43]={"EE",
   "alfSMZ","Mtp", "MbMb","McMc","EE",  "SW",  "Ml", "MHc", "aMu","fiMu",
   "aM1",   "aM2", "aM3", "fiM1","fiM2","fiM3","Ml2","Ml3", "Mr2","Mr3",
   "aAt",   "fiAt","aAb", "fiAb","aAl", "fiAl","aAm","fiAm","aAu","fiAu",
   "aAd",   "fiAd","Mq2", "Mq3", "Mu2", "Mu3", "Md2","Md3", "MZ",
   "tb",    "aAe", "fiAe"};
-  int r= readVarSpecial(fname,42,vlist);
+  int r= readVarSpecial(fname,43,vlist);
   return r;  
 } 
 

@@ -11,6 +11,8 @@ static ModelPrtclsStr ModelPrtcls_[0]={ };
 ModelPrtclsStr *ModelPrtcls=ModelPrtcls_; 
 int nModelVars=0;
 int nModelFunc=0;
+int*currentVarPrt=NULL;
+
 static char*varNames_[0]={};
 
 char**varNames=varNames_;
@@ -38,6 +40,6 @@ char* pinf_ext(int nsub,int num , REAL * mass,int * N)
   return  p_names_[num-1];
 }
 
-int VWdecay=0,VZdecay=0;
+int VWdecay=0,VZdecay=0, useSLAHwidth=0;
 
 REAL * varAddress(char *name) { return 0;}

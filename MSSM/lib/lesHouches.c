@@ -194,6 +194,7 @@ int EWSBLesH(char * fname, double tb, double MG1, double MG2, double MG3, double
          
    fprintf(f," 23  %.8E      # mu\n",mu);
 /*   fprintf(f," 24  %.8E      # MA\n",MH3);   */
+   fprintf(f," 25  %.8E      #tanb\n",tb);
    fprintf(f," 26  %.8E      # MA\n",MH3);
    fprintf(f," 31  %.8E      # Ml1\n",Ml1);
    fprintf(f," 32  %.8E      # Ml2\n",Ml2); 

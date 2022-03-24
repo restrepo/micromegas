@@ -35,13 +35,16 @@ int loopGamma(double * csAA, double *csAZ)
 
   sprintf(buff+strlen(buff)," %E", Vrot/299792.*1.5957691);
 
-  err=System(buff);   
+  err=System(buff);
+  double ee=findValW("EE");
+  double aFac=4*M_PI/ee/ee/137.036;
+     
 
   if(err>=0) 
   {  err=slhaRead(FOUT,1);
      if(err) return err;
-     *csAZ=slhaVal("Lgamma",0.,1,1)*2.9979E-26*0.9117;
-     *csAA=slhaVal("Lgamma",0.,1,2)*2.9979E-26*0.9117*0.9117;
+     *csAZ=slhaVal("Lgamma",0.,1,1)*2.9979E-26*aFac;
+     *csAA=slhaVal("Lgamma",0.,1,2)*2.9979E-26*aFac*aFac;
   }  
 
 //  if(!access(FOUT,R_OK)) unlink(FOUT);

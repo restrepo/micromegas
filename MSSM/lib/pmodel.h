@@ -20,6 +20,7 @@ extern "C" {
 extern int  suspectEwsbMSSM(void);
 extern int  isajetEwsbMSSM(void);
 extern int  sphenoEwsbMSSM(void);
+extern int  treeEwsbMSSM(void);
 /*=============================================
   MSSM Parameters motivated by SUGRA scenario
   =============================================*/
@@ -113,7 +114,7 @@ extern double Rl23_(void);
 extern double dtaunu_(double *dmunu);
 extern int dMQcorrections;
 extern int loopGamma(double * cs_gz, double *cs_gg);
-extern int callSuperIsoSLHA(void);
+
 
 #define deltarho   deltarho_
 #define gmuon      gmuon_
@@ -142,6 +143,19 @@ extern int MSSMDDtest(int loop, double*pA0,double*pA5,double*nA0,double*nA5);
 extern int  hbBlocksMDL(char*fname,int *nHch);
  
 extern int  LilithMDL(char*fname);
+
+extern double calcLambdas(double tB, double MH3, double MU, double QSUSY, double Mtp, double MSG, double MC2, double Mq3, double Mu3, double Md3, double Ab, double At);
+
+extern double Lambda1(void);
+extern double Lambda2(void);
+extern double Lambda3(void);
+extern double Lambda4(void);
+extern double Lambda5(void);
+extern double Lambda6(void);
+extern double Lambda7(void);
+
+extern int treeMSSM(void);
+
 
 #ifdef __cplusplus
 }

@@ -21,6 +21,7 @@ int nModelParticles;
 ModelPrtclsStr*ModelPrtcls;
 int nModelVars;
 int nModelFunc;
+int *currentVarPtr;
 char**varNames;
 REAL *varValues;
 static  int (*calcMainFunc_)(void);
@@ -59,23 +60,33 @@ int getDynamicVP(void)
      int * nModelVars_;
      int * nModelFunc_;
      int *nModelParticles_;
+     int **currentVarPtr_;
      char ***varNames_; 
      REAL **varValues_; 
      ModelPrtclsStr **ModelPrtcls_;
    
      nModelVars_     =dlsym(VandP,"nModelVars");
      nModelFunc_     =dlsym(VandP,"nModelFunc");
-     nModelParticles_=dlsym(VandP,"nModelParticles" );
+     currentVarPtr_  =dlsym(VandP,"currentVarPtr");
+     nModelParticles_=dlsym(VandP,"nModelParticles");
      varNames_       =dlsym(VandP,"varNames");
      varValues_      =dlsym(VandP,"varValues");
      ModelPrtcls_    =dlsym(VandP,"ModelPrtcls");
      calcMainFunc_   =dlsym(VandP,"calcMainFunc");
+     
+     char**libDir_   =dlsym(VandP,"libDir");     if(libDir_)    *libDir_=libDir;
+     char**modelDir_ =dlsym(VandP,"modelDir");   if(modelDir_)  *modelDir_=modelDir;
+     char**compDir_  =dlsym(VandP,"compDir");    if(compDir_)   *compDir_=compDir;
+     char**calchepDir_=dlsym(VandP,"calchepDir");if(calchepDir_)*calchepDir_=calchepDir;
+     int*modelNum_    =dlsym(VandP,"modelNum");  if(modelNum_)  *modelNum_=1;
+     
 
      if(!nModelParticles_||!ModelPrtcls_||!nModelVars_||!nModelFunc_
       ||!varNames_ ||!varValues_||!calcMainFunc_) 
      { messanykey(10,10,"Can not find symbols"); free(SO); return 3;}
      nModelVars=*nModelVars_;
-     nModelFunc=*nModelFunc_;     
+     nModelFunc=*nModelFunc_;
+     currentVarPtr=*currentVarPtr_;
      nModelParticles=*nModelParticles_;
      varNames=*varNames_;
      ModelPrtcls=*ModelPrtcls_;

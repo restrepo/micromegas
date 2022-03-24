@@ -33,7 +33,7 @@ void FillVal(int mode)
      assignValW("At", slhaVal("Au", Q, 2, 3, 3) );
      assignValW("Ab", slhaVal("Ad", Q, 2, 3, 3) );
      assignValW("Al", slhaVal("Ae", Q, 2, 3, 3) );
-     assignValW("Am", slhaValExists("Ae",2,2,2)>0 ? slhaVal("Ae",Q,2,2,2):slhaVal("Al",Q,2,3,3));
+     assignValW("Am", slhaValExists("Ae",2,2,2)>0 ? slhaVal("Ae",Q,2,2,2):slhaVal("Ae",Q,2,3,3));
      assignValW("Ad", slhaValExists("Ad",2,2,2)>0 ? slhaVal("Ad",Q,2,2,2):slhaVal("Ad",Q,2,3,3));
      assignValW("At", slhaVal("Au",Q,2,3,3));
      assignValW("Au", slhaValExists("Au",2,2,2)>0 ? slhaVal("Au",Q,2,2,2):slhaVal("Au",Q,2,3,3));

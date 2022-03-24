@@ -2,21 +2,21 @@ Vector Portal simplified model
  Parameters
   Name | Value       |  Comment                                                                   |
  EE    |0.31343      |Electroweak coupling. EE=0.31223 corresponds to alpha=EE^2/(4*PI)=1/128.9
- alfSMZ|0.1184       |MS-BAR Srtong coupling at  MZ
+ alfSMZ|0.1184       |MS-BAR Strong coupling at  MZ
  Mm    |0.1057       |muon mass
  Ml    |1.777        |tau-lepton mass
- Q     |100          | QCD scale
- McMc  |1.2          | Mc(Mc)  MS-BAR
- MbMb  |4.23         | Mb(Mb)  MS-BAR
+ Mq    |0.05         |mass of u,d,s
+ Q     |100          |QCD scale
+ McMc  |1.2          |Mc(Mc)  MS-BAR
+ MbMb  |4.23         |Mb(Mb)  MS-BAR
  Mtp   |172.5        |t-quark pole mass
  MZ    |91.188       |Z-boson mass
  MW    |80.385       |W-mass
  Mh    |125          |higgs mass
-Mdm    |100          |
-Mdm2   |200          |
-MZp    |1000         |
-gZp    |1E-5         |
-YpU    |1            |
+Mdm    |100          |mass of first DM
+MZp    |1000         |mass of Z'
+gZp    |1E-5         |common coupling Zp - SM fermions
+YpU    |1            |individual coefficients ( break anomaly cancellation)
 YpD    |1            |
 YpS    |1            |
 YpC    |1            |
@@ -28,6 +28,5 @@ YpL    |-3           |
 YpNe   |-3           |
 YpNm   |-3           |
 YpNl   |-3           |
-gZpDm  | 1E-10       |
-gZpDm2 |0            |
+gZpDm  | 1E-10       | Zp DM1 coupling
 ===================================================================================================

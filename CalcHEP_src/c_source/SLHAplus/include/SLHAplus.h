@@ -153,6 +153,9 @@ extern double complex  hGGodd(double MH, double alphaMH, int Nitems, ...);
 extern double complex  hAAodd(double MH, double alphaMH, int Nitems, ...);
 #endif
 
+extern int blockExists( char * block);
+extern int writeBlock(char*block,  FILE*f);
+
 #include "delList.h"
 
 #ifdef __cplusplus

@@ -5,7 +5,8 @@
 =====================================*/ 
 
 #define RGE  suspect
-     /* choose 'suspect','isajet','softSusy','spheno'*/
+
+     /* choose 'suspect','softSusy','spheno'*/
 
 /*=========   SUSY scenario  ==========
   One can define SUGRA, AMSB, EWSB (for low scale input). 
@@ -30,12 +31,13 @@
       /* Display  deltarho, B_>sgamma, Bs->mumu, gmuon and
          check LEP mass limits 
       */ 
-
+//#define CheckMassMatrix      
 //#define HIGGSBOUNDS 
 //#define HIGGSSIGNALS
-#define LILITH 
-#define SMODELS
-       
+//#define SUPERISO
+//#define LILITH
+//#define SMODELS
+//#define MONOJET       
 
 #define OMEGA            
       /* Calculate relic density and display contribution of
@@ -72,12 +74,12 @@
          and recoil energy distibution for various nuclei
       */
 
-#define NEUTRINO 
+//#define NEUTRINO 
  /*  Neutrino signal of DM annihilation in Sun and Earth */
  
-#define DECAYS 
+//#define DECAYS 
       /* Calculate decay widths and branchings  */      
-#define CROSS_SECTIONS 
+//#define CROSS_SECTIONS 
       /* Calculate cross sections of reactions specified by the user */
 
 /*===== end of Modules  ======*/
@@ -86,7 +88,7 @@
 //#define SHOWPLOTS 
      /* Display  graphical plots on the screen */ 
 
-#define CLEAN    to clean intermediate files
+//#define CLEAN    to clean intermediate files
 
 /*===== End of DEFINE  settings ===== */
 
@@ -110,6 +112,7 @@
 #define PRINTRGE(A)  PRINTRGE_(A)
 
 
+
 int main(int argc,char** argv)
 {  int err;
    char cdmName[10];
@@ -117,8 +120,10 @@ int main(int argc,char** argv)
 
 
 // sysTimeLim=1000; 
-  ForceUG=0;   /* to Force Unitary Gauge assign 1 */
+   ForceUG=0;   /* to Force Unitary Gauge assign 1 */
 //  nPROCSS=0; /* to switch off multiprocessor calculations */
+//   useSLHAwidth=1;
+
 /*
    if you would like to work with superIso
     setenv("superIso","./superiso_v3.1",1);  
@@ -294,16 +299,23 @@ int main(int argc,char** argv)
   } 
 
   if(err) exit(1);
+/*  
+  initQCD5(0.1184,1.27,4.23, 173.07);
+  printf("Mb_pole=%E Mb_pole_1=%E alpha/pi=%E \n", Mbp(), 4.23*(1+4/3*alphaQCD(4.23)/M_PI), alphaQCD(4.23));
+  exit(0);  
+*/  
   err=sortOddParticles(cdmName);
 
-  
   if(err) { printf("Can't calculate %s\n",cdmName); return 1;}
+
+//  err=treeMSSM();  
+
 
   qNumbers(cdmName,&spin2, &charge3, &cdim);
   printf("\nDark matter candidate is '%s' with spin=%d/2  mass=%.2E\n",
   cdmName,       spin2, Mcdm); 
   
-  if(charge3) { printf("Dark Matter has electric charge %d/3\n",charge3); exit(1);}
+//  if(charge3) { printf("Dark Matter has electric charge %d/3\n",charge3); exit(1);}
   if(cdim!=1) { printf("Dark Matter is a color particle\n"); exit(1);}
   if(strcmp(cdmName,"~o1")) printf(" ~o1 is not CDM\n"); 
                               else o1Contents(stdout);
@@ -316,6 +328,7 @@ int main(int argc,char** argv)
   printMasses(stdout,1);  
 }
 #endif
+
 
 #ifdef CONSTRAINTS
 { double SMbsg,dmunu,csLim;
@@ -333,23 +346,94 @@ int main(int argc,char** argv)
   if(LspNlsp_LEP(&csLim)) printf("Excluded by LEP  by e+,e- -> DM q qbar. Cross section =%.2E [pb] \n",csLim);
 
   if(masslimits()==0) printf("MassLimits OK\n");
+  
+  if(blockExists("SPhenoLowEnergy"))
+  {
+    printf("\n SPheno  low energy observables\n");
+    printf("  BR(b -> s gamma)                         %.3E \n", slhaVal("SPhenoLowEnergy",0.,  1,   1   ));  
+    printf("  BR(b -> s mu+ mu-)                       %.3E \n", slhaVal("SPhenoLowEnergy",0.,  1,   2   ));  
+    printf("  BR(b -> s nu nu)                         %.3E \n", slhaVal("SPhenoLowEnergy",0.,  1,   3   ));  
+    printf("  BR(Bd -> e+ e-)                          %.3E \n", slhaVal("SPhenoLowEnergy",0.,  1,   4   ));  
+    printf("  BR(Bd -> mu+ mu-)                        %.3E \n", slhaVal("SPhenoLowEnergy",0.,  1,   5   ));  
+    printf("  BR(Bd -> tau+ tau-)                      %.3E \n", slhaVal("SPhenoLowEnergy",0.,  1,   6   ));  
+    printf("  BR(Bs -> e+ e-)                          %.3E \n", slhaVal("SPhenoLowEnergy",0.,  1,   7   ));  
+    printf("  BR(Bs -> mu+ mu-)                        %.3E \n", slhaVal("SPhenoLowEnergy",0.,  1,   8   ));  
+    printf("  BR(Bs -> tau+ tau-)                      %.3E \n", slhaVal("SPhenoLowEnergy",0.,  1,   9   ));  
+    printf("  BR(B_u -> tau nu)                        %.3E \n", slhaVal("SPhenoLowEnergy",0.,  1,  10   ));  
+    printf("  BR(B_u -> tau nu)/BR(B_u -> tau nu)_SM   %.3E \n", slhaVal("SPhenoLowEnergy",0.,  1,  11   ));  
+    printf("  |Delta(M_Bd)| [ps^-1]                    %.3E \n", slhaVal("SPhenoLowEnergy",0.,  1,  12   ));  
+    printf("  |Delta(M_Bs)| [ps^-1]                    %.3E \n", slhaVal("SPhenoLowEnergy",0.,  1,  13   ));  
+    printf("  epsilon_K                                %.3E \n", slhaVal("SPhenoLowEnergy",0.,  1,  16   ));  
+    printf("  Delta(M_K)                               %.3E \n", slhaVal("SPhenoLowEnergy",0.,  1,  17   ));  
+    printf("  BR(K^0 -> pi^0 nu nu)                    %.3E \n", slhaVal("SPhenoLowEnergy",0.,  1,  18   ));  
+    printf("  BR(K^+ -> pi^+ nu nu)                    %.3E \n", slhaVal("SPhenoLowEnergy",0.,  1,  19   ));  
+    printf("  Delta(g-2)_electron/2                    %.3E \n", slhaVal("SPhenoLowEnergy",0.,  1,  20   ));  
+    printf("  Delta(g-2)_muon/2                        %.3E \n", slhaVal("SPhenoLowEnergy",0.,  1,  21   ));  
+    printf("  Delta(g-2)_tau/2                         %.3E \n", slhaVal("SPhenoLowEnergy",0.,  1,  22   ));  
+  }
+ 
+}
+#endif
+
+#ifdef SUPERISO
+{
+  int err= callSuperIsoSLHA();
+  if(err==0)
+  { printf("\nSuperIso Flavour MSSM and ( SM)  observables :\n");
+    printf("  BR(b->s gamma)                     %.3E  (%.3E)\n", slhaValFormat("FOBS",0.,"    5    1  %lf    0     2     3    22        "), slhaValFormat("FOBSSM",0.,"    5    1  %lf    0     2     3    22        ")); 
+    printf("  Delta0(B->K* gamma)                %.3E  (%.3E)\n", slhaValFormat("FOBS",0.,"  521    4  %lf    0     2   313    22        "), slhaValFormat("FOBSSM",0.,"  521    4  %lf    0     2   313    22        ")); 
+    printf("  BR(B_s->mu+ mu-)                   %.3E  (%.3E)\n", slhaValFormat("FOBS",0.,"  531    1  %lf    0     2    13   -13        "), slhaValFormat("FOBSSM",0.,"  531    1  %lf    0     2    13   -13        ")); 
+    printf("  BR(B_u->tau nu)                    %.3E  (%.3E)\n", slhaValFormat("FOBS",0.,"  521    1  %lf    0     2   -15    16        "), slhaValFormat("FOBSSM",0.,"  521    1  %lf    0     2   -15    16        ")); 
+    printf("  R(B_u->tau nu)                     %.3E  (%.3E)\n", slhaValFormat("FOBS",0.,"  521    2  %lf    0     2   -15    16        "), slhaValFormat("FOBSSM",0.,"  521    2  %lf    0     2   -15    16        ")); 
+    printf("  BR(D_s->tau nu)                    %.3E  (%.3E)\n", slhaValFormat("FOBS",0.,"  431    1  %lf    0     2   -15    16        "), slhaValFormat("FOBSSM",0.,"  431    1  %lf    0     2   -15    16        ")); 
+    printf("  BR(D_s->mu nu)                     %.3E  (%.3E)\n", slhaValFormat("FOBS",0.,"  431    1  %lf    0     2   -13    14        "), slhaValFormat("FOBSSM",0.,"  431    1  %lf    0     2   -13    14        ")); 
+    printf("  BR(B+->D0 tau nu)                  %.3E  (%.3E)\n", slhaValFormat("FOBS",0.,"  521    1  %lf    0     3   421   -15    16  "), slhaValFormat("FOBSSM",0.,"  521    1  %lf    0     3   421   -15    16  ")); 
+    printf("  BR(B+->D0 tau nu)/BR(B+-> D0 e nu) %.3E  (%.3E)\n", slhaValFormat("FOBS",0.,"  521   11  %lf    0     3   421   -15    16  "), slhaValFormat("FOBSSM",0.,"  521   11  %lf    0     3   421   -15    16  ")); 
+    printf("  BR(K->mu nu)/BR(pi->mu nu)         %.3E  (%.3E)\n", slhaValFormat("FOBS",0.,"  321   11  %lf    0     2   -13    14        "), slhaValFormat("FOBSSM",0.,"  321   11  %lf    0     2   -13    14        ")); 
+    printf("  R_mu23                             %.3E  (%.3E)\n", slhaValFormat("FOBS",0.,"  321   12  %lf    0     2   -13    14        "), slhaValFormat("FOBSSM",0.,"  321   12  %lf    0     2   -13    14        ")); 
+  }
+}
+#endif
+
+#ifdef CheckMassMatrix
+{
+  double MZ,SW,CW,sb,cb;
+  MZ=findValW("MZ"); SW=findValW("SW"); CW=findValW("CW"); sb=findValW("sb"); cb=findValW("cb");
+  printf("\n    Neutralino Mass Matrix\n");  
+  printf(" i,j     Zki*Mk*Zkj    tree level\n");  
+  printf(" 1 1    %10.3E     %10.3E\n", findValW("nmm11"), findValW("MG1"));
+  printf(" 1 2    %10.3E     %10.3E\n", findValW("nmm12"), 0.);
+  printf(" 1 3    %10.3E     %10.3E\n", findValW("nmm13"), -MZ*cb*SW);
+  printf(" 1 4    %10.3E     %10.3E\n", findValW("nmm14"),  MZ*sb*SW);
+  printf(" 2 2    %10.3E     %10.3E\n", findValW("nmm22"),  findValW("MG2"));
+  printf(" 2 3    %10.3E     %10.3E\n", findValW("nmm23"),  MZ*cb*CW);
+  printf(" 2 4    %10.3E     %10.3E\n", findValW("nmm24"), -MZ*sb*CW);
+  printf(" 3 3    %10.3E     %10.3E\n", findValW("nmm33"),  0. );  
+  printf(" 3 4    %10.3E     %10.3E\n", findValW("nmm34"), -findValW("mu"));
+
 }
 #endif
 
 
+
+
 #if defined(HIGGSBOUNDS) || defined(HIGGSSIGNALS)
 {  int NH0=3, NHch=1; // number of neutral and charged Higgs particles.
-   double HB_result,HB_obsratio,HS_observ,HS_chi2, HS_pval;
-   char HB_chan[100]={""}, HB_version[50], HS_version[50]; 
-   NH0=HBblocksMDL(& NHch);
+   int HB_id[3],HB_result[3];
+   double  HB_obsratio[3],HS_observ,HS_chi2, HS_pval;
+   char HB_chan[3][100]={""}, HB_version[50], HS_version[50]; 
+   NH0=hbBlocksMO("HB.in",&NHch); 
+//    NH0= hbBlocksMDL("HB.in",&NHch); 
    system("echo 'BLOCK DMASS\n 25  2  '>> HB.in");
 #include "../include/hBandS.inc"
 #ifdef HIGGSBOUNDS
-   printf("HB(%s): result=%.0f  obsratio=%.2E  channel= %s \n", HB_version,HB_result,HB_obsratio,HB_chan);
-#endif
+   printf("HiggsBounds(%s)\n", HB_version);
+   for(int i=0;i<3;i++) printf("  id= %d  result = %d  obsratio=%.2E  channel= %s \n", HB_id[i],HB_result[i],HB_obsratio[i],HB_chan[i]);
+#endif 
 #ifdef HIGGSSIGNALS
-   printf("HS(%s): Nobservables=%.0f chi^2 = %.2E pval= %.2E\n",HS_version,HS_observ,HS_chi2, HS_pval);
-#endif
+   printf("HiggsSignals(%s)\n",HS_version); 
+   printf("  Nobservables=%.0f chi^2 = %.2E pval= %.2E\n",HS_observ,HS_chi2, HS_pval);
+#endif   
 }
 #endif
 
@@ -357,30 +441,42 @@ int main(int argc,char** argv)
 {  double m2logL, m2logL_reference=0,pvalue;
    int exp_ndf,n_par=0,ndf;
    char call_lilith[100], Lilith_version[20];
-
-   if(LilithMO("Lilith_in.xml"))
+//   LilithMO("Lilith_in.xml");
+   if(LilithMDL("Lilith_in.xml"))
    {        
 #include "../include/Lilith.inc"
-      printf("LILITH(DB%s):  -2*log(L): %.2f; -2*log(L_reference): %.2f; ndf: %d; p-value: %.2E \n",
-      Lilith_version,m2logL,m2logL_reference,ndf,pvalue);
+      if(ndf)
+      {
+        printf("LILITH(DB%s):  -2*log(L): %.2f; -2*log(L_reference): %.2f; ndf: %d; p-value: %.2E \n",
+        Lilith_version,m2logL,m2logL_reference,ndf,pvalue);
+      }  
    } else printf("LILITH: there is no Higgs candidate\n");
 }     
 #endif
 
 
 #ifdef SMODELS
-{  int result=0;
-   double Rvalue=0;
-   char analysis[30]={},topology[30]={};
-   int LHCrun=LHC8|LHC13;
- 
+{    
+  int result=0;
+  double Rvalue=0;
+  char analysis[30]={},topology[30]={};
+  int LHCrun=LHC8|LHC13;  //  LHC8  - 8TeV; LHC13  - 13TeV; 
 #include "../include/SMODELS.inc" 
+ 
 }   
 #endif 
 
+#ifdef MONOJET
+{ double CL=monoJet();
+  printf(" Monojet signal exclusion CL is %.3e\n", CL);
+}  
+#endif
+
+
+
 
 #ifdef OMEGA
-{ int fast=0;
+{ int fast=1;
   double Beps=1.E-5, cut=0.01;
   double Omega,Xf=25; 
   
@@ -397,7 +493,12 @@ int main(int argc,char** argv)
    Omega=darkOmega(&Xf,fast,Beps,&err);
    printf("Xf=%.2e Omega=%.2e\n",Xf,Omega);
 
- printChannels(Xf,cut,Beps,1,stdout);
+   if(Omega>0)printChannels(Xf,cut,Beps,1,stdout);
+
+/*    
+   Omega=darkOmega2(fast,Beps);
+   printf("Omega2=%.2e\n",Omega);
+*/
 
 // direct access for annihilation channels 
 
@@ -417,8 +518,6 @@ if(omegaCh){
 
 }
 #endif
-
- VZdecay=0; VWdecay=0; cleanDecayTable();
  
 
 #ifdef INDIRECT_DETECTION
@@ -454,9 +553,8 @@ printf("\n==== Indirect detection =======\n");
                        2-includes gammas for 2->2+gamma
                        4-print cross sections             
     */
-    
 
-  if(SpA)
+
   { 
      double fi=0.1,dfi=M_PI/180.; /* angle of sight and 1/2 of cone angle in [rad] */ 
                                                    /* dfi corresponds to solid angle 1.E-3sr */                                             
@@ -468,28 +566,26 @@ printf("\n==== Indirect detection =======\n");
 
 #ifdef SHOWPLOTS
      sprintf(txt,"Photon flux for angle of sight %.2f[rad] and cone angle %.2f[rad]",fi,2*dfi);
-     displaySpectrum(txt,Emin,Mcdm,FluxA);
+     displayPlot(txt,"E[GeV]",Emin,Mcdm,0,1,"",0,SpectdNdE,FluxA);
 #endif
   }
 
-  if(SpE)
   { 
     posiFluxTab(Emin, sigmaV, SpE, FluxE);
     if(SMmev>0)  solarModulation(SMmev,0.0005,FluxE,FluxE);
 #ifdef SHOWPLOTS     
-    displaySpectrum("positron flux [cm^2 s sr GeV]^{-1}" ,Emin,Mcdm,FluxE);
+    displayPlot("positron flux [cm^2 s sr GeV]^{-1}","E[GeV]",Emin,Mcdm,0,1,"",0,SpectdNdE,FluxE);
 #endif
     printf("\nPositron flux  =  %.2E[cm^2 sr s GeV]^{-1} for E=%.1f[GeV] \n",
     SpectdNdE(Etest, FluxE),  Etest); 
   }
   
-  if(SpP)
   {
     pbarFluxTab(Emin, sigmaV, SpP,  FluxP); 
     
     if(SMmev>0)  solarModulation(SMmev,1,FluxP,FluxP);     
 #ifdef SHOWPLOTS    
-     displaySpectrum("antiproton flux [cm^2 s sr GeV]^{-1}" ,Emin,Mcdm,FluxP);
+     displayPlot("antiproton flux [cm^2 s sr GeV]^{-1}","E[GeV]",Emin,Mcdm,0,1,"",0,SpectdNdE,FluxP);
 #endif
     printf("\nAntiproton flux  =  %.2E[cm^2 sr s GeV]^{-1} for E=%.1f[GeV] \n",
     SpectdNdE(Etest, FluxP),  Etest);     
@@ -502,6 +598,17 @@ printf("\n==== Indirect detection =======\n");
      double fi=0.,dfi=M_PI/180.; /* fi angle of sight[rad], dfi  1/2 of cone angle in [rad] */
                                  /* dfi corresponds to solid angle  pi*(1-cos(dfi)) [sr] */
                                                        
+     if(loopGamma(&vcs_gz,&vcs_gg)==0)
+     {
+         printf("\nGamma  ray lines:\n");
+         printf("E=%.2E[GeV]  vcs(Z,A)= %.2E[cm^3/s], flux=%.2E[cm^2 s]^{-1}\n",Mcdm-91.19*91.19/4/Mcdm,vcs_gz,
+                               gammaFlux(fi,dfi,vcs_gz));  
+         printf("E=%.2E[GeV]  vcs(A,A)= %.2E[cm^3/s], flux=%.2E[cm^2 s]^{-1}\n",Mcdm,vcs_gg, 
+                             2*gammaFlux(fi,dfi,vcs_gg));
+     }
+
+ treeMSSM();
+
      if(loopGamma(&vcs_gz,&vcs_gg)==0)
      {
          printf("\nGamma  ray lines:\n");
@@ -531,14 +638,17 @@ printf("\n==== Indirect detection =======\n");
 
   printf("protonFF (default) d %E, u %E, s %E\n",ScalarFFPd, ScalarFFPu,ScalarFFPs);                               
   printf("neutronFF(default) d %E, u %E, s %E\n",ScalarFFNd, ScalarFFNu,ScalarFFNs);
- 
-  calcScalarQuarkFF(0.46,27.5,34.,42.);
 
-//  To restore default form factors of  version 2  call 
-//  calcScalarQuarkFF(0.553,18.9,55.,243.5);
+
+//                    To restore default form factors of  version 2  call 
+     calcScalarQuarkFF(0.553,18.9,55.,243.5);
 
   printf("protonFF (new)     d %E, u %E, s %E\n",ScalarFFPd, ScalarFFPu,ScalarFFPs);                               
   printf("neutronFF(new)     d %E, u %E, s %E\n",ScalarFFNd, ScalarFFNu,ScalarFFNs);
+
+ 
+//                    To restore default form factors of  current version  call 
+//  calcScalarQuarkFF(0.56,20.2,34,42);
 
 }
 #endif
@@ -596,7 +706,7 @@ printf("\n======== Direct Detection ========\n");
                                    cutRecoilResult(dNdE,10,50));
                                                                                                          
 #ifdef SHOWPLOTS
-    displayRecoilPlot(dNdE,"Distribution of recoil energy of 73Ge",0,199);
+  displayPlot("Distribution of recoil energy of 73Ge","E[KeV]",0,200,0,1,"dN/dE",0,dNdERecoil,dNdE);   
 #endif
 
   nEvents=nucleusRecoil(Maxwell,131,Z_Xe,J_Xe131,SxxXe131,dNdE);
@@ -605,7 +715,7 @@ printf("\n======== Direct Detection ========\n");
   printf("Number of events in 10 - 50 KeV region=%.2E /day/kg\n",
                                    cutRecoilResult(dNdE,10,50));                                   
 #ifdef SHOWPLOTS
-    displayRecoilPlot(dNdE,"Distribution of recoil energy of 131Xe",0,199);
+    displayPlot("Distribution of recoil energy of 131Xe","E[KeV]",0,200,0,1,"dN/dE",0,dNdERecoil,dNdE);
 #endif
 
   nEvents=nucleusRecoil(Maxwell,23,Z_Na,J_Na23,SxxNa23,dNdE);
@@ -614,7 +724,7 @@ printf("\n======== Direct Detection ========\n");
   printf("Number of events in 10 - 50 KeV region=%.2E /day/kg\n",
                                    cutRecoilResult(dNdE,10,50));                                   
 #ifdef SHOWPLOTS
-    displayRecoilPlot(dNdE,"Distribution of recoil energy of 23Na",0,199);
+    displayPlot("Distribution of recoil energy of 23Na","E[KeV]",0,200,0,1,"dN/dE",0,dNdERecoil,dNdE);
 #endif
 
   nEvents=nucleusRecoil(Maxwell,127,Z_I,J_I127,SxxI127,dNdE);
@@ -623,7 +733,7 @@ printf("\n======== Direct Detection ========\n");
   printf("Number of events in 10 - 50 KeV region=%.2E /day/kg\n",
                                    cutRecoilResult(dNdE,10,50));                                   
 #ifdef SHOWPLOTS
-    displayRecoilPlot(dNdE,"Distribution of recoil energy of 127I",0,199);
+  displayPlot("Distribution of recoil energy of 127I","E[KeV]",0,200,0,1,"dN/dE",0,dNdERecoil,dNdE);
 #endif
   
 }
@@ -641,7 +751,7 @@ WIMPSIM=0;
 
   err=neutrinoFlux(Maxwell,forSun, nu,nu_bar);
 #ifdef SHOWPLOTS
-  displaySpectra("neutrino fluxes [1/Year/km^2/GeV]",Emin,Mcdm,2,nu,"nu",nu_bar,"nu_bar");
+  displayPlot("neutrino fluxes [1/Year/km^2/GeV]","E[GeV]",Emin,Mcdm,0, 2,"dnu/dE",0,SpectdNdE,nu,"dnu_bar/dE",0,SpectdNdE,nu_bar);
 #endif
 
 printf(" E>%.1E GeV neutrino/anti-neutrino fluxes   %.2E/%.2E [1/Year/km^2]\n",Emin,
@@ -652,8 +762,9 @@ if(forSun)printf("IceCube22 exclusion confidence level = %.2E%%\n", 100*exLevIC2
 /* Upward events */
   
   muonUpward(nu,nu_bar, mu);
-#ifdef SHOWPLOTS  
-  displaySpectrum("Upward muons[1/Year/km^2/GeV]",Emin,Mcdm/2,mu);
+
+#ifdef SHOWPLOTS
+  displayPlot("Upward muons[1/Year/km^2/GeV]","E",Emin,Mcdm/2, 0,1,"mu",0,SpectdNdE,mu);  
 #endif
 
   printf(" E>%.1E GeV Upward muon flux    %.2E [1/Year/km^2]\n",Emin,spectrInfo(Emin,mu,NULL));
@@ -661,7 +772,7 @@ if(forSun)printf("IceCube22 exclusion confidence level = %.2E%%\n", 100*exLevIC2
 /* Contained events */
   muonContained(nu,nu_bar,1., mu);
 #ifdef SHOWPLOTS  
-  displaySpectrum("Contained  muons[1/Year/km^3/GeV]",Emin,Mcdm,mu); 
+  displayPlot("Contained  muons[1/Year/km^3/GeV]","E",Emin,Mcdm,0,1,"",0,SpectdNdE,mu); 
 #endif
   printf(" E>%.1E GeV Contained muon flux %.2E [1/Year/km^3]\n",Emin,spectrInfo(Emin,mu,NULL)); 
 }        
@@ -677,41 +788,70 @@ if(forSun)printf("IceCube22 exclusion confidence level = %.2E%%\n", 100*exLevIC2
 
    pname = "h";
    width=pWidth(pname,&L);
-   printf("\n%s :   total width=%.2E \n and Branchings:\n",pname,width);
-   printTxtList(L,stdout);
+   printf("\n%s :   total width=%.2E \n",pname,width);
+//   printTxtList(L,stdout);  
+   printPartialWidth(width,L,stdout);
 
-   pname = "~o2";
+   pname = "H3";
    width=pWidth(pname,&L);
-   printf("\n%s :   total width=%.2E \n and Branchings:\n",pname,width);
-   printTxtList(L,stdout);            
+   printf("\n%s :   total width=%.2E \n",pname,width);
+//   printTxtList(L,stdout);          
+   printPartialWidth(width,L,stdout);
 
+   pname = "H";
+   width=pWidth(pname,&L);
+   printf("\n%s :   total width=%.2E \n",pname,width);
+//   printTxtList(L,stdout);   
+   printPartialWidth(width,L,stdout);
+
+   pname = "~1+";
+   width=pWidth(pname,&L);
+   printf("\n%s :   total width=%.2E \n",pname,width);
+//   printTxtList(L,stdout);   
+   printPartialWidth(width,L,stdout);
+
+printf("Hubble(Tf)=%E  Hubble(1)=%E\n", Hubble(Mcdm/28),Hubble(1) );
+
+
+   printf("Example of 1->3 decay:\n"); 
    numout*cc=newProcess("~o2->~o1,e,E");
    int err;
    printf("width(~o2->~o1,e,E)=%e\n", pWidthCC(cc,&err));
+   
 }
 #endif
 
 
 #ifdef CROSS_SECTIONS
 {
-  double cs, Pcm=4000, Qren,Qfact=pMass("~o2"),pTmin=0;
-  int nf=3;
-
-  printf("pp collision at sqrt(s)=%.2E GeV\n",2*Pcm);  
+  char* next,next_;
+  double nextM;
+    
+  next=nextOdd(1,&nextM); 
+  if(next && nextM<1000)  
+  { 
+     double cs, Pcm=6500, Qren, Qfact, pTmin=0;
+     int nf=3;
+     char*next_=antiParticle(next);
+     Qren=Qfact=nextM; 
+ 
+     printf("\npp > nextOdd  at sqrt(s)=%.2E GeV\n",2*Pcm);  
   
-  Qren=Qfact;
-  cs=hCollider(Pcm,1,nf,Qren, Qfact, "~o1","~o2",pTmin,1);
-  printf("cs(pp->~o1,~o2)=%.2E[pb]\n",cs);
-  
+     Qren=Qfact;
+     cs=hCollider(Pcm,1,nf,Qren, Qfact, next,next_,pTmin,1);
+     printf("Production of 'next' odd particle: cs(pp-> %s,%s)=%.2E[pb]\n",next,next_, cs);
+  }  
 }
 #endif
 
 #ifdef CLEAN
   system("rm -f suspect2_lha.in suspect2_lha.out suspect2.out");
-  system("rm -f  nngg.* output.flha ");
+  system("rm -f LesHouches.in Messages.out SPheno.spc");
+  system("rm -f LesHin LesHout");
+  system("rm -f  nngg.*  output.flha ");
   system("rm -f HB.* HS.* hb.* hs.*  debug_channels.txt debug_predratio.txt  Key.dat");
   system("rm -f Lilith_*   particles.py*");
-  system("rm -f  smodels.* summary.*");  
+  system("rm -f  smodels.in  smodels.log  smodels.out  summary.*; rm -rf  __pycache__ ");  
 #endif 
 
   killPlots();

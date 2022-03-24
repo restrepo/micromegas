@@ -63,6 +63,7 @@ work/bin:
 
 clean:  specialClean
 	../sources/cleanexe
+	rm -f work/lanhep/*.mdl work/lanhep/masses.chk
 	rm -rf *.dSYM
 	$(MAKE) -C lib  clean
 	$(MAKE) -C work clean
@@ -70,4 +71,7 @@ clean:  specialClean
 	rm -f HB.* HS.* hb.* hs.*  debug_channels.txt debug_predratio.txt  Key.dat
 	rm -f Lilith_*   particles.py*
 	rm -f  smodels.* summary.*
-      
+	rm -f  official*.pcl
+	rm -rf  __pycache__ 
+	rm -f STXS*.txt  HS_correlations.txt  
+	rm -f slhaForSuperIso  

@@ -55,7 +55,8 @@ int readVar(char *fname)
     if(name[0]=='#') { fscanf(f,"%*[^\n]"); continue;}
     if(fscanf(f,"%lf",&val)!=1) break;
     fscanf(f,"%*[^\n]");
-    { int err=assignVal(name,val);
+    { 
+      int err=assignVal(name,val);
       if(err==1) break;
     }
   }

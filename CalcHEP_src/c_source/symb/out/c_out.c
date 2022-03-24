@@ -1118,6 +1118,10 @@ static int c_prog_int(void)
       writeF("#include<complex.h>\n");
       writeF("#include\"num_out.h\"\n");
       writeF("#include\"num_in.h\"\n");
+      writeF("extern double complex lAAhiggs(double  Q, char* hName);\n");
+      writeF("extern double complex lGGhiggs(double  Q, char* hName);\n");
+      writeF("extern double complex lAA5higgs(double Q, char* hName);\n");
+      writeF("extern double complex lGG5higgs(double Q, char* hName);\n");
    }
    writeF("static int calcall[%d];\n",subproc_sq+1);
    {

@@ -210,22 +210,22 @@ static void m_reduce(Term m2, List pl, int pis, int fr)
 				t1=CompoundArg2(ListFirst(l2));
 				if(CompoundName(t1)==OPR_VECTOR && ListFirst(CompoundArg1(t1))==mi)
 					{
-					l1=AppendLast(l1,mk_cnvl(1,IntegerValue(CompoundArg1(t)),0,ppp));
+					l1=AppendLast(l1,mk_cnvl(1,(int)IntegerValue(CompoundArg1(t)),0,ppp));
 					goto cnt;
 					}
 				if(CompoundName(t1)==OPR_TENSOR && ListFirst(CompoundArg1(t1))==mi)
 					{
-					l1=AppendLast(l1,mk_cnvl(1,IntegerValue(CompoundArg1(t)),0,ppp));
+					l1=AppendLast(l1,mk_cnvl(1,(int)IntegerValue(CompoundArg1(t)),0,ppp));
 					goto cnt;
 					}
 				if(CompoundName(t1)==OPR_TENSOR && ListNth(CompoundArg1(t1),2)==mi)
 					{
-					l1=AppendLast(l1,mk_cnvl(1,IntegerValue(CompoundArg1(t)),2,ppp));
+					l1=AppendLast(l1,mk_cnvl(1,(int)IntegerValue(CompoundArg1(t)),2,ppp));
 					goto cnt;
 					}
 				if(CompoundName(t1)==OPR_SPINOR3 && ListNth(CompoundArg1(t1),2)==mi)
 					{
-					l1=AppendLast(l1,mk_cnvl(1,IntegerValue(CompoundArg1(t)),0,ppp));
+					l1=AppendLast(l1,mk_cnvl(1,(int)IntegerValue(CompoundArg1(t)),0,ppp));
 					goto cnt;
 					}
 				ppp++;
@@ -244,7 +244,7 @@ static void m_reduce(Term m2, List pl, int pis, int fr)
 					tg=MakeCompound(A_GAMMA,3);
 					SetCompoundArg(tg,1,ListFirst(CompoundArg2(t1)));
 					SetCompoundArg(tg,2,ListNth(CompoundArg2(t1),2));
-					SetCompoundArg(tg,3,mk_gamma(1,IntegerValue(CompoundArg1(t))));
+					SetCompoundArg(tg,3,mk_gamma(1,(int)IntegerValue(CompoundArg1(t))));
 					lg=AppendLast(lg,tg);
 					ChangeList(l2,0);
 					goto cnt;
@@ -259,8 +259,8 @@ static void m_reduce(Term m2, List pl, int pis, int fr)
 				if(CompoundName(t1)==A_MOMENT && 
 					ListFirst(CompoundArg2(t1))==mi)
 					{
-					l1=AppendLast(l1,mk_cnvl(1,IntegerValue(CompoundArg1(t)),
-											1,IntegerValue(CompoundArg1(t1))));
+					l1=AppendLast(l1,mk_cnvl(1,(int)IntegerValue(CompoundArg1(t)),
+											1,(int)IntegerValue(CompoundArg1(t1))));
 					SetCompoundArg(t1,1,0);
 					goto cnt;
 					}
@@ -496,7 +496,7 @@ static void m_reduce(Term m2, List pl, int pis, int fr)
 				if(CompoundName(t1)==A_MOMENT && 
 					ListFirst(CompoundArg2(t1))==mi)
 					{
-					SetCompoundArg(tg,3,mk_gamma(1,IntegerValue(CompoundArg1(t1))));
+					SetCompoundArg(tg,3,mk_gamma(1,(int)IntegerValue(CompoundArg1(t1))));
 					lg=AppendLast(lg,tg);
 					ChangeList(l2,0);
 					goto cnt;
@@ -708,7 +708,7 @@ void alg2_reduce(Term a2)
 			/*WriteVertex(CompoundArg1(a2));puts("");*/
 			/*WriteTerm(a2);puts("");*/
 			nf=CompoundArgN(a2,2);
-			dn=IntegerValue(CompoundArg2(nf));
+			dn=(int)IntegerValue(CompoundArg2(nf));
 			SetCompoundArg(nf,2,NewInteger(ex2(req_mpg)*dn));
 			for(l=CompoundArgN(a2,5);l;l=ListTail(l))
 			{

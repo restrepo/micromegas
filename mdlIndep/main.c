@@ -11,11 +11,7 @@
    Calculate galactic propagation of positrons and antiprotons.      
 */
   
-#define CDM_NUCLEUS
-/* Calculate number of events for 1kg*day and recoil energy distibution for various nuclei.
-   Input parameters are  Mcdm, spin dependent and spin independent cross sections on nucleons
-*/
-#define NEUTRINO 
+//#define NEUTRINO 
 /*  Neutrino signal of DM annihilation in Sun and Earth */
   
 /*===== end of Modules  ======*/
@@ -32,7 +28,11 @@
 int main(int argc,char** argv)
 {  int err,n,i;
 
- 
+   printf("%e %e \n", FeldmanCousins(0,0, 0.9), FeldmanCousins(0,0.35, 0.9));
+
+   printf("uConversion(_s_1_,_GeV_)=%E\n",uConversion(_s_1_,_GeV_));
+   exit(0);
+   
 // data corresponding to MSSM/mssmh.dat     
 // cross sections of DM-nucleon interaction 
    double csSIp=5.489E-09,  csSIn=5.758E-09, csSDp=5.807E-05, csSDn=-4.503E-05;  //[pb] 
@@ -43,6 +43,23 @@ int main(int argc,char** argv)
    double fracCH[nCH]={0.59,0.12,0.20,0.03, 0.06};
 
    sortOddParticles(NULL);
+// ======= millicharge   
+
+/*   
+{     
+double Z=10, A=20, alpha=1/137., RA=40, RN=pow(20,1./3.)*1E-3, rho=2.6,NAv=6E23,
+cmGeVsq=3.86E8*1E-36;
+   //  dE^2/dl[cm]= q^2*Mdm/MA*
+   
+double F= 2*M_PI*pow(Z*alpha,2)*log(RA/RN)*(NAv*rho/A);// *cmGeVsq;
+
+printf("F=%.2E [1/cm^3]\n",F);
+  
+ 
+    exit(0);
+} 
+*/  
+// ===   
 
 // Mass of Dark Matter    
    Mcdm=189.0;
@@ -78,7 +95,7 @@ printf("\n==== Indirect detection =======\n");
 
      gammaFluxTab(fi,dfi, sigmaV, SpA,  FluxA);     
      printf("Photon flux  for angle of sight f=%.2f[rad]\n"
-     "and spherical region described by cone with angle %.2f[rad]\n",fi,2*dfi);
+     "and sph[Berical region described by cone with angle %.2f[rad]\n",fi,2*dfi);
 #ifdef SHOWPLOTS
      sprintf(txt,"Photon flux[cm^2 s GeV]^{1} at f=%.2f[rad], cone angle %.2f[rad]",fi,2*dfi);
      displayPlot(txt,"E[GeV]",Emin,Mcdm,0,1,"flux",0,SpectdNdE,FluxA);
@@ -111,55 +128,6 @@ printf("\n==== Indirect detection =======\n");
 #endif
 
 
-// Interaction with nucleus
-  
-#ifdef CDM_NUCLEUS
-{ double dNdE[300];
-  double nEvents;
-
-
-  printf("\n======== Direct Detection ========\n");    
-
-  nEvents=nucleusRecoilAux(Maxwell,73,Z_Ge,J_Ge73,SxxGe73, csSIp,csSIn, csSDp,csSDn,dNdE);
-                              
-  printf("73Ge: Total number of events=%.2E /day/kg\n",nEvents);
-  printf("Number of events in 10 - 50 KeV region=%.2E /day/kg\n",
-                                   cutRecoilResult(dNdE,10,50));
-                                                                                                         
-#ifdef SHOWPLOTS
-    displayPlot("Distribution of recoil energy of 73Ge","E[keV]",1,50,0,1,"dNdE",0,dNdERecoil,dNdE);
-#endif
-
-  nEvents=nucleusRecoilAux(Maxwell,131,Z_Xe,J_Xe131,SxxXe131,csSIp,csSIn, csSDp,csSDn,dNdE);
-
-  printf("131Xe: Total number of events=%.2E /day/kg\n",nEvents);
-  printf("Number of events in 10 - 50 KeV region=%.2E /day/kg\n",
-                                   cutRecoilResult(dNdE,10,50));                                   
-#ifdef SHOWPLOTS
-    displayPlot("Distribution of recoil energy of 131Xe","E[keV]",1,50,0,1,"dNdE",0,dNdERecoil,dNdE);
-#endif
-
-  nEvents=nucleusRecoilAux(Maxwell,23,Z_Na,J_Na23,SxxNa23,csSIp,csSIn, csSDp,csSDn,dNdE);
-
-  printf("23Na: Total number of events=%.2E /day/kg\n",nEvents);
-  printf("Number of events in 10 - 50 KeV region=%.2E /day/kg\n",
-                                   cutRecoilResult(dNdE,10,50));                                   
-#ifdef SHOWPLOTS
-    displayPlot("Distribution of recoil energy of 23Na","E[keV]",1,50,0,1,"dNdE",0,dNdERecoil,dNdE);
-#endif
-
-  nEvents=nucleusRecoilAux(Maxwell,127,Z_I,J_I127,SxxI127,csSIp,csSIn, csSDp,csSDn,dNdE);
-
-  printf("I127: Total number of events=%.2E /day/kg\n",nEvents);
-  printf("Number of events in 10 - 50 KeV region=%.2E /day/kg\n",
-                                   cutRecoilResult(dNdE,10,50));                                   
-#ifdef SHOWPLOTS
-    displayPlot("Distribution of recoil energy of 127I","E[keV]",1,50,0,1,"dNdE",0,dNdERecoil,dNdE);
-#endif
-  
-}
-#endif 
-
 // Neutrino telescope 
 
 #ifdef NEUTRINO
@@ -174,7 +142,7 @@ printf("\n==== Indirect detection =======\n");
   if(forSun) printf("Sun\n"); else printf("Earth\n"); 
 
 // Capture rate  
-  Crate=captureAux(Maxwell,forSun, Mcdm,csSIp,csSIn,csSDp,csSDn);
+  Crate=captureCS(Maxwell,forSun, Mcdm,csSIp,csSIn,csSDp,csSDn);
     
   nu[0]=nu_bar[0]=Mcdm;
   for(i=1;i<NZ;i++){ nu[i]=nu_bar[i]=0;}

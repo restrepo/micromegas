@@ -248,8 +248,10 @@ int buildInterpolation(double (*Fun)(double), double x1,double x2, double eps,do
    N=5;
    xa=malloc(N*sizeof(double));
    ya=malloc(N*sizeof(double));
+//printf("==================================\n");
    
-   for(i=0;i<5;i++) {xa[i]=x1+ (x2-x1)/4*i; ya[i]=Fun(xa[i]);}  
+   for(i=0;i<5;i++) {xa[i]=x1+ (x2-x1)/4*i; ya[i]=Fun(xa[i]); /*printf("x=%E y=%E\n",xa[i],ya[i]);*/ }  
+
 
    for(cnt=1;cnt;)
    { cnt=0; 
@@ -261,7 +263,8 @@ int buildInterpolation(double (*Fun)(double), double x1,double x2, double eps,do
         del(i,&N,xa,ya);
         yy=polint3(x, N, xa, ya);
         ins(i, x, y, &N,xa, ya);
-        if( (eps>0 && fabs(yy-y) > eps) || (eps<0 && fabs(yy-y)> -eps*(y)))  
+//printf("yy=%E y=%e  (eps<0 && fabs(yy-y)> -eps*fabs(y))=%d  fabs(yy-y)=%E -eps*fabs(y)=%E eps=%E   \n", yy,y,(eps<0 && fabs(yy-y)> -eps*fabs(y)),  fabs(yy-y), -eps*fabs(y),eps );        
+        if( (eps>0 && fabs(yy-y) > eps) || (eps<0 && fabs(yy-y)> -eps*fabs(y)))  
         {
            cnt=1;
            xa=realloc(xa,sizeof(double)*(N+1));
@@ -273,6 +276,8 @@ int buildInterpolation(double (*Fun)(double), double x1,double x2, double eps,do
            
            x=(xa[k-1]+xa[k])/2;
            y=Fun(x); 
+//           printf("x=%E y=%E\n",x,y);
+           
            ins(k,x,y,&N,xa,ya);
            i++;     
         }  
@@ -296,9 +301,19 @@ double MaxGapLim(double x, double mu)
 */  
 {
   int k;
-  double C0,kf;
-  if(x>mu-1.E-5) return 1-exp(-mu);
-  for(k=0,C0=0,kf=1;k<=mu/x; k++,kf*=k) {C0+= pow(k*x-mu,k)*exp(-k*x)*(1+k/(mu-k*x))/kf;}
+  long double C0,lnkf;
+  if(x>=mu) return 1;
+  double lnMu[10]={0,           6.931472E-01,1.609438E+00,2.302585E+00,2.995732E+00,3.912023E+00,4.605170E+00,5.298317E+00,5.991465E+00,6.907755E+00};
+  double xMin[10]={1.864675e-01,3.049546e-01,5.523649e-01,8.225020e-01,1.174237e+00,1.759748e+00,2.286058e+00,2.863048e+00,3.480203e+00,4.342722e+00};
+  
+  
+  double xx=polint3(log(mu),10,lnMu,xMin);
+  if(x<xx) return 1E-6;
+  
+  for(k=0,C0=0,lnkf=0;k<mu/x; k++,lnkf+=logl(k)) {long double dC=expl(-k*x +k*logl(mu-k*x) -lnkf)*(1+k/(mu-k*(long double)x));
+                                                  if(k&1) C0-=dC; else C0+=dC;
+//                                                  printf("k=%d dC=%E lnkf=%e  C0=%E \n", k, (double)dC,(double)lnkf,(double)C0);   
+  }
   return C0;   
 }
 
@@ -389,14 +404,14 @@ double amoeba(double *pp, double * dp, int ndim, double (*f)(double *),
 
 //printf("nCall=%d  ndim=%E\n",*nCalls,y[ilo]);   
      										     
-      if((*nCalls)<=0||2*(y[ihi]-y[ilo])/(fabs(y[ilo])+fabs(y[ihi]))<eps)break;
+      if( (nCalls &&  (*nCalls)<=0)||2*(y[ihi]-y[ilo])/(fabs(y[ilo])+fabs(y[ihi]))<eps)break;
      										     
-      ytry=amotry(p,y,ndim,f,ilo,-1.0); (*nCalls)--;				     
-      if (ytry >= y[ihi]) {ytry=amotry(p,y,ndim,f,ilo,2.); (*nCalls)--;}	     
+      ytry=amotry(p,y,ndim,f,ilo,-1.0);  if(nCalls) (*nCalls)--;				     
+      if (ytry >= y[ihi]) {ytry=amotry(p,y,ndim,f,ilo,2.);  if(nCalls) (*nCalls)--;}	     
       else if (ytry <= y[inlo])							     
       {										     
          ysave=y[ilo];								     
-     	 ytry=amotry(p,y,ndim,f,ilo,0.5);  (*nCalls)--;
+     	 ytry=amotry(p,y,ndim,f,ilo,0.5);  if(nCalls)(*nCalls)--;
      	 if (ytry <= ysave)
      	 {  
      	    for (i=0;i<=ndim;i++)
@@ -408,7 +423,7 @@ double amoeba(double *pp, double * dp, int ndim, double (*f)(double *),
      	       }
             }
 /*printf("srink\n");            */
-     	    (*nCalls) -= ndim;
+     	    if(nCalls)(*nCalls) -= ndim;
          }									     
       }										     
    }
@@ -500,11 +515,11 @@ void splint(double xa[], double ya[], double y2a[], int n, double x, double *y)
 	*y=a*ya[klo]+b*ya[khi]+((a*a*a-a)*y2a[klo]+(b*b*b-b)*y2a[khi])*(h*h)/6.0;
 }
 
-
+#define FC_DIM 15000
 
 static int findMinLimit(double mu,double b,double cl)
 {
-  double r[300],p[300],s,rMax;
+  double r[FC_DIM],p[FC_DIM],s,rMax;
   int N,n,n0,nMin,nMax;
   
   r[0]=exp(-mu);
@@ -512,7 +527,7 @@ static int findMinLimit(double mu,double b,double cl)
   s=p[0];
   nMax=0;
   rMax=r[0];
-   for(n=1;n<300;n++) p[n]=1;
+   for(n=1;n<FC_DIM ;n++) p[n]=1;
   for(n=1; 1-s> cl/100 ;n++)
   {  double mu_best;
      if(n>b) mu_best=n-b; else mu_best=0;
@@ -561,3 +576,61 @@ double ch2pval(int nexp, double ch2obs)
    return simpson(ch2pva_int, 0, exp(-alpha*ch2obs/2), 1.E-3,NULL);///exp(lgamma(nexp/2.))/alpha;
 }
 
+
+double plr2pval(double l) { return  0.5*(1- erfl(sqrtl(-logl(l))));}
+
+
+double pval2plr(double p) 
+{  if(p>0.5) return 1;
+
+   double l1=0,l2=1,p1=0,p2=0.5;
+   
+   for(;;)
+   {  
+      double l_=0.5*(l1+l2);   
+      double p_= plr2pval(l_);
+      if(fabs(p-p_) < 1E-3*p) return l_;
+      
+      if(p_<p) { l1=l_; p1=p_;} else {  l2=l_; p2=p_;}
+   }
+   
+}
+
+void  addErrorMess( char** All, char * one)
+{
+   if(*All==NULL || strstr(*All,one)==NULL)
+   { int len; 
+     if(*All) len=strlen(*All); else len=0;
+     *All=realloc(*All, len+2+strlen(one)); 
+     sprintf(*All+len,one);
+   }
+}
+
+void delInterval(double x1,double x2,double **intervals, int*n)
+{ 
+
+//printf("delInterval [%e,%e]\n",x1,x2);
+ 
+  int i1,i2;
+  for(i1=0;i1<2*(*n);i1++) if(x1<=(*intervals)[i1]) break; i1--; 
+  for(i2=0;i2<2*(*n);i2++) if(x2<(*intervals)[i2]) break; i2--;
+  if(i1==i2)
+  { 
+//printf("i1=i2=%d  x1=%e x2=%e\n",i1,x1,x2);  
+      if(i1&1==1) return; // this interval is already excluded
+     *intervals=realloc(*intervals,2*(*n+1)*sizeof(double));
+     for(int k=2*(*n)+1;k>=i1+3;k--) (*intervals)[k]=(*intervals)[k-2]; 
+//printf(" %e %e %e %e\n", (*intervals)[0], (*intervals)[1], (*intervals)[2], (*intervals)[3]);      
+     (*intervals)[i1+1]=x1; (*intervals)[i1+2]=x2;
+//printf(" %e %e %e %e\n", (*intervals)[0], (*intervals)[1], (*intervals)[2], (*intervals)[3]);     
+     (*n)++;  
+     return;
+  }
+  if((i1&1)==0) (*intervals)[++i1]=x1;  
+  if(!(i2&1)) (*intervals)[i2]=x2; else i2++;
+  if(i2-i1>1)
+  {
+     for(int k=i1+1;k<2*(*n)-2;k++) (*intervals)[k]=(*intervals)[k-i1+i2-1];
+     (*n)-=(i2-i1)/2;
+  }  
+}

@@ -199,7 +199,7 @@ begin:
 		}
 	
 	if(rrecs[currec].eof==1) return;
-	len=strlen(cbuf);
+	len=(int)strlen(cbuf);
 	curpos=0;
 	if(rrecs[currec].comment==1)
 		{
@@ -437,6 +437,7 @@ static Atomic read_a(char *s, int *len)
 				f*=pow(10.0,exp);
 				}
 			*len=alen;
+			
 			return NewFloat(f);
 			}
 		lll=0;

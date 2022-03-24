@@ -99,7 +99,7 @@ Term Alg1to2(Term t)
 	
 static void rdsq(Term dv, int *po)
 	{
-	int num, den, gc;
+	long int num, den, gc;
 	num=IntegerValue(CompoundArg1(dv));
 	den=IntegerValue(CompoundArg2(dv));
 	if(*po>1)
@@ -141,7 +141,7 @@ static void RedSqrt2(List a2)
 				pw=ListFirst(l1);
 				if(CompoundArg1(pw)==A_SQRT2)
 					{
-					po=IntegerValue(CompoundArg2(pw));
+					po=(int)IntegerValue(CompoundArg2(pw));
 					rdsq(CompoundArg1(m1),&po);
 					if(po!=0)
 						{
@@ -365,7 +365,7 @@ rpt1:
 				EqualTerms(CompoundArgN(ListFirst(l2),3),
 					CompoundArgN(ListFirst(l3),3)))
 			{
-				int i1, i2;
+				long int i1, i2;
 				i1=IntegerValue(CompoundArg1(ListFirst(l2)));
 				i2=IntegerValue(CompoundArg1(ListFirst(l3)));
 				SetCompoundArg(ListFirst(l2),1,NewInteger(i1+i2));
@@ -421,7 +421,7 @@ rpt1:
 		}
 	}
 	
-	if(FAOutput)
+	if(FAOutput && !UFOutput)
 	{
 		for(l2=l1;l2;l2=ListTail(l2))
 		{
@@ -437,7 +437,7 @@ rpt1:
 			}
 			if(g && !gpm)
 				{
-					int maxi=0;
+					long int maxi=0;
 					Integer lfi;
 					Term m2;
 					for(l3=CompoundArgN(ListFirst(l2),3);l3;l3=ListTail(l3))
@@ -620,7 +620,7 @@ void alg2_kill_gpm(Term a2)
 				EqualTerms(CompoundArgN(ListFirst(l2),3),
 					CompoundArgN(ListFirst(l3),3)))
 			{
-				int i1, i2;
+				long int i1, i2;
 				i1=IntegerValue(CompoundArg1(ListFirst(l2)));
 				i2=IntegerValue(CompoundArg1(ListFirst(l3)));
 				SetCompoundArg(ListFirst(l2),1,NewInteger(i1+i2));

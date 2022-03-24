@@ -10,6 +10,7 @@ static double M1,M2,sqrtSmin,sqrtSmax;
 static CalcHEP_interface * CI;
 static int i3=2,i4=3,i5=4,i6=5;
 static REAL pmass[6];
+static int pdg[6];
 
 static double sing2(char *s, int nout, double m, double w)
 {  int i;
@@ -28,7 +29,7 @@ static double sing2(char *s, int nout, double m, double w)
 
 static double s_integrandT_(double  sqrtS )
 {  double sv_tot,t,bess, x1,x2,y;
-   double ms,md,PcmIn;
+   REAL ms,md,PcmIn;
    double Rm;
    
    ms = M1 + M2; 
@@ -38,10 +39,11 @@ static double s_integrandT_(double  sqrtS )
    if(y-x1-x2>50) return 0;   
       
    md = M1 - M2;
-   PcmIn = sqrt((sqrtS-ms)*(sqrtS+ms)*(sqrtS-md)*(sqrtS+md))/(2*sqrtS);
+   PcmIn = Sqrt((sqrtS-ms)*(sqrtS+ms)*(sqrtS-md)*(sqrtS+md))/(2*sqrtS);
    kin22(PcmIn,pmass);
    
    sv_tot=simpson(dSigma_dCos,-1.,1.,1E-3,NULL); 
+   improveCrossSection(pdg[0],pdg[1],pdg[2],pdg[3],PcmIn,&sv_tot);
    bess=    sqrt(2*x1*x2/y/M_PI)*exp(-(y-x1-x2))*K1pol(1/y)/(K2pol(1/x1)*K2pol(1/x2));
    Rm=PcmIn*sqrtS/M1/M2;   
    return  bess*Rm*Rm*sv_tot/T_;    
@@ -177,7 +179,6 @@ double vSigmaCC(double T,numout* cc, int mode)
 {
   int i,err,n,n0,m,w;
   char*s, *pname[6];
-  int pdg[6];
   double msum;
   double a=0,factor,dMax=0;
   int spin2,cdim,neutral1,neutral2;
@@ -225,7 +226,9 @@ double vSigmaCC(double T,numout* cc, int mode)
 
   n0=0; 
   if(CI->nout>2) for(n=1;(s=CI->den_info(1,n,&m,&w,NULL));n++)
-  { double d=sing2(s,CI->nout,CI->va[m],CI->va[w]); 
+  { double mm=0, ww=0;
+    if(m) mm=fabs(CI->va[m]); if(w) ww=CI->va[w];
+    double d=sing2(s,CI->nout,mm,ww); 
     if(!isfinite(d)) { printf("non-integrable pole\n"); return 0;}
     if(d>dMax){ dMax=d; n0=n;} 
   }
@@ -264,7 +267,7 @@ double vSigmaCC(double T,numout* cc, int mode)
          }else { i3=2;i4=3;i5=4;i6=5;} 
 //         printf("i3,i4,i5,i6= %d %d %d %d\n", i3,i4,i5,i6); 
          if(T==0) a=vegas_chain(6, vsigma24integrand0 ,4000,1., 0.03,&dI,NULL);
-         else     a=vegas_chain(8, vsigma24integrandT ,5000,1., 0.03,&dI,NULL);
+         else     a=vegas_chain(8, vsigma24integrandT ,20000,1., 0.001,&dI,NULL);
                                 
      break;
      default:

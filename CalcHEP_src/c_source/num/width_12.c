@@ -96,8 +96,8 @@ static double calcwidth12(void)
       if(first)
       { 
         if(EffQmass&&Q) setQforParticle(Q,inParticle); 
-        if(calcMainFunc()>0) {  messanykey(15,15,"Can not  calculate constraints"); return 0;}
-        if(calcFunc_int()>0) {  messanykey(15,15,"Can not  calculate constraints"); return 0;} 
+        if(calcMainFunc()>0) {  messanykeyErr(15,15,"Can not  calculate constraints"); return 0;}
+        if(calcFunc_int()>0) {  messanykeyErr(15,15,"Can not  calculate constraints"); return 0;} 
         if(Q) GG=sqrt(4*M_PI*alpha_2(*Q)); else GG=sqrt(4*M_PI*alpha_2(m1));
         first=0;
       }  
@@ -108,15 +108,15 @@ static double calcwidth12(void)
       { 
         double md=m2-m3;
         double ms=m2+m3; 
-        double pRestOut=sqrt((m1*m1 - ms*ms)*(m1*m1-md*md))/(2*m1);
+        double pRestOut=Sqrt((m1*m1 - ms*ms)*(m1*m1-md*md))/(2*m1);
         double totcoef= pRestOut/(8. * M_PI * m1*m1);
                    
         for(i=1;i<12;i++) pvect3[i]=0;
         pvect3[0]=m1;
         pvect3[7]=pRestOut;
-        pvect3[4]=sqrt(pRestOut*pRestOut+m2*m2);
+        pvect3[4]=Sqrt(pRestOut*pRestOut+m2*m2);
         pvect3[11]=-pRestOut;
-        pvect3[8]=sqrt(pRestOut*pRestOut+m3*m3);
+        pvect3[8]=Sqrt(pRestOut*pRestOut+m3*m3);
 
         widths[nsub-1] = totcoef * sqme_int(nsub,GG,pvect3,NULL,&err_code);
         if(err_code != 0) {  errormessage(); widths[nsub-1]=0; err_code=0;}

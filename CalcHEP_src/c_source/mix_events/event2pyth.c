@@ -1,4 +1,4 @@
-int FError;
+//int FError;
 
 #include<stdio.h>
 #include<stdlib.h>
@@ -34,6 +34,7 @@ static void printList(eventfile_info * list)
    printf("\n");
 }
 
+/*
 static void  printAll(void)
 { decay_info * D;
 
@@ -44,7 +45,7 @@ static void  printAll(void)
     printf("\n");
   }   
 }
-
+*/
 static void fName2c(char*f_name,char*c_name,int len)
 { int i; for(i=len-1;i>=0 &&f_name[i]==' ';i--);
   c_name[i+1]=0;

@@ -490,10 +490,8 @@ void f5_key_prog(int x)
                   " Parallelization         nPROCSS"
                   " Number of QCD colors =      Nc "
                   " Nc=inf for color chains     OF2";
-/*
-    if(consLow) improveStr(strmen,"OF1","ON ");
-       else     improveStr(strmen,"OF1","OFF");
-*/
+
+
     if(NcInfLimit) { improveStr(strmen,"Nc","Inf");
                      strmen[ strmen[0]*5+1]=0;
                    }  
@@ -515,8 +513,7 @@ void f5_key_prog(int x)
         else     improveStr(strmen,"OF5","OFF");    
                                           
   
-    improveStr(strmen,"nPROCSS","%d",nPROCSS);
-                
+    improveStr(strmen,"nPROCSS","%d",nPROCSS);                
     menu1(20,16,"Switches",strmen,"s_switch_*",&pscr,&kmenu);
     switch (kmenu)
     {
@@ -532,7 +529,6 @@ void f5_key_prog(int x)
       } break;
       case 5: NcInfLimit=!NcInfLimit; break;
       case 6: NcInfCC=!NcInfCC; break;
-
 /*      case 5: noCChain=!noCChain;     break; */
     }
     

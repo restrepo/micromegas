@@ -17,7 +17,7 @@ extern List tri_si_co_list, tri_sc_2_list;
 	 7 ang tex name
 */
 
-static int check_sine(Atom nm, Term val)
+static Term check_sine(Atom nm, Term val)
 	{
 	Term t;
 	if(is_compound(val) && CompoundArity(val)==1 
@@ -165,12 +165,12 @@ void tri_reg_prm(Atom p, Term val)
 		alg2_common_n(a2);
         nn=CompoundArg2(a2);
 
-		ncf=IntegerValue(CompoundArg1(nn));
+		ncf=(int)IntegerValue(CompoundArg1(nn));
 
         for(ll=CompoundArgN(a2,5);ll;ll=ListTail(ll))
            {
            int n;
-           n=IntegerValue(CompoundArg1(ListFirst(ll)));
+           n=(int)IntegerValue(CompoundArg1(ListFirst(ll)));
            SetCompoundArg(ListFirst(ll),1,NewInteger(n*ncf));
            }
 		   
@@ -332,8 +332,8 @@ xyz:
 	a_21=CompoundArg1(a_21);
 	a_22=CompoundArg1(a_22);
 	
-	g1=IntegerValue(CompoundArg1(ListFirst(val)));
-	g2=IntegerValue(CompoundArg1(ListFirst(ListTail(val))));
+	g1=(int)IntegerValue(CompoundArg1(ListFirst(val)));
+	g2=(int)IntegerValue(CompoundArg1(ListFirst(ListTail(val))));
 	
 	if((g1!=1 && g1!=-1) || (g2!=1 && g2!=-1))
 	{
@@ -756,7 +756,7 @@ Term ProcDbgTrig(Term t, Term ind)
 {
 	if(is_compound(t) && is_integer(CompoundArg1(t)))
 	{
-		tri_dbg_mode=IntegerValue(CompoundArg1(t));
+		tri_dbg_mode=(int)IntegerValue(CompoundArg1(t));
 		FreeAtomic(t);
 		return 0;
 	}

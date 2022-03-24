@@ -1,4 +1,4 @@
-LOPT = -O2
+LOPT = 
 CFLAGS =  -O2
 CC = gcc
 LD = gcc

@@ -94,7 +94,8 @@ Being launched without parameters they explain  which parameters are expected
    name_cycle    -organize Vegas cycle over some model parameter   
    gen_events    -launches generator of events.
    subproc_cycle -performs cycle over subprocess with events generation, 
-                  summation of cross sections, and summation of histograms. 
+                  summation of cross sections, and summation of histograms.
+ 
    par_scan      -cycle calculation for sets of parameters stored in file.
                   Call of program has to be done from the  directory '\results',
                   where exists compiled  executable file 'n_calchep'. It is assumed 
@@ -125,6 +126,10 @@ Being launched without parameters they explain  which parameters are expected
                   after  cycle over subprocesses they are collected in one file 
                   distr_#1-#2 where #1 and #2 are serial numbers of first and last sessions 
                   for given parametr set.  
+                     If one includes "Widths" in list of costrained parameters, then CalcHEP
+                     calculates particle widths and decay branging in SLHA format and save 
+                  them in decaySLHA_#.txt files. The numerial value # is disposed in "Widths"
+                  column.         
 
    make_main    script for compilation of  C-code which generates and uses
                 squared matrix elements.

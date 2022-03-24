@@ -34,6 +34,7 @@ void mass22_par(par_22*arg,double T)
    numout*cc=arg->cc; 
    int nsub=arg->nsub;
    char * p[5];
+passParameters(cc);   
    for(i=0;i<4;i++) p[i]=cc->interface->pinf(nsub,1+i,arg->pmass+i,NULL);
      
    
@@ -43,6 +44,7 @@ void mass22_par(par_22*arg,double T)
      int m,w,pnum;
      char*s=cc->interface->den_info(nsub,n,&m,&w,&pnum);
      if(!s) break;
+     if(!m || !w) continue;
      if(s[0]==1 && s[1]==3)
      { 
        double mass=cc->interface->va[m];
@@ -51,8 +53,8 @@ void mass22_par(par_22*arg,double T)
          arg->M13=mass;  
        } else if(arg->M13>mass) arg->M13=mass;
        char*p=ModelPrtcls[pnum].name; 
-       cc->interface->va[w]=pWidth(p,NULL)+tWidth21(p,T);
-//printf("width(%s,%E)=%E+%E\n", p, T, pWidth(p,NULL),tWidth21(p,T)); 
+       cc->interface->va[w]=pWidth(p,NULL)+tWidth21(p,T,0);
+//printf("width(%s,%E)=%E+%E\n", p, T, pWidth(p,NULL),tWidth21(p,T,0)); 
              
        if( (   arg->pmass[0] > mass + arg->pmass[2] 
             && arg->pmass[3] > mass + arg->pmass[1]
@@ -70,15 +72,13 @@ void mass22_par(par_22*arg,double T)
          arg->M14=mass;  
        } else if(arg->M14>mass) arg->M14=mass;
         char*p=ModelPrtcls[pnum].name;
-        cc->interface->va[w]=pWidth(p,NULL)+tWidth21(p,T);
+        cc->interface->va[w]=pWidth(p,NULL)+tWidth21(p,T,0);
        if( (   arg->pmass[1] > mass + arg->pmass[2] 
             && arg->pmass[3] > mass + arg->pmass[0]
            ) ||
            (   arg->pmass[0] > mass + arg->pmass[3]
             && arg->pmass[2] > mass + arg->pmass[1] 
-           ) )  cc->interface->va[w]*=3;
-       
-             
+           ) )  cc->interface->va[w]*=3; 
      }
    }
    arg->sqrtSmin=arg->pmass[0]+arg->pmass[1];
@@ -100,13 +100,13 @@ int  kin22_par(par_22*arg, REAL sqrtS,double GG)
    ms= m[1]+m[2];
    md= m[1]-m[2];
    if(sqrtS<=ms) { arg->err+=ErrE; return 1;} 
-   lambda = sqrt((sqrtS-ms)*(sqrtS+ms)*(sqrtS-md)*(sqrtS+md));
+   lambda = Sqrt((sqrtS-ms)*(sqrtS+ms)*(sqrtS-md)*(sqrtS+md));
    Pin=arg->PcmIn = lambda/(2*sqrtS);
 
    ms= m[3]+m[4];
    md= m[3]-m[4];
    if(sqrtS<=ms)  { arg->err+=ErrE; return 1;} 
-   lambda = sqrt((sqrtS-ms)*(sqrtS+ms)*(sqrtS-md)*(sqrtS+md));
+   lambda = Sqrt((sqrtS-ms)*(sqrtS+ms)*(sqrtS-md)*(sqrtS+md));
    Pout=arg->PcmOut = lambda/(2*sqrtS);
 
    for(i=0;i<16;i++) arg->pvect[i]=0;   
@@ -115,11 +115,11 @@ int  kin22_par(par_22*arg, REAL sqrtS,double GG)
    
    arg->pvect[3] = Pin;
    arg->pvect[7] =-Pin;
-   arg->pvect[0] = sqrt(Pin*Pin + m[1]);
-   arg->pvect[4] = sqrt(Pin*Pin + m[2]);
+   arg->pvect[0] = Sqrt(Pin*Pin + m[1]);
+   arg->pvect[4] = Sqrt(Pin*Pin + m[2]);
       
-   arg->pvect[8] = sqrt(Pout*Pout + m[3]);
-   arg->pvect[12]= sqrt(Pout*Pout + m[4]);
+   arg->pvect[8] = Sqrt(Pout*Pout + m[3]);
+   arg->pvect[12]= Sqrt(Pout*Pout + m[4]);
 
 
    double dE,dP;
@@ -146,7 +146,7 @@ static double  dSqme_dCosR_arg(double  dCos,void*arg_)
    double  r;
    par_22*arg=arg_;
    REAL cosf=(REAL)1 -(REAL)dCos;
-   REAL sinf=sqrt(fabs((REAL)dCos*(1+cosf)));
+   REAL sinf=Sqrt(Fabs((REAL)dCos*(1+cosf)));
    int err_code=0;
 
 //printf("arg->PcmOut=%E\n", arg->PcmOut);   
@@ -155,7 +155,7 @@ static double  dSqme_dCosR_arg(double  dCos,void*arg_)
    arg->pvect[10]= arg->PcmOut*sinf;
    arg->pvect[14]=-arg->pvect[10];
 
-   r = arg->cc->interface->sqme(arg->nsub,arg->GG,arg->pvect,NULL,&err_code);  
+   r = arg->cc->interface->sqme(arg->nsub,arg->GG,arg->pvect,NULL,&err_code); 
    if(arg->T>0) r*=statFactor(arg);
    if(err_code)  arg->err= arg->err | err_code ;
    return r;
@@ -166,7 +166,7 @@ static double  dSqme_dCosL_arg(double  dCos,void*arg_)
    double  r;
    par_22*arg=arg_;
    REAL cosf=-(REAL)1 +(REAL)dCos;
-   REAL sinf=sqrt(fabs((REAL)dCos*(1-cosf)));
+   REAL sinf=Sqrt(Fabs((REAL)dCos*(1-cosf)));
    int err_code=0;
 
 //printf("arg->PcmOut=%E\n", arg->PcmOut);   
@@ -241,6 +241,7 @@ double sqmeInt(par_22*arg, double eps)
        f1=dSqme_dCosR_arg(x0/2,arg);
        f2=dSqme_dCosR_arg(x0/4,arg);
 //?       if(arg->err&ErrC && arg->err&ErrD) { arg->err=err_tmp|ErrP;  return 0;}
+       if(x0<0.8) { in=0; break; } // lost of precision in matrix element not caused by t-channel
        if(arg->err&ErrD){x0*=2; continue;}
        if(arg->err&ErrC){x0/=2; continue;}      
        in=poleSqme(x0,x0/2,x0/4,arg->e13,f0,f1,f2);
@@ -282,6 +283,7 @@ double sqmeInt(par_22*arg, double eps)
       f2=dSqme_dCosL_arg(x0/4,arg);  
       
 //?      if(arg->err&ErrC && arg->err&ErrD) { arg->err=err_tmp|ErrP;  return 0;}
+      if(x0<0.8) { in=0; break; } // lost of precision in matrix element not caused by t-channel
       if(arg->err&ErrD){x0*=2; continue;}
       if(arg->err&ErrC){x0/=2; continue;}
                                                 
@@ -309,5 +311,121 @@ double sqmeInt(par_22*arg, double eps)
   }
 */  
   return res1;
+} 
+
+
+static double  dSqme_dCos_arg(double cs,void*arg_)
+{
+   double  r;
+   par_22*arg=arg_;
+   REAL cosf=cs;
+   REAL sinf=Sqrt(Fabs((1-cosf)*(1+cosf)));
+   int err_code=0;
+
+//printf("arg->PcmOut=%E\n", arg->PcmOut);   
+   arg->pvect[11]= arg->PcmOut*cosf;
+   arg->pvect[15]=-arg->pvect[11];
+   arg->pvect[10]= arg->PcmOut*sinf;
+   arg->pvect[14]=-arg->pvect[10];
+
+   r = arg->cc->interface->sqme(arg->nsub,arg->GG,arg->pvect,NULL,&err_code);
+  // if(arg->T>0) r*=statFactor(arg);
+   if(err_code)  arg->err= arg->err | err_code ;
+   return r;
+}
+
+
+
+void mass22_parDel(par_22*arg,double T)
+{
+   int i;
+   numout*cc=arg->cc; 
+   int nsub=arg->nsub;
+   char * p[5];
+   for(i=0;i<4;i++) p[i]=cc->interface->pinf(nsub,1+i,arg->pmass+i,NULL);
+   arg->sqrtSmin=arg->pmass[0]+arg->pmass[1];
+   if(arg->sqrtSmin < arg->pmass[2]+arg->pmass[3]) arg->sqrtSmin=arg->pmass[2]+arg->pmass[3]; 
+}
+
+
+
+
+double sqmeIntDel(par_22*arg, double eps)
+{  
+  double delta=0.05;
+  
+  REAL *mass=arg->pmass;
+  REAL E[4];
+  for(int i=0;i<4;i++) E[i]=arg->pvect[4*i];
+  
+  double pp=2*arg->PcmIn*arg->PcmOut;
+   
+  double t13min =mass[0]*mass[0]+mass[2]*mass[2]-2*E[0]*E[2], t13max =t13min;
+  t13min-=pp; t13max+=pp;
+
+  double t14min =mass[0]*mass[0]+mass[3]*mass[3]-2*E[0]*E[3], t14max =t14min;;
+  t14min-=pp; t14max+=pp;
+  
+  double T=arg->T;
+  
+  double cos0=1-T*T*tTcut*tTcut/pp;
+  if(cos0<=0) return 0;
+
+        
+  double*intervals=malloc(2*sizeof(double));
+  intervals[0]=-cos0;intervals[1]=cos0;
+  int nIn=1;
+  for(int n=1;;n++)
+  {  
+     int m,w,pnum;
+     char*s=arg->cc->interface->den_info(arg->nsub,n,&m,&w,&pnum);
+     if(!s) break;
+     if(s[0]==1 && s[1]==3) 
+     { double mt=0;
+       if(m) mt=fabs(arg->cc->interface->va[m]);
+double k=1E-5;
+       if((mass[0]>mt+mass[2] && mass[3]>mt+mass[1])  || (mass[1]>mt+mass[3] && mass[2]>mt+mass[0])) k=0.5;
+       {
+         double co= -1 +2*(t13min - mt*mt )/(t13min-t13max);  
+         if(delta>0 && co<1+k*delta && co>-1-k*delta) delInterval(co-k*delta,co+k*delta,&intervals, &nIn);
+       }   
+     } else if(s[0]==1 && s[1]==4)
+     { 
+       double mu=0;
+       if(m) mu=fabs(arg->cc->interface->va[m]);
+double k=1E-5;
+       if((mass[0]>mu+mass[3] && mass[2]>mu+mass[1])  || (mass[1]>mu+mass[2] && mass[3]>mu+mass[0])) k=0.5;
+       {
+          double co= 1 -2*(t14min - mu*mu)/(t14min-t14max);     
+          if(delta>0 && co<1+k*delta && co>-1-k*delta) delInterval(co-k*delta,co+k*delta,&intervals, &nIn); 
+       }  
+     }           
+  }
+
+                 
+  double sum=0;
+  int err;
+  for(int i=0;i<nIn;i++)
+  { double dI;
+
+//    double dSum=peterson21_arg(dSqme_dCos_arg,arg, intervals[2*i], intervals[2*i+1],&dI);
+        
+//    if(fabs(dI)> 1E-1*fabs(dSum)) 
+
+    double dSum=simpson_arg(dSqme_dCos_arg,arg, intervals[2*i], intervals[2*i+1],1E-2, &err );
+
+    if(err)    
+    {
+    
+//    displayPlot("angle integrand", "cos", intervals[2*i], intervals[2*i+1], 0,1,"",0, dSqme_dCos_arg,arg);
+    
+      arg->err=arg->err|8;
+                                  }  
+    sum+=dSum; 
+  }      
+  free(intervals);
+  if(arg->pdg[0]==arg->pdg[1]) sum*=2;
+   if(!isfinite(sum)) arg->err=arg->err|2;
+  return sum;
 } 
  

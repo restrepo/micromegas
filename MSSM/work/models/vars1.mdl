@@ -40,5 +40,7 @@ MSSM(micro)
    Ab     |0            |
    Al     |0            |
    Maux   |1            |mass of aux particles
+   Mm     |0.105        | mass of muon
+   Me     |5.11E-4      | mass of  electron
 =========================================================================
    

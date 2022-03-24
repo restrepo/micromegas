@@ -15,7 +15,7 @@ input5 |aPrintF6(" 31 %E # Ml1\n 32 %E #Ml2 \n 33 %E # Ml3\n 34 %E # Mr1\n 35 %E
 input6 |aPrintF9(" 41 %E # Mq1\n 42 %E # Mq2\n 43 %E # Mq3\n 44 %E # Mu1\n 45 %E #Mu2 \n 46 %E # Mu3\n 47 %E # Md1\n 48 %E # Md2\n 49 %E # Md3\n",Mq2,Mq2,Mq3,Mu2,Mu2,Mu3,Md2,Md2,Md3)
 input7 |aPrintF5(" 61 %E  #LAMBDA\n 62 %E #KAPPA\n 63 %E #ALAMBDA\n 64 %E #AKAPPA\n 65 %E #MUEFF\n", Lambda, Kappa, aLambda, aKappa,mu)
 input8 |aPrintF5(" 66 %E  #XIF\n 67 %E #XIS\n 68 %E #mu'\n 69 %E # MS'^2\n 72 %E M3H^2\n", (mXiF*fabs(mXiF)),(mXiS*fabs(mXiS)), muP,(msP*fabs(msP)),( m3h*fabs(m3h)))
-sysCall|System("NMSSM=../../../Packages/NMSSMTools_5.1.1; export EXPCON_PATH=$NMSSM/EXPCON;rm -f spect; $NMSSM/main/nmhdecay")
+sysCall|System("NMSSM=../../../Packages/NMSSMTools_5.6.0; export EXPCON_PATH=$NMSSM/EXPCON;rm -f spect; $NMSSM/main/nmhdecay")
 rd     |slhaRead("spectr", 0)
 tB     |tb %slhaVal("HMIX", MZ, 1, 2)
 Mh1    |slhaVal("MASS", MZ, 1, 25)

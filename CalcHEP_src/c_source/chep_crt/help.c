@@ -4,7 +4,7 @@
 
 #include "help.h"
 
-char pathtohelp[256]="";
+char pathtohelp[1024]="";
 
 int show_help(char * fname)
 {

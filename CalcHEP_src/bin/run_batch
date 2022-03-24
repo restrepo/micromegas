@@ -1,9 +1,42 @@
 #!/usr/bin/perl
 # (c) 2008 Neil Christensen
-$version="1.41";
+$version="1.54";
 #############################################################################################################
 #Version Notes:
 #############################################################################################################
+#1.54   March  25, 2021 
+#       run-time error messages now are displayed on the screen 
+#1.53 : January 5, 2021
+#       improved copy of the output results 
+#       for the consistency with the html interface
+#1.52 : February 25, 2020
+#       Created new key phrase "SLHA Widths"
+#       Turned on by default.  Set to "Off" or "False" to turn them off and use the built-in width calculator.
+#1.51 : February 11, 2020
+#       Created new key phrase "Reuse Session"
+#       False by default.  If set to True, then the session.dat from the previous run will be used if available.
+#1.50 : February 3, 2020
+#       call of nCompil and ld_n is realized via blind mode of s_calchep  
+#1.49 : December 13, 2019
+#       Reestablished Off and None as valid PDF values.
+#       Added warning about keyword not being recognized
+#1.48 : November 19, 2019
+#       Added link to library for the compatibility with Quadruple precision 
+#1.47 : November 19, 2019
+#       Added statement to user when cs is too low so that they can increase the luminosity.
+#1.46 : September 10, 2019
+#       modified to create separate sub-folder for each job in batch_results folder
+#1.45 : February 21, 2019
+#       Moved LD_LIBRARY_PATH line after batch-system-specific  instructions. Thanks to Dan Locke.
+#       Modified ending when 0 events are requested to results are stored in  .tgz form.
+#       Don't try to create plots if they are not requested.
+#1.44 : February 20, 2019
+#       Commented exit(0) on line 2824 to allow CalcHEP to save results into batch_results in .tgz form 
+#       even if user    do not generate events 
+#1.43 : January 22, 2019
+#       Removed colon in Parallelization line of session.dat.
+#1.42 : October 5, 2018
+#       Added support for latest MAC OS (high sierra)
 #1.41 : March 15, 2018
 #       Added support for missing parts of the cuts specification.
 #       Added polarization to the html help files.
@@ -559,6 +592,7 @@ $GIschannel=0;
 @run_step  = ();
 @run_n     = ();
 $VVdecay   = "On";
+$SLHAwidths= "On";
 $alphaPDF  = "On";
 $alphaMZ   = 0.1172;
 $alphaNF   = 5;
@@ -610,6 +644,7 @@ $fileName = "";
 $fileFormat = "";
 $ntuple    = "False";
 $cleanup   = "False";
+$reuse_sess = "False";
 $par_meth  = "this computer";
 $max_cpus  = 1;
 $max_ppn   = 1; #processors per node (for threading)
@@ -667,7 +702,10 @@ if (!(-e $batch_file_name)) {
   print_no_batch_file();
   if (!(-d $html_dir)){system("mkdir $html_dir");}
   if (!(-e "$html_dir/style.css")){print_style_file();}
-  if (!(-d "$html_dir/runs")){system("mkdir $html_dir/runs");}
+  
+  if (!(-e "$html_dir/runs")){system("mkdir $html_dir/runs");}
+ 
+  
   #if (-d "$html_dir/help"){system("rm -r $html_dir/help");}
   if (!(-d "$html_dir/help")){
     system("mkdir $html_dir/help");
@@ -681,6 +719,7 @@ print("\nProcessing batch:\n");
 open(BATCH_FILE, "<$batch_file_name");
 LINE: while($line = <BATCH_FILE>){
 	if ($line =~ /^#/){next LINE;}
+	elsif ($line =~ /^\s*$/){next LINE;}
 	elsif ($line =~ /html\s*dir[^:]*:([^:]*)/){$html_dir=$1;$html_dir=~s/\s//g;}
 #	elsif ($line =~ /Model\s*:\s*(\d+)/){$model_num=$1;$model_num =~ s/\s//g;}
 	elsif ($line =~ /Model\s*:\s*([^:]+)/){$model_name=$1;}
@@ -728,6 +767,7 @@ LINE: while($line = <BATCH_FILE>){
 	elsif ($line =~ /[Ss]can [Ss]tep [Ss]iz[^:]*:\s*([^\s]+)/){$tmp=$1;$tmp =~ s/\s//g;push(@run_step,$tmp);}
 	elsif ($line =~ /[Ss]can [Nn] [Ss]tep[^:]*:\s*([^\s]+)/){$tmp=$1;$tmp =~ s/\s//g;push(@run_n,$tmp);}
 	elsif ($line =~ /[Vv]irt[^:]*W[^:]*Z[^:]*[Dd]ec[^:]*:([^:]*)/){$tmp=$1;$tmp=~s/\s//g;$VVdecay=$tmp;}
+	elsif ($line =~ /[Ss][Ll][Hh][Aa][^:]*[Ww][Ii][Dd][Tt][Hh][^:]*:([^:]*)/){$tmp=$1;$tmp=~s/\s//g;$SLHAwidths=$tmp;}
 	elsif ($line =~ /parton\s*dist[^:]*:([^:]*)/){$tmp=$1;$tmp =~ s/\s//g;$alphaPDF  = $tmp;}
 	elsif ($line =~ /alpha\s*\(MZ\)[^:]*:([^:]*)/){$tmp=$1;$tmp =~ s/\s//g;$alphaMZ  = $tmp;}
 	elsif ($line =~ /alpha\s*nf[^:]*:([^:]*)/){$tmp=$1;$tmp =~ s/\s//g;$alphaNF  = int($tmp);}
@@ -801,6 +841,7 @@ LINE: while($line = <BATCH_FILE>){
 	elsif ($line =~ /[Ff]ile\s*[Ff]ormat[^:]*:\s*([^\s]+)/){$fileFormat=$1;}
 	elsif ($line =~ /[Nn][Tt]uple[^:]*:\s*([^\s]+)/){$ntuple = $1;$ntuple =~ s/\s//g;}
 	elsif ($line =~ /[Cc]lean\s*[Uu]p[^:]*:([^:]+)/){$cleanup=$1;$cleanup =~ s/\s//g;}
+	elsif ($line =~ /[Rr]e[^:]*[Ss]es[^:]*:([^:]+)/){if ($1 =~ /[Tt]r/){$reuse_sess="True";}}
 	elsif ($line =~ /Parallel[^:]*:\s*([^:]+)/){$par_meth=$1;$par_meth =~ s/\n//g;}
 	elsif ($line =~ /Que[^:]*:([^:]+)/){$que=$1;$que =~ s/\s//g;}
 	elsif ($line =~ /[Ww]alltime[^:]*:([^:]+)/){$walltime=$1; $walltime =~ s/\s//g;}
@@ -821,6 +862,7 @@ LINE: while($line = <BATCH_FILE>){
 	elsif ($line =~ /max\*N\s*:\s*([^:]*)/){$maxN=$1;$maxN =~ s/\s//g;$maxN=sprintf("%.6f",$maxN);}
 	elsif ($line =~ /find\s*new\s*MAX\s*:\s*([0-9]*)/){$findNewMax=$1;$findNewMax =~ s/\s//g; $findNewMax=int($findNewMax);}
 	elsif ($line =~ /[Ss]leep\s*[Tt]ime\s*:\s*([0-9]*)/){$sleep_time=$1;$sleep_time =~ s/\s//g; $sleep_time=int($sleep_time);}
+	else {print "Warning!: Unrecognized instruction: $line\n";}
 	
 		
 }
@@ -842,7 +884,11 @@ if (!(-d "batch_results")){system("mkdir batch_results");}
 if (!(-d "batch_results/tmp")){system("mkdir batch_results/tmp");}
 if (!(-d $html_dir)){system("mkdir $html_dir");}
 if (!(-e "$html_dir/style.css")){print_style_file();}
-if (!(-d "$html_dir/runs")){system("mkdir $html_dir/runs");}
+#if (!(-d "$html_dir/runs")){system("mkdir $html_dir/runs");}
+if ((-e "$html_dir/runs")){system("rm -rf $html_dir/runs");}
+system("mkdir $html_dir/runs");
+
+
 #if (-d "$html_dir/help"){system("rm -r $html_dir/help");}
 if (!(-d "$html_dir/help")){
 	system("mkdir $html_dir/help");
@@ -876,6 +922,8 @@ elsif ($pdf1 =~ /[Ii][Ss][Rr]/)                 {$pdf1_name="\"Qisr=1.00E0*sqrtS
 elsif ($pdf1 =~ /[Ee]quiv[^:]*[Pp]hoton/)       {$pdf1_name=sprintf("\"Equiv.Photon(particle= %s |Q|max=%s)\"",$photon_particle,$photon_Qmax);}
 elsif ($pdf1 =~ /[Ll]aser[^:]*[Pp]hoton/)       {$pdf1_name="\"Laser photons\" 22";}
 elsif ($pdf1 =~ /[Pp]roton[^:]*[Pp]hoton/)      {$pdf1_name=sprintf("\"Proton.Photon(m=%f Ch=%i Q=%f Pt>%f)\"",$photon_incoming_particle_mass,$photon_incoming_particle_charge, $photon_Q2max, $photon_proton_ptCut);}
+elsif ($pdf1 =~ /[Oo][Ff][Ff]/)                 {$pdf1_name="\"OFF\"";}
+elsif ($pdf1 =~ /[Nn][Oo][Nn][Ee]/)             {$pdf1_name="\"OFF\"";}
 elsif (!($pdf1 eq ""))                          {$pdf1_name="\"$pdf1\"";}
 else                                            {$pdf1_name="\"OFF\"";}
 
@@ -898,6 +946,8 @@ elsif ($pdf2 =~ /[Ii][Ss][Rr]/)                 {$pdf2_name="\"Qisr=1.00E0*sqrtS
 elsif ($pdf2 =~ /[Ee]quiv[^:]*[Pp]hoton/)       {$pdf2_name=sprintf("\"Equiv.Photon(particle= %s |Q|max=%s)\"",$photon_particle,$photon_Qmax);}
 elsif ($pdf2 =~ /[Ll]aser[^:]*[Pp]hoton/)       {$pdf2_name="\"Laser photons\" 22";}
 elsif ($pdf2 =~ /[Pp]roton[^:]*[Pp]hoton/)      {$pdf2_name=sprintf("\"Proton.Photon(m=%f Ch=%i Q=%f Pt>%f)\"",$photon_incoming_particle_mass,$photon_incoming_particle_charge, $photon_Q2max, $photon_proton_ptCut);}
+elsif ($pdf2 =~ /[Oo][Ff][Ff]/)                 {$pdf2_name="\"OFF\"";}
+elsif ($pdf2 =~ /[Nn][Oo][Nn][Ee]/)             {$pdf2_name="\"OFF\"";}
 elsif (!($pdf2 eq ""))                          {$pdf2_name="\"$pdf2\"";}
 else                                            {$pdf2_name="\"OFF\"";}
 
@@ -992,15 +1042,15 @@ close(MDL_FILE);
 #      Read the url of the model                   #
 ####################################################
 my $file = "$working_dir/models/extlib${model_num}.mdl";
-open(MDL_FILE,$file) or
-	die ("Could not open $file");
+if ( -f  $file ) {
+open(MDL_FILE,$file);
 LINE: while ($line = <MDL_FILE>){
    if ($line =~ /(http:.*)/) {
    	$model_url=$1;
    }
 }
 close(MDL_FILE);
-
+}
 
 ####################################################
 #       Read Parameter Values                      #
@@ -1973,6 +2023,7 @@ while (num_not_in_lib()>0){
 	print_symbolic(0);
 	print "Error in symbolic session for $all_subprocesses[$j]\n";
 	print "Please have a look at job.o and job.out in Processes/$model_dir/$widths_dir.\n";
+
 	print "Job has terminated prematurely\n";
 	if($par_meth =~ /[Pp][Bb][Ss]/){
 	  print "You may need to increase the walltime requested.\n";
@@ -2132,65 +2183,57 @@ for (my $k=0;$k<=$#subprocesses;$k++){
 	chdir("$dir_name");
 	if ($#step<0){
 		chdir($dir_name);
-		if (-d "single"){system("rm -rf single");}
-		system("mkdir single");
+		if (-d "single" && $reuse_sess eq "False"){system("rm -rf single");}
+		if(!(-d "single")){system("mkdir single");}
 		chdir("single");
 		#Link the executables
-		#system("ln -s $dir_name/results/n_calchep n_calchep");
-		system("ln -s ../results/n_calchep n_calchep");
+		if(!(-e "n_calchep")){system("ln -s ../results/n_calchep n_calchep");}
 		foreach $so (@sos){
-			#system("ln -s $dir_name/results/$so $so");
-			system("ln -s ../results/$so $so");
+		  if(!(-e "$so")){system("ln -s ../results/$so $so");}
 		}
 		foreach $a (@as){
-			#system("ln -s $dir_name/results/$a $a");
-			system("ln -s ../results/$a $a");
+			if(!(-e "$a")){system("ln -s ../results/$a $a");}
 		}
-		#system("ln -s $dir_name/results/extern.h extern.h");
-		#system("ln -s $dir_name/results/aux aux");
-		
-		#AB system("ln -s ../results/aux aux");		
-		system("mkdir aux");
-                system("mkdir aux/results");
-                system("mkdir aux/tmp");  
-                system("ln -s ../../results/aux/so_generated aux/so_generated");
-                system("ln -s ../../results/aux/models aux/models");
 
- 		#system("ln -s $dir_name/results/autoprot.h autoprot.h");
- 		#system("ln -s ../results/autoprot.h autoprot.h");
-		#system("ln -s $dir_name/results/EXTLIB EXTLIB");
-		#system("ln -s ../results/EXTLIB EXTLIB");
+		if(!(-d "aux")){system("mkdir aux");}
+                if(!(-d "aux/results")){system("mkdir aux/results");}
+                if(!(-d "aux/tmp")){system("mkdir aux/tmp");}
+                if(!(-e "aux/so_generated")){system("ln -s ../../results/aux/so_generated aux/so_generated");}
+                if(!(-e "aux/models")){system("ln -s ../../results/aux/models aux/models");}
+
 		#Create and update session.dat
-		system("./n_calchep -blind \'\\8a\'");
-		update_session("$dir_name/single",$k,-1);
-		system("./n_calchep -blind \'\\8a\'");
+		if($reuse_sess eq "True"){
+		  if(-e "session.dat"){system("./n_calchep -blind \"[[[[[[[[[\{[[[[[[\{0\"");}
+		}
+ 		else{
+		  if(-e "session.dat"){system("rm session.dat*");}
+		  system("./n_calchep -blind \'\\8a\'");
+		  update_session("$dir_name/single",$k,-1);
+#!		  system("./n_calchep -blind \'\\8a\'");
+		}
 		
 		#Create job script
 		open(JOB_FILE,">job_script")
 			or die("Couldn't open $dir_name/single/jobscript.");
 		print JOB_FILE "#!/bin/bash\n";
-		print JOB_FILE "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LHAPDFPATH\n";
 		my $job_name = $subprocess;
 		$job_name =~ s/'//g;#'
 		if($par_meth=~/[Pp][Bb][Ss]/){write_PBS_info($job_name,"cs.out",1);}
 		elsif($par_meth=~/[Ll][Ss][Ff]/){write_LSF_info($job_name,"cs.out");}
 		elsif($par_meth=~/[Ss][Ll][Uu][Rr][Mm]/){write_SLURM_info($job_name,"cs.out");}
+		print JOB_FILE "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LHAPDFPATH\n";
 		print JOB_FILE "cd $dir_name/single/\n";
 		#$systemString = "$CH_PATH/bin/run_vegas";
-		$systemString = "./n_calchep -blind \"[[[[[[[[[\{\{$nSess1\{[\{$nCalls1\{[[\{[[\{[\{]]]]]]\{$nSess2\{[\{$nCalls2\{[[\{0\"";
+		if($reuse_sess eq "True"){
+		  $systemString = "./n_calchep -blind \"[[[[[[[[[\{\{$nSess1\{[\{$nCalls1\{[[\{[[[\{]]]]]]\{$nSess2\{[\{$nCalls2\{[[\{0\"";
+		}
+		else{
+		  $systemString = "./n_calchep -blind \"[[[[[[[[[\{\{$nSess1\{[\{$nCalls1\{[[\{[[\{[\{]]]]]]\{$nSess2\{[\{$nCalls2\{[[\{0\"";
+		}
 		$systemString = $systemString."  2>&1 1>  cs.o";
 		if ($par_meth =~ /[Pp][Bb][Ss]/ || $par_meth =~ /[Ll][Ss][Ff]/ || $par_meth =~ /[Ss][Ll][Uu][Rr][Mm]/){print JOB_FILE "$systemString\n";}
 		elsif ($par_meth =~ /this/ || $par_meth =~ /local/){
 		       print JOB_FILE "nice -n $nice_level $systemString\n";
-		#	#print JOB_FILE	"nice -n $nice_level $systemString  2>&1 1>  cs.o &\n";
-		#	#print JOB_FILE	"nice -n $nice_level $systemString 1> cs.o 2> cs.e &";
-		#	print JOB_FILE	"$systemString\n"; 
-		#	print JOB_FILE "touch finished\n";
-		#	#print JOB_FILE	"$systemString  2>&1 1>  cs.o &\n"; 
-		#	#print JOB_FILE "PID=\$!\n";
-		#	#print JOB_FILE "renice $nice_level -p \${PID}  2>&1 1>  /dev/null\n";
-                #        #print JOB_FILE "echo \${PID}\n";
-		#	#print JOB_FILE "echo \$!\n";
 		}
 		print JOB_FILE "err=\$?\n";
 		print JOB_FILE "if(test \$err -eq 123) then\n";
@@ -2217,80 +2260,81 @@ for (my $k=0;$k<=$#subprocesses;$k++){
 			}
 			#print "\t$subdir_name";
 			chdir($dir_name);
-			if (-d $subdir_name){system("rm -rf $subdir_name");}
-			system("mkdir $subdir_name");
+			if (-d $subdir_name && $reuse_sess eq "False"){system("rm -rf $subdir_name");}
+			if (!(-d $subdir_name)){system("mkdir $subdir_name");}
 			chdir($subdir_name);
 			#Link the executables
-			#system("ln -s $dir_name/results/n_calchep n_calchep");
-			system("ln -s ../results/n_calchep n_calchep");
+			if(!(-e "n_calchep")){system("ln -s ../results/n_calchep n_calchep");}
 			foreach $so (@sos){
-				#system("ln -s $dir_name/results/$so $so");
-				system("ln -s ../results/$so $so");
+				if(!(-e "$so")){system("ln -s ../results/$so $so");}
 			}
 			foreach $a (@as){
-				#system("ln -s $dir_name/results/$a $a");
-				system("ln -s ../results/$a $a");
+				if(!(-e "$a")){system("ln -s ../results/$a $a");}
 			}
-			#system("ln -s $dir_name/results/extern.h extern.h");
-			#system("ln -s $dir_name/results/aux aux");
 			
-			#AB system("ln -s ../results/aux aux");
-			system("mkdir aux");
-                	system("mkdir aux/results");
-                	system("mkdir aux/tmp");  
-                	system("ln -s ../../results/aux/so_generated aux/so_generated");
-               	 	system("ln -s ../../results/aux/models aux/models");
+			if(!(-d "aux")){system("mkdir aux");}
+                	if(!(-d "aux/results")){system("mkdir aux/results");}
+                	if(!(-d "aux/tmp")){system("mkdir aux/tmp");}
+                	if(!(-e "aux/so_generated")){system("ln -s ../../results/aux/so_generated aux/so_generated");}
+               	 	if(!(-e "aux/models")){system("ln -s ../../results/aux/models aux/models");}
 
- 			#system("ln -s $dir_name/results/autoprot.h autoprot.h");
- 			#system("ln -s ../results/autoprot.h autoprot.h");
-			#system("ln -s $dir_name/results/EXTLIB EXTLIB");
-			#system("ln -s ../results/EXTLIB EXTLIB");
-			#Create and update session.dat
-			system("./n_calchep -blind \'\\8a\'");
-			#Before updating the session, update the numerical values in @vars_values.
-			for(my $l=0;$l<=$#vars_names;$l++){
-			  for(my $m=0;$m<=$#param_names;$m++){
-			    if($vars_names[$l] eq $param_names[$m]){$vars_values[$l] = $param_values[$m];}
+ 			#Create and update session.dat
+			if($reuse_sess eq "True"){
+			  if(-e "session.dat"){system("./n_calchep -blind \"[[[[[[[[[\{[[[[[[\{0\"");}
+			}
+			else{
+			  if(-e "session.dat"){system("rm session.dat*");}
+			  system("./n_calchep -blind \'\\8a\'");
+			  #Before updating the session, update the numerical values in @vars_values.
+			  for(my $l=0;$l<=$#vars_names;$l++){
+			    for(my $m=0;$m<=$#param_names;$m++){
+			      if($vars_names[$l] eq $param_names[$m]){$vars_values[$l] = $param_values[$m];}
+			    }
+			    for(my $m=0;$m<=$#run_param;$m++){
+			      my $run_value = $run_begin[$m]+$run_step[$m]*$step_tmp[$m];
+			      $vars_values[$l] =~ s/${run_param[$m]}/($run_value)/g; 
+			      if($vars_names[$l] eq $run_param[$m]){$vars_values[$l] = $run_value;} 
+			    }
+			    $vars_values[$l] = eval($vars_values[$l]);
 			  }
+			  #Also update momenta
+			  $p1 = $p1def;
+			  $p2 = $p2def;
 			  for(my $m=0;$m<=$#run_param;$m++){
 			    my $run_value = $run_begin[$m]+$run_step[$m]*$step_tmp[$m];
-			    $vars_values[$l] =~ s/${run_param[$m]}/($run_value)/g; 
-			    if($vars_names[$l] eq $run_param[$m]){$vars_values[$l] = $run_value;} 
+			    $p1 =~ s/${run_param[$m]}/($run_value)/g; 
+			    $p2 =~ s/${run_param[$m]}/($run_value)/g; 
+			    if($p1 eq $run_param[$m]){$p1 = $run_value;} 
+			    if($p2 eq $run_param[$m]){$p2 = $run_value;} 
 			  }
-			  $vars_values[$l] = eval($vars_values[$l]);
+			  $p1 = eval($p1);
+			  $p2 = eval($p2);
+			  update_session("$dir_name/$subdir_name",$k,$j);
+#!			  system("./n_calchep -blind \'\\8a\'");
 			}
-			#Also update momenta
-			$p1 = $p1def;
-			$p2 = $p2def;
-			for(my $m=0;$m<=$#run_param;$m++){
-			  my $run_value = $run_begin[$m]+$run_step[$m]*$step_tmp[$m];
-			  $p1 =~ s/${run_param[$m]}/($run_value)/g; 
-			  $p2 =~ s/${run_param[$m]}/($run_value)/g; 
-			  if($p1 eq $run_param[$m]){$p1 = $run_value;} 
-			  if($p2 eq $run_param[$m]){$p2 = $run_value;} 
-			}
-			$p1 = eval($p1);
-			$p2 = eval($p2);
-			update_session("$dir_name/$subdir_name",$k,$j);
-			system("./n_calchep -blind \'\\8a\'");
 
 			#Create job script
 			open(JOB_FILE,">job_script")
 			or die("Couldn't open $dir_name/$subdir_name/jobscript.");
 			print JOB_FILE "#!/bin/bash\n";
-			print JOB_FILE "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LHAPDFPATH\n";
 			my $job_name = $subprocess;
 			$job_name =~ s/'//g;#'
 			if($par_meth=~/[Pp][Bb][Ss]/){write_PBS_info($job_name,"cs.out",1);}
 			elsif($par_meth=~/[Ll][Ss][Ff]/){write_LSF_info($job_name,"cs.out");}
 			elsif($par_meth=~/[Ss][Ll][Uu][Rr][Mm]/){write_SLURM_info($job_name,"cs.out");}
+			print JOB_FILE "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LHAPDFPATH\n";
 			print JOB_FILE "cd $dir_name/$subdir_name/\n";
 			#for (my $l=0;$l<=$#run_param;$l++){
 			#	printf JOB_FILE "$CH_PATH/bin/set_param %s %s\n", $run_param[$l], 
 			#		$run_begin[$l]+$run_step[$l]*$step_tmp[$l];
 			#}
 			#$systemString = "$CH_PATH/bin/run_vegas";
-			$systemString = "./n_calchep -blind \"[[[[[[[[[\{\{$nSess1\{[\{$nCalls1\{[[\{[[\{[\{]]]]]]\{$nSess2\{[\{$nCalls2\{[[\{0\"";
+			if($reuse_sess eq "True"){
+			  $systemString = "./n_calchep -blind \"[[[[[[[[[\{\{$nSess1\{[\{$nCalls1\{[[\{[[[\{]]]]]]\{$nSess2\{[\{$nCalls2\{[[\{0\"";
+			}
+			else{
+			  $systemString = "./n_calchep -blind \"[[[[[[[[[\{\{$nSess1\{[\{$nCalls1\{[[\{[[\{[\{]]]]]]\{$nSess2\{[\{$nCalls2\{[[\{0\"";
+			}
 			$systemString = $systemString."  2>&1 1>  cs.o";
 			if ($par_meth =~ /[Pp][Bb][Ss]/ || $par_meth =~ /[Ll][Ss][Ff]/ || $par_meth =~ /[Ss][Ll][Uu][Rr][Mm]/){print JOB_FILE "$systemString\n";}
 			elsif ($par_meth =~ /this/ || $par_meth =~ /local/){
@@ -2339,42 +2383,53 @@ for (my $k=0;$k<=$#decay_subprocesses;$k++){
   chdir("$dir_name");
   if ($#step<0){
     chdir($dir_name);
-    if (-d "single"){system("rm -rf single");}
-    system("mkdir single");
+    if (-d "single" && $reuse_sess eq "False"){system("rm -rf single");}
+    if(!(-d "single")){system("mkdir single");}
     chdir("single");
     #Link the executables
-    system("ln -s ../results/n_calchep n_calchep");
+    if(!(-e "n_calchep")){system("ln -s ../results/n_calchep n_calchep");}
     foreach $so (@sos){
-      system("ln -s ../results/$so $so");
+      if(!(-e "$so")){system("ln -s ../results/$so $so");}
     }
     foreach $a (@as){
-      system("ln -s ../results/$a $a");
+      if(!(-e "$a")){system("ln -s ../results/$a $a");}
     }
     
     #AB system("ln -s ../results/aux aux");
-    system("mkdir aux");
-    system("mkdir aux/results");
-    system("mkdir aux/tmp");  
-    system("ln -s ../../results/aux/so_generated aux/so_generated");
-    system("ln -s ../../results/aux/models aux/models");
+    if(!(-d "aux")){system("mkdir aux");}
+    if(!(-d "aux/results")){system("mkdir aux/results");}
+    if(!(-d "aux/tmp")){system("mkdir aux/tmp");}
+    if(!(-e "aux/so_generated")){system("ln -s ../../results/aux/so_generated aux/so_generated");}
+    if(!(-e "aux/models")){system("ln -s ../../results/aux/models aux/models");}
 
     #Create and update session.dat
-    system("./n_calchep -blind \'\\8a\'");
-    update_decay_session("$dir_name/single",$k);
-    system("./n_calchep -blind \'\\8a\'");
+    if($reuse_sess eq "True"){
+      if(-e "session.dat"){system("./n_calchep -blind \"[[[[[[[[[\{[[[[[[\{0\"");}
+    }
+    else{
+      if(-e "session.dat"){system("rm session.dat*");}
+      system("./n_calchep -blind \'\\8a\'");
+      update_decay_session("$dir_name/single",$k);
+#!      system("./n_calchep -blind \'\\8a\'");
+    }
     
     #Create job script
     open(JOB_FILE,">job_script")
       or die("Couldn't open $dir_name/single/jobscript.");
     print JOB_FILE "#!/bin/bash\n";
-    print JOB_FILE "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LHAPDFPATH\n";
     my $job_name = $subprocess;
     $job_name =~ s/'//g;#'
     if($par_meth=~/[Pp][Bb][Ss]/){write_PBS_info($job_name,"cs.out",0);}
     elsif($par_meth=~/[Ll][Ss][Ff]/){write_LSF_info($job_name,"cs.out");}
     elsif($par_meth=~/[Ss][Ll][Uu][Rr][Mm]/){write_SLURM_info($job_name,"cs.out");}
+    print JOB_FILE "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LHAPDFPATH\n";
     print JOB_FILE "cd $dir_name/single/\n";
-    $systemString = "./n_calchep -blind \"[[[[[[[[[\{\{$nSess1\{[\{$nCalls1\{[[\{[[\{[\{]]]]]]\{$nSess2\{[\{$nCalls2\{[[\{0\"";
+    if($resue_sess eq "True"){
+      $systemString = "./n_calchep -blind \"[[[[[[[[[\{\{$nSess1\{[\{$nCalls1\{[[\{[[[\{]]]]]]\{$nSess2\{[\{$nCalls2\{[[\{0\"";
+    }
+    else{
+      $systemString = "./n_calchep -blind \"[[[[[[[[[\{\{$nSess1\{[\{$nCalls1\{[[\{[[\{[\{]]]]]]\{$nSess2\{[\{$nCalls2\{[[\{0\"";
+    }
     $systemString = $systemString."  2>&1 1>  cs.o";
     if ($par_meth =~ /[Pp][Bb][Ss]/ || $par_meth =~ /[Ll][Ss][Ff]/ || $par_meth =~ /[Ss][Ll][Uu][Rr][Mm]/){print JOB_FILE "        $systemString\n";}
     elsif ($par_meth =~ /this/ || $par_meth =~ /local/){
@@ -2405,59 +2460,68 @@ for (my $k=0;$k<=$#decay_subprocesses;$k++){
       }
       #print "\t$subdir_name";
       chdir($dir_name);
-      if (-d $subdir_name){system("rm -rf $subdir_name");}
-      system("mkdir $subdir_name");
+      if (-d $subdir_name && $reuse_sess eq "False"){system("rm -rf $subdir_name");}
+      if (!(-d $subdir_name)){system("mkdir $subdir_name");}
       chdir($subdir_name);
       #Link the executables
-      system("ln -s ../results/n_calchep n_calchep");
+      if(!(-e "n_calchep")){system("ln -s ../results/n_calchep n_calchep");}
       foreach $so (@sos){
-	system("ln -s ../results/$so $so");
+	if(!(-e "$so")){system("ln -s ../results/$so $so");}
       }
       foreach $a (@as){
-	#system("ln -s $dir_name/results/$a $a");
-	system("ln -s ../results/$a $a");
+	if(!(-e "$a")){system("ln -s ../results/$a $a");}
       }
       
-      #AB system("ln -s ../results/aux aux");
-      system("mkdir aux");
-      system("mkdir aux/results");
-      system("mkdir aux/tmp");  
-      system("ln -s ../../results/aux/so_generated aux/so_generated");
-      system("ln -s ../../results/aux/models aux/models");
+      if(!(-d "aux")){system("mkdir aux");}
+      if(!(-d "aux/results")){system("mkdir aux/results");}
+      if(!(-d "aux/tmp")){system("mkdir aux/tmp");}
+      if(!(-e "aux/so_generated")){system("ln -s ../../results/aux/so_generated aux/so_generated");}
+      if(!(-e "aux/models")){system("ln -s ../../results/aux/models aux/models");}
 
       #Create and update session.dat
-      system("./n_calchep -blind \'\\8a\'");
-      #Before updating the session, update the numerical values in @vars_values.
-      for(my $l=0;$l<=$#vars_names;$l++){
-	for(my $m=0;$m<=$#param_names;$m++){
-	  if($vars_names[$l] eq $param_names[$m]){$vars_values[$l] = $param_values[$m];}
-	}
-	for(my $m=0;$m<=$#run_param;$m++){
-	  my $run_value = $run_begin[$m]+$run_step[$m]*$step_tmp[$m];
-	  $vars_values[$l] =~ s/${run_param[$m]}/($run_value)/g;
-	  if($vars_names[$l] eq $run_param[$m]){$vars_values[$l] = $run_value;}
-	}
-	$vars_values[$l] = eval($vars_values[$l]);
+      if($reuse_sess eq "True"){
+	if(-e "session.dat"){system("./n_calchep -blind \"[[[[[[[[[\{[[[[[[\{0\"");}
       }
-      update_decay_session("$dir_name/$subdir_name",$k);
-      system("./n_calchep -blind \'\\8a\'");
+      else{
+	if(-e "session.dat"){system("rm session.dat*");}
+	system("./n_calchep -blind \'\\8a\'");
+	#Before updating the session, update the numerical values in @vars_values.
+	for(my $l=0;$l<=$#vars_names;$l++){
+	  for(my $m=0;$m<=$#param_names;$m++){
+	    if($vars_names[$l] eq $param_names[$m]){$vars_values[$l] = $param_values[$m];}
+	  }
+	  for(my $m=0;$m<=$#run_param;$m++){
+	    my $run_value = $run_begin[$m]+$run_step[$m]*$step_tmp[$m];
+	    $vars_values[$l] =~ s/${run_param[$m]}/($run_value)/g;
+	    if($vars_names[$l] eq $run_param[$m]){$vars_values[$l] = $run_value;}
+	  }
+	  $vars_values[$l] = eval($vars_values[$l]);
+	}
+	update_decay_session("$dir_name/$subdir_name",$k);
+	system("./n_calchep -blind \'\\8a\'");
+      }
       
       #Create job script
       open(JOB_FILE,">job_script")
 	or die("Couldn't open $dir_name/$subdir_name/jobscript.");
       print JOB_FILE "#!/bin/bash\n";
-      print JOB_FILE "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LHAPDFPATH\n";
       my $job_name = $subprocess;
       $job_name =~ s/'//g;#'
       if($par_meth=~/[Pp][Bb][Ss]/){write_PBS_info($job_name,"cs.out",0);}
       elsif($par_meth=~/[Ll][Ss][Ff]/){write_LSF_info($job_name,"cs.out");}
       elsif($par_meth=~/[Ss][Ll][Uu][Rr][Mm]/){write_SLURM_info($job_name,"cs.out");}
+      print JOB_FILE "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LHAPDFPATH\n";
       print JOB_FILE "cd $dir_name/$subdir_name/\n";
       #for (my $l=0;$l<=$#run_param;$l++){
       #    printf JOB_FILE "$CH_PATH/bin/set_param %s %s\n", $run_param[$l], 
       #    $run_begin[$l]+$run_step[$l]*$step_tmp[$l];
       #}
-      $systemString = "./n_calchep -blind \"[[[[[[[[[\{\{$nSess1\{[\{$nCalls1\{[[\{[[\{[\{]]]]]]\{$nSess2\{[\{$nCalls2\{[[\{0\"";
+      if($reuse_sess eq "True"){
+	$systemString = "./n_calchep -blind \"[[[[[[[[[\{\{$nSess1\{[\{$nCalls1\{[[\{[[[\{]]]]]]\{$nSess2\{[\{$nCalls2\{[[\{0\"";
+      }
+      else{
+	$systemString = "./n_calchep -blind \"[[[[[[[[[\{\{$nSess1\{[\{$nCalls1\{[[\{[[\{[\{]]]]]]\{$nSess2\{[\{$nCalls2\{[[\{0\"";
+      }
       $systemString = $systemString."  2>&1 1>  cs.o";
       if ($par_meth =~ /[Pp][Bb][Ss]/ || $par_meth =~ /[Ll][Ss][Ff]/ || $par_meth =~ /[Ss][Ll][Uu][Rr][Mm]/){print JOB_FILE "        $systemString\n";}
       elsif ($par_meth =~ /this/ || $par_meth =~ /local/){
@@ -2553,6 +2617,8 @@ if ($#step<0){
 					print_numerical(0);
 					print "Error in calculation of cross section for $all_subprocesses[$j]\n";
 					print "Please have a look at cs.o and cs.out in Processes/$model_dir/$all_subproc_dir[$j]/single.\n";
+	                                system("cat Processes/$model_dir/$all_subproc_dir[$j]/single/cs.out");  #!
+
 					#print "Exiting...\n\n";
 					#exit();
 					kill_all_jobs(3);
@@ -2574,6 +2640,7 @@ if ($#step<0){
 				    print_numerical(0);
 				    print "Error in calculation of cross section for $all_subprocesses[$j]\n";
 				    print "Please have a look at cs.o and cs.out in Processes/$model_dir/$all_subproc_dir[$j]/single.\n";
+				    system("cat Processes/$model_dir/$all_subproc_dir[$j]/single/cs.out");  #!
 				    print "Job has terminated prematurely\n";
 				    if($par_meth =~ /[Pp][Bb][Ss]/){
 				      print "You may need to increase the walltime requested.\n";
@@ -2811,10 +2878,23 @@ $cs_end_time = time();
 print_index(1);print_numerical(0);
 #exit();
 if($n_events==0){
-	print_index(1.5);
-	generate_cs_plot();
-	print_numerical(0.5);
 	if($cleanup =~ /[Tt]rue/ || $cleanup =~ /[Yy]es/){Cleanup();}
+	chdir($working_dir);
+	if (!(-d "batch_results")){system("mkdir batch_results");}
+
+    if ((-d "batch_results/${fileName}")){system("rm -rf batch_results/${fileName} ");}
+    system("mkdir batch_results/${fileName}");
+    system("mkdir  batch_results/${fileName}/html");
+
+    system("cp -r html/runs  html/request.html html/symbolic.* html/numerical.* html/index.* batch_results/$fileName/html");
+    system("cd  batch_results; cp  ${fileName}*.jpg ${fileName}*.lhe.gz ${fileName} 2>/dev/null; true");
+    system("cd  batch_results; mv  ${fileName}*.dat ${fileName}*.distr  events.txt plot*.tab ${fileName} 2>/dev/null; true");
+
+
+    
+	print_index(1.5);
+	if($#step>=0) {generate_cs_plot();}
+	print_numerical(0.5);
 	exit(0);
 } 
 
@@ -2854,18 +2934,20 @@ for (my $k=0;$k<=$#subprocesses;$k++){
 		open(JOB_FILE,">job_script")
 			or die("Couldn't open $dir_name/single/jobscript.");
 		print JOB_FILE "#!/bin/bash\n";
-		print JOB_FILE "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LHAPDFPATH\n";
 		my $job_name = $subprocesses[$k];
 		$job_name =~ s/'//g;#'
 		if($par_meth=~/[Pp][Bb][Ss]/){write_PBS_info($job_name,"job.out",1);}
 		elsif($par_meth=~/[Ll][Ss][Ff]/){write_LSF_info($job_name,"job.out");}
 		elsif($par_meth=~/[Ss][Ll][Uu][Rr][Mm]/){write_SLURM_info($job_name,"job.out");}
+		print JOB_FILE "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LHAPDFPATH\n";
 		print JOB_FILE "cd $dir_name/single/\n";
 		#print JOB_FILE "./n_calchep -blind \"[[[[[[[[[\{\{0\{[[\{0\{\\8a\"\n";
 		#print JOB_FILE "./n_calchep -blind \"[[[[[[[[[\{\{0\{0\"\n";
 		zero_nSess("$dir_name/single");
 		my $total_cs=0;
 		for (my $l=0;$l<=$#subprocesses;$l++){$total_cs = $total_cs + $cs[$l];}
+		if($total_cs==0) {print "Warning:  cs=0  Cannot generate events!\n";}
+		elsif($total_cs*$max_lumi<1) {print "Warning:  cs is too low!\n  Please increase Max Lumi parameter in batch file if you want to generate the requested number of events.\n";}
 		$nevents[$k] = int($n_events*$cs[$k]/$total_cs);
 		if($nevents[$k]<10){$nevents[$k]=10;}
 		$nevents[$k] = $nevents[$k]+5*int(sqrt($nevents[$k]));
@@ -2910,12 +2992,12 @@ for (my $k=0;$k<=$#subprocesses;$k++){
 			open(JOB_FILE,">job_script")
 			or die("Couldn't open $dir_name/$subdir_name/jobscript.");
 			print JOB_FILE "#!/bin/bash\n";
-			print JOB_FILE "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LHAPDFPATH\n";
 			my $job_name = $subprocesses[$k];
 			$job_name =~ s/'//g;#'
 			if($par_meth=~/[Pp][Bb][Ss]/){write_PBS_info($job_name,"job.out",1);}
 			elsif($par_meth=~/[Ll][Ss][Ff]/){write_LSF_info($job_name,"job.out");}
 			elsif($par_meth=~/[Ss][Ll][Uu][Rr][Mm]/){write_SLURM_info($job_name,"job.out");}
+			print JOB_FILE "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LHAPDFPATH\n";
 			print JOB_FILE "cd $dir_name/$subdir_name/\n";
 			#print JOB_FILE "./n_calchep -blind \"[[[[[[[[[\{\{0\{[[\{0\{\\8a\"\n";
 			#print JOB_FILE "./n_calchep -blind   \"[[[[[[[[[\{\{0\{0\"\n";
@@ -2926,6 +3008,8 @@ for (my $k=0;$k<=$#subprocesses;$k++){
 			#}
 			my $total_cs=0;
 			for (my $l=0;$l<=$#subprocesses;$l++){$total_cs = $total_cs + $cs[$l][$j];}
+			if($total_cs==0) {print "Warning:  cs=0  Cannot generate events!\n";}
+			elsif($total_cs*$max_lumi<1) {print "Warning:  cs is too low!\n  Please increase Max Lumi parameter in batch file if you want to generate the requested number of events.\n";}
 			$nevents[$k][$j] = int($n_events*$cs[$k][$j]/$total_cs);
 			if($nevents[$k][$j]<10){$nevents[$k][$j]=10;}
 			$nevents[$k][$j] = $nevents[$k][$j]+5*int(sqrt($nevents[$k][$j]));
@@ -2980,12 +3064,12 @@ for (my $k=0;$k<=$#decay_subprocesses;$k++){
 		open(JOB_FILE,">job_script")
 			or die("Couldn't open $dir_name/single/jobscript.");
 		print JOB_FILE "#!/bin/bash\n";
-		print JOB_FILE "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LHAPDFPATH\n";
 		my $job_name = $subprocess;
 		$job_name =~ s/'//g;#'
 		if($par_meth=~/[Pp][Bb][Ss]/){write_PBS_info($job_name,"job.out",0);}
 		elsif($par_meth=~/[Ll][Ss][Ff]/){write_LSF_info($job_name,"job.out");}
 		elsif($par_meth=~/[Ss][Ll][Uu][Rr][Mm]/){write_SLURM_info($job_name,"job.out");}
+		print JOB_FILE "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LHAPDFPATH\n";
 		print JOB_FILE "cd $dir_name/single/\n";
 		$nevents[$#subprocesses+$k+1] = int(5.1*$n_events);
 		if($cs[$#subprocesses+$k+1]==0) {$nevents[$#subprocesses+$k+1]=0;}
@@ -3022,12 +3106,12 @@ for (my $k=0;$k<=$#decay_subprocesses;$k++){
 			open(JOB_FILE,">job_script")
 			or die("Couldn't open $dir_name/$subdir_name/jobscript.");
 			print JOB_FILE "#!/bin/bash\n";
-			print JOB_FILE "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LHAPDFPATH\n";
 			my $job_name = $subprocess;
 			$job_name =~ s/'//g;#'
 			if($par_meth=~/[Pp][Bb][Ss]/){write_PBS_info($job_name,"job.out",0);}
 			elsif($par_meth=~/[Ll][Ss][Ff]/){write_LSF_info($job_name,"job.out");}
 			elsif($par_meth=~/[Ss][Ll][Uu][Rr][Mm]/){write_SLURM_info($job_name,"job.out");}
+			print JOB_FILE "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LHAPDFPATH\n";
 			print JOB_FILE "cd $dir_name/$subdir_name/\n";
 			$nevents[$#subprocesses+$k+1][$j] = int(5.1*$n_events);
 			if($cs[$#subprocesses+$k+1][$j]==0) {$nevents[$#subprocesses+$k+1][$j]=0;}
@@ -3103,17 +3187,17 @@ if ($#step<0){
 	system("./n_calchep -blind \'\\8a\'");
 	#system("./n_calchep -blind \'[[[[[[[[[{[{\\8e0{[{5{[{\\8e0{}[{{\\8e0{\\8a\'");
 	update_decay_session("$dir_name/single",-1);
-	system("./n_calchep -blind \'\\8a\'");
+#!	system("./n_calchep -blind \'\\8a\'");
 		#Create job script
 	open(JOB_FILE,">job_script")
 		or die("Couldn't open $dir_name/single/jobscript.");
 	print JOB_FILE "#!/bin/bash\n";
-	print JOB_FILE "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LHAPDFPATH\n";
 	my $job_name = $subprocess;
 	$job_name =~ s/'//g;#'
 	if($par_meth=~/[Pp][Bb][Ss]/){write_PBS_info($job_name,"job.out",0);}
 	elsif($par_meth=~/[Ll][Ss][Ff]/){write_LSF_info($job_name,"job.out");}
 	elsif($par_meth=~/[Ss][Ll][Uu][Rr][Mm]/){write_SLURM_info($job_name,"job.out");}
+	print JOB_FILE "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LHAPDFPATH\n";
 	print JOB_FILE "cd $dir_name/single/\n";
 	#my $systemString = sprintf ("./n_calchep -blind \"[[[[[[[[[[[\{[[[[[[\{\\8a\"");
 	my $systemString = sprintf ("./n_calchep -blind \"[[[{[[{{}0\"");#Includes 1->3 decays
@@ -3195,18 +3279,18 @@ else {
 		  $vars_values[$l] = eval($vars_values[$l]);
 		}
 		update_decay_session("$dir_name/$subdir_name",-1);
-		system("./n_calchep -blind \'\\8a\'");
+!#		system("./n_calchep -blind \'\\8a\'");
 
 		#Create job script
 		open(JOB_FILE,">job_script")
 		or die("Couldn't open $dir_name/$subdir_name/jobscript.");
 		print JOB_FILE "#!/bin/bash\n";
-		print JOB_FILE "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LHAPDFPATH\n";
 		my $job_name = "Widths";
 		$job_name =~ s/'//g;#'
 		if($par_meth=~/[Pp][Bb][Ss]/){write_PBS_info($job_name,"job.out",0);}
 		elsif($par_meth=~/[Ll][Ss][Ff]/){write_LSF_info($job_name,"job.out");}
 		elsif($par_meth=~/[Ss][Ll][Uu][Rr][Mm]/){write_SLURM_info($job_name,"job.out");}
+		print JOB_FILE "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$LHAPDFPATH\n";
 		print JOB_FILE "cd $dir_name/$subdir_name/\n";
 		#for (my $l=0;$l<=$#run_param;$l++){
 		#	printf JOB_FILE "$CH_PATH/bin/set_param %s %s\n", $run_param[$l], 
@@ -3497,7 +3581,7 @@ else {
 			    combine_events($k);
 			    $procs_finished[$k]=0;
 			    $runs_finished++;
-			    print_index(2);if($runs_finished>2){generate_cs_plot();}print_numerical(1);
+			    print_index(2);if($runs_finished>2&&$#step>=0){generate_cs_plot();}print_numerical(1);
 			  }
 			  #print "Eureka!\n";
 			}
@@ -3662,21 +3746,32 @@ else {
 	}	
 }
 $events_end_time = time();
-print_index(2);generate_cs_plot();print_numerical(1);
+print_index(2);
+if($#step>=0) {generate_cs_plot();}
+print_numerical(1);
 
 
 
 #Done!!!
 if($cleanup =~ /[Tt]rue/ || $cleanup =~ /[Yy]es/){Cleanup();}
 print_index(3);
-generate_cs_plot();
+if($#step>=0) {generate_cs_plot();}
 print_numerical(2);
 
 
 chdir($working_dir);
 if (!(-d "batch_results")){system("mkdir batch_results");}
 if (!(-e "Events")){system("ln -s  batch_results Events");}
-system("cp -r html $fileName ;  tar -zcf $fileName.tgz $fileName;  rm -rf $fileName; mv $fileName.tgz batch_results/");
+
+if ((-d "batch_results/${fileName}")){system("rm -rf batch_results/${fileName} ");}
+system("mkdir  batch_results/$fileName ");
+system("mkdir  batch_results/$fileName/html");
+
+system("cp -r html/runs  html/request.html html/symbolic.*  html/numerical.*  html/index.*  batch_results/$fileName/html");
+system("cd  batch_results; cp  ${fileName}*.jpg ${fileName}*.distr ${fileName}*.lhe.gz events.txt plot*.tab $fileName 2>/dev/null; true");
+
+ 
+
 
 #END OF RUN #
 
@@ -3781,7 +3876,7 @@ ifneq (\$(LHAPDFPATH),)
 endif
 
 VandP.so:VandP.c \$(DEPEND) models/extlib$model_num.mdl
-\t\$(CC) \$(CFLAGS)  -shared -o VandP.so \$(soname_VandP) VandP.c \$(CALCHEP)/include/VandPgate.c  \$(EXTLIB) \$(CALCHEP)/lib/libSLHAplus.a \$(CALCHEP)/lib/dummy.a  -lm -lpthread
+\t\$(CC) \$(CFLAGS)  -shared -o VandP.so \$(soname_VandP) VandP.c \$(CALCHEP)/include/VandPgate.c  \$(EXTLIB) \$(CALCHEP)/lib/dynamic_me.a  \$(CALCHEP)/lib/libSLHAplus.a \$(CALCHEP)/lib/ntools.a \$(CALCHEP)/lib/serv.a \$(CALCHEP)/lib/dummy.a  -lm \$(lQuad) -lpthread
 ENDMK
   close(MAKEFILE);
 #  system("make -C $dir");
@@ -3961,14 +4056,14 @@ export WORK
 
 \$CALCHEP/bin/s_calchep \$*
 if(test \$? -ne 22) then echo error in C-code generation; exit 1 ;fi
-\$CALCHEP/bin/s_calchep -blind "[{{0" 
-cd results
-\$CALCHEP/sbin/nCompil
-if(test \$? -ne 0) then echo error in C-code compilation; exit 2 ;fi
-cLib=\$CALCHEP/lib
-\$CC \$CFLAGS  -o n_calchep \$cLib/n_calchep.o \$cLib/num_c.a \$cLib/sqme_aux.\$SO proclib_*.a ../../../VandP.so \$cLib/dynamic_me.a \$cLib/serv.a \$cLib/libSLHAplus.a \$cLib/ntools.a \$LX11 -lm -lpthread \$lDL
-if(test \$? -ne 0) then echo error in n_calchep linking; exit 3; fi
-echo n_calchep is created
+\$CALCHEP/bin/s_calchep -blind "[{{[{0" 
+if(test -x results/n_calchep) then 
+   echo n_calchep is created
+   exit 0
+else 
+   echo error in n_calchep linking
+    exit 3 
+fi   
 
 ENDCH
   close(CALCHEP);
@@ -3991,10 +4086,7 @@ do
      0) exit;; 
     20) ;;
     22)
-         \$CALCHEP/bin/s_calchep -blind "[{{0" 
-         cd results 
-         . ./EXTLIB
-         \$CALCHEP/sbin/nCompil 1>/dev/null 2>/dev/null; \$CALCHEP/sbin/ld_n
+         \$CALCHEP/bin/s_calchep -blind "[{{[{0" 
          err=\$?
          if(test \$err -eq 0) then
            echo n_calchep is created
@@ -4316,10 +4408,12 @@ sub update_session {
 		}
 		if ($init_section==0&&$param_section==0&&$BW_section==0&&$cuts_section==0&& $reg_section==0 && $kinematics_section==0 && $dists_section==0&&$qcdscales_section==0&&$composite_section==0){
 			if($line =~ /#Vegas_calls/){$line ="#Vegas_calls ${nCalls1}x${nSess1} ${nCalls2}x${nSess2}\n";}
-			if($line =~ /#Parallelization:/){$line ="#Parallelization: $max_ppn\n";}
+			if($line =~ /#Parallelization/){$line ="#Parallelization $max_ppn\n";}
 			if($line =~ /#Events/){$line = "#Events $subCubes $unWeighted 10000 \n";}
 			if($line =~ /#VVdecays/ && ($VVdecay =~ /[Oo][Ff][Ff]/ || $VVdecay =~ /[Ff][Aa][Ll][Ss][Ee]/))
 			  {$line = "#VVdecays  0\n";}
+			if($line =~ /#SLHAwidth/ && ($SLHAwidths =~ /[Oo][Ff][Ff]/ || $SLHAwidths =~ /[Ff][Aa][Ll][Ss][Ee]/))
+			  {$line = "#SLHAwidth  0\n";}
 			
 			$randTime++;
 			my $randSeed = sprintf ("%x",$randTime);
@@ -4774,6 +4868,8 @@ sub update_decay_session {
 			if($line =~ /#Events/){$line = "#Events $subCubes $unWeighted 10000\n";}
 			if($line =~ /#VVdecays/ && ($VVdecay =~ /[Oo][Ff][Ff]/ || $VVdecay =~ /[Ff][Aa][Ll][Ss][Ee]/))
 			  {$line = "#VVdecays  0\n";}
+			if($line =~ /#SLHAwidth/ && ($SLHAwidths =~ /[Oo][Ff][Ff]/ || $SLHAwidths =~ /[Ff][Aa][Ll][Ss][Ee]/))
+			  {$line = "#SLHAwidth  0\n";}
 
 			$randTime++;
 			my $randSeed = sprintf ("%x",$randTime);
@@ -5075,85 +5171,86 @@ sub combine_distributions {
 	
 	
 	#Plot using gnuplot.
-	open(GP_INST,">gnuplot_instructions");
-	print GP_INST "set term jpeg transparent medium #ffffff #000000 #000000 #add8e6 #add8e6 #000000\n";
-	print GP_INST "set key off\n";
-	print GP_INST "set mxtics\n";
-	print GP_INST "set mytics\n\n";
-	#Parameter values
-	for (my $j=0;$j<=$#vars_names;$j++){
-	  if (!($vars_names[$j] =~ /^\s*\*/)){print GP_INST "$vars_names[$j]=$vars_values[$j]\n";}
+	if($#dist_param>=0){
+	  open(GP_INST,">gnuplot_instructions");
+	  print GP_INST "set term jpeg transparent medium #ffffff #000000 #000000 #add8e6 #add8e6 #000000\n";
+	  print GP_INST "set key off\n";
+	  print GP_INST "set mxtics\n";
+	  print GP_INST "set mytics\n\n";
+	  #Parameter values
+	  for (my $j=0;$j<=$#vars_names;$j++){
+	    if (!($vars_names[$j] =~ /^\s*\*/)){print GP_INST "$vars_names[$j]=$vars_values[$j]\n";}
+	  }
+	  print GP_INST "\n"; 
+	  my $i=0;
+	  my @tmp_plot_filenames=();
+	  my $copy_string="";
+	  for(my $j=0;$j<=$#dist_param;$j++){
+	    #my @tmp_dist_param = rename_parts($dist_param[$j],$_[1]);
+	    my @tmp_dist_param = ($dist_param[$j]);
+	    for ($k=0;$k<=$#tmp_dist_param;$k++){
+	      $i++;
+	      #$system_string="$CH_PATH/bin/show_distr -blind  '\\06".$dist_param[$j]."{{\\06 ".$dist_n_bins[$j]." {{ [[[{0'   distr";
+	      #$system_string="$CH_PATH/bin/show_distr -blind  'f".$dist_param[$j]."{{f ".$dist_n_bins[$j]." "."{{{[[[[{[[[[{0'   distr";
+	      $system_string="$CH_PATH/bin/show_distr -blind  'f".$dist_param[$j]."{{f ".$dist_n_bins[$j]." "."{{ [[[[[{{0'   distr";
+	      #print "$system_string\n";
+	      system($system_string);
+	      my $min = $dist_min[$j];
+	      my $max = $dist_max[$j];
+	      if ($#step>-1){
+		$min = update_min_max($dist_min[$j],$_[0]);
+		$max = update_min_max($dist_max[$j],$_[0]);
+	      }
+	      print GP_INST "\nset title '$dist_title[$j]'\n";
+	      print GP_INST "set xlabel '$dist_x_title[$j]'\n";
+	      #print GP_INST "set ylabel 'sigma/bin (fb)'\n\n";#Appropriate for cs/bin
+	      print GP_INST "set ylabel 'dsigma(fb)/d$dist_x_title[$j]'\n\n";
+	      print GP_INST "set output 'distr_$i.jpg'\n";
+	      print GP_INST "min = $min\n";
+	      print GP_INST "max = $max\n";
+	      print GP_INST "bin_size = (max-min)/$dist_n_bins[$j].0\n";
+	      #cs/bin
+	      #print GP_INST "plot[min:max] ".
+	      #	"'plot_$i.txt' using (min+\$0*bin_size+(bin_size/2)):(1000*(\$1-\$2)*bin_size) with histeps,".
+	      #	"'plot_$i.txt' using (min+\$0*bin_size+(bin_size/2)):(1000*(\$1+\$2)*bin_size) with histeps,".
+	      #	"'plot_$i.txt' using (min+\$0*bin_size+(bin_size/2)):(1000*\$1*bin_size) with histeps\n";
+	      #differential cs
+	      print GP_INST "plot[min:max] ".
+		"'plot_$i.tab' using (min+\$0*bin_size+(bin_size/2)):(1000*(\$1-\$2)) with histeps,".
+		"'plot_$i.tab' using (min+\$0*bin_size+(bin_size/2)):(1000*(\$1+\$2)) with histeps,".
+		"'plot_$i.tab' using (min+\$0*bin_size+(bin_size/2)):(1000*\$1) with histeps\n";
+	      #Create filename.
+	      my $tmp_plot_filename="";
+	      #math!			my $tmp_plot_filename_math="";
+	      my $tmp_plot_filename_tab="";
+	      if ($fileName eq ""){
+		$tmp_plot_filename = sprintf "%4d-%02d-%02d-%s_$i.jpg",$year+1900,$mon+1,$mday,$subdir_name;
+		#math!				$tmp_plot_filename_math = sprintf "%4d-%02d-%02d-%s_$i.math",$year+1900,$mon+1,$mday,$subdir_name;
+		$tmp_plot_filename_tab = sprintf "%4d-%02d-%02d-%s_$i.tab",$year+1900,$mon+1,$mday,$subdir_name;
+	      }
+	      else {
+		$tmp_plot_filename = sprintf "%s-%s_$i.jpg",$fileName,$subdir_name;
+		#math!				$tmp_plot_filename_math = sprintf "%s-%s_$i.math",$fileName,$subdir_name;
+		$tmp_plot_filename_txt = sprintf "%s-%s_$i.tab",$fileName,$subdir_name;
+	      }
+	      push(@tmp_plot_filenames,$tmp_plot_filename);
+	      $copy_string=$copy_string."cp distr_$i.jpg $working_dir/batch_results/$tmp_plot_filename;";
+	      #math!			$copy_string=$copy_string."cp plot_$i.math $working_dir/batch_results/$tmp_plot_filename_math;";
+	      $copy_string=$copy_string."cp plot_$i.tab $working_dir/batch_results/$tmp_plot_filename_tab;";
+	    }
+	  }
+	  close(GP_INST);
+	  #system("cat  gnuplot_instructions; echo ======");
+	  #system("cat plot_$i.tab; echo ====");
+	  
+	  $system_string="gnuplot gnuplot_instructions";
+	  system($system_string);
+	  system($copy_string);
+	  #system("cp gnuplot_instructions ~/physics/CalcHEP/ch_2.5.6/gnuplot_instructions.tmp"); #for debugging
+	  system("cp gnuplot_instructions gnuplot_instructions.template"); 
+	  
+	  @plot_filenames[$_[0]]=[@tmp_plot_filenames];
 	}
-	print GP_INST "\n"; 
-	my $i=0;
-	my @tmp_plot_filenames=();
-	my $copy_string="";
-	for(my $j=0;$j<=$#dist_param;$j++){
-	  #my @tmp_dist_param = rename_parts($dist_param[$j],$_[1]);
-	  my @tmp_dist_param = ($dist_param[$j]);
-		for ($k=0;$k<=$#tmp_dist_param;$k++){
-			$i++;
-			#$system_string="$CH_PATH/bin/show_distr -blind  '\\06".$dist_param[$j]."{{\\06 ".$dist_n_bins[$j]." {{ [[[{0'   distr";
-                #$system_string="$CH_PATH/bin/show_distr -blind  'f".$dist_param[$j]."{{f ".$dist_n_bins[$j]." "."{{{[[[[{[[[[{0'   distr";
-                 $system_string="$CH_PATH/bin/show_distr -blind  'f".$dist_param[$j]."{{f ".$dist_n_bins[$j]." "."{{ [[[[[{{0'   distr";
-                #print "$system_string\n";
-			system($system_string);
-			my $min = $dist_min[$j];
-			my $max = $dist_max[$j];
-			if ($#step>-1){
-				$min = update_min_max($dist_min[$j],$_[0]);
-				$max = update_min_max($dist_max[$j],$_[0]);
-			}
-			print GP_INST "\nset title '$dist_title[$j]'\n";
-			print GP_INST "set xlabel '$dist_x_title[$j]'\n";
-			#print GP_INST "set ylabel 'sigma/bin (fb)'\n\n";#Appropriate for cs/bin
-			print GP_INST "set ylabel 'dsigma(fb)/d$dist_x_title[$j]'\n\n";
-			print GP_INST "set output 'distr_$i.jpg'\n";
-			print GP_INST "min = $min\n";
-			print GP_INST "max = $max\n";
-			print GP_INST "bin_size = (max-min)/$dist_n_bins[$j].0\n";
-			#cs/bin
-			#print GP_INST "plot[min:max] ".
-			#	"'plot_$i.txt' using (min+\$0*bin_size+(bin_size/2)):(1000*(\$1-\$2)*bin_size) with histeps,".
-			#	"'plot_$i.txt' using (min+\$0*bin_size+(bin_size/2)):(1000*(\$1+\$2)*bin_size) with histeps,".
-			#	"'plot_$i.txt' using (min+\$0*bin_size+(bin_size/2)):(1000*\$1*bin_size) with histeps\n";
-			#differential cs
-			print GP_INST "plot[min:max] ".
-				"'plot_$i.tab' using (min+\$0*bin_size+(bin_size/2)):(1000*(\$1-\$2)) with histeps,".
-				"'plot_$i.tab' using (min+\$0*bin_size+(bin_size/2)):(1000*(\$1+\$2)) with histeps,".
-				"'plot_$i.tab' using (min+\$0*bin_size+(bin_size/2)):(1000*\$1) with histeps\n";
-			#Create filename.
-			my $tmp_plot_filename="";
-#math!			my $tmp_plot_filename_math="";
-			my $tmp_plot_filename_tab="";
-			if ($fileName eq ""){
-				$tmp_plot_filename = sprintf "%4d-%02d-%02d-%s_$i.jpg",$year+1900,$mon+1,$mday,$subdir_name;
-#math!				$tmp_plot_filename_math = sprintf "%4d-%02d-%02d-%s_$i.math",$year+1900,$mon+1,$mday,$subdir_name;
-				$tmp_plot_filename_tab = sprintf "%4d-%02d-%02d-%s_$i.tab",$year+1900,$mon+1,$mday,$subdir_name;
-			}
-			else {
-				$tmp_plot_filename = sprintf "%s-%s_$i.jpg",$fileName,$subdir_name;
-#math!				$tmp_plot_filename_math = sprintf "%s-%s_$i.math",$fileName,$subdir_name;
-				$tmp_plot_filename_txt = sprintf "%s-%s_$i.tab",$fileName,$subdir_name;
-			}
-			push(@tmp_plot_filenames,$tmp_plot_filename);
-			$copy_string=$copy_string."cp distr_$i.jpg $working_dir/batch_results/$tmp_plot_filename;";
-#math!			$copy_string=$copy_string."cp plot_$i.math $working_dir/batch_results/$tmp_plot_filename_math;";
-			$copy_string=$copy_string."cp plot_$i.tab $working_dir/batch_results/$tmp_plot_filename_tab;";
-		}
-	}
-	close(GP_INST);
-#system("cat  gnuplot_instructions; echo ======");
-#system("cat plot_$i.tab; echo ====");
-	
-	$system_string="gnuplot gnuplot_instructions";
-	system($system_string);
-	system($copy_string);
-	#system("cp gnuplot_instructions ~/physics/CalcHEP/ch_2.5.6/gnuplot_instructions.tmp"); #for debugging
-	system("cp gnuplot_instructions gnuplot_instructions.template"); 
-	
-	@plot_filenames[$_[0]]=[@tmp_plot_filenames];
-	
 	
 	
 	
@@ -7170,6 +7267,14 @@ sub print_help_model {
                </table>
                The default is "On".
                </p>
+                <h3>SLHA Widths</h3>
+               <p>
+               CalcHEP allows the use of SLHA widths to be used.  It can be turned off, and CalcHEP will use its built-in width calculator instead, as in:
+               <table>
+                       <tr><td>SLHA Widths : Off</td></tr>
+               </table>
+               The default is "On".
+               </p>
 	</div>
 </body>
 </html>
@@ -7691,6 +7796,14 @@ sub print_help_events {
 			If this is set to true, the individual event files are removed after the final event file is created.  This is useful for saving space on the hard drive.  It is True by default.  Here is an example:<br>
 			<table>
 				<tr><td>Cleanup</td><td>:</td><td>False</td></tr>
+			</table>
+		</p>
+		<h3>Reuse Session</h3>
+		<p>
+			If this is set to true, the previous session is reused instead of starting from scratch.  This is useful when a long job has been run but the statistics are still not as good as desired.  If this is set to true, the batch program will start from where it left off in the previous calculation.  Two things are very important to remember.  This only works if Cleanup was set to False in the previous run and no parameters,cuts,regularization, etc are changed between the previous run and this one.  It is False by default.  Here is an example:<br>
+			<table>
+				<tr><td>Cleanup</td><td>:</td><td>False</td></tr>
+				<tr><td>Reuse Session</td><td>:</td><td>True</td></tr>
 			</table>
 		</p>
 	</div>

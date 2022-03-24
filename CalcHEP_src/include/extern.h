@@ -23,8 +23,8 @@ extern int cDiagonalH(int Dim,...);
 extern int cDiagonalA(int Dim,...);
 extern int cDiagonalS(int Dim,...);
 
-extern double complex cMixMatrix(int id,int i,int j);
-extern double complex cMixMatrixU(int id,int i,int j);
+extern COMPLEX cMixMatrix(int id,int i,int j);
+extern COMPLEX cMixMatrixU(int id,int i,int j);
 
 extern int System(char * format, ...);
 extern int openAppend(char * fileName);
@@ -47,6 +47,7 @@ extern double initQCD5(double,double,double,double);
 extern double MbEff(double);
 extern double MtEff(double);
 extern double McEff(double);
+extern double MqEff(double mass2GeV, double Q);
 extern double alphaQCD(double);
 extern double nfQCD(double Q);
 extern double poleQmass(double M_M_, double alpha, int nf);
@@ -62,17 +63,21 @@ extern double complex Hgam1V(double z);
 extern double complex Hgam1A(double z);
 extern double Mbp(void);
 
-#define dbl(a) (double)(a)
-#define  slhaVal0(block,scale)             slhaVal(block,scale,0)
-#define  slhaVal1(block,scale,i1)          slhaVal(block,scale,1,i1)
-#define  slhaVal2(block,scale,i1,i2)       slhaVal(block,scale,2,i1,i2)
-#define  slhaVal3(block,scale,i1,i2,i3)    slhaVal(block,scale,3,i1,i2,i3)
-#define  slhaVal4(block,scale,i1,i2,i3,i4) slhaVal(block,scale,4,i1,i2,i3,i4)
-#define  slhaValExists0(block)             slhaValExists(block,0) 
-#define  slhaValExists1(block,i1)          slhaValExists(block,1,i1)
-#define  slhaValExists2(block,i1,i2)       slhaValExists(block,2,i1,i2)
-#define  slhaValExists3(block,i1,i2,i3)    slhaValExists(block,3,i1,i2,i3)
-#define  slhaValExists4(block,i1,i2,i3,i4) slhaValExists(block,4,i1,i2,i3,i4)
+
+extern double dbl(REAL a);
+extern double slhaVal0(char *block, double scale);
+extern double slhaVal1(char *block, double scale,int i1);
+extern double slhaVal2(char *block, double scale,int i1,int i2);
+extern double slhaVal3(char *block, double scale,int i1,int i2,int i3);
+extern double slhaVal4(char *block, double scale,int i1,int i2,int i3,int i4);
+
+extern int  slhaValExists0(char *block);
+extern int  slhaValExists1(char *block,int i1);
+extern int  slhaValExists2(char *block,int i1,int i2);
+extern int  slhaValExists3(char *block,int i1,int i2,int i3);
+extern int  slhaValExists4(char *block,int i1,int i2,int i3,int i4);
+
+
 
 extern double complex  hGGeven(double MH, double alphaMH, int Nitems, ...);
 extern double complex  hAAeven(double MH, double alphaMH, int Nitems, ...);
@@ -87,7 +92,6 @@ extern double complex lGG5higgs(double Q,char*hName);
 
 /* To avoid avto-prototyping  
 
-extern double  dbl(double);
 extern double  sqrt(double);
 extern double  sin(double);
 extern double  cos(double);

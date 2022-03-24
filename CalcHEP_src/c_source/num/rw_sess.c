@@ -26,10 +26,13 @@
 #include"VandP.h"
 #include"dynamic_cs.h"
 
-#define NITEMS 19
+#define NITEMS 20
 char *p_names[20];
 int   p_codes[20];
 static int rdErr;
+
+static int w_SLHA(FILE *f) { fprintf(f," %d",useSLHAwidth);  return 0; }
+static int r_SLHA(FILE *f) { fscanf(f," %d", &useSLHAwidth); return 0;  }
 
 static int writeIntegral(FILE *f)
 {
@@ -132,8 +135,11 @@ static int r_mdl__(FILE * mode)
 
   for(;;)
   { if(2!= fscanf(mode,"%s = %lf",name1,&val)) break;
-    for(i=0;i< nModelVars;i++)if(strcmp(name1,varNames[i])==0)
-    { varValues[i] = val; break;}
+    for(i=0;i< nModelVars;i++)if(strcmp(name1,varNames[i])==0) { varValues[i] = val; break;}
+    if(i==nModelVars && strcmp(name1,"GG")!=0  )
+    { char mess[100]; sprintf(mess,"session.dat contains variable '%s', which is absent in the model\n",name1);
+      messanykeyErr(10,10,mess);
+    }
   }  
   return 0;
 } 
@@ -215,6 +221,7 @@ int w_sess__(FILE *mode_)
       {"Physical_Parameters",  w_mdl__},
       {"Breit-Wigner",    w_widths}, 
       {"VVdecays",        w_VVdecays},
+      {"SLHAwidth",       w_SLHA},
       {"alphaQCD",        w_alphaQCD},
       {"QCDscales",       w_Scales},      
       {"Composites",      wrtcomp_},
@@ -244,7 +251,7 @@ int w_sess__(FILE *mode_)
       sprintf(fname,"%saux/session.dat",outputDir);
       mode=fopen(fname,"w");
       if(mode) {writeParagraphs(mode,9,wrt_array+2); fclose(mode);}
-   } else   writeParagraphs(mode,10,wrt_array);
+   } else   writeParagraphs(mode,11,wrt_array);
 
    return 0;
 }    
@@ -261,6 +268,7 @@ int r_sess__(FILE *mode_)
    {"Physical_Parameters",  r_mdl__},
    {"Breit-Wigner",    r_widths},
    {"VVdecays",        r_VVdecays}, 
+   {"SLHAwidth",       r_SLHA},
    {"alphaQCD",        r_alphaQCD},
    {"QCDscales",       r_Scales},          
    {"Composites",      rdrcomp_},

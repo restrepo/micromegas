@@ -9,7 +9,7 @@ extern int nModelParticles;
  
 typedef struct
 { 
-  char* name; char* aname; int NPDG;char* mass; char* width; int spin2; int cdim; int q3;
+   char* name; char* aname;  int selfC; int NPDG; char* mass; char* width; int spin2; int cdim;  int g;  int q3;
 }  ModelPrtclsStr;
 
 extern ModelPrtclsStr*ModelPrtcls;

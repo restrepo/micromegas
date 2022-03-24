@@ -8,7 +8,8 @@ int  nsub22=0;
 
 /*===========================================================*/
 static double Q_ren,Q_fact;
-static double PcmOut, totcoef;
+static double totcoef;
+static REAL PcmOut;
 static REAL pvect[20]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 static  int PC[5];  
 static  int chan=0; 
@@ -30,20 +31,20 @@ double  decayPcm(double am0,  double  am1,  double  am2)
 
 int  kin22(double PcmIn,REAL * pmass)
 {  
-   double sqrtS;
+   REAL sqrtS;
    int i;
    for(i=0;i<16;i++) pvect[i]=0;
-   sqrtS=sqrt(pmass[0]*pmass[0]+PcmIn*PcmIn)+sqrt(pmass[1]*pmass[1]+PcmIn*PcmIn);
+   sqrtS=Sqrt(pmass[0]*pmass[0]+PcmIn*PcmIn)+Sqrt(pmass[1]*pmass[1]+PcmIn*PcmIn);
    PcmOut = decayPcm(sqrtS,pmass[2],pmass[3]);
 //printf(" PcmOut =%E (%E %E %E) \n", PcmOut,sqrtS,pmass[2],pmass[3] );   
    if(PcmOut<sqrtS*1.E-4) return 1;
    totcoef = PcmOut /(32.0*M_PI*PcmIn*sqrtS*sqrtS);
    pvect[3] = PcmIn;
    pvect[7] =-PcmIn;
-   pvect[0] = sqrt(PcmIn*PcmIn   + pmass[0]*pmass[0]);
-   pvect[4] = sqrt(PcmIn*PcmIn   + pmass[1]*pmass[1]);
-   pvect[8] = sqrt(PcmOut*PcmOut + pmass[2]*pmass[2]);
-   pvect[12]= sqrt(PcmOut*PcmOut + pmass[3]*pmass[3]);
+   pvect[0] = Sqrt(PcmIn*PcmIn   + pmass[0]*pmass[0]);
+   pvect[4] = Sqrt(PcmIn*PcmIn   + pmass[1]*pmass[1]);
+   pvect[8] = Sqrt(PcmOut*PcmOut + pmass[2]*pmass[2]);
+   pvect[12]= Sqrt(PcmOut*PcmOut + pmass[3]*pmass[3]);
 
    return 0;
 }
@@ -51,7 +52,7 @@ int  kin22(double PcmIn,REAL * pmass)
 double  dSigma_dCos(double  cos_f)
 {
    double  r;
-   double sin_f=sqrt(fabs((1-cos_f)*(1+cos_f)));
+   REAL sin_f=Sqrt(Fabs((1-cos_f)*(1+cos_f)));
    int err_code=0;
    
    pvect[11]=PcmOut*cos_f;
@@ -68,20 +69,20 @@ double  dSigma_dCos(double  cos_f)
 static double kinematic_22(double PcmIn, double cs, REAL*pmass, REAL*pvect)
 {  int i;
    for(i=0;i<16;i++) pvect[i]=0;
-   double sqrtS=sqrt(pmass[0]*pmass[0]+PcmIn*PcmIn)+sqrt(pmass[1]*pmass[1]+PcmIn*PcmIn);
-   double PcmOut = decayPcm(sqrtS,pmass[2],pmass[3]);
+   REAL sqrtS=Sqrt(pmass[0]*pmass[0]+PcmIn*PcmIn)+Sqrt(pmass[1]*pmass[1]+PcmIn*PcmIn);
+   REAL PcmOut = decayPcm(sqrtS,pmass[2],pmass[3]);
 //printf(" PcmOut =%E (%E %E %E) \n", PcmOut,sqrtS,pmass[2],pmass[3] );   
    totcoef =  PcmOut /(32*M_PI*PcmIn*sqrtS*sqrtS);
    pvect[3] = PcmIn;
    pvect[7] =-PcmIn;
-   pvect[0] = sqrt(PcmIn*PcmIn   + pmass[0]*pmass[0]);
-   pvect[4] = sqrt(PcmIn*PcmIn   + pmass[1]*pmass[1]);
-   pvect[8] = sqrt(PcmOut*PcmOut + pmass[2]*pmass[2]);
-   pvect[12]= sqrt(PcmOut*PcmOut + pmass[3]*pmass[3]);
+   pvect[0] = Sqrt(PcmIn*PcmIn   + pmass[0]*pmass[0]);
+   pvect[4] = Sqrt(PcmIn*PcmIn   + pmass[1]*pmass[1]);
+   pvect[8] = Sqrt(PcmOut*PcmOut + pmass[2]*pmass[2]);
+   pvect[12]= Sqrt(PcmOut*PcmOut + pmass[3]*pmass[3]);
 
    pvect[11]=PcmOut*cs;
    pvect[15]=-pvect[11];  
-   pvect[10]=sqrt((PcmOut+pvect[11])*(PcmOut-pvect[11]));
+   pvect[10]=Sqrt((PcmOut+pvect[11])*(PcmOut-pvect[11]));
    pvect[14]=-pvect[10];
    return totcoef*3.8937966E8;                  
 }
@@ -99,15 +100,23 @@ double cs22(numout * cc, int nsub, double P, double cos1, double cos2 , int * er
   *(cc->interface->gswidth)=0;
   
   for(i=0;i<4;i++) cc->interface->pinf(nsub,1+i,pmass+i,NULL);  
-  *err=0;
+  if(err) *err=0;
+
+  double (*sqme22_mem)(int nsub, double GG, REAL *pvect, REAL*cb_coeff, int * err_code)=sqme22; 
+  int  nsub22_mem=nsub22;
+   
   sqme22=cc->interface->sqme;
   nsub22=nsub; 
-  if(kin22(P,pmass)) return 0; else 
-  { int err;
-    double res= 3.8937966E8*simpson(dSigma_dCos,cos1,cos2,0.3*eps,&err);
-    if(err)  printf("error in simpson: cs22.c line 108\n");
-    return res;
-  }
+  
+  double res=0;
+  if(!kin22(P,pmass)) res= 3.8937966E8*simpson(dSigma_dCos,cos1,cos2,0.3*eps,err);
+  else { if(err) *err=-1; else printf("cs22: incoming momentum P=%.2E is too small\n",P);}  
+ 
+  sqme22=sqme22_mem;
+  nsub22=nsub22_mem;
+  
+  return res;
+  
 }
 
 /*===================  Collider production ==========*/
@@ -172,7 +181,7 @@ static numout * colliderProduction(char * name1,char *name2, int nf, int J)
 
 static double  cos_integrand(double xcos)
 { int err=0;
-  double xsin=sqrt(1-xcos*xcos);
+  REAL xsin=Sqrt((1-xcos)*(1+xcos));
   double q;
   pvect[9]=pcmOut*xcos;
   pvect[10]=pcmOut*xsin;
@@ -184,32 +193,33 @@ static double  cos_integrand(double xcos)
 
 
 static double  s_integrand(double y)
-{  double r,pcmIn,q;
+{  double r,q;
+   REAL pcmIn;
    int  err;
    double pp=1.5;
    
-   double  s=sMin*pow(1+ y*( pow(sMax/sMin,1-pp) -1) ,1/(1-pp));
+   REAL  s=sMin*Pow(1+ y*( Pow(sMax/sMin,1-pp) -1) ,1/(1-pp));
    double x0=s/sMax;
    
-   pcmIn=decayPcm(sqrt(s),pmass[0], pmass[1]);
+   pcmIn=decayPcm(Sqrt(s),pmass[0], pmass[1]);
    if(pcmIn==0) return 0;
-   pvect[0]=sqrt(pmass[0]*pmass[0]+pcmIn*pcmIn);
+   pvect[0]=Sqrt(pmass[0]*pmass[0]+pcmIn*pcmIn);
    pvect[1]=pcmIn; pvect[2]=0; pvect[3]=0;
-   pvect[4]=sqrt(pmass[1]*pmass[1]+pcmIn*pcmIn);
+   pvect[4]=Sqrt(pmass[1]*pmass[1]+pcmIn*pcmIn);
    pvect[5]=-pcmIn; pvect[6]=0; pvect[7]=0;
-   pcmOut=decayPcm(sqrt(s),pmass[2], pmass[3]);
-   pvect[8]=sqrt(pmass[2]*pmass[2]+pcmOut*pcmOut);
+   pcmOut=decayPcm(Sqrt(s),pmass[2], pmass[3]);
+   pvect[8]=Sqrt(pmass[2]*pmass[2]+pcmOut*pcmOut);
    pvect[11]=0;
-   pvect[12]=sqrt(pmass[3]*pmass[3]+pcmOut*pcmOut);
+   pvect[12]=Sqrt(pmass[3]*pmass[3]+pcmOut*pcmOut);
    pvect[15]=0;
 
    if(pcmOut<=pTmin_) return 0;
    double sn=pTmin_/pcmOut;
-   double cs=sqrt((1-sn)*(1+sn)); 
+   double cs=Sqrt((1-sn)*(1+sn)); 
    r=  3.8937966E8*pcmOut/(32*M_PI*pcmIn*s)*simpson(cos_integrand,-cs,cs,1.E-3,&err);
    if(err)  printf("error in simpson cs22 line 210\n");
    
-   q=Q_fact>0? Q_fact:sqrt(s);
+   q=Q_fact>0? Q_fact:Sqrt(s);
      r*=convStrFun2(x0,q,pc1_,pc2_,ppFlag);
    r*=pow(s/sMax,pp)*(1- pow(sMin/sMax,1-pp))/(1-pp);
    return r; 
@@ -302,13 +312,13 @@ if(!isfinite(*r)) {printf("*r=%E\n",*r); }
 static double veg2_intergrand(double *x, double w)
 {
    double r;
-   double M12,pcmIn;
+   REAL M12,pcmIn;
    int err;
-   double Pout,sn_,cs_;
+   REAL Pout,sn_,cs_;
 
    REAL pvect[20]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};        
    
-   M12=sqrt(sMin)+x[0]*(sqrt(sMax)-sqrt(sMin)); 
+   M12=Sqrt(sMin)+x[0]*(Sqrt(sMax)-Sqrt(sMin)); 
    pcmIn=decayPcm(M12,pmass[0], pmass[1]);
    if(pcmIn==0) return 0;
    
@@ -318,21 +328,21 @@ static double veg2_intergrand(double *x, double w)
    
    sn_=pTmin_/Pout;
 
-   cs_=sqrt(1-sn_*sn_);
-   double cs=cs_*(2*x[1]-1),sn=sqrt(1-cs*cs),PT=Pout*sn;
+   cs_=Sqrt(1-sn_*sn_);
+   double cs=cs_*(2*x[1]-1),sn=Sqrt(1-cs*cs),PT=Pout*sn;
    
    r=  kinematic_22(pcmIn,cs,pmass, pvect);
 
    {   double q= Q_ren>0? Q_ren : PT;
        double x0=M12*M12/sMax;
       
-       r*= sqme22(nsub22,sqrt(4*M_PI*parton_alpha(q)),pvect,NULL,&err);
+       r*= sqme22(nsub22,Sqrt(4*M_PI*parton_alpha(q)),pvect,NULL,&err);
 
        q= Q_fact>0? Q_fact: PT; 
        r*= fabs(convStrFun2(x0,q,pc1_,pc2_,ppFlag));       
 
    }
-   r*= 2*cs_*(sqrt(sMax) - sqrt(sMin))*2*M12/sMax;
+   r*= 2*cs_*(Sqrt(sMax) - Sqrt(sMin))*2*M12/sMax;
 
    if(MET) 
    { 
@@ -349,16 +359,16 @@ static double veg3_intergrand(double *x, double w)
 {
    double r;
 //   double pp=1.5;
-   double M12,pcmIn;
+   REAL M12,pcmIn;
    int err=0;
-   double P,M45,m3q,sn_,cs_,J45,cs45,S34,S35;
-   double M34_min=sqrt(S34_min),M34_max=sqrt(S34_max),
-          M35_min=sqrt(S35_min),M35_max=sqrt(S35_max);
-   double M34,M35;
+   REAL P,M45,m3q,sn_,cs_,J45,cs45,S34,S35;
+   REAL M34_min=Sqrt(S34_min),M34_max=Sqrt(S34_max),
+          M35_min=Sqrt(S35_min),M35_max=Sqrt(S35_max);
+   REAL M34,M35;
   
    REAL pvect[20]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};        
    
-   M12=sqrt(sMin)+x[0]*(sqrt(sMax)-sqrt(sMin)); 
+   M12=Sqrt(sMin)+x[0]*(Sqrt(sMax)-Sqrt(sMin)); 
    pcmIn=decayPcm(M12,pmass[0], pmass[1]);
    if(pcmIn==0) return 0;
  
@@ -370,16 +380,16 @@ static double veg3_intergrand(double *x, double w)
    
    sn_=pTmin_/P;
 
-   cs_=sqrt(1-sn_*sn_);
-   double cs=cs_*(2*x[2]-1),sn=sqrt(1-cs*cs),PT=P*sn;
+   cs_=Sqrt(1-sn_*sn_);
+   double cs=cs_*(2*x[2]-1),sn=Sqrt(1-cs*cs),PT=P*sn;
    
    if(npole34==0 && npole35==0)  { cs45=(2*x[3]-1); J45=2;}  else 
    {  
       double E3= 0.5*(M12*M12-M45*M45-pmass[i3]*pmass[i3])/M45; 
-      double p= sqrt(E3*E3-pmass[i3]*pmass[i3]);
+      double p= Sqrt(E3*E3-pmass[i3]*pmass[i3]);
       double pcm2=decayPcm(M45,pmass[i4],pmass[i5]);
-      double E4=sqrt(pcm2*pcm2+pmass[i4]*pmass[i4]);
-      double E5=sqrt(pcm2*pcm2+pmass[i4]*pmass[i5]);
+      double E4=Sqrt(pcm2*pcm2+pmass[i4]*pmass[i4]);
+      double E5=Sqrt(pcm2*pcm2+pmass[i4]*pmass[i5]);
 
       if(npole35==0)
       { 
@@ -517,18 +527,23 @@ static void getPoles(numout*cc, int nsub, char * s0,double mMin, double mMax, in
      } else i++;
   }
   
-  for(n=1;(s=CI->den_info(nsub,n,&m,&w,NULL));n++) 
-  if(strcmp(s0,s)==0 && fabs(CI->va[m])>mMin && fabs(CI->va[m]) < mMax)
-  { 
+  for(n=1;(s=CI->den_info(nsub,n,&m,&w,NULL));n++)
+  { double mm=0,ww=0;
+    if(m) mm=fabs(CI->va[m]);
+    if(w) ww=fabs(CI->va[w]);
+            
+    if(strcmp(s0,s)==0 && mm>mMin && mm < mMax)
+    { 
 //printf(" %s %E %E  x= %E \n",CI->varName[m],CI->va[m], CI->va[w],(CI->va[m]-mMin)/(mMax-mMin) );
 
      (*npole)++;
 
 //printf("npole=%d size=%d\n", *npole, sizeof(double)*2*(*npole));     
      *poles=realloc(*poles,sizeof(double)*2*(*npole));
-     (*poles)[2*((*npole)-1)]= CI->va[m]; 
-     (*poles)[2*(*npole-1)+1]= CI->va[w];  
-   }
+     (*poles)[2*((*npole)-1)]= mm; 
+     (*poles)[2*(*npole-1)+1]= ww;  
+    }
+  }
 //    else  printf("-- %s %E %E  x= %E \n",CI->varName[m],CI->va[m], CI->va[w],(CI->va[m]-mMin)/(mMax-mMin) );
 
 }
@@ -662,9 +677,9 @@ static double hColliderStat(double Pcm, int pp, int nf, double Qren,double Qfact
           int err=0;
           
           if(pcmIn==0) return 0;
-           pvect[0]=sqrt(pmass[0]*pmass[0]+pcmIn*pcmIn);
+           pvect[0]=Sqrt(pmass[0]*pmass[0]+pcmIn*pcmIn);
            pvect[1]=pcmIn; pvect[2]=0; pvect[3]=0;
-           pvect[4]=sqrt(pmass[1]*pmass[1]+pcmIn*pcmIn);
+           pvect[4]=Sqrt(pmass[1]*pmass[1]+pcmIn*pcmIn);
            pvect[5]=-pcmIn; pvect[6]=0; pvect[7]=0;
            pvect[8]=pmass[2];pvect[9]=pvect[10]=pvect[11]=0;
            q=Q_fact>0? Q_fact: pmass[2];

@@ -49,6 +49,8 @@ double polint3(double x, int dim, const  double *xa, const double *ya)
      (xa[0]>xa[dim-1] && x<=xa[dim-2])   ) return  polintN(x,3,xa+dim-3, ya+dim-3);
 
   int shift=leftXN(4,dim, xa, x);
+  if(!isfinite(ya[shift])) return polintN(x,3,xa+shift+1,ya+shift+1);
+  if(!isfinite(ya[shift+3])) return polintN(x,3,xa+shift,ya+shift);     
   double x1=xa[shift],x2=xa[shift+1],x3=xa[shift+2],x4=xa[shift+3];
   double y1=ya[shift],y2=ya[shift+1],y3=ya[shift+2],y4=ya[shift+3];
   double h=x3-x2;

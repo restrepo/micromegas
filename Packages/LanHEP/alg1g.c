@@ -10,7 +10,7 @@ static List mk_sub1(Term m1, List cut, Term a1)
 	List l;
 	List lb,le;
 	List sd;
-	int num1,den1;
+	long int num1,den1;
 	MTHOPTDECL
 	
 	l=ConsumeCompoundArg(a1,1);
@@ -30,7 +30,7 @@ static List mk_sub1(Term m1, List cut, Term a1)
 	l=a1;
 	while(!is_empty_list(l))
 		{
-		int n1,n2,d1,d2,num,den,cf;
+		long int n1,n2,d1,d2,num,den,cf;
 		List lb1,le1,lm;
 		m1=ListFirst(l);
 		lm=ConsumeCompoundArg(m1,3);
@@ -179,7 +179,7 @@ static List mk_sub2(Term m1, List cut1, Term a11, List cut2, Term a12)
 	List l,l1,ret;
 	List lb,le,lm;
 	List sd;
-	int num1,den1;
+	long int num1,den1;
 	
 	MTHOPTDECL
 	
@@ -200,7 +200,7 @@ static List mk_sub2(Term m1, List cut1, Term a11, List cut2, Term a12)
 		l1=CompoundArg1(a12);
 		while(!is_empty_list(l1))
 			{
-			int n1,n2,d1,d2,num,den,cf;
+			long int n1,n2,d1,d2,num,den,cf;
 			List lb1,lb1e,le1,le1e,lm1,lm1e,m1e,m2e;
 			List base=0, end=0;
 			Term m2,mr;
@@ -539,7 +539,7 @@ void alg1_exp_wild(Term a1, List nind)
 	for(l1=nind;l1;l1=ListTail(l1))
 	{
 		Label il;
-		int   iv, c=0, i=0;
+		long int   iv, c=0, i=0;
 		il=CompoundArg1(ListFirst(l1));
 		iv=IntegerValue(CompoundArg2(ListFirst(l1)));
 		
@@ -561,9 +561,9 @@ void alg1_exp_wild(Term a1, List nind)
 			else
 			{
 				Term w,wl;
-				wl=ListNthList(CompoundArgN(m1,3),c);
+				wl=ListNthList(CompoundArgN(m1,3),(int)c);
 				w=ListFirst(wl);
-				w=sub_ind_wild(w,i,iv);
+				w=sub_ind_wild(w,(int)i,(int)iv);
 				ChangeList(wl,0);
 				ret=ConcatList(mk_sub1(m1,wl,w),ret);
 			}

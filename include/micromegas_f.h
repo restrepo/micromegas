@@ -269,13 +269,6 @@ extern double nucleusrecoil0_(double (*fDv)(double*),
     integer A,Z
 */
 
-extern int displayrecoilplot_(double * tab, char * text, double *E1, double *E2,int len);
-/*
-    integer function displayRecoilPlot(tab, text, E1, E2)
-    real*8  tab(*)
-    character *(*) text
-    real*8 E1,E2   
-*/
 
 extern double cutrecoilresult_(double *tab, double *E1, double *E2);
 /*

@@ -17,11 +17,13 @@
 #define TMIN 0.001
 
 REAL * Taddress=NULL;
-
+double tTcut=0;
 
 typedef struct { double m1,m2,m3, s1,s2,s3, pcm, e2,e3,e2_,e3_,gamma;}  K1to2_struct;
 
 //=====================  SECTION:  Function for Statistics.    Stat2,  K1. K2, gammaLor
+
+
 
 
 static double K1to2_int(double x, void * par_)  
@@ -220,7 +222,7 @@ static double gammaLor(double mu, double s)
     double be[3];
     if(t>50) { be[0]=fb[20]+1.461824*(t-50); be[1]=fm[20]+2*(t-50);     be[2]=ff[20]+2.191793*(t-50);}
     else     { be[0]=polint3(t,21,x0,fb);    be[1]=polint3(t,21,x0,fm); be[2]=polint3(t,21,x0,ff);}
-  
+
     return  0.5*(1+s)*s*be[0]+(1-s)*(1+s)*be[1]+ 0.5*s*(s-1)*be[2]; 
   }    
   return  K2prime(mu,s)/K1to2(mu,0,0,s,0,0);
@@ -262,7 +264,7 @@ static double decayIntegrand(double lnT, void *arg_)
     double T=exp(lnT);
     double J=T;
     double E=2*M_PI*M_PI/45*hEff(T)*T*T*T;
-    double H=sqrt(8*M_PI/3.*M_PI*M_PI/30.*gEff(T))*T*T/MPlank;  //Hubble 
+    double H=sqrt(8*M_PI/3.*M_PI*M_PI/30.*gEff(T))*T*T/MPlanck;  //Hubble 
   
     double dtdT=(1+hEffLnDiff(T)/3)/(H*T);              // dt => dT
     return  K1to2(M/T,0,0,s1,0,0)*T/E*dtdT*J;  
@@ -392,7 +394,7 @@ static  void  mediatorDerivs( double lnT, double *Y,double * dY)
    double brBath,brTot,brSig1,brSig2;
    getDecBrKE(T, medDecayList, eta,  &brTot, &brBath, &brSig1,&brSig2,NULL);     
 
-   double H=sqrt(8*M_PI/3.*M_PI*M_PI/30.*gEff(T))*T*T/MPlank;  //Huble 
+   double H=sqrt(8*M_PI/3.*M_PI*M_PI/30.*gEff(T))*T*T/MPlanck;  //Huble 
    double dtdLnT=(1+hEffLnDiff(T)/3)/H;                             // dt => dlnT
 
    double alpha=medWidth*brTot/gammaLor(medMass/T,eta)*dtdLnT;
@@ -411,7 +413,7 @@ static double derEq0(double lnT, void *vi)
    double brBath,brTot,brSig1,brSig2;
    getDecBrKE(T,medDecayList,medEta,&brTot,&brBath,&brSig1,&brSig2,NULL);     
 
-   double H=sqrt(8*M_PI/3.*M_PI*M_PI/30.*gEff(T))*T*T/MPlank;  //Huble 
+   double H=sqrt(8*M_PI/3.*M_PI*M_PI/30.*gEff(T))*T*T/MPlanck;  //Huble 
    double dtdLnT=(1+hEffLnDiff(T)/3)/H;                       // dt => dlnT
 
    double alpha=medWidth*brTot/gammaLor(medMass/T,medEta)*dtdLnT;
@@ -686,7 +688,7 @@ double darkOmegaFiDecay(double TR, char * pname, int KE, int plot)
      for(nT=tGridDim-2,T=TR;nT>=0;nT--)
      {  double Tnext=T/step;
 
-        double H=sqrt(8*M_PI/3.*M_PI*M_PI/30.*gEff(Tnext))*Tnext*Tnext/MPlank;  //Huble
+        double H=sqrt(8*M_PI/3.*M_PI*M_PI/30.*gEff(Tnext))*Tnext*Tnext/MPlanck;  //Huble
         double dtdLnT=(1+hEffLnDiff(Tnext)/3)/(H);              // dt => dT
 
         if(Taddress)
@@ -898,7 +900,7 @@ static void fillMediatorArr(double Tr,par_22 *arg)
      for(int n=0;n<nMed;n++) if(mediatorArr[n].my==-1)
      { 
         txtList L;
-        double Mm=varValues[mediatorArr[n].massPos];
+        double Mm=fabs(varValues[mediatorArr[n].massPos]);
         mediatorArr[n].mass[nT]=Mm;
         double wI=0,wD=0,eta,eta_;
         if(nT==tGridDim-1)
@@ -908,11 +910,11 @@ static void fillMediatorArr(double Tr,par_22 *arg)
         else eta_= mediatorArr[n].eta[nT+1];
         
         eta=eta_;  
-//printf("T=%E eta=%E\n", T,eta);        
         double w=pWidth(mediatorArr[n].name,&L);
+        
         double wBath=0,wBath_=0;
         double wSig;
-        for(int k= (nT==tGridDim-1)? 3:1;k;k--)
+//        for(int k= (nT==tGridDim-1)? 3:1;k;k--)
         {
           if(w>0)for(txtList l=L; l;l=l->next)
           {
@@ -920,7 +922,7 @@ static void fillMediatorArr(double Tr,par_22 *arg)
              int s[3],pdgD[3],q3[3],cdim[3];
              double mu[3];
              double br;
-             if(4 < sscanf(l->txt,"%lf %s -> %[^,], %[^,], %[^,]",&br,name[0],name[1],name[2],name[3])) continue;
+             if(4 < sscanf(l->txt,"%lf %s -> %[^,], %[^,], %[^,]",&br,name[0],name[1],name[2],name[3])) continue;          
              for(int i=0;i<3;i++) mu[i]=pMass(name[i])/T;
              for(int i=1;i<3;i++)
              { pdgD[i]=qNumbers(name[i], s+i ,q3+i,cdim+i);
@@ -929,12 +931,11 @@ static void fillMediatorArr(double Tr,par_22 *arg)
              int sig=0;
              if((pdgD[1]==pdg[0] && pdgD[2]==pdg[1])|| (pdgD[1]==pdg[1] && pdgD[2]==pdg[0]))  wI=w*br;
              else if((pdgD[1]==pdg[2] && pdgD[2]==pdg[3])|| (pdgD[1]==pdg[3] && pdgD[2]==pdg[2])) { wD=w*br; sig=1;}
-             if((s[1]|| s[2]) && mu[0]<25) br*=K1to2(mu[0],mu[1],mu[2],eta,s[1],s[2])/K1to2(mu[0],0,0,eta,0,0);
+             if(mu[0]>mu[1]+mu[2] && ( (s[1]|| s[2]) && mu[0]<25 )) br*=K1to2(mu[0],mu[1],mu[2],eta,s[1],s[2])/K1to2(mu[0],0,0,eta,0,0);
              if(sig) wSig=w*br;
              if(s[1] && s[2]) wBath_+=w*br; 
              wBath+=w*br;
           }
-
           if(wBath==0) wBath=w;
           if(wBath>0)
           { double mu=Mm/T;
@@ -943,7 +944,6 @@ static void fillMediatorArr(double Tr,par_22 *arg)
 
   //printf("T=%.2E wBath=%.2E H=%.2E massPos=%d    Mm=%.2E    mu=%.2E eta=%E  gammaLor=%.2E  alpha=%.2E \n", T, wBath, Hubble(T), mediatorArr[n].massPos,  Mm, mu, eta,gammaLor(mu ,eta),alpha);        
             if(alpha>20) eAlpha=0; else  eAlpha=exp(-alpha);
-                  
                  if(mu<0.1) eta=beta*(1-eAlpha)+fabs(eta_)*eAlpha;
             else if(mu<10)  eta=beta*(1-eAlpha)+fabs(eta_)*eAlpha*bessK2(mu/step)/bessK2(mu)/step/step;
             else         {  double delta=T/Mm -alpha;
@@ -956,6 +956,11 @@ static void fillMediatorArr(double Tr,par_22 *arg)
         mediatorArr[n].wSig[nT]=wSig;    
         mediatorArr[n].wBath[nT]=wBath;
         mediatorArr[n].eta[nT]=eta;
+if(!isfinite(eta))
+{        
+printf("mediatorArr[%d].eta[%d]=%E\n",n,nT,eta);
+exit(0);
+}        
 //printf("T=%E eta=%E wSig=%E wBath=%E \n", T, mediatorArr[n].eta[nT], mediatorArr[n].wSig[nT],mediatorArr[n].wBath[nT]);        
 //        mediatorArr[n].my=1;   
      }
@@ -976,7 +981,7 @@ static void fillMediatorArr(double Tr,par_22 *arg)
       { double mu[3];
          mu[0]=Mm/T;
          mu[1]=pMass(arg->cc->interface->pinf(1,1,NULL,NULL))/T;
-         mu[2]=pMass(arg->cc->interface->pinf(1,2,NULL,NULL))/T;  
+         mu[2]=pMass(arg->cc->interface->pinf(1,2,NULL,NULL))/T;
          mediatorArr[n].fKK[nT]= K1to2(mu[0],mu[1],mu[2],0,arg->eta[0],arg->eta[1])/K1to2(mu[0],mu[1],mu[2],mediatorArr[n].eta[nT],arg->eta[0],arg->eta[1]);
       }  
       
@@ -1062,7 +1067,6 @@ static void fillMediatorArr(double Tr,par_22 *arg)
 
 static double * intervals=NULL;
 static int nIntervals=0; 
-static int maxIntervals=0;
 
 
 static void printIntervals(void) 
@@ -1072,34 +1076,32 @@ static void printIntervals(void)
 } 
 
 
-static void delInterval(double x1,double x2)
-{ 
-
-//printf("delInterval [%e,%e]\n",x1,x2);
- 
-  int i1,i2;
-  for(i1=0;i1<2*nIntervals;i1++) if(x1<=intervals[i1]) break; i1--; 
-  for(i2=0;i2<2*nIntervals;i2++) if(x2<intervals[i2]) break; i2--;
-  if(i1==i2)
-  {  if(i1&1==1) return; // this interval is already excluded
-     if(nIntervals==maxIntervals) { maxIntervals++; intervals=realloc(intervals,2*maxIntervals*sizeof(double));}
-     for(int k=2*nIntervals+1;k>=i1+3;k--) intervals[k]=intervals[k-2];  
-     intervals[i1+1]=x1; intervals[i1+2]=x2;
-     nIntervals++;
-     return;
-  }
-  if((i1&1)==0) intervals[++i1]=x1;  
-  if(!(i2&1)) intervals[i2]=x2; else i2++;
-  if(i2-i1>1)
-  {
-     for(int k=i1+1;k<2*nIntervals-2;k++) intervals[k]=intervals[k-i1+i2-1];
-     nIntervals-=(i2-i1)/2;
-  }  
-}
-
 
 
 // ========   SECTION  COLLISIONS  ======== 
+
+static double sqrtSminT(double m1,double m2, double m3, double m4, double T)
+{
+  double smin=m1+m2;
+  if(smin< m3+m4) smin=m3+m4;
+  if(T<=0) return  smin;
+  double T2=T*T;
+  double s1=smin,s2=smin+T,sx,pp;
+  for(;;)
+  {  
+    pp=2*decayPcm(s2,m1,m2)*decayPcm(s2,m3,m4);
+    if(pp>T) break;
+    s1=s2; s2+=T2/2;
+  }
+  sx=(s1+s2)/2;
+  for(;;)
+  {
+    pp=2*decayPcm(sx,m1,m2)*decayPcm(sx,m3,m4);
+    if(pp<T2) s1=sx;  else  s2=sx;  
+    if(fabs(s2-s1)<1E-5*s2) return s2; 
+    sx=0.5*(s1+s2);
+  }
+}
 
 //========= Multiple integrtion
 
@@ -1116,22 +1118,20 @@ static double sIntegrand_y(double y, void*arg_)
   double sqrtS=-Tx*log(y);
   double sqme_Int;
   int err=0;
-  
+/*  
   if(Qaddress)   
   {  *Qaddress =sqrtS;
      calcMainFunc(); 
      passParameters(arg->cc);
      for(int n=0;n<nMed;n++) arg->cc->interface->va[mediatorArr[n].widthPos]=mediatorArr[n].Twidth;
-     mass22_par(arg,T);
+     mass22_parDel(arg,T);
   }   
-     
-  if(kin22_par(arg,sqrtS, sqrt(4*M_PI*parton_alpha(sqrtS)))){  printf("kin22 problem\n");   return 0;}
-//  if(arg->err) return 0;
+*/     
+  if(kin22_par(arg,sqrtS, sqrt(4*M_PI*parton_alpha(sqrtS)))){  printf("kin22 problem\n"); return 0;}
   err=0;
+  arg->T=T;
+  sqme_Int=sqmeIntDel(arg,eps/3);
 
-  sqme_Int=sqmeInt(arg,eps/3);
-//printf("sqrtS=%E  sqmeInt=%E\n", sqrtS, sqme_Int);  
-//  if(arg->err) return 0;
   
   double res=  sqme_Int/(32*M_PI*sqrtS)*T/(8*M_PI*M_PI*M_PI*M_PI)*arg->PcmIn*arg->PcmOut
   *K1to2(sqrtS/T,arg->pmass[0]/T,arg->pmass[1]/T,0,arg->eta[0],arg->eta[1])*2*sqrtS*Tx/y;
@@ -1154,7 +1154,7 @@ static double lnTIntegrand(double lnT,void*arg_)
   T=exp(lnT);
   par_22 *arg=arg_;
   double E=2*M_PI*M_PI/45*hEff(T)*T*T*T;                      // entropy       
-  double H=sqrt(8*M_PI/3.*M_PI*M_PI/30.*gEff(T))*T*T/MPlank;  //Huble 
+  double H=sqrt(8*M_PI/3.*M_PI*M_PI/30.*gEff(T))*T*T/MPlanck;  //Huble 
   double J=(1+hEffLnDiff(T)/3)/H;                             // dt => dlnT
  
   double Tx=T*2;
@@ -1165,11 +1165,24 @@ static double lnTIntegrand(double lnT,void*arg_)
   {  calcMainFunc(); 
      passParameters(arg->cc);
   }   
-  mass22_par(arg,T);
-  double sqrtSmin=arg->pmass[0]+arg->pmass[1];   
+  mass22_parDel(arg,T);
+  double sqrtSmin;
+/*  
+  sqrtSmin=arg->pmass[0]+arg->pmass[1];  
+//printf("arg->pmass[0]+arg->pmass[1] = %E %E\n", (double)(arg->pmass[0]), (double)(arg->pmass[1]));  
+  double dM=0;
+  for(int i=0;i<2;i++) if(arg->pmass[i]==0)
+  {  if(arg->pdg[i]==21) dM+= T*sqrt(4*M_PI*alphaQCD(T));
+     if(arg->pdg[i]==22) dM+= T*0.31/sqrt(6);
+  }   
+  sqrtSmin+=dM;   
+  
   double mout=arg->pmass[2]+arg->pmass[3];
   if(mout>sqrtSmin) sqrtSmin=mout;
+*/  
+  sqrtSmin=sqrtSminT( arg->pmass[0], arg->pmass[1],arg->pmass[2],arg->pmass[3],T*tTcut);
   nIntervals=1;
+  intervals=realloc(intervals,2*sizeof(double));
   intervals[0]=0; intervals[1]= exp(-sqrtSmin*1.0001/Tx);
 //printIntervals(); 
 //printf("first Print\n");
@@ -1201,7 +1214,7 @@ static double lnTIntegrand(double lnT,void*arg_)
 #endif     
       {      
          double d0 = e0>100*wEff/Tx? e0: 100*wEff/Tx;   
-         delInterval(exp(-Mm/Tx -d0)  ,exp(-Mm/Tx+d0));
+         delInterval(exp(-Mm/Tx -d0)  ,exp(-Mm/Tx+d0),&intervals,&nIntervals);
          double c=1;   
          if((arg->eta[2] || arg->eta[3]) && Mm/T<25  ) 
             c=K1to2(Mm/T,arg->pmass[2]/T,arg->pmass[3]/T,0,arg->eta[2],arg->eta[3])/
@@ -1212,10 +1225,10 @@ static double lnTIntegrand(double lnT,void*arg_)
       
     } else mediatorArr[n].Twidth=polint3(lnT,tGridDim,ltGrid,mediatorArr[n].wEff);
   }
-//printf("sum=%e\n",sum);
   double NdfIn=arg->ndf[0]*arg->ndf[1];
   if(arg->pdg[0]==arg->pdg[1]) NdfIn/=2;
   sum/=NdfIn; 
+
 
 #ifndef ONSHELL 
   for(int i=0;i<nIntervals;i++)
@@ -1257,7 +1270,7 @@ static    double lnsFntegrandForVegas(double lns)
      passParameters(arg_stat.cc);
      for(int n=0;n<nMed;n++) arg_stat.cc->interface->va[mediatorArr[n].widthPos]=mediatorArr[n].Twidth;
   }                         
-  mass22_par(&arg_stat,T);
+  mass22_parDel(&arg_stat,T);
 
  
   if(kin22_par(&arg_stat, sqrtS, sqrt(4*M_PI*parton_alpha(sqrtS)))) return 0;           
@@ -1269,13 +1282,14 @@ static    double lnsFntegrandForVegas(double lns)
   arg_stat.ch=sqrt(1+sh*sh);
   arg_stat.sh=sh;
 
-  return P*arg_stat.PcmIn*arg_stat.PcmOut*sqmeInt(&arg_stat, 0.01);
+  return P*arg_stat.PcmIn*arg_stat.PcmOut*sqmeIntDel(&arg_stat, 0.01);
 }
 
 static double sIntegralForVegas(double T,double sqS1,double sqS2)
 {  if(tPoleDetected) return 0;
    int err;
    nIntervals=1;
+   intervals=realloc(intervals,2*sizeof(double));
    intervals[0]=log(sqS1); intervals[1]= log(sqS2); 
    double sum=0;   
   
@@ -1304,7 +1318,7 @@ static double sIntegralForVegas(double T,double sqS1,double sqS2)
 #endif      
      {  double d0=100*wEff/Mm; if(e0>d0) d0=e0;
      
-       if(sqS1< Mm*(1+d0) && sqS2>Mm*(1-d0) ) delInterval( log(Mm) -d0  ,log(Mm)+d0 );
+       if(sqS1< Mm*(1+d0) && sqS2>Mm*(1-d0) ) delInterval( log(Mm) -d0  ,log(Mm)+d0,&intervals,&nIntervals);
        if(sqS1< Mm  && sqS2>Mm)
        {  double P=(arg_stat.E-Mm)*(arg_stat.E+Mm);
           if(P>0)
@@ -1393,7 +1407,7 @@ static int printFi22Error(FILE*f, int err)
        case  10: fprintf(f,"Lost of precision in  sqrt(s) integrand\n");break;
        case  11: fprintf(f,"Pole in sqrt(s) integrand\n");break;
        case  12: fprintf(f,"NaN  in sqrt(s) intergrand\n");break;
-       case  13: fprintf(f,"Lost of precision in angle integrand\n");break;
+       case  13: fprintf(f,"Lost of precision in angle integration\n");break;
        case  14: fprintf(f,"Pole in angle  integrand\n");break;
        case  15: fprintf(f,"NaN  in angle  intergrand\n");break;
        case  16: fprintf(f,"lost of precision caused by diagramm cancelation\n");
@@ -1409,11 +1423,14 @@ double  darkOmegaFi22(double Tr, char *Proc, int vegas,  int plot, int *err_)
    double Cin;
    par_22 arg;
    double Tmin;
+
+   if(err_) *err_=0;   
+   numout*cc=newProcess(Proc);
+   if(cc->interface->nvar==0) return 0;
+// printf("Proc=%s\n",Proc);      
    int i;
    for(Qaddress=NULL,i=0;i<nModelVars;i++) if(strcmp(varNames[i],"Q")==0) { Qaddress=varValues+i; break;}
    for(Taddress=NULL,i=0;i<nModelVars;i++) if(strcmp(varNames[i],"T")==0) { Taddress=varValues+i; break;}
-   if(err_) *err_=0;   
-   numout*cc=newProcess(Proc);
 
    err=init22_par(&arg,cc,1);  //process   is absent || 2->2 type process is expected 
    if(!err)
@@ -1482,8 +1499,6 @@ double  darkOmegaFi22(double Tr, char *Proc, int vegas,  int plot, int *err_)
       }                                                                                                                                                                                      
       else                                                                                                                                                                                   
       {                                                                                                                                                                                      
-        if(maxIntervals==0) { intervals=realloc(intervals,2*sizeof(double)); maxIntervals=1; }                                                                                               
-
         if(plot)                                                                                                                                                                             
         {                                                                                                                                                                                    
           mass22_par(&arg,Tmin);
@@ -1501,7 +1516,10 @@ double  darkOmegaFi22(double Tr, char *Proc, int vegas,  int plot, int *err_)
           }                                                                                                                                                                                  
         }      
         arg.err=0; 
+mass22_par(&arg,Tmin);
+//printf("mass[0]=%E\n", (double) (arg.pmass[0]));
         omega= totOmegaCoeff*simpson_arg(lnTIntegrand,&arg,log(Tmin),log(Tr),0.001,&err);
+        
         if(err) arg.err=arg.err|(2*8*8*err);
              if(arg.err & 2*8*8*4)  err=7; 
         else if(arg.err & 2*8*8*2)  err=8;
@@ -1545,7 +1563,10 @@ double darkOmegaFi(double TR,int *err)
   double minFeebleMass=-1;
   int nFiCh=0;
   omegaFiCh=realloc(omegaFiCh,sizeof(aChannel));
-    
+  
+  int VZdecayMem=VZdecay, VWdecayMem=VWdecay;  VZdecay=0;VWdecay=0;
+  if(VZdecayMem|| VWdecayMem) cleanDecayTable();
+   
   for(int n=0;n<nModelParticles;n++) if(isFeeble(ModelPrtcls[n].name) && ModelPrtcls[n].name[0]=='~')
   { addPrtcl(&feebleDm,n);
     double m=pMass(ModelPrtcls[n].name);
@@ -1621,9 +1642,9 @@ double darkOmegaFi(double TR,int *err)
        if(i<4 && n[i]<n_[i]) continue;
        char proc[100];
        sprintf(proc,"%s,%s->%s,%s", p[0],p[1],p[2],p[3]);
-
        
        dOmega=darkOmegaFi22(TR,proc,0,0,&err);
+       
        if(dOmega||err)
        {         
          for(int i=0;i<4;i++) if(n[i]>0) omegaFiCh[nFiCh].prtcl[i]=ModelPrtcls[n[i]-1].name;
@@ -1647,9 +1668,18 @@ double darkOmegaFi(double TR,int *err)
   for(int i=0;i<5;i++) omegaFiCh[nFiCh].prtcl[i]=NULL;
   free(feebleDm);
   free(bath);
-  cleanMediatorArr();   
+  cleanMediatorArr();
+
+   if(VZdecayMem|| VWdecayMem)
+   {  cleanDecayTable();
+      VZdecay=VZdecayMem, VWdecay=VWdecayMem;
+   }
+     
   if(err)*err=0;      
   saveMediators=0;
+  double omg1,omg2;
+    sort2FiDm(&omg1,&omg2);
+    fracCDM2=omg2/(omg1+omg2);
   return omega;
 }
 
@@ -1686,7 +1716,6 @@ void printChannelsFi(double cut, int prcn, FILE * f)
         if(omegaFiCh[i].err) { fprintf(f,"Warning %d:",omegaFiCh[i].err);  printFi22Error(f,omegaFiCh[i].err);}
         else fprintf(f,"\n"); 
     }
-
   }  
 }
 
@@ -1703,3 +1732,124 @@ void sort2FiDm( double * omg1,double * omg2)
     *omg2+=d2*Mcdm2/(d1*Mcdm1+d2*Mcdm2)*omegaFiCh[i].weight;
   }   
 }
+
+//================================= testing 22 ==================
+
+
+static double NabDmDmInt(double x, frin22Par* arg)
+{  int err;
+
+   if(x==0 || x==1) return 0;
+
+   double T=arg->T;
+   
+   double z=x*(2-x);
+   double sqrtS=arg->sqrtSmin-3*T*log(z); 
+   double J=6*T*(1-x)/z;
+   double pcm=decayPcm(sqrtS,arg->m[0],arg->m[1]);
+ 
+   double cos0=1;
+   if(tTcut)
+   { double pp=2*pcm*decayPcm(sqrtS,arg->m[2],arg->m[3]);
+     cos0=1-T*T*tTcut*tTcut/pp;
+   } 
+   if(cos0<0) return 0;  
+   GGscale=sqrtS;
+   return J*pcm*pcm*sqrtS*sqrtS*bessK1(sqrtS/T)*cs22(arg->cc,1,pcm, -cos0, cos0, NULL)/3.8937966E8;
+}
+
+
+
+
+double dYfreezeIn(double T, frin22Par*arg)
+{ 
+   double s=2*M_PI*M_PI*T*T*T*hEff(T)/45;
+   double H=Hubble(T);
+   int err;
+
+   if(arg->Ton) 
+   {  *Taddress=T; 
+      calcMainFunc();
+      passParameters(arg->cc); 
+      for(int i=0;i<4;i++) { arg->cc->interface->pinf(1,i+1,arg->m+i,NULL); arg->m[i]=Fabs(arg->m[i]);}
+   }  
+
+   arg-> sqrtSmin=sqrtSminT( arg->m[0], arg->m[1], arg->m[2], arg->m[3],T*tTcut);  
+   arg->T=T;
+   double res=arg->C/(4*pow(M_PI,4))*simpson_arg( NabDmDmInt,arg,0,1,1E-3,&err)*(1+hEffLnDiff(T)/3)/(s*H);
+   return res;
+    
+}
+
+static double YfreezeInt(double lnT, frin22Par*arg){double T=exp(lnT); return  T*dYfreezeIn(T, arg);}
+
+
+double YfreezeIn22(char*process, double T0, double TR,  int plot)
+{  
+   int Ton=1;
+   frin22Par par;
+   par.cc=newProcess(process);
+   if(par.cc==NULL) { printf("Can not compile process %s\n", process); return 0;}
+   par.Ton=0;
+   double Tmem;
+   if(Ton)
+   { Taddress=varAddress("T");
+     if(!Taddress) 
+     {  printf("YfreezeIn22 can not work with parameter Ton because variable 'T' is absent\n"); 
+        return 0;
+     }
+     par.Ton=1; 
+     Tmem=*Taddress; 
+   }     
+   passParameters(par.cc);
+      
+   int pdg[4];
+   char*name[4];
+   for(int i=0;i<4;i++) { name[i]=par.cc->interface->pinf(1,i+1,par.m+i,pdg+i); par.m[i]=Fabs(par.m[i]);}
+   
+   int ndf[2];
+   for(int i=0;i<2;i++)  par.cc->interface->pinfAux(1, i+1,NULL,NULL,NULL,ndf+i);
+   par.C=ndf[0]*ndf[1];
+   if(pdg[0]==pdg[1]) par.C/=2;
+   int ndm=0;
+   for(int i=2;i<4;i++) if(name[i][0]=='~') ndm++;
+   par.C*=ndm;
+   double res;
+   res=simpson_arg(YfreezeInt, &par, log(T0),log(TR),1E-3,NULL);
+
+   if(plot) displayPlot("TdY/dT","T",T0,TR,1,1,"TdY/dT",0,dYfreezeIn,&par); 
+   if(par.Ton) { *Taddress=Tmem;  calcMainFunc(); } 
+   return res;
+}
+
+
+int initFrinArg(char * process,  frin22Par*arg)
+{
+   int Ton=1;
+   arg->cc=newProcess(process);
+   if(arg->cc==NULL) { printf("Can not compile process %s\n", process); return 1;}
+   arg->Ton=0;
+   if(Ton)
+   { Taddress=varAddress("T");
+     if(!Taddress) 
+     {  printf("YfreezeIn22 can not work with parameter Ton because variable 'T' is absent\n"); 
+        return 2;
+     }
+     arg->Ton=1; 
+   }     
+   passParameters(arg->cc);
+      
+   int pdg[4];
+   char*name[4];
+   for(int i=0;i<4;i++) { name[i]=arg->cc->interface->pinf(1,i+1,arg->m+i,pdg+i); arg->m[i]=Fabs(arg->m[i]);}
+   
+   int ndf[2];
+   for(int i=0;i<2;i++)  arg->cc->interface->pinfAux(1, i+1,NULL,NULL,NULL,ndf+i);
+   arg->C=ndf[0]*ndf[1];
+   if(pdg[0]==pdg[1]) arg->C/=2;
+   int ndm=0;
+   for(int i=2;i<4;i++) if(name[i][0]=='~') ndm++;
+   arg->C*=ndm;
+   return 0;
+
+}  

@@ -51,8 +51,12 @@ option TexFileStart=[
 		'\\end{center}',
 		'\\end{document}',0].
 
- 
-do_if FeynArts==1.
+prtcproperty pdg.
+external_func(creal,1).
+external_func(cimag,1).		   
+external_func(cabs,1).		   
+                
+do_if FeynArts==1 && UFO!=1.
 read 'feynarts.rc'.
 end_if.
 

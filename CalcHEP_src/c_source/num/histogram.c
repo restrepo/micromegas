@@ -233,7 +233,7 @@ int correctHistList(void)
  errorExit:
    { char buff[300];
      sprintf(buff,"Histograms:  Error in  line %d .\n%s. %s",lineNum,fieldName,errorText); 
-     messanykey(2,10,buff);
+     messanykeyErr(2,10,buff);
    }  
    return 1;
 }
@@ -422,14 +422,21 @@ int add_hist(FILE *f, char **procname)
 
   if(!histPtr2){ if(procname) *procname=procname2; return 0; }
   if(procname)
-  {
-     *procname=realloc(*procname,strlen(*procname)+strlen(procname2)+5);
-     strcat(*procname,";");
+  {  if(*procname) 
+     {
+       *procname=realloc(*procname,strlen(*procname)+strlen(procname2)+5);
+        strcat(*procname,";");
+     } else 
+     { *procname=realloc(*procname,strlen(procname2)+5);
+        *procname[0]=0;
+     }      
      strcat(*procname,procname2);
      free(procname2);
   }   
-  if(!histPtr ){ histTab=histTab2; histPtr=histPtr2;  return 0;}
-
+//  if(!histPtr ){ histTab=histTab2; histPtr=histPtr2;  return 0;}
+if(!histPtr2 ){   return 0;}
+  
+#ifdef QQQ
   if(strcmp(histTab.format,histTab2.format))
   { int l[6],l2[6];
     char *ch,*ch2;
@@ -457,13 +464,13 @@ int add_hist(FILE *f, char **procname)
       }
       blind=blind_;
       inkeyString=inkeyString_;
-      correctHistList();
+//      correctHistList();
       { 
         table histTab3=histTab;
         histRec * histPtr3=histPtr;
         histTab=histTab2;
         histPtr=histPtr2;
-        correctHistList();
+//        correctHistList();
         histTab2=histTab;
         histPtr2=histPtr;
         histTab=histTab3;
@@ -471,8 +478,9 @@ int add_hist(FILE *f, char **procname)
       } 
     }  
   }
+#endif  
   for(r2=histPtr2;r2;r2=r2->next) for(r=histPtr;r;r=r->next)
-  if(r->mother && strcmp2(r->mother->line,r2->mother->line)==0) 
+  if(r->mother &&  r2->mother && strcmp2(r->mother->line,r2->mother->line)==0) 
   { double n1=r->nPoints;
     double n2=r2->nPoints;
     double n=n1+n2;
@@ -489,7 +497,7 @@ int add_hist(FILE *f, char **procname)
       else for(i=0;i<Ntot;i++) 
       {   
         r2->f[i]=  r->f[i];
-        r2->ff[i]=r2->ff[i];
+        r2->ff[i]= r->ff[i];
       }
     }
     r2->nPoints=n;
@@ -501,7 +509,7 @@ int add_hist(FILE *f, char **procname)
     break;
   }
 
-  correctHistList();
+//  correctHistList();
   
   qLl=histTab.strings;
   if(qLl)
@@ -685,7 +693,7 @@ void showHist(int X, int Y,char *title)
          {  
             char xname[80],yname[80],units[80];                                    
                                                                                    
-            if( hist->nPoints == 0) messanykey(10,10,"Distibution is empty");     
+            if( hist->nPoints == 0) messanykeyErr(10,10,"Distribution is empty");     
             else
             if(strcmp(hist->key[1],"0")==0)
             while((nBin1=nBinMenu(X,Y+4)))                                                                   

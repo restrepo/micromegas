@@ -41,7 +41,10 @@ int DisplayTerm(Term T)
 			else
 				return printf("\'%s\'",AtomValue(T));
 		case 'f':
-			return printf("%g",FloatValue(T));
+			if(ImaginaryValue(T)==0.0)
+			  return printf("%g",FloatValue(T));
+			else
+			  return printf("(%g,%g)",FloatValue(T),ImaginaryValue(T));
 		case 'u':
 			return printf("%s/%d",AtomValue(FunctorName(T)),FunctorArity(T));
 		case 'e':
@@ -105,7 +108,10 @@ int fDisplayTerm(FILE *file, Term T)
 			else
 				return fprintf(file,"\'%s\'",AtomValue(T));
 		case 'f':
+		  if(ImaginaryValue(T)==0.0)
 			return fprintf(file,"%g",FloatValue(T));
+		  else
+			  return fprintf(file,"(%g,%g)",FloatValue(T),ImaginaryValue(T));
 		case 'u':
 			return fprintf(file,"%s/%d",AtomValue(FunctorName(T)),FunctorArity(T));
 		case 'e':
@@ -196,7 +202,7 @@ static int pri_end(Atom a)
 	int len;
 	if(WideWriting) return 1;
 	s=AtomValue(a);
-	len=strlen(s);
+	len=(int)strlen(s);
 	return  isalpha(s[len-1]) || isdigit(s[len-1]) ;
 	}
 	
@@ -218,7 +224,10 @@ int WriteTerm(Term T)
 			else
 				return printf("\'%s\'",AtomValue(T));
 		case 'f':
+		  if(ImaginaryValue(T)==0.0)
 			return printf("%g",FloatValue(T));
+		  else
+			  return printf("(%g,%g)",FloatValue(T),ImaginaryValue(T));
 		case 'u':
 			return printf("%s/%d",AtomValue(FunctorName(T)),FunctorArity(T));
 		case 'e':
@@ -373,7 +382,10 @@ int fWriteTerm(FILE *file, Term T)
 			else
 				return fprintf(file,"\'%s\'",AtomValue(T));
 		case 'f':
+		  if(ImaginaryValue(T)==0.0)
 			return fprintf(file,"%g",FloatValue(T));
+		  else
+			  return fprintf(file,"(%g,%g)",FloatValue(T),ImaginaryValue(T));
 		case 'u':
 			return fprintf(file,"%s/%d",AtomValue(FunctorName(T)),FunctorArity(T));
 		case 'e':
@@ -539,7 +551,11 @@ int sWriteTerm(char *string, Term T)
 				return sprintf(string,"\'%s\'",AtomValue(T));
 		case 'f':
 		  {
-		    int ret=sprintf(string,"%g",FloatValue(T));
+		    int ret;
+			if(ImaginaryValue(T)==0.0)
+			  ret=sprintf(string,"%g",FloatValue(T));
+			else
+			  ret=sprintf(string,"(%g,%g)",FloatValue(T),ImaginaryValue(T));
 		    int i;
 		    for(i=0;i<ret;i++)
 		      {
@@ -734,9 +750,9 @@ static void dump_term(Term t, int marg)
 	WriteBlank(stdout,marg);
 	
 	c=AtomicType(t);
-	
 	switch(c)
 		{
+		 
 		case 'i':
 			printf("%ld\n",IntegerValue(t));
 			return;
@@ -744,7 +760,10 @@ static void dump_term(Term t, int marg)
 			printf("%s\n",AtomValue(t));
 			return;
 		case 'f':
+		  if(ImaginaryValue(t)==0.0)
 			printf("%g\n",FloatValue(t));
+		  else
+			  printf("(%g,%g)",FloatValue(t),ImaginaryValue(t));
 			return;
 		case 'u':
 			printf("%s/%d\n",AtomValue(FunctorName(t)),

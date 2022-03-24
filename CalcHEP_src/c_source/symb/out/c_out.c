@@ -237,8 +237,7 @@ static void  writesubroutineinit(void)
              prtclbase1[modelvars[l].pwidth].name); 
              checkNaN=1;
          } else
-         {
-           ss=(char *)readExpression(modelvars[l].func,rd_c,act_c,free);
+         { ss=(char *)readExpression(modelvars[l].func,rd_c,act_c,free);
 /*	   writeF("   %s=%s;\n",vararr[l].alias,ss+3);*/
 	   fprintf(outFile,"   %s=%s;\n",vararr[l].alias,ss+3);
 	   free(ss);
@@ -259,10 +258,13 @@ writeF("printf(\"%s=%%E\\n\",%s);\n",vararr[l].alias,vararr[l].alias);
    writeF("return 0;\n}\n"); 
 }
 
-static void  writeDenominators(deninforec* dendescript)
+static void  writeDenominators(deninforec* dendescript, int forAll)
 {   
-int i,k;
-int nden_t2=nden_t, nden_s2=nden_s;
+   int i,k;
+   int nden_t2=nden_t, nden_s2=nden_s;
+   char *gsw_txt,*gtw_txt;
+   if(forAll) {gsw_txt="gswidth_ext"; gtw_txt="gtwidth_ext";} 
+       else   {gsw_txt="gsw";         gtw_txt="gtw";} 
 
    for (i = 0; i < dendescript->tot_den; i++)
    {  int numm = dendescript->denarr[i].order_num; 
@@ -274,12 +276,12 @@ int nden_t2=nden_t, nden_s2=nden_s;
       { 
         if(dendescript->denarr[i].stype) 
         {
-          writeF("*(gswidth_ext? creal(Q1[%d]):",numm);
+          writeF("*(%s ? creal(Q1[%d]):",gsw_txt,numm);
           if (dendescript->denarr[i].power==1) writeF("Q1[%d])",numm);
           else  writeF("conj(Q1[%d]))",numm);
         } else
         { 
-          writeF("*(gtwidth_ext? creal(Q1[%d]):",numm);
+          writeF("*(%s ? creal(Q1[%d]):",gtw_txt,numm);
           if (dendescript->denarr[i].power==1) writeF("Q1[%d])",numm);
           else  writeF("conj(Q1[%d]))",numm);
         }        
@@ -292,7 +294,7 @@ int nden_t2=nden_t, nden_s2=nden_s;
    {   
       if(nden_s2) 
       { 
-        writeF("if(gswidth_ext ) Prop=Prop");  
+        writeF("if(%s) Prop=Prop",gsw_txt);  
         for (k = 1; k <= nden_s; k++)					  	
         { int addpr = 1;							       
           for (i = 1; i <= dendescript->tot_den; i++)			       
@@ -303,8 +305,7 @@ int nden_t2=nden_t, nden_s2=nden_s;
       writeF(";\n");
       }  
       if(nden_t2) 
-      {  writeF("if(gtwidth_ext) Prop=Prop"); 
- 
+      {  writeF("if(%s) Prop=Prop",gtw_txt); 
         for (k = nden_s+1; k <= nden_w; k++)					  	
         { int addpr = 1;							       
           for (i = 1; i <= dendescript->tot_den; i++)			       
@@ -376,8 +377,7 @@ static void  onediagram(deninforec* dendescript)
       writeF("#include\"num_in.h\"\n");   
    }
    writeF("extern FNN F%d_ext;\n",diagrcount);
-   writeF("static void C%d(REAL * C)\n{\n",diagrcount);
-   writeF("REAL* V=va_ext;\n");
+   writeF("static void C%d(REAL*V,REAL * C)\n{\n",diagrcount);
    pos_c= ftell(outFile); writeF("%80s\n",""); 
    nConst=write_const();
    deg1=cleardegnames();       
@@ -391,15 +391,14 @@ static void  onediagram(deninforec* dendescript)
    tmpNameMax=0;
    initdegnames();
 
-   writeF("REAL F%d_ext(double GG,REAL*DP,REAL*Q0,COMPLEX*Q1,REAL*Q2,REAL*cb_coeff)\n{\n",diagrcount);
+   writeF("REAL F%d_ext(double GG, REAL*V, REAL*DP,REAL*Q0,COMPLEX*Q1,REAL*Q2,REAL*cb_coeff,int gsw,int gtw)\n{\n",diagrcount);
 
    if(!noPict) writpict(cr.ndiagr_ + inftmp->firstdiagpos - 1);
 
    writeF("REAL N,D,R; COMPLEX Prop;\n");
-   writeF("REAL * V=va_ext;\n");
    pos_c= ftell(outFile); writeF("%80s\n","");
   
-   writeF("if(!DP){C%d(C); return 0;} \n",diagrcount);
+   writeF("if(!DP){C%d(V,C); return 0;} \n",diagrcount);
    if(nin==2) writeF("  REAL N_p1p2_=1/DP[0];\n");
    fortwriter("N",totnum);
    fortwriter("D",totdenum);
@@ -407,7 +406,7 @@ static void  onediagram(deninforec* dendescript)
    
    writeF("R*=(N/D);\n");
    writeF("Prop=1");
-   writeDenominators(dendescript);
+   writeDenominators(dendescript,0);
    writeF("R*=creal(Prop);\n");
    if(!noCChain)calcColor(cr.ndiagr_+inftmp->firstdiagpos);
 
@@ -439,7 +438,7 @@ static int  alldiagrams(FILE * fd,  int nsub)
    writeF("{\n");
    writeF("REAL N,D,R; COMPLEX Prop;\n");
    pos_c1= ftell(outFile); writeF("%70s\n","");   
-   writeF("if(!momenta){ C%d(C); return 0;}\n",nsub);
+   writeF("if(!momenta){ C%d(V,C); return 0;}\n",nsub);
    if(nin==2) writeF("  REAL N_p1p2_=1/DP[0];\n");
    while(FREAD1(dendescript,fd) == 1)
    {
@@ -468,7 +467,7 @@ static int  alldiagrams(FILE * fd,  int nsub)
       writeF("R*=(N/D);\n");
       if(nin+nout>3)
       {  writeF("Prop=1");
-         writeDenominators(&dendescript);
+         writeDenominators(&dendescript,1);
          writeF("R*=creal(Prop);\n");
          writeF(" if(R>(*Fmax)) (*Fmax)=R; else if(R<-(*Fmax)) (*Fmax)=-R;\n");
       } else  writeF(";\n");
@@ -483,8 +482,7 @@ static int  alldiagrams(FILE * fd,  int nsub)
    tmpNameMax=0;
    initdegnames();
 
-   writeF("\nstatic void C%d(REAL*C)\n{\n",nsub); 
-   writeF("  REAL* V=va_ext;\n");
+   writeF("\nstatic void C%d(REAL*V,REAL*C)\n{\n",nsub); 
    pos_c2= ftell(outFile); writeF("%70s\n","");   
 
    nC=write_const(); 
@@ -535,7 +533,7 @@ static void  writesubprocess(int nsub,long firstDiag,long totDiag,int* breaker)
      return;
    }
 
-   if(sumDiag) writeF("static void C%d(REAL *);\n",nsub); else 
+   if(sumDiag) writeF("static void C%d(REAL*,REAL *);\n",nsub); else 
    {  writeF("extern FNN F%d_ext",firstDiag);
       for(i=1;i<totDiag;i++) writeF(",F%d_ext",i+firstDiag);
       writeF(";\n");
@@ -565,7 +563,7 @@ static void  writesubprocess(int nsub,long firstDiag,long totDiag,int* breaker)
 /*      writeF(" for(i=0;i<nin_ext;i++) s0max+=momenta[4*i];\n"); */
 
       if(sumDiag) writeF(" if(momenta)\n {"); else
-      writeF("  if(!momenta) {int i; for(i=0;i<%d;i++) Farr[i](GG,NULL,NULL,NULL,NULL,NULL); return 0;}\n",totDiag); 
+      writeF("  if(!momenta) {int i; for(i=0;i<%d;i++) Farr[i](GG,va_ext,NULL,NULL,NULL,NULL,NULL,0,0); return 0;}\n",totDiag); 
                           
       for(;den_;den_ = den_->next)
       {  int m=0;
@@ -594,7 +592,7 @@ static void  writesubprocess(int nsub,long firstDiag,long totDiag,int* breaker)
    } else
    {
       if(sumDiag) writeF(" if(momenta)\n {"); else
-      writeF("  if(!momenta) {int i; for(i=0;i<%d;i++) Farr[i](GG,NULL,NULL,NULL,NULL,NULL); return 0;}\n",totDiag); 
+      writeF("  if(!momenta) {int i; for(i=0;i<%d;i++) Farr[i](GG,va_ext,NULL,NULL,NULL,NULL,NULL,0,0); return 0;}\n",totDiag); 
    }   
    writeF("sprod_(%d, momenta, DP);\n",nin+nout);
    if(sumDiag) writeF("}\n");
@@ -609,7 +607,7 @@ static void  writesubprocess(int nsub,long firstDiag,long totDiag,int* breaker)
    { 
       writeF("{int i; for(i=0;i<%d;i++) \n",totDiag);
       writeF(
-      "{ REAL r=Farr[i](GG,DP,Q0,Q1,Q2,cb_coeff);\n"
+      "{ REAL r=Farr[i](GG,va_ext,DP,Q0,Q1,Q2,cb_coeff,gswidth_ext,gtwidth_ext);\n"
       "  if(r>(*Fmax)) *Fmax=r;\n"
       "  ans+=r;\n"
       "}}\n"
@@ -1003,11 +1001,12 @@ static void  make_perm(void)
 
    cPerm=malloc(sizeof(int*)*pos);
    ncPerm=0;
-   
+   int first=1;   
    for (nsub = 1, inftmp = inf; nsub <= subproc_sq; nsub++,inftmp = inftmp->next)
    {  
-      if(simMap[nsub-1]);
+      if(simMap[nsub-1])
       {  int used[MAXINOUT],buff[MAXINOUT],np[MAXINOUT];
+         if(first)  first=0; else  writeF(",");
          writeF("\n // "); for(i=0;i<nin;i++)        writeF("%s ", inftmp->p_name[i]);
          writeF("-> "); for(i=nin;i<nin+nout;i++) writeF("%s ", inftmp->p_name[i]);
               
@@ -1015,7 +1014,6 @@ static void  make_perm(void)
          for(i=0;i<nin;i++) { used[i]=1;buff[i]=i;}  for(i=nin;i<nin+nout;i++)used[i]=0;
          permRec(nin+nout,np,nin,used,buff);  
       }
-      if(nsub<subproc_sq) writeF(",");  
    }
    writeF("\n};\n");
 
@@ -1118,10 +1116,12 @@ static int c_prog_int(void)
       writeF("#include<complex.h>\n");
       writeF("#include\"num_out.h\"\n");
       writeF("#include\"num_in.h\"\n");
+/*      
       writeF("extern double complex lAAhiggs(double  Q, char* hName);\n");
       writeF("extern double complex lGGhiggs(double  Q, char* hName);\n");
       writeF("extern double complex lAA5higgs(double Q, char* hName);\n");
       writeF("extern double complex lGG5higgs(double Q, char* hName);\n");
+*/      
    }
    writeF("static int calcall[%d];\n",subproc_sq+1);
    {
@@ -1221,7 +1221,7 @@ int vert_code(polyvars * vardef_ext)
    writeF("#include<stdlib.h>\n");
    writeF("#include<math.h>\n");
    writeF("#include<complex.h>\n");                 
-   
+   writeF("#include\"nType.h\"\n");    
    initvararray(0,'c',vardef_ext);
 
    firstVar=nmodelvar;

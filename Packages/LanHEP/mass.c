@@ -40,7 +40,7 @@ static int prt_spin1(Atom p)
 	prop=GetAtomProperty(p,PROP_TYPE);
 	if(CompoundName(prop)==OPR_FIELD)
 		prop=GetAtomProperty(CompoundArg1(prop),PROP_TYPE);
-	spi=IntegerValue(CompoundArgN(prop,4));
+	spi=(int)IntegerValue(CompoundArgN(prop,4));
 	if(spi==2 && CompoundArgN(prop,7)!=A_GAUGE)
 		spi++;
 	return spi;
@@ -171,7 +171,7 @@ static void wrt_ml(FILE *f, List ml)
 				Atom p;
 				int pw;
 				p=CompoundArg1(ListFirst(l2));
-				pw=IntegerValue(CompoundArg2(ListFirst(l2)));
+				pw=(int)IntegerValue(CompoundArg2(ListFirst(l2)));
 				if(pw>0)
 					fprintf(f,"*%s",AtomValue(p));
 				else
@@ -197,6 +197,7 @@ static void wrt_ml(FILE *f, List ml)
 	FreeAtomic(gl);
 	}
 
+/*
 static void wrt_num(FILE *f, List ml, int spi)
 	{
 	List gl;
@@ -277,6 +278,87 @@ static void wrt_num(FILE *f, List ml, int spi)
 			}
 			else
 				fprintf(f,"%+f*i",vi);
+			}
+		if(ListFirst(l) && ListFirst(l)!=A_DELTA)
+			{
+			if(is_atom(ListFirst(l)))
+				fprintf(f,"*%s",AtomValue(ListFirst(l)));
+			else
+				fprintf(f,"*p%ld",IntegerValue(ListFirst(l)));
+			}
+		}
+	FreeAtomic(gl);
+	}
+*/
+
+static void wrt_num(FILE *f, List ml, int spi)
+	{
+	List gl;
+	List l;
+	gl=NewList();
+	for(l=ml;l;l=ListTail(l))
+		{
+		Term sp;
+		if(is_empty_list(CompoundArgN(ListFirst(l),3)))
+			sp=0;
+		else
+			sp=CompoundArg1(ListFirst(CompoundArgN(ListFirst(l),3)));
+		if(!ListMember(gl,sp))
+			gl=AppendLast(gl,sp);
+		}
+	
+	for(l=gl;l;l=ListTail(l))
+		{
+		List l1;
+		cmplx vc;
+		vc.r=0.0;
+		vc.i=0.0;
+		
+		for(l1=ml;l1;l1=ListTail(l1))
+			{
+			Term sp;
+			double v1;
+			List l2;
+			cmplx vv;
+			vv.r=vv.i=0.0;
+
+			if(is_empty_list(CompoundArgN(ListFirst(l1),3)))
+				sp=0;
+			else
+				sp=CompoundArg1(ListFirst(CompoundArgN(ListFirst(l1),3)));
+			if(ListFirst(l)!=sp)
+				continue;
+			v1=(double)IntegerValue(CompoundArg1(CompoundArg1(ListFirst(l1))));
+			v1/=(double)IntegerValue(CompoundArg2(CompoundArg1(ListFirst(l1))));
+			if(CompoundArg2(ListFirst(l1)))
+				{
+				double vvr;
+				vv=cEvalParameter(CompoundArg2(ListFirst(l1)));
+				vvr=EvalParameter(CompoundArg2(ListFirst(l1)));
+				vc.r+=v1*vv.r;
+				vc.i+=v1*vv.i;
+				}
+			else
+				vc.r+=v1;
+			}
+		if(vc.r!=0.0 && vc.i!=0.0)
+			{
+			if(spi==1)
+				fprintf(f,"(%+f%+f*i)",vc.r,vc.i);
+			else
+				fprintf(f,"(%+f**2%+f**2*i)",mysqrt(vc.r),mysqrt(vc.i));
+			}
+		else
+			{
+			if(vc.r!=0.0)
+			{
+				if(spi==1)
+					fprintf(f,"%+f",vc.r);
+				else
+					fprintf(f,"%+f**2",mysqrt(vc.r));
+			}
+			else
+				fprintf(f,"%+f*i",vc.i);
 			}
 		if(ListFirst(l) && ListFirst(l)!=A_DELTA)
 			{
@@ -422,7 +504,6 @@ rpt2:
 	alg2_red_orth(a2o);
 	lm=ConsumeCompoundArg(a2o,5);
 	FreeAtomic(a2o);
-/*	WriteTerm(lm); puts("");*/
 	
 	{
 		Term prp=GetAtomProperty(b2,PROP_TYPE);
@@ -434,8 +515,8 @@ rpt2:
 			{
 				int n,d,g;
 				Term m4=ListFirst(ll1);
-				n=IntegerValue(CompoundArg1(CompoundArg1(m4)));
-				d=IntegerValue(CompoundArg2(CompoundArg1(m4)));
+				n=(int)IntegerValue(CompoundArg1(CompoundArg1(m4)));
+				d=(int)IntegerValue(CompoundArg2(CompoundArg1(m4)));
 				ll2=ConsumeCompoundArg(m4,3);
 				for(ll3=ll2;ll3;ll3=ListTail(ll3))
 					if(CompoundArg1(ListFirst(ll3))==A_GAMMAP ||
@@ -446,14 +527,15 @@ rpt2:
 						break;
 						}
 				SetCompoundArg(m4,3,ll2);
-				g=gcf(n,d);
+				g=(int)gcf(n,d);
 				SetCompoundArg(CompoundArg1(m4),1,NewInteger(n/g));
 				SetCompoundArg(CompoundArg1(m4),2,NewInteger(d/g));
 			}
 			}
 	}
 	
-	{
+	
+        {
 	Term prp=GetAtomProperty(b2,PROP_TYPE);
 		if(is_compound(prp) && CompoundName(prp)==OPR_PARTICLE &&
 			CompoundArgN(prp,4)==NewInteger(1) && ListLength(lm)==2)
@@ -474,24 +556,27 @@ rpt2:
 					j2=CutFromList(j2,l1);
 					break;
 					}		
-			if(EqualTerms(j1,j2))
+			if(j1 && EqualTerms(j1,j2) && 
+                            EqualTerms(CompoundArg2(ListFirst(lm)),
+                                CompoundArg2(ListFirst(ListTail(lm)))))
 			{
 				int n,d,g;
 				Term m4=ListFirst(lm);
 				FreeAtomic(j2);
 				CutFromList(lm,ListTail(lm));
 				SetCompoundArg(ListFirst(lm),3,j1);
-				n=IntegerValue(CompoundArg1(CompoundArg1(m4)));
-				d=IntegerValue(CompoundArg2(CompoundArg1(m4)));
+				n=(int)IntegerValue(CompoundArg1(CompoundArg1(m4)));
+				d=(int)IntegerValue(CompoundArg2(CompoundArg1(m4)));
 				n*=2;
-				g=gcf(n,d);
+				g=(int)gcf(n,d);
 				SetCompoundArg(CompoundArg1(m4),1,NewInteger(n/g));
 				SetCompoundArg(CompoundArg1(m4),2,NewInteger(d/g));
 			}
 		}
 	}
 				
-	
+	/*DumpList(lm); puts("");*/
+        
 	if(is_empty_list(lm))
 		return;
 	
@@ -793,7 +878,7 @@ Term ProcCheckMasses(Term t, Term ind)
 			for(l1=CompoundArgN(a2,5);l1;l1=ListTail(l1))
 			{
 				int n;
-				n=IntegerValue(CompoundArg1(CompoundArg1(ListFirst(l1))));
+				n=(int)IntegerValue(CompoundArg1(CompoundArg1(ListFirst(l1))));
 				n=-n;
 				SetCompoundArg(CompoundArg1(ListFirst(l1)),1,NewInteger(n));
 			}
@@ -801,7 +886,7 @@ Term ProcCheckMasses(Term t, Term ind)
 			for(l1=CompoundArgN(a2,4);l1;l1=ListTail(l1))
 			{
 				int n;
-				n=IntegerValue(CompoundArg1(CompoundArg1(ListFirst(l1))));
+				n=(int)IntegerValue(CompoundArg1(CompoundArg1(ListFirst(l1))));
 				n=-n;
 				SetCompoundArg(CompoundArg1(ListFirst(l1)),1,NewInteger(n));
 			}
@@ -1182,7 +1267,8 @@ Term ProcCheckMasses(Term t, Term ind)
 			
 		}
 		
-		
+        if(ftell(outf)==0)
+            fprintf(outf,"No problems were found.\n");
 	fclose(outf);
 	puts("File 'masses.chk' is created"); 
 	return 0;
@@ -1222,13 +1308,13 @@ static List get_expr(List ml, int i, int j, int fixel, int is_c)
 			continue;
 			
 		prop=GetAtomProperty(CompoundArg1(ListFirst(p1)),A_ORTH_MATR);
-		ti=IntegerValue(CompoundArgN(prop,5-fixel));
+		ti=(int)IntegerValue(CompoundArgN(prop,5-fixel));
 		if(p2==0)
 			tj=ti;
 		else
 		{
 			prop=GetAtomProperty(CompoundArg1(ListFirst(p2)),A_ORTH_MATR);
-			tj=IntegerValue(CompoundArgN(prop,5-fixel));
+			tj=(int)IntegerValue(CompoundArgN(prop,5-fixel));
 		}
 		
 		if(tj<ti)
@@ -1266,7 +1352,7 @@ rpt:	for(l3=l2;l3;l3=ListTail(l3))
 				break;
 		if(l2)
 		{
-			int n,d,n1,d1,n2,d2,cf;
+			long int n,d,n1,d1,n2,d2,cf;
 			n1=IntegerValue(CompoundArg1(CompoundArg1(p1)));
 			d1=IntegerValue(CompoundArg2(CompoundArg1(p1)));
 			n2=IntegerValue(CompoundArg1(CompoundArg1(ListFirst(l2))));
@@ -1286,7 +1372,7 @@ rpt:	for(l3=l2;l3;l3=ListTail(l3))
 	
 	for(l2=res;l2;l2=ListTail(l2))
 	{
-		int n,d,cf;
+		long int n,d,cf;
 		n=IntegerValue(CompoundArg1(CompoundArg1(ListFirst(l2))));
 		d=IntegerValue(CompoundArg2(CompoundArg1(ListFirst(l2))));
 /*		if(is_c==0)
@@ -1349,8 +1435,8 @@ static List get_expr2(List ml, int i, int j, int fixel, int is_c, Label ola, Lab
 			return NewAtom("???",0);
 		}
 		
-		ti=IntegerValue(CompoundArgN(prop,5-fixel));
-		tj=IntegerValue(CompoundArgN(prop2,5-fixel));
+		ti=(int)IntegerValue(CompoundArgN(prop,5-fixel));
+		tj=(int)IntegerValue(CompoundArgN(prop2,5-fixel));
 		
 		
 		if(ti!=i || tj!=j)
@@ -1380,7 +1466,7 @@ rpt:	for(l3=l2;l3;l3=ListTail(l3))
 				break;
 		if(l2)
 		{
-			int n,d,n1,d1,n2,d2,cf;
+			long int n,d,n1,d1,n2,d2,cf;
 			n1=IntegerValue(CompoundArg1(CompoundArg1(p1)));
 			d1=IntegerValue(CompoundArg2(CompoundArg1(p1)));
 			n2=IntegerValue(CompoundArg1(CompoundArg1(ListFirst(l2))));
@@ -1452,24 +1538,24 @@ fprintf(f,"look for orth: ");fWriteTerm(f,prt);fprintf(f,"\n");
 				th=CompoundArg1(prop);
 				if(th==ola)
 					{
-					macoe+=IntegerValue(CompoundArg2(ListFirst(l3)));
+					macoe+=(int)IntegerValue(CompoundArg2(ListFirst(l3)));
 					continue;
 					}
 				if(th==ola2)
 					{
-					macoe2+=IntegerValue(CompoundArg2(ListFirst(l3)));
+					macoe2+=(int)IntegerValue(CompoundArg2(ListFirst(l3)));
 					continue;
 					}
 				if(ola==0)
 					{
 					ola=th;
-					macoe+=IntegerValue(CompoundArg2(ListFirst(l3)));
+					macoe+=(int)IntegerValue(CompoundArg2(ListFirst(l3)));
 					continue;
 					}
 				if(ola2==0)
 					{
 					ola2=th;
-					macoe2+=IntegerValue(CompoundArg2(ListFirst(l3)));
+					macoe2+=(int)IntegerValue(CompoundArg2(ListFirst(l3)));
 					continue;
 					}
 				fprintf(f,"More than 2 mixing matrices found, vertex ");
@@ -1577,13 +1663,13 @@ fprintf(f,"look for orth: ");fWriteTerm(f,prt);fprintf(f,"\n");
 				{
 					if(fixel==2) return;
 					fixel=1;
-					prtp[i]=IntegerValue(ListFirst(e1used));
+					prtp[i]=(int)IntegerValue(ListFirst(e1used));
 				}
 				else
 				{
 					if(fixel==1) return;
 					fixel=2;
-					prtp[i]=IntegerValue(ListFirst(e2used));
+					prtp[i]=(int)IntegerValue(ListFirst(e2used));
 				}
 				
 				
@@ -1736,13 +1822,13 @@ fprintf(f,"look for orth: ");fWriteTerm(f,prt);fprintf(f,"\n");
 				{
 					if(fixel==2) goto fail1;
 					fixel=1;
-					prtp[i]=IntegerValue(ListFirst(e1used));
+					prtp[i]=(int)IntegerValue(ListFirst(e1used));
 				}
 				else
 				{
 					if(fixel==1) goto fail1;
 					fixel=2;
-					prtp[i]=IntegerValue(ListFirst(e2used));
+					prtp[i]=(int)IntegerValue(ListFirst(e2used));
 				}
 				
 				

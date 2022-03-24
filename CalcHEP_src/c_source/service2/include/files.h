@@ -2,7 +2,7 @@
 #define __FILES_
 #include"syst.h"
     extern char * outputDir;
-    extern char pathtocalchep[STRSIZ];
+    extern char pathtocalchep[1024];
     extern void  copyfile(char *   namefrom, char *  nameto);
     extern void nextFileName(char* f_name,char * firstname,char * ext);
     extern char * unixPath(char *name);

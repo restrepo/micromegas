@@ -2,6 +2,8 @@
 #distribution "cteq6l1(proton)"       2212 =>  -2 -1 1 2 (3 -3) (4 -4) (5 -5) 21          
 #distribution "cteq6l1(anti-proton)" -2212 =>  2 1 -1 -2 (3 -3) (4 -4) (5 -5) 21          
 #Index 10042
+#Memb 0
+#Source  LHAPDF6
 #Reference  hep-ph/0201195
 #Interpolation biCubicLogXQ
 #Q_grid

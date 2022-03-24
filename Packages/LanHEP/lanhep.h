@@ -26,6 +26,7 @@ void ClearParameter(Atom);
 List all_param_list(void);
 Term InterfEvalParam(Term, Term);
 double EvalParameter(Term);
+cmplx cEvalParameter(Term);
 void ChangeParameterValue(Atom, double);
 Term ProcTailPrm(Term, Term);
 Term ProcCHEPPrm(Term, Term);
@@ -173,7 +174,7 @@ Term ProcFainclude(Term, Term);
 
 
 	/* File util.c */
-int gcf(int, int);
+long int gcf(long int, long int);
 List CommaToList(Term t);
 List OperToList(Term t, Atom opr);
 List Oper1ToList(Term t, Atom opr);
@@ -254,7 +255,7 @@ int  need_spin_rdc(Term);
 
 Term ProcSetEM(Term, Term);
 void check_em_charge(List);
-int defined_em_charge(void);
+Atom defined_em_charge(void);
 
 	/* File gauge.c */
 Term ProcGauge(Term, Term);
@@ -298,7 +299,7 @@ Term ProcDbgTrig(Term, Term);
 extern char *ModelName;
 extern int ModelNumber;
 extern List DefaultIndex;
-extern int  TexOutput, FAOutput, CalcOutput, CompOutput;
+extern int  TexOutput, FAOutput, UFOutput, CalcOutput, CompOutput;
 extern int  ForsedRedCol;
 extern int MicroOmega;
 

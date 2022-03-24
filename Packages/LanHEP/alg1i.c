@@ -51,7 +51,7 @@ static List mk_let(Term m1, List cut, Term a1)
 	List l;
 	List lb,le;
 	List sd;
-	int num1,den1;
+	long int num1,den1;
 	
 	l=ConsumeCompoundArg(a1,1);
 	FreeAtomic(a1);
@@ -69,7 +69,7 @@ static List mk_let(Term m1, List cut, Term a1)
 	l=a1;
 	while(!is_empty_list(l))
 		{
-		int n1,n2,d1,d2,num,den,cf;
+		long int n1,n2,d1,d2,num,den,cf;
 		List lb1,le1,lm;
 		m1=ListFirst(l);
 		lm=ConsumeCompoundArg(m1,3);
@@ -119,7 +119,7 @@ static List mk_let_d(Term m1,  Term a1)
 	List l;
 	List lb;
 	List sd;
-	int num1,den1;
+	long int num1,den1;
 
 
 	l=ConsumeCompoundArg(a1,1);
@@ -136,7 +136,7 @@ static List mk_let_d(Term m1,  Term a1)
 	l=a1;
 	while(!is_empty_list(l))
 		{
-		int n1,n2,d1,d2,num,den,cf;
+		long int n1,n2,d1,d2,num,den,cf;
 		List lb1,lm;
 		m1=ListFirst(l);
 		lm=ConsumeCompoundArg(m1,3);
@@ -1092,7 +1092,7 @@ void alg1_rem_sincos(Term a1)
 			SetCompoundArg(ListFirst(l1),1,0);
 		else
 		{
-			int n=IntegerValue(CompoundArg1(ListFirst(l1))),
+			long int n=IntegerValue(CompoundArg1(ListFirst(l1))),
 				d=IntegerValue(CompoundArg2(ListFirst(l1))),
 				gc;
 			n*=nf;

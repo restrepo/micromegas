@@ -34,7 +34,7 @@ int alg2_refine_spinor(List prt, List *spec)
 		{
 		int ity[2];
 		for(i=0;i<2;i++)
-		ity[i]=IntegerValue(CompoundArg1(CompoundArg1(ListFirst(
+		ity[i]=(int)IntegerValue(CompoundArg1(CompoundArg1(ListFirst(
 		    GetAtomProperty(CompoundArg1(ListNth(prt,i+1)),PROP_INDEX) ))));
 		if(ity[0]==0 && ity[1]==1)
 			goto aaa1;
@@ -878,7 +878,7 @@ int alg2_updown(List prt, List *spec)
 				pno++;
 				continue;
 				}
-			ptyp[pno]=IntegerValue(CompoundArg2(prop));
+			ptyp[pno]=(int)IntegerValue(CompoundArg2(prop));
 			bname[pno]=CompoundArg1(prop);
 			plab[pno]=CompoundArg2(ListFirst(l1));
 			pprt[pno]=ListFirst(l1);

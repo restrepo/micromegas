@@ -1,22 +1,20 @@
-HB=HiggsBounds-$(VERSION)
+HB=higgsbounds-$(VERSION)
 
-all:$(HB)/HiggsBounds
+all:$(HB)/build/HiggsBounds
 
-$(HB)/HiggsBounds:$(HB)/README
-	cd $(HB); ./configure
-	make -C $(HB)
+$(HB)/build/HiggsBounds:$(HB)/COPYING
+	if(test -z "`which cmake`" ) then echo "Install cmake to compile HiggsBounds"; exit 1; fi
+	cd $(HB);     mkdir build; cd build; cmake ..; make
 
-$(HB)/README: 
+$(HB)/COPYING: 
 ifneq (, $(shell command -v curl 2> /dev/null))
-	curl https://www.hepforge.org/archive/higgsbounds/$(HB).tar.gz  -O -L
+	curl https://gitlab.com/higgsbounds/higgsbounds/-/archive/$(VERSION)/$(HB).tar.gz  -O -L
 else 
 ifneq (, $(shell command -v wget 2> /dev/null))
-	wget https://www.hepforge.org/archive/higgsbounds/$(HB).tar.gz 
+	wget https://gitlab.com/higgsbounds/higgsbounds/-/archive/$(VERSION)/$(HB).tar.gz 
 else 
 	$(error "Neither wget nor curl are available, please install wget or curl or change hBandS.make accordingly.")
 endif
 endif
-	- unlink  HiggsBounds
 	tar -xvzf $(HB).tar.gz 
 	rm $(HB).tar.gz
-	ln -s HiggsBounds-$(VERSION) HiggsBounds

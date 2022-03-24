@@ -191,7 +191,7 @@ static double captureSun(double(*vfv)(double), double M_cdm, double pA0, double 
     if(i==0) si+=csSDp;
     if(i<4) {aFraction=sunFractions[i];fr=1;}  else { aFraction=O16sun; fr=A[i]/((double)A[4])*pow(10., P10[i]-P10[4]);}
     muX=(M_cdm-MA)*(M_cdm-MA)/(4*M_cdm*MA);
-    vmaxC=(Vesc+Vrot)/(1.E-3*Vlight);
+    vmaxC=(vEsc+vRot)/(1.E-3*Vlight);
     vmaxQ=vmaxC*vmaxC;
     if(vmaxQ*muX> 2*phiSun[0] ) vmaxQ=2*phiTab[0]/muX;
 
@@ -310,7 +310,7 @@ static double captureEarth(double(*vfv)(double),double M_cdm,  double pA0, doubl
     si= (Z[i]*pA0+(A[i]-Z[i])*nA0)*mu;
     si=4/M_PI*si*si*3.8937966E8*1E-36;  // cm^2
     muX=(M_cdm-MA)*(M_cdm-MA)/(4*M_cdm*MA);
-    vmaxC=(Vesc+Vrot)/(1.E-3*Vlight);
+    vmaxC=(vEsc+vRot)/(1.E-3*Vlight);
     vmaxQ=vmaxC*vmaxC;
     if(vmaxQ*muX> 2*phiTab[0] ) vmaxQ=2*phiTab[0]/muX;
     FFalpha=M_cdm*MA*pow((0.91*pow(MA,0.3333333) +0.3)*GeVfm,2)/3; 
@@ -347,7 +347,7 @@ static double sigmaEarth(double M_cdm,double pA0, double nA0, double pA5, double
   return  sumI;
 }
 
-double captureAux(double(*vfv)(double),int forSun, double M_cdm, double csIp,double csIn,double csDp, double csDn)
+double captureCS(double(*vfv)(double),int forSun, double M_cdm, double csIp,double csIn,double csDp, double csDn)
 { 
   double pA0, nA0, pA5, nA5;
   double MN=0.939;
@@ -362,7 +362,6 @@ double captureAux(double(*vfv)(double),int forSun, double M_cdm, double csIp,dou
   if(forSun) return captureSun(vfv,M_cdm,pA0,nA0,pA5,nA5);
        else  return captureEarth(vfv,M_cdm,pA0,nA0,pA5,nA5);               
 }
-
 
 
 /* ================ Basic Spectra  =====  */
@@ -744,7 +743,8 @@ static double calcSpectrum0(char *name1, char*name2, int forSun, double *Spectra
   double * v_cs;
   double M1=pMass(name1),M2=pMass(name2);
   
-  char name1L[10],name2L[10], lib[20],process[400];
+  char name1L[10],name2L[10], lib[20];
+  char *process=malloc(maxPlistLen+20);
   numout * libPtr;
   
   Spectranu[0]=SpectraNu[0]=0.5*(M1+M2);  
@@ -756,7 +756,7 @@ static double calcSpectrum0(char *name1, char*name2, int forSun, double *Spectra
   sprintf(process,"%s,%s->AllEven,1*x{%s",name1,name2,EvenParticles());
 // Warning!!   in should be done in the same manner as annihilation libraries for Omega
   libPtr=getMEcode(0,ForceUG,process,NULL,NULL,lib);
-  
+  free(process);
   
   if(!libPtr) return 0;
   if(Qaddress && *Qaddress!=M1+M2) 

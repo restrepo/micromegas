@@ -60,7 +60,7 @@ Term ProcInfsimal(Term t, Term ind)
 		if(is_compound(aa) && CompoundName(aa)==OPR_POW
 				&& is_integer(CompoundArg2(aa)))
 			{
-				pw=IntegerValue(CompoundArg2(aa));
+				pw=(int)IntegerValue(CompoundArg2(aa));
 				aa=CompoundArg1(aa);
 			}			
 		
@@ -149,7 +149,7 @@ List a1l_rem_inf(List l)
 			if(CompoundName(ListFirst(l2))==OPR_PARAMETER)
 				prp=GetAtomProperty(CompoundArg2(ListFirst(l2)),A_INFINITESIMAL);
 			if(prp && IntegerValue(CompoundArg1(prp))>0)
-				ino+=IntegerValue(CompoundArg1(prp));
+				ino+=(int)IntegerValue(CompoundArg1(prp));
 			if(CompoundName(ListFirst(l2))==OPR_FIELD && 
 					CompoundArg2(ListFirst(l2))!=A_VEV)
 				fno++;
@@ -639,7 +639,7 @@ void alg1_fix_delta(Term a1)
 				in2=CompoundArg2(ListNth(CompoundArg1(ListFirst(l2)),2));
 				if(CompoundName(ListFirst(CompoundArg1(ListFirst(l2))))
 																==OPR_WILD)
-					cno=IntegerValue(CompoundArgN(
+					cno=(int)IntegerValue(CompoundArgN(
 							ListFirst(CompoundArg1(ListFirst(l2))),3));
 				else
 					cno=0;
@@ -742,6 +742,7 @@ void inf_write_rc(FILE *f)
 		Term t=CompoundArg2(GetAtomProperty(z,A_INFINITESIMAL));
 		if(t==0)
 		{
+                        if(!GetAtomProperty(z,PROP_TYPE))
 			printf("Undefinite RenConst[%s]\n",AtomValue(z));
 			continue;
 		}

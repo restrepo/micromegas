@@ -14,7 +14,7 @@
 
  char * outputDir = "";
 
- char  pathtocalchep[STRSIZ];
+ char  pathtocalchep[1024];
 
 
 char * unixPath(char *name)
@@ -131,6 +131,7 @@ static char* view_Dir(char * dirName)
       { free(menustr);  return f_name;}
     }else { free(menustr);  return NULL;}                                           
   }
+  return NULL; // to remove warning
 }                                                 
 
 int findCalcHEPfile(char * name) 

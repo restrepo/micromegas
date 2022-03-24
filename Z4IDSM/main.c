@@ -12,8 +12,10 @@
 #define LILITH
 //#define SMODELS
 
-#define OMEGA            
-  /* Calculate relic density and display contribution of  individual channels */
+#define OMEGA     /* Calculate relic density and display contribution of  individual channels */
+//#define FREEZEIN  /*  Calculate relic density in Freeze-in scenario  */
+
+
 #define INDIRECT_DETECTION  
   /* Compute spectra of gamma/positron/antiprotons/neutrinos for DM annihilation; 
      Calculate <sigma*v>;
@@ -30,16 +32,14 @@
 #define CDM_NUCLEON     
   /* Calculate amplitudes and cross-sections for  CDM-mucleon collisions */  
 
-/*#define CDM_NUCLEUS*/      
-  /* Calculate number of events for 1kg*day and recoil energy distibution
-      for various nuclei
-  */
-
+#define CDM_NUCLEUS 
+   //Calculate  exclusion rate for direct detection experiments Xenon1T and DarkSide50
+        
 //#define CROSS_SECTIONS   
 /*===== end of Modules  ======*/
 
 /*===== Options ========*/
-/*#define SHOWPLOTS*/
+//#define SHOWPLOTS
      /* Display  graphical plots on the screen */ 
 
 #define CLEAN    to clean intermediate files
@@ -58,7 +58,7 @@ int main(int argc,char** argv)
    int spin2, charge3,cdim;
    
   ForceUG=0;  /* to Force Unitary Gauge assign 1 */
-
+  //useSLHAwidth=0;
   VZdecay=0; VWdecay=0;  
 
   if(argc==1)
@@ -69,11 +69,11 @@ int main(int argc,char** argv)
   }
                                
   err=readVar(argv[1]);
-  
+//  toFeebleList("~sc");
   if(err==-1)     {printf("Can not open the file\n"); exit(1);}
   else if(err>0)  { printf("Wrong file contents at line %d\n",err);exit(1);}
            
-  
+//  ExcludedFor2DM="1122 2211"; 
 
   err=sortOddParticles(cdmName);
   if(err) { printf("Can't calculate %s\n",cdmName); return 1;}
@@ -111,31 +111,33 @@ int main(int argc,char** argv)
 
 
 #if defined(HIGGSBOUNDS) || defined(HIGGSSIGNALS)
-{  int NH0=1, NHch=0; // number of neutral and charged Higgs particles.
-   int HB_id[3],HB_result[3];
-   double  HB_obsratio[3],HS_observ,HS_chi2, HS_pval;
+{  int NH0=3, NHch=1; // number of neutral and charged Higgs particles.
+   int HB_id[3]={0,0,0},HB_result[3];
+   double  HB_obsratio[3],HS_observ=-1,HS_chi2, HS_pval;
    char HB_chan[3][100]={""}, HB_version[50], HS_version[50]; 
-
-   NH0=hbBlocksMDL("HB.in",&NHch);
-   system("echo 'BLOCK DMASS\n 25  2  '>> HB.in");   
+   NH0=hbBlocksMO("HB.in",&NHch); 
+   system("echo 'BLOCK DMASS\n 25  2  '>> HB.in");
 #include "../include/hBandS.inc"
 #ifdef HIGGSBOUNDS
-   printf("  HB(%s)\n", HB_version);
-   for(int i=0;i<3;i++) printf("  id= %d  result = %d  obsratio=%.2E  channel= %s \n", HB_id[i],HB_result[i],HB_obsratio[i],HB_chan[i]);
-#endif
+   printf("HiggsBounds(%s)\n", HB_version);
+   for(int i=0;i<3;i++) if(HB_id[i]) printf("  id= %d  result = %d  obsratio=%.2E  channel= %s \n", HB_id[i],HB_result[i],HB_obsratio[i],HB_chan[i]);
+#endif 
 #ifdef HIGGSSIGNALS
-   printf("  HS(%s)\n",HS_version); 
-   printf(" Nobservables=%.0f chi^2 = %.2E pval= %.2E\n",HS_observ,HS_chi2, HS_pval);
-#endif
+   if(HS_observ>=0)
+   {
+     printf("HiggsSignals(%s)\n",HS_version); 
+     printf("  Nobservables=%.0f chi^2 = %.2E pval= %.2E\n",HS_observ,HS_chi2, HS_pval);
+   }
+#endif   
 }
 #endif
 
 #ifdef LILITH
 {  double m2logL, m2logL_reference=0,pvalue;
    int exp_ndf,n_par=0,ndf;
-   char call_lilith[100], Lilith_version[20];
+   char Lilith_version[50];
 
-   if(LilithMDL("Lilith_in.xml"))
+   if(LilithMO("Lilith_in.xml"))
    {        
 #include "../include/Lilith.inc"
       if(ndf)
@@ -147,13 +149,33 @@ int main(int argc,char** argv)
 }     
 #endif
 
-
 #ifdef SMODELS
-{  int result=0;
-   double Rvalue=0;
-   char analysis[30]={},topology[30]={};
-   int LHCrun=LHC8|LHC13;  //  LHC8  - 8TeV; LHC13  - 13TeV; 
-#include "../include/SMODELS.inc" 
+{ int status=0, smodelsOK=0; 
+  double Rvalue, Rexpected, SmoLsig, SmoLmax, SmoLSM;
+  char analysis[50]={},topology[100]={},smodelsInfo[100];
+  int LHCrun=LHC8|LHC13;  //  LHC8  - 8TeV; LHC13  - 13TeV;   
+
+  printf("\n\n=====  LHC constraints with SModelS  =====\n\n");
+
+#include "../include/SMODELS.inc" // SLHA interface with SModelS
+
+  printf("SModelS %s \n",smodelsInfo);
+  if(smodelsOK) 
+  { printf(" highest r-value = %.2E",Rvalue); 
+    if(Rvalue>0) 
+    { printf(" from %s, topology: %s ",analysis,topology);
+      if(Rexpected>0) 
+      { printf("\n expected r = %.2E ",Rexpected);
+        if(SmoLsig>0) 
+        { printf("\n -2log (L_signal, L_max, L_SM) = %.2E %.2E %.2E", 
+                  -2*log(SmoLsig),-2*log(SmoLmax),-2*log(SmoLSM)); }
+      }
+    }  
+    if(status==1) { printf("\n excluded by SMS results"); }
+    else if(status==0) printf("\n not excluded"); 
+    else if(status==-1) printf("\n not not tested by results in SModelS database"); 
+    printf("\n");
+  } else system("cat smodels.err"); // problem: see smodels.err
 }   
 #endif 
 
@@ -166,37 +188,59 @@ int main(int argc,char** argv)
   double Lmin,Lmax;
   printf("\n==== Calculation of relic density =====\n");   
 
+//ExcludedFor2DM="1110 2220 1120  1210 1220 2210  1122 1112 1222";
 
   Omega= darkOmega2(fast,Beps);
 
 /*
-  displayFunc("vs1120F",vs1120F, Tend, Tstart,"T");
-  displayFunc("vs2200F",vs2200F, Tend, Tstart,"T");
-  displayFunc("vs1100F",vs1100F, Tend, Tstart,"T");
-  displayFunc("vs1210F",vs1210F, Tend, Tstart,"T");
-  displayFunc("vs1122F",vs1122F, Tend, Tstart,"T");
-  displayFunc("vs2211F",vs2211F, Tend, Tstart,"T");
+  displayPlot("vsXX00","T",Tend,Tstart,0,2
+      ,"vs1100",0,vs1100F,NULL
+      ,"vs2200",0,vs2200F,NULL
+      );
+      
+  displayPlot("vsXXYY","T",Tend,Tstart,0,2
+      ,"vs1122",0,vs1122F,NULL
+      ,"vs2211",0,vs2211F,NULL
+      );
+      
+  displayPlot("vsXY","T",Tend,Tstart,0,2
+             ,"vs1210",0,vs1210F,NULL
+             ,"vs1120",0,vs1120F,NULL
+             );
 
-  displayFunc("vs1110F",vs1110F, Tend, Tstart,"T");
-  displayFunc("vs2220F",vs2220F, Tend, Tstart,"T");
-  displayFunc("vs1110F",vs1112F, Tend, Tstart,"T");
-  displayFunc("vs1222F",vs1222F, Tend, Tstart,"T");
-  displayFunc("vs1220F",vs1220F, Tend, Tstart,"T");
-  displayFunc("vs2210F",vs2210F, Tend, Tstart,"T");
-  displayFunc("vs2221F",vs2221F, Tend, Tstart,"T");
-  displayFunc("vs1211F",vs1211F, Tend, Tstart,"T");
-
-
-  displayFunc("dY1",dY1F,Tend, 1,"T");
-  displayFunc("dY2",dY2F,Tend, 1,"T");
+  displayPlot("Y","T",   Tend,Tstart,0,2,"Y1" ,0,Y1F,NULL,"Y2",0,Y2F,NULL);
 */
+                                
+      
 
-printf("omega1=%.2E\n", Omega*(1-fracCDM2));
-printf("omega2=%.2E\n", Omega*fracCDM2);
-
+  printf("omega1=%.2E\n", Omega*(1-fracCDM2));
+  printf("omega2=%.2E\n", Omega*fracCDM2);
+  printf("fracCDM2=%E\n", fracCDM2);
+  
+/*
+  Omega=darkOmega(&Xf,fast,Beps,&err);
+  printf("Omega1=%E\n", Omega);
+*/
 }
 
 #endif
+
+
+#ifdef FREEZEIN
+{
+  double TR=1E10;
+  double omegaFi;  
+  toFeebleList(CDM1);
+  VWdecay=0; VZdecay=0;
+  
+  
+  omegaFi=darkOmegaFi(TR,&err);
+  printf("omega freeze-in=%.3E\n", omegaFi);
+  printf("   omega1=%.3E omega2= %.3E fracCDM2=%.3E\n",omegaFi*(1-fracCDM2), omegaFi*fracCDM2,fracCDM2); 
+  printChannelsFi(0,0,stdout);
+}
+#endif
+
 
 
 #ifdef INDIRECT_DETECTION
@@ -212,7 +256,7 @@ printf("omega2=%.2E\n", Omega*fracCDM2);
   
 printf("\n==== Indirect detection =======\n");  
 
-  sigmaV=calcSpectrum(4,SpA,SpE,SpP,SpNe,SpNm,SpNl ,&err);
+  sigmaV=calcSpectrum(1+2+4,SpA,SpE,SpP,SpNe,SpNm,SpNl ,&err);
     /* Returns sigma*v in cm^3/sec.     SpX - calculated spectra of annihilation.
        Use SpectdNdE(E, SpX) to calculate energy distribution in  1/GeV units.
        
@@ -221,7 +265,6 @@ printf("\n==== Indirect detection =======\n");
                        4-print cross sections             
     */
   printf("sigmav=%.2E[cm^3/s]\n",sigmaV);  
-
 
   { 
      double fi=0.1,dfi=0.05; /* angle of sight and 1/2 of cone angle in [rad] */ 
@@ -301,7 +344,8 @@ printf("\n==== Indirect detection =======\n");
 { double pA0[2],pA5[2],nA0[2],nA5[2];
   double Nmass=0.939; /*nucleon mass*/
   double SCcoeff;        
-
+  double csSIp,csSIn,csSDp,csSDn, csSIp_,csSIn_,csSDp_,csSDn_;
+  
 printf("\n==== Calculation of CDM-nucleons amplitudes  =====\n");   
 
     nucleonAmplitudes(CDM1, pA0,pA5,nA0,nA5);
@@ -310,70 +354,40 @@ printf("\n==== Calculation of CDM-nucleons amplitudes  =====\n");
     printf("neutron: SI  %.3E [%.3E]  SD  %.3E [%.3E]\n",nA0[0], nA0[1],  nA5[0], nA5[1] ); 
 
     SCcoeff=4/M_PI*3.8937966E8*pow(Nmass*Mcdm1/(Nmass+ Mcdm1),2.);
+    csSIp=  SCcoeff*pA0[0]*pA0[0];  csSIp_=  SCcoeff*pA0[1]*pA0[1];
+    csSDp=3*SCcoeff*pA5[0]*pA5[0];  csSDp_=3*SCcoeff*pA5[1]*pA5[1];
+    csSIn=  SCcoeff*nA0[0]*nA0[0];  csSIn_=  SCcoeff*nA0[1]*nA0[1];
+    csSDn=3*SCcoeff*nA5[0]*nA5[0];  csSDn_=3*SCcoeff*nA5[1]*nA5[1];
+    
     printf("%s[%s]-nucleon cross sections[pb] :\n",CDM1,aCDM1);
-    printf(" proton  SI %.3E [%.3E] SD %.3E [%.3E]\n",
-       SCcoeff*pA0[0]*pA0[0],SCcoeff*pA0[1]*pA0[1],3*SCcoeff*pA5[0]*pA5[0],3*SCcoeff*pA5[1]*pA5[1]);
-    printf(" neutron SI %.3E [%.3E] SD %.3E [%.3E]\n",
-       SCcoeff*nA0[0]*nA0[0],SCcoeff*nA0[1]*nA0[1],3*SCcoeff*nA5[0]*nA5[0],3*SCcoeff*nA5[1]*nA5[1]);
-
+    printf(" proton  SI %.3E [%.3E] SD %.3E [%.3E]\n", csSIp,csSIp_,csSDp,csSDp_);
+    printf(" neutron SI %.3E [%.3E] SD %.3E [%.3E]\n", csSIn,csSIn_,csSDn,csSDn_); 
+                
     nucleonAmplitudes(CDM2, pA0,pA5,nA0,nA5);
     printf("%s[%s]-nucleon micrOMEGAs amplitudes\n",CDM2,aCDM2?aCDM2:CDM2);
     printf("proton:  SI  %.3E [%.3E]  SD  %.3E [%.3E]\n",pA0[0], pA0[1],  pA5[0], pA5[1] );
     printf("neutron: SI  %.3E [%.3E]  SD  %.3E [%.3E]\n",nA0[0], nA0[1],  nA5[0], nA5[1] ); 
 
     SCcoeff=4/M_PI*3.8937966E8*pow(Nmass*Mcdm2/(Nmass+ Mcdm2),2.);
+    csSIp=  SCcoeff*pA0[0]*pA0[0];  csSIp_=  SCcoeff*pA0[1]*pA0[1];
+    csSDp=3*SCcoeff*pA5[0]*pA5[0];  csSDp_=3*SCcoeff*pA5[1]*pA5[1];
+    csSIn=  SCcoeff*nA0[0]*nA0[0];  csSIn_=  SCcoeff*nA0[1]*nA0[1];
+    csSDn=3*SCcoeff*nA5[0]*nA5[0];  csSDn_=3*SCcoeff*nA5[1]*nA5[1];
+                    
     printf("%s[%s]-nucleon cross sections[pb]:\n",CDM2,aCDM2);
-    printf(" proton  SI %.3E [%.3E] SD %.3E [%.3E]\n",
-       SCcoeff*pA0[0]*pA0[0],SCcoeff*pA0[1]*pA0[1],3*SCcoeff*pA5[0]*pA5[0],3*SCcoeff*pA5[1]*pA5[1]);
-    printf(" neutron SI %.3E [%.3E] SD %.3E [%.3E]\n",
-       SCcoeff*nA0[0]*nA0[0],SCcoeff*nA0[1]*nA0[1],3*SCcoeff*nA5[0]*nA5[0],3*SCcoeff*nA5[1]*nA5[1]);
+    printf(" proton  SI %.3E [%.3E] SD %.3E [%.3E]\n", csSIp,csSIp_,csSDp,csSDp_);
+    printf(" neutron SI %.3E [%.3E] SD %.3E [%.3E]\n", csSIn,csSIn_,csSDn,csSDn_);             
 }
 #endif
   
 #ifdef CDM_NUCLEUS
-{ double dNdE[300];
-  double nEvents;
-
-printf("\n======== Direct Detection ========\n");    
-
-  nEvents=nucleusRecoil(Maxwell,73,Z_Ge,J_Ge73,SxxGe73,dNdE);
-
-  printf("73Ge: Total number of events=%.2E /day/kg\n",nEvents);
-  printf("Number of events in 10 - 50 KeV region=%.2E /day/kg\n",
-                                   cutRecoilResult(dNdE,10,50));
-                                                                                                         
-#ifdef SHOWPLOTS
-    displayRecoilPlot(dNdE,"Distribution of recoil energy of 73Ge",0,199);
-#endif
-
-  nEvents=nucleusRecoil(Maxwell,131,Z_Xe,J_Xe131,SxxXe131,dNdE);
-
-  printf("131Xe: Total number of events=%.2E /day/kg\n",nEvents);
-  printf("Number of events in 10 - 50 KeV region=%.2E /day/kg\n",
-                                   cutRecoilResult(dNdE,10,50));                                   
-#ifdef SHOWPLOTS
-    displayRecoilPlot(dNdE,"Distribution of recoil energy of 131Xe",0,199);
-#endif
-
-  nEvents=nucleusRecoil(Maxwell,23,Z_Na,J_Na23,SxxNa23,dNdE);
-
-  printf("23Na: Total number of events=%.2E /day/kg\n",nEvents);
-  printf("Number of events in 10 - 50 KeV region=%.2E /day/kg\n",
-                                   cutRecoilResult(dNdE,10,50));                                   
-#ifdef SHOWPLOTS
-    displayRecoilPlot(dNdE,"Distribution of recoil energy of 23Na",0,199);
-#endif
-
-  nEvents=nucleusRecoil(Maxwell,127,Z_I,J_I127,SxxI127,dNdE);
-
-  printf("I127: Total number of events=%.2E /day/kg\n",nEvents);
-  printf("Number of events in 10 - 50 KeV region=%.2E /day/kg\n",
-                                   cutRecoilResult(dNdE,10,50));                                   
-#ifdef SHOWPLOTS
-    displayRecoilPlot(dNdE,"Distribution of recoil energy of 127I",0,199);
-#endif
-  
+{ char* expName; 
+  printf("\n===== Direct detection exclusion:======\n");
+  double pval=DD_pval(AllDDexp, Maxwell, &expName);
+  if(pval<0.1 )  printf("Excluded by %s  %.1f%%\n", expName, 100*(1-pval)); 
+  else printf("Not excluded by DD experiments  at 90%% level \n");      
 }
+
 #endif 
 
 #ifdef CROSS_SECTIONS
@@ -402,8 +416,9 @@ printf("\n======== Direct Detection ========\n");
 #ifdef CLEAN
   system("rm -f HB.* HS.* hb.* hs.*  debug_channels.txt debug_predratio.txt  Key.dat");
   system("rm -f Lilith_*   particles.py*");
-  system("rm -f  smodels.in  smodels.log  smodels.out  summary.*");  
+//  system("rm -f  smodels.*");  
 #endif 
+
 
   killPlots();
   return 0;

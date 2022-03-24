@@ -241,7 +241,7 @@ static void sel_inf(Term w, int o)
 					prp=GetAtomProperty(CompoundArg2(ListFirst(l3)),
 							A_INFINITESIMAL);
 				if(prp && IntegerValue(CompoundArg1(prp))>0)
-					po+=IntegerValue(CompoundArg1(prp));
+					po+=(int)IntegerValue(CompoundArg1(prp));
 			}
 			if(po>9)
 				po=9;

@@ -70,7 +70,7 @@ int  getNumCoeff(lVert*vv, double * coeff);
 typedef struct{ double width; txtList pdList[2]; int status;}  decayTableStr;
 
 extern double   (*sqme)(int nsub,double GG,REAL *pvect,REAL*cb_coeff, int * err_code);
-extern double   decayPcm(double am0,  double  am1,  double  am2);
+extern REAL   decayPcm(REAL am0,  REAL  am1,  REAL  am2);
 extern double   decayPcmW(double m0,double m1,double m2,double w1,double w2,int N);
 extern int      ForceUG;
 extern int      procInfo1(numout*cc, int *nsub, int * nin, int *nout);

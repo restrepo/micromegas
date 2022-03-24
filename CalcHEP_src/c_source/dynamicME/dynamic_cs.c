@@ -22,6 +22,8 @@
 #include "dynamic_cs.h"
 
 #include"SLHAplus.h"
+
+extern  char * trim(char *);
   
 char  * libDir=NULL;
 char  * modelDir=NULL;
@@ -401,8 +403,8 @@ lVert* getVertex(char*n1,char*n2,char*n3,char*n4)
         int delWorkDir;
         
         delWorkDir=prepareWorkPlace();
-        sprintf(command,"cd %s; %s/sbin/newVertex models  %d  %s  %s %s",
-                       compDir, calchepDir,  modelNum, lib, libDir, vert_txt);
+        sprintf(command,"cd %s; %s/sbin/newVertex models  1  %s  %s %s",
+                       compDir, calchepDir,  lib, libDir, vert_txt);
         ret=system(command);
       
 //        if(ret<0 || WIFSIGNALED(ret)>0 ) exit(10);
@@ -441,7 +443,8 @@ int  getNumCoeff(lVert*vv, double * coeff)
    int i;   
    if(!vv) { printf("Call of  getNumCoeff with NULL argument. Program terminated\n"); exit(1);}
  
-   for(i=0;i<vv->nVar;i++) if(vv->link[i] &&  ((REAL*)(vv->link[i])-varValues) < *currentVarPtr)  vv->varValues[i+1]=*((REAL*)(vv->link[i])); else 
+   for(i=0;i<vv->nVar;i++) if(vv->link[i] &&  ((REAL*)(vv->link[i])-varValues) < *currentVarPtr) vv->varValues[i+1]=*((REAL*)(vv->link[i]));
+   else 
    { 
      printf("!Value of variable  '%s' needed for calculation of '%s' is not known yet\n",
      vv->varNames[i], varNames[*currentVarPtr]);  
@@ -462,61 +465,61 @@ txtList  makeProcList(char ** InNames, char** OutNames, int nx)
   char * fnameG;
   FILE *f;
   txtList List=NULL;
-  char process[50],lib[50];
+  char *process;
   char ** c;
   
-  process[0]=0;
-  sprintf(lib,"pList_");
+
+  char* allNames[10];
+  char* alias[10][10];
+  int nin=0,nout=0,nnew=0;
+  for(int i=0;InNames[i];i++) {allNames[i]=InNames[i];  nin++;}
+  if(OutNames) for(int i=0;OutNames[i];i++){allNames[nin+i]=OutNames[i]; nout++;}
+  for(int i=0;i<nin+nout;i++) 
+  {  int j;
+     for(j=0;  j<i;j++){ if(allNames[i]==allNames[j] || strcmp(allNames[i],allNames[j])==0) break;} 
+     if(i==j){ nnew++; sprintf(alias[i],"#_%d",nnew);} else alias[i][0]=0;
+  } 
+
+  int len=0; for(int i=0;i<nin+nout;i++) if(alias[i][0]) len+=strlen(allNames[i]);
   
-  for(c=InNames;*c;c++)
-  {  if(c!=InNames)strcat(process,",");
-/*printf("%s\n",*c);  */
-     strcat(process,*c);
-     pname2lib(*c,lname);
-     strcat(lib,lname);
-  }
-  strcat(process,"->");
-  strcat(lib,"_");
-  for(c=OutNames;*c;c++)
-  {  if(c!=OutNames)strcat(process,",");
-     strcat(process,*c);
-     pname2lib(*c,lname);
-     strcat(lib,lname);     
+  process=malloc(len+50);
+  strcpy(process,alias[0]);  
+  for(int i=1;i<nin+nout;i++)
+  {  
+     if(i==nin) strcat(process,"->"); else strcat(process,",");
+     for(int j=0;j<=i;j++) if(allNames[i]==allNames[j] || strcmp(allNames[i],allNames[j])==0)
+     { sprintf(process+strlen(process),"%s", alias[j]); break;}
   }
 
-  if(nx)
-  { if(OutNames[0]) strcat(process,",");   
-    sprintf(process+strlen(process),"%d*x",nx);
-    sprintf(lib+strlen(lib),"_%dx",nx);
-  }   
-/*  
-printf("lib=%s\n",lib);
-printf("process=%s\n",process);
-*/
-  fnameG=malloc(strlen(libDir)+50);
-  sprintf(fnameG,"%s/%s",libDir,lib);
-    
-  if(access(fnameG, R_OK)|| checkMtime(fnameG))
-  {  char * command=malloc(strlen(compDir) + strlen(calchepDir) + strlen(libDir) + 200);
-     int delWorkDir=prepareWorkPlace();
-     sprintf(command,"cd %s;"
-       " %s/bin/s_calchep -blind \"{{%s{{{[[{0\" >/dev/null;"
-       " if(test $? -eq 0) then mv results/list_prc.txt %s/%s ; fi",
-       compDir,calchepDir,process, libDir,lib);
-     system(command);
-     free(command);
-     if(delWorkDir) cleanWorkPlace();
-  }
+  if(nx){ if(nout) strcat(process,",");  sprintf(process+strlen(process),"%d*x{",nx); } 
+  for(int i=0;i<nin+nout;i++) if(alias[i][0]) sprintf(process+strlen(process),"{%s",allNames[i]);
+
+//printf("command:\n%s\n",command);      
+
+  char * command=malloc(strlen(compDir) + strlen(calchepDir) + strlen(process) + 100);
+  int delWorkDir=prepareWorkPlace();
+  sprintf(command,"cd %s; %s/bin/s_calchep -blind \"{{%s{{[[{0\" >/dev/null",
+                  compDir,calchepDir,                process);   
+//printf("command=%s\n", command);                  
+  system(command);
+  free(command); free(process);     
+  fnameG=malloc(strlen(compDir)+50);
+  sprintf(fnameG,"%s/results/list_prc.txt",compDir);        
   f=fopen(fnameG,"r");
   free(fnameG);
-  if(!f) return NULL;
+
+  if(!f) {if(delWorkDir) cleanWorkPlace();  return NULL;}
   for(; 1==fscanf(f,"%[^\n]\n",buff); )
   { txtList l=malloc(sizeof(txtListStr));
     l->next=List; List=l;
     l->txt=malloc(strlen(buff)+1);
     strcpy(l->txt,buff);
   }
+     
   fclose(f);
+       
+  if(delWorkDir) cleanWorkPlace();
+  
   return List;
 }
 

@@ -9,7 +9,7 @@
 
 #include "spinor.h"
 
-int spinLength;
+//int spinLength;
 
 static int   nused;        /* from calcspur     */
 static int   used[118];    /* from calcspur     */ 

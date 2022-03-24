@@ -23,7 +23,7 @@ int  opEvalVrt = 1;
 
 int write_all_vertices = 0;
 int MultByI=0;
-int LagrHashSize=1713;
+unsigned int LagrHashSize=1713;
 int opSortLagr=1;
 
 List *lagr_hash = NULL;
@@ -124,8 +124,7 @@ Term ProcLTerm(Term t, Term ind)
 		WriteLagr(0,0);
 		return 0;
 		}
-		
-	t1=ProcessAlias(t1);
+
 		
 	RegisterLine("ProcLTerm: ExprTo11");
 	
@@ -230,7 +229,7 @@ static void plt_2(Term t, List nind)
 /*	lgrng=alg2_add(lgrng,t1);*/
 	
 	stt=clock();
-	alg2_hash_add(lagr_hash,LagrHashSize,t1);
+	alg2_hash_add(lagr_hash,(int)LagrHashSize,t1);
 	tm_add+=(clock()-stt);
 	
 	UnregisterLine();
@@ -271,12 +270,16 @@ void texWriteLagr(int fno)
 	fclose(f);
 	return;
 	}
-	
+
+#include <dirent.h>
+extern char *InputDirectory;
+
 void FAWriteLagr(int fno)
 	{
 	FILE *f;
 	List l;
-	
+	if(OutputDirectory)
+		printf("Writing files to the folder %s\n",OutputDirectory); 
 	if(UFOutput==0)
 	{
 	if(OutputDirectory!=NULL)
@@ -297,7 +300,7 @@ void FAWriteLagr(int fno)
 		printf("Writing vertices.py...\n");
 		
 	l=all_vert_list();
-	
+                
 	if(opSortLagr)
 		l=SortedList(l,sort_lagr_fa);
 	check_em_charge(l);
@@ -338,7 +341,35 @@ void FAWriteLagr(int fno)
 		UF_write_gen();
 	}
 	if(UFOutput)
-	printf("\nStatic files for UFO model can be found in mdl/ufo-static/ of LanHEP source direcory\n\n");
+	{
+	printf("\nCopying static files...\n");
+	char cbuf[1000];
+	sprintf(cbuf,"%s/ufo-static",InputDirectory);
+	DIR *ufo=opendir(cbuf);
+	if(ufo==0) printf("Error: can not find UFO static files\n");
+	else
+	{
+		struct dirent *dp;
+		while((dp=readdir(ufo))!=NULL)
+		{
+			if(dp->d_type==8)
+			{
+				char ibuf[1000], obuf[1000];
+				char buf[100];
+				unsigned long int brd;
+				FILE *fi, *fo;
+				sprintf(ibuf,"%s/ufo-static/%s",InputDirectory,dp->d_name);
+				sprintf(obuf,"%s/%s",OutputDirectory?OutputDirectory:".",dp->d_name);
+				fi=fopen(ibuf,"rb"); if(fi==0) continue;
+				fo=fopen(obuf,"wb"); if(fo==0) {fclose(fi); continue;}
+				while((brd=fread(buf,1,100,fi))!=0) fwrite(buf,1,brd,fo);
+				fclose(fi);
+				fclose(fo);
+			}
+		}
+		closedir(ufo);
+	}
+	}
 	FreeAtomic(l);
 	
 	return;
@@ -557,7 +588,7 @@ static int wrt_sln(List mm, FILE *f, int b_l, int is_0)
 		List lp;
 		int ast=0;
 		m2=ListFirst(s);
-		cf=IntegerValue(CompoundArg1(m2));
+		cf=(int)IntegerValue(CompoundArg1(m2));
 		lp=CompoundArg2(m2);
 		if(!first && b_l)
 			{
@@ -586,7 +617,7 @@ static int wrt_sln(List mm, FILE *f, int b_l, int is_0)
 		while(!is_empty_list(lp))
 			{
 			int po;
-			po=IntegerValue(CompoundArg2(ListFirst(lp)));
+			po=(int)IntegerValue(CompoundArg2(ListFirst(lp)));
 			if(ast)
 				w+=fprintf(f,"*");
 			else
@@ -605,11 +636,11 @@ static int exc_cnf(List ml)
 {
 	int cf;
 	List l;
-	cf=IntegerValue(CompoundArg1(ListFirst(ml)));
+	cf=(int)IntegerValue(CompoundArg1(ListFirst(ml)));
 	if(cf<0)
 		cf=-cf;
 	for(l=ListTail(ml);l;l=ListTail(l))
-		cf=gcf(cf,IntegerValue(CompoundArg1(ListFirst(l))));
+		cf=(int)gcf(cf,IntegerValue(CompoundArg1(ListFirst(l))));
 	if(IntegerValue(CompoundArg1(ListFirst(ml)))<0)
 		cf=-cf;
 	for(l=ml;l;l=ListTail(l))
@@ -706,8 +737,8 @@ static int sort_wsl(Term k1, Term k2)
 	{
 		p1=CompoundArg1(ListFirst(l1));
 		p2=CompoundArg1(ListFirst(l2));
-		i1=IntegerValue(CompoundArg2(ListFirst(l1)));
-		i2=IntegerValue(CompoundArg2(ListFirst(l2)));
+		i1=(int)IntegerValue(CompoundArg2(ListFirst(l1)));
+		i2=(int)IntegerValue(CompoundArg2(ListFirst(l2)));
 		if(p1!=p2)
 			return strcmp(AtomValue(p1),AtomValue(p2));
 		if(i1>i2)
@@ -749,7 +780,7 @@ static int wrt_scalar(List m2, FILE *ouf)
 			if(pp && is_integer(pp) && IntegerValue(pp)<prior)
 				{
 				lp1=lp;
-				prior=IntegerValue(pp);
+				prior=(int)IntegerValue(pp);
 				}
 			lp=ListTail(lp);
 			}
@@ -832,7 +863,7 @@ static int wrt_scalar(List m2, FILE *ouf)
 	/*	c_n_f=exc_cnf(l3);
 		c_s_f=exc_csf(l3);
 	*/
-		c_n_f=IntegerValue(CompoundArgN(ListFirst(l1),3));
+		c_n_f=(int)IntegerValue(CompoundArgN(ListFirst(l1),3));
 		c_s_f=ConsumeCompoundArg(ListFirst(l1),4);
 		
 	/*	printf("%d*",c_n_f);WriteTerm(c_s_f);printf("*");WriteTerm(l3);puts("");*/
@@ -864,7 +895,7 @@ static int wrt_scalar(List m2, FILE *ouf)
 			for(i1=sim_te;i1;i1=ListTail(i1))
 			{
 				i2=ListFirst(i1);
-				c_n_f=IntegerValue(CompoundArgN(ListFirst(i2),3));
+				c_n_f=(int)IntegerValue(CompoundArgN(ListFirst(i2),3));
 				c_s_f=ConsumeCompoundArg(ListFirst(i2),4);
 				m2=MakeCompound(A_MTERM,3);
 				SetCompoundArg(m2,1,NewInteger(c_n_f));
@@ -974,8 +1005,8 @@ static void write_l_line(FILE *f, Term a2)
 	{
 	int num,den,w;
 	List s,sn,sd;
-	num=IntegerValue(CompoundArg1(CompoundArg2(a2)));
-	den=IntegerValue(CompoundArg2(CompoundArg2(a2)));
+	num=(int)IntegerValue(CompoundArg1(CompoundArg2(a2)));
+	den=(int)IntegerValue(CompoundArg2(CompoundArg2(a2)));
 
 	sn=sd=NewList();
 	for(s=CompoundArgN(a2,3);s;s=ListTail(s))
@@ -1008,7 +1039,7 @@ static void write_l_line(FILE *f, Term a2)
 		else
 			{
 			p=CompoundArg1(ListFirst(s));
-			po=IntegerValue(CompoundArg2(ListFirst(s)));
+			po=(int)IntegerValue(CompoundArg2(ListFirst(s)));
 			w+=fprintf(f,"%s",AtomValue(p));
 			if(po!=1)
 				w+=fprintf(f,"%s%d",ChepVersion==3?"**":"^",po);
@@ -1036,7 +1067,7 @@ static void write_l_line(FILE *f, Term a2)
 			else
 				{
 				p=CompoundArg1(ListFirst(s));
-				po=-IntegerValue(CompoundArg2(ListFirst(s)));
+				po=-(int)IntegerValue(CompoundArg2(ListFirst(s)));
 				w+=fprintf(f,"%s",AtomValue(p));
 				if(po!=1)
 					w+=fprintf(f,"%s%d",ChepVersion==3?"**":"^",po);
@@ -1110,7 +1141,7 @@ void WriteLgrngn(Term l, FILE *fout)
 	
 	prp=GetAtomProperty(NewAtom("chepOutput",0),NewAtom("cfWidth",0));
 	if(is_integer(prp))
-		C_F_WIDTH=IntegerValue(prp);
+		C_F_WIDTH=(int)IntegerValue(prp);
 /*
 	if(MultByI)
 	{
@@ -1650,7 +1681,7 @@ Term ProcReduceLagr(Term t, Term ind)
 	{
 		printf("ReduceLagr: %d vertices in %d lists, ave %d, sigma %d, max %d; ",
 				cnt, LagrHashSize, ll_1/LagrHashSize,
-				(ll_2-ll_1*ll_1/LagrHashSize)/LagrHashSize, ll_m);
+				(ll_2-ll_1*ll_1/(int)LagrHashSize)/(int)LagrHashSize, ll_m);
 		fflush(stdout);
 	}
 
@@ -1806,7 +1837,7 @@ Term ProcLoadLagr(Term t, Term ind)
 			Term a21;
 			a21=CopyTerm(a2);
 			SetCompoundArg(a21,5,AppendLast(NewList(),ListFirst(l1)));
-			alg2_hash_add(lagr_hash,LagrHashSize,AppendLast(NewList(),a21));
+			alg2_hash_add(lagr_hash,(int)LagrHashSize,AppendLast(NewList(),a21));
 			l1=ListTail(l1);
 			}
 		RemoveList(l2);

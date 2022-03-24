@@ -373,7 +373,7 @@ int slhaBasicReader( int mode, int (*getLnPar)(int, char*), int *anydate,char * 
 /* NORMAL BLOCK */      
       { blockStr*newBlock;
         if( sscanf(buff+6,"%*s %s", rest)==EOF) scale=-1;  
-        else if(sscanf(buff+6,"%*s %*s %lf %s", &scale, rest)!=1)
+        else if(sscanf(buff+6,"%*s %*[^=]= %lf %s", &scale, rest)!=1)
         { 
            sprintf(wTxt,"SLHAreader: line %d: Unexpected BLOCK specification",nLine);
            addWarning(wTxt);
@@ -711,6 +711,23 @@ double  slhaValFormat(char * Block, double Q, char * format)
        char body_[StrLn+3];
        char buff[StrLn];
        sprintf(body_,"%s #",dr->body);
+       int i1=0,i2=0,eq;    
+       for(;;)
+       {  
+          for(; dr->body[i1]==' ';i1++) continue;
+          for(; format[i2]==' '  ;i2++) continue;
+      
+          if(format[i2]=='%')          {eq=1; break;}
+          if(dr->body[i1]!=format[i2]) {eq=0; break;}
+          
+          while(dr->body[i1]==format[i2] && dr->body[i1]!=0 && dr->body[i1]!=' ') {i1++;i2++;}
+          if(dr->body[i1]==0 || format[i2]==0) {eq=0; break;}
+          if(format[i2]=='%')                  {eq=1; break;}
+          if(dr->body[i1]!=format[i2])         {eq=0; break;}
+       }
+       
+       if(!eq) continue;
+              
        err=sscanf(body_,format_,&v,buff);
        if(err==2 && strcmp(buff,"#")==0) 
        { found[pos]=1; scale[pos]=blck->scale; val[pos]=v; slhaComment=dr->txt;  break; }
@@ -748,15 +765,30 @@ int   slhaSTRFormat(char * Block, char * format, char *txt)
   {  char format_[BlckLn +4];
 
      dr=blck->dataList;
-     sprintf(format_," %s %%s",format);
+     strcpy(format_,format); strcat(format_," %s");
      for(;dr;dr=dr->next)
      { int err;
-       double v;
+       int i1=0,i2=0,eq;    
+       for(;;)
+       {  
+          for(; dr->body[i1]==' ';i1++) continue;
+          for(; format[i2]==' '  ;i2++) continue;
+      
+          if(format[i2]=='%')          {eq=1; break;}
+          if(dr->body[i1]!=format[i2]) {eq=0; break;}
+          
+          while(dr->body[i1]==format[i2] && dr->body[i1]!=0 && dr->body[i1]!=' ') {i1++;i2++;}
+          if(dr->body[i1]==0 || format[i2]==0) {eq=0; break;}
+          if(format[i2]=='%')                  {eq=1; break;}
+          if(dr->body[i1]!=format[i2])         {eq=0; break;}
+       }
+       
+       if(!eq) continue;
        char body_[StrLn+3];
        char buff[StrLn];
-       sprintf(body_,"%s #",dr->body);
-       err=sscanf(body_,format_,txt,buff);
-//printf("body=|%s| format=|%s|,err=%d\n",body_,format_,err);
+       strcpy(body_,dr->body);  strcat(body_," #");
+       
+       err=sscanf(body_+i1,format_+i2,txt,buff);
        if(err==2 && strcmp(buff,"#")==0) {return 0; }
      }  
   }

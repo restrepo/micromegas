@@ -290,7 +290,7 @@ static void mult_no(List e1, int no)
 	{
 	while(!is_empty_list(e1))
 		{
-		int v;
+		long int v;
 		v=IntegerValue(CompoundArg1(ListFirst(e1)));
 		v*=no;
 		SetCompoundArg(ListFirst(e1),1,NewInteger(v));
@@ -303,7 +303,7 @@ static void mult_no(List e1, int no)
 static Term multiply(Term t1, Term t2)
 	{
 	Term ret;
-	int n1,n2,d1,d2,num,den,cf;
+	long int n1,n2,d1,d2,num,den,cf;
 	List l1,l2;
 	ret=MakeCompound(A_MTERM,4);
 	n1=IntegerValue(CompoundArg1(t1));
@@ -364,7 +364,7 @@ static void invert_term(Term t)
 	{
 	
 		{
-		int i1,i2;
+		long int i1,i2;
 		i1=IntegerValue(CompoundArg1(t));
 		i2=IntegerValue(CompoundArg2(t));
 		if(i1<0 && i2>0)
@@ -566,7 +566,7 @@ Term ExpandTerm(Term t)
 			FreeAtomic(t1); FreeAtomic(t2);
 			longjmp(alg1_jmp_buf,1);
 			}
-		pp=IntegerValue(t2);
+		pp=(int)IntegerValue(t2);
 		t1=ExpandTerm(t1);
 		ret=CopyTerm(t1);
 		for(i=2;i<=pp;i++)

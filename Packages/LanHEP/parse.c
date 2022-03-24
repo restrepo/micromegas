@@ -76,7 +76,7 @@ static Term read_term(Atomic *stop)
 				}
 			if( GetOperator(c_a,OP_PREFIX,&ass,&prior)!=0 && /*n_a!=A_RBRA &&*/
 				n_a!=end && n_a!=A_RCET && n_a!=A_FCET && n_a!=A_QCET
-				&& (n_a==OPR_MINUS || GetOperator(n_a,OP_INFIX,NULL,NULL)==0))
+				&& (n_a==OPR_MINUS || n_a==OPR_PLUS || GetOperator(n_a,OP_INFIX,NULL,NULL)==0))
 				{
 				Term tt;
 				tt=NewCompound(funct);
@@ -370,9 +370,11 @@ static Term list_to_term(List list)
 	{
 	List l1, lop=0, l2;
 	Term ct;
-	int minprior=-1, oper_type;
+	int minprior=-1;
+    Atom  oper_type;
 	Atom oper_assoc;
-	Atom oper;
+ 	Atom oper;
+	
 	if(ListTail(list)==0)
 		{
 		Term ret;
@@ -380,8 +382,7 @@ static Term list_to_term(List list)
 		FreeAtomic(list);
 		return ret;
 		}
-
-
+		
 /*	l1=list;
 	while(l1!=0)
 		{
@@ -400,7 +401,7 @@ static Term list_to_term(List list)
 		{
 		int pri;
 		ct=ListFirst(l1);
-		pri=IntegerValue(CompoundArgN(ct,3));
+		pri=(int)IntegerValue(CompoundArgN(ct,3));
 		if(pri>minprior) minprior=pri;
 		l1=ListTail(l1);
 		}
@@ -465,7 +466,7 @@ static Term list_to_term(List list)
 	l1=ListSplit(l1,lop,&l2);
 
 	FreeAtomic(lop);
-
+    
 	if(oper_type==OP_PREFIX)
 		{
 		Functor ff;

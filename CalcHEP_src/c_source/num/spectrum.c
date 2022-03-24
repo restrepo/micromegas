@@ -9,6 +9,7 @@
 #include "dynamic_cs.h"
 #include "runVegas.h"
 #include "vp.h"
+#include "../../include/VandP_size.h"
 #include "spectrum.h"
 
 
@@ -67,18 +68,19 @@ static void  writeSLHA(void)
 
 void show_spectrum(int X, int Y)
 { int i;
-  char *menuP=malloc(2+24*(1+nModelParticles));
+  char *menuP=malloc(2+(P_NAME_SIZE+10)*(1+nModelParticles));
   int mode=1;  
-  menuP[0]=24;
+  menuP[0]=P_NAME_SIZE+10;
   menuP[1]=0;
   
-  sprintf(menuP+1," All Particles -> SLHA  ");
+  sprintf(menuP+1, " All Particles->SLHA%-*.*s",P_NAME_SIZE-10,P_NAME_SIZE-10,"");
   
   for(i=0;i<nModelParticles;i++)
   { char *mass=ModelPrtcls[i].mass;
     char *name=ModelPrtcls[i].name;
-    if(!strcmp(mass,"0")) sprintf(menuP+strlen(menuP)," %-6.6s      Zero       ",name);
-    else sprintf(menuP+strlen(menuP)," %-6.6s  %14.4E ",name,pMass(name));
+    if(!strcmp(mass,"0")) sprintf(menuP+strlen(menuP)," %-*.*s     Zero   ",P_NAME_SIZE-3,P_NAME_SIZE-3,name);
+    else sprintf(menuP+strlen(menuP)," %-*.*s %10.2E ",P_NAME_SIZE-3,P_NAME_SIZE-3,name,pMass(name));
+
   }
   
   while(mode)

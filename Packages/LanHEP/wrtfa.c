@@ -24,7 +24,7 @@ static List cpml=0;
 List fainclude=0;
 
 void inf_write_rc(FILE *), cls_write_dmatr(FILE *);
-void alg2_fix_uuv(Term), alg2_fix_ff(Term), alg2_red_rc(Term);
+void alg2_fix_uuv(Term), alg2_fix_ff(Term), alg2_fix_mom2(Term), alg2_red_rc(Term);
 void alg2_abbr_vrt(Term), alg2_eval_vrtn(Term);
 
 void cls_wrt_ind(FILE *), cls_wrt_nms(FILE *, List), alg2_setcls(List);
@@ -65,8 +65,8 @@ static int mlsort(Term m1, Term m2)
 			return strcmp(AtomValue(CompoundArg1(ListFirst(l1))),
 					AtomValue(CompoundArg1(ListFirst(l2))));
 		if(CompoundArg2(ListFirst(l1))!=CompoundArg2(ListFirst(l2)))
-			return IntegerValue(CompoundArg2(ListFirst(l1)))-
-					IntegerValue(CompoundArg2(ListFirst(l2)));
+			return (int)IntegerValue(CompoundArg2(ListFirst(l1)))-
+					(int)IntegerValue(CompoundArg2(ListFirst(l2)));
 	}
 	l1=CompoundArgN(m1,3);
 	l2=CompoundArgN(m2,3);
@@ -76,9 +76,9 @@ static int mlsort(Term m1, Term m2)
 	{
 		List l3,l4;
 		if(CompoundName(ListFirst(l1))!=CompoundName(ListFirst(l2)))
-			return CompoundName(ListFirst(l1))-CompoundName(ListFirst(l2));
+			return (int)(CompoundName(ListFirst(l1))-CompoundName(ListFirst(l2)));
 		if(CompoundArg1(ListFirst(l1))!=CompoundArg1(ListFirst(l2)))
-			return CompoundArg1(ListFirst(l1))-CompoundArg1(ListFirst(l2));
+			return (int)(CompoundArg1(ListFirst(l1))-CompoundArg1(ListFirst(l2)));
 		l3=CompoundArg2(ListFirst(l1));
 		l4=CompoundArg2(ListFirst(l2));
 		for(;l3;l3=ListTail(l3),l4=ListTail(l4))
@@ -169,12 +169,21 @@ void FA_write_lagr(List l, FILE *f)
 						Term ch=GetAtomProperty(CompoundArg1(p),A_EM_CHARGE);
 						fprintf(f,"\tCharge -> ");
 						if(ch==0)
-							fprintf(f,"0\n");
+							fprintf(f,"0,\n");
 						else if(CompoundArg2(ch)==NewInteger(1))
-							fprintf(f,"%ld\n",IntegerValue(CompoundArg1(ch)));
+							fprintf(f,"%ld,\n",IntegerValue(CompoundArg1(ch)));
 						else
-							fprintf(f,"%ld/%ld\n",IntegerValue(CompoundArg1(ch)),
+							fprintf(f,"%ld/%ld,\n",IntegerValue(CompoundArg1(ch)),
 											IntegerValue(CompoundArg2(ch)));
+                                                if(ch)
+                                                {
+                                                    fprintf(f,"\tQuantumNumbers -> {");
+                                                    if(CompoundArg2(ch)==NewInteger(1))
+							fprintf(f," %ld Charge },\n",IntegerValue(CompoundArg1(ch)));
+                                                    else
+							fprintf(f," %ld/%ld Charge },\n",IntegerValue(CompoundArg1(ch)),
+											IntegerValue(CompoundArg2(ch)));
+                                                }
 						}
 				fprintf(f,"\tPropagatorLabel -> \"%s\",\n",AtomValue(CompoundArg1(g)));
 				fprintf(f,"\tPropagatorType -> GhostDash,\n");
@@ -200,11 +209,11 @@ void FA_write_lagr(List l, FILE *f)
 						Term ch=GetAtomProperty(CompoundArg2(p),A_EM_CHARGE);
 						fprintf(f,"\tCharge -> ");
 						if(ch==0)
-							fprintf(f,"0\n");
+							fprintf(f,"0,\n");
 						else if(CompoundArg2(ch)==NewInteger(1))
-							fprintf(f,"%ld\n",IntegerValue(CompoundArg1(ch)));
+							fprintf(f,"%ld,\n",IntegerValue(CompoundArg1(ch)));
 						else
-							fprintf(f,"%ld/%ld\n",IntegerValue(CompoundArg1(ch)),
+							fprintf(f,"%ld/%ld,\n",IntegerValue(CompoundArg1(ch)),
 											IntegerValue(CompoundArg2(ch)));
 						}
 				fprintf(f,"\tPropagatorLabel -> \"%s\",\n",AtomValue(CompoundArg1(g)));
@@ -239,11 +248,11 @@ void FA_write_lagr(List l, FILE *f)
 						Term ch=GetAtomProperty(a,A_EM_CHARGE);
 						fprintf(f,"\tCharge -> ");
 						if(ch==0)
-							fprintf(f,"0\n");
+							fprintf(f,"0,\n");
 						else if(CompoundArg2(ch)==NewInteger(1))
-							fprintf(f,"%ld\n",IntegerValue(CompoundArg1(ch)));
+							fprintf(f,"%ld,\n",IntegerValue(CompoundArg1(ch)));
 						else
-							fprintf(f,"%ld/%ld\n",IntegerValue(CompoundArg1(ch)),
+							fprintf(f,"%ld/%ld,\n",IntegerValue(CompoundArg1(ch)),
 											IntegerValue(CompoundArg2(ch)));
 						}
 					fprintf(f,"\tPropagatorLabel -> \"%s\",\n",AtomValue(tnm));
@@ -274,11 +283,11 @@ void FA_write_lagr(List l, FILE *f)
 						Term ch=GetAtomProperty(a,A_EM_CHARGE);
 						fprintf(f,"\tCharge -> ");
 						if(ch==0)
-							fprintf(f,"0\n");
+							fprintf(f,"0,\n");
 						else if(CompoundArg2(ch)==NewInteger(1))
-							fprintf(f,"%ld\n",IntegerValue(CompoundArg1(ch)));
+							fprintf(f,"%ld,\n",IntegerValue(CompoundArg1(ch)));
 						else
-							fprintf(f,"%ld/%ld\n",IntegerValue(CompoundArg1(ch)),
+							fprintf(f,"%ld/%ld,\n",IntegerValue(CompoundArg1(ch)),
 											IntegerValue(CompoundArg2(ch)));
 						}
 					fprintf(f,"\tPropagatorLabel -> \"%s\",\n",AtomValue(tnm));
@@ -307,11 +316,11 @@ void FA_write_lagr(List l, FILE *f)
 						Term ch=GetAtomProperty(a,A_EM_CHARGE);
 						fprintf(f,"\tCharge -> ");
 						if(ch==0)
-							fprintf(f,"0\n");
+							fprintf(f,"0,\n");
 						else if(CompoundArg2(ch)==NewInteger(1))
-							fprintf(f,"%ld\n",IntegerValue(CompoundArg1(ch)));
+							fprintf(f,"%ld,\n",IntegerValue(CompoundArg1(ch)));
 						else
-							fprintf(f,"%ld/%ld\n",IntegerValue(CompoundArg1(ch)),
+							fprintf(f,"%ld/%ld,\n",IntegerValue(CompoundArg1(ch)),
 											IntegerValue(CompoundArg2(ch)));
 						}
 					fprintf(f,"\tPropagatorLabel -> \"%s\",\n",AtomValue(tnm));
@@ -352,11 +361,11 @@ void FA_write_lagr(List l, FILE *f)
 						Term ch=GetAtomProperty(bp,A_EM_CHARGE);
 						fprintf(f,"\tCharge -> ");
 						if(ch==0)
-							fprintf(f,"0\n");
+							fprintf(f,"0,\n");
 						else if(CompoundArg2(ch)==NewInteger(1))
-							fprintf(f,"%ld\n",IntegerValue(CompoundArg1(ch)));
+							fprintf(f,"%ld,\n",IntegerValue(CompoundArg1(ch)));
 						else
-							fprintf(f,"%ld/%ld\n",IntegerValue(CompoundArg1(ch)),
+							fprintf(f,"%ld/%ld,\n",IntegerValue(CompoundArg1(ch)),
 											IntegerValue(CompoundArg2(ch)));
 						}
 				fprintf(f,"\tPropagatorLabel -> \"%s\",\n",AtomValue(tnm));
@@ -387,8 +396,8 @@ void FA_write_lagr(List l, FILE *f)
 		if(CompoundName(p)==OPR_FIELD && GetAtomProperty(a,A_FANUM))
 		{
 			Term fp=GetAtomProperty(a,A_FANUM);
-			int cl=IntegerValue(ListFirst(fp));
-			int no=IntegerValue(ListFirst(ListTail(fp)));
+			int cl=(int)IntegerValue(ListFirst(fp));
+			int no=(int)IntegerValue(ListFirst(ListTail(fp)));
 			fprintf(f,"prt[\"");fWriteTerm(f,a);fprintf(f,"\"] = ");
 			if(no<0) { fprintf(f,"-"); no=-no;}
 			switch(cl){
@@ -406,8 +415,8 @@ void FA_write_lagr(List l, FILE *f)
 			Term fp=GetAtomProperty(a,A_FANUM);
 			int cl, no;
 			if(fp==0) continue;
-			cl=IntegerValue(ListFirst(fp));
-			no=IntegerValue(ListFirst(ListTail(fp)));
+			cl=(int)IntegerValue(ListFirst(fp));
+			no=(int)IntegerValue(ListFirst(ListTail(fp)));
 			fprintf(f,"prt[\"");fWriteTerm(f,a);fprintf(f,"\"] = ");
 			if(no<0) { fprintf(f,"-"); no=-no;}
 			switch(cl){
@@ -448,7 +457,9 @@ void FA_write_lagr(List l, FILE *f)
 			{
 				List l3;
 				for(l3=CompoundArg2(ListFirst(l2));l3;l3=ListTail(l3))
-					if(GetAtomProperty(CompoundArg1(ListFirst(l3)),A_INFINITESIMAL))
+					if(GetAtomProperty(CompoundArg1(ListFirst(l3)),A_INFINITESIMAL) &&
+                                        !GetAtomProperty(CompoundArg1(ListFirst(l3)),PROP_TYPE)
+                                        )
 						break;
 				if(l3)
 				{
@@ -467,6 +478,7 @@ void FA_write_lagr(List l, FILE *f)
 		alg2_common_n(a2);
 		alg2_common_s(a2);
 		alg2_fix_uuv(a2);
+		alg2_fix_mom2(a2);
 /*		alg2_red_cos(a2);
 		alg2_red_orth(a2);
 		
@@ -480,7 +492,9 @@ void FA_write_lagr(List l, FILE *f)
 		alg2_red_comsico(a2);
 */
 		if(CompoundArgN(a2,5)==0) continue;
+       
 		alg2_red_1pm5(a2);
+       
 		alg2_fix_ff(a2);
 		if(opAbbrVrt)
 		{
@@ -665,7 +679,7 @@ DumpList(gkl);
 			if(fai==0) printf("Internal error - miss no for %s\n",
 				AtomValue(CompoundArg1(ListFirst(l2))));
 			else
-				ii=IntegerValue(ListFirst(ListTail(fai)));
+				ii=(int)IntegerValue(ListFirst(ListTail(fai)));
 			if(ii<0) {fprintf(f,"-");ii=-ii;}
 			fprintf(f,"%c[%d",c,ii);
 			if(pind[i]||wind[i]) 
@@ -714,9 +728,11 @@ DumpList(gkl);
 			if(l3==0 || i>=lvl)
 			{puts("Internal error wrtfa06");continue;}
 			for(l3=CompoundArg2(ListFirst(l2));l3;l3=ListTail(l3))
-				if((pr=GetAtomProperty(CompoundArg1(ListFirst(l3)),A_INFINITESIMAL)))
-					io+=IntegerValue(CompoundArg1(pr))*
-						IntegerValue(CompoundArg2(ListFirst(l3)));
+				if((pr=GetAtomProperty(CompoundArg1(ListFirst(l3)),A_INFINITESIMAL))
+                                    && !GetAtomProperty(CompoundArg1(ListFirst(l3)),PROP_TYPE)
+                                )
+					io+=(int)IntegerValue(CompoundArg1(pr))*
+						(int)IntegerValue(CompoundArg2(ListFirst(l3)));
 			for(l3=CompoundArgN(ListFirst(l2),3);l3;l3=ListTail(l3))
 				if((is_atom(CompoundArg1(ListFirst(l3)))&& 
 				  (pr=GetAtomProperty(CompoundArg1(ListFirst(l3)),A_INFINITESIMAL))))
@@ -862,7 +878,7 @@ static Term conv_lor(List pl, Term m2, int eff)
 	
 	if(CompoundName(CompoundArg2(ListFirst(pl)))==OPR_SPINOR)
 	{
-		int curi=pind[0];
+		long int curi=pind[0];
 		for(l=CompoundArgN(m2,3);l&&curi!=pind[1];l=ListTail(l))
 		{
 			rpt:
@@ -997,7 +1013,7 @@ static Term conv_lor(List pl, Term m2, int eff)
 			continue;
 		if(CompoundName(ListFirst(l))==A_MOMENT)
 		{
-			int p1=IntegerValue(CompoundArg1(ListFirst(l)));
+			int p1=(int)IntegerValue(CompoundArg1(ListFirst(l)));
 			Term pi=ListFirst(CompoundArg2(ListFirst(l)));
 			List l2;
 			for(i=0;i<4;i++)
@@ -1015,7 +1031,7 @@ static Term conv_lor(List pl, Term m2, int eff)
 				if(CompoundName(ListFirst(l2))==A_MOMENT && 
 						pi==ListFirst(CompoundArg2(ListFirst(l2))))
 				{
-					int p2=IntegerValue(CompoundArg1(ListFirst(l2)));
+					int p2=(int)IntegerValue(CompoundArg1(ListFirst(l2)));
 					if(p1<p2)
 						cc=AppendLast(cc,MakeCompound2(A_DELTA,imom[p1-1],imom[p2-1]));
 					else
@@ -1056,7 +1072,7 @@ static void wrt_expr(FILE *of, Term num, List sym, List ten)
 	NoQuotes=1;
 	if(is_integer(num) || (is_compound(num)&&IntegerValue(CompoundArg2(num))==1))
 	{
-		int n=IntegerValue(is_integer(num)?num:CompoundArg1(num));
+		int n=(int)IntegerValue(is_integer(num)?num:CompoundArg1(num));
 		if(n==-1 && ((sym&&IntegerValue(CompoundArg2(ListFirst(sym)))>0)||(ten&&(!sym))))
 			sno+=fprintf(of,"- "),f=0;
 		else if(n!=1 || (is_integer(num)&&(!sym)&&(!ten)) )
@@ -1072,7 +1088,7 @@ static void wrt_expr(FILE *of, Term num, List sym, List ten)
 	for(l=sym;l;l=ListTail(l))
 	{
 		Atom p=CompoundArg1(ListFirst(l));
-		int  w=IntegerValue(CompoundArg2(ListFirst(l)));
+		int  w=(int)IntegerValue(CompoundArg2(ListFirst(l)));
 		if(w<0 && f==1)
 		{
 			sno+=fprintf(of,"1 ");
@@ -1169,13 +1185,13 @@ static void wrt_expr(FILE *of, Term num, List sym, List ten)
 			if(in1==0 || in2==0 || in3==0) continue;
 			
 			for(i=0;i<4;i++) if(in1==pind[i]) break;
-			il1=(i==4?IntegerValue(in1)+4:i);
+			il1=(i==4?(int)IntegerValue(in1)+4:i);
 			
 			for(i=0;i<4;i++) if(in2==pind[i]) break;
-			il2=(i==4?IntegerValue(in2)+4:i);
+			il2=(i==4?(int)IntegerValue(in2)+4:i);
 			
 			for(i=0;i<4;i++) if(in3==pind[i]) break; il3=i;
-			il3=(i==4?IntegerValue(in3)+4:i);
+			il3=(i==4?(int)IntegerValue(in3)+4:i);
 						
 			if(il1<5 && il2<5 && il3<5)
 			{
@@ -1194,10 +1210,10 @@ static void wrt_expr(FILE *of, Term num, List sym, List ten)
 			in4=ListFirst(ListTail(ListTail(CompoundArg2(ListFirst(l2)))));
 			for(i=0;i<4;i++) if(in3==pind[i]) break; il2=i;
 			if(i==4){WriteVertex(cv);WriteTerm(ListFirst(l2));
-			puts(": color structure error(2)");il3=IntegerValue(in3);}
+			puts(": color structure error(2)");il3=(int)IntegerValue(in3);}
 			for(i=0;i<4;i++) if(in4==pind[i]) break; il4=i;
 			if(i==4){WriteVertex(cv);WriteTerm(ListFirst(l2));
-			puts(": color structure error(2)");il4=IntegerValue(in4);}
+			puts(": color structure error(2)");il4=(int)IntegerValue(in4);}
 			sno+=fprintf(of,"SUNT[c%d, c%d, c%d, c%d] ",
 					il3+1,il4+1,il1+1,il2+1);
 			if(sno>60 && ListTail(l) && (ListTail(l)!=l2||ListTail(ListTail(l))))
@@ -1212,10 +1228,10 @@ static void wrt_expr(FILE *of, Term num, List sym, List ten)
 			in4=ListFirst(ListTail(CompoundArg2(ListFirst(l2))));
 			for(i=0;i<4;i++) if(in3==pind[i]) break; il3=i;
 			if(i==4){WriteVertex(cv);WriteTerm(ListFirst(l2));
-			puts(": color structure error(3)");il3=IntegerValue(in3);}
+			puts(": color structure error(3)");il3=(int)IntegerValue(in3);}
 			for(i=0;i<4;i++) if(in4==pind[i]) break; il4=i;
 			if(i==4){WriteVertex(cv);WriteTerm(ListFirst(l2));
-			puts(": color structure error(3)");il4=IntegerValue(in4);}
+			puts(": color structure error(3)");il4=(int)IntegerValue(in4);}
 			sno+=fprintf(of,"SUNTSum[c%d, c%d, c%d, c%d] ",
 					il3+1,il4+1,il1+1,il2+1);
 			if(sno>60 && ListTail(l) && (ListTail(l)!=l2||ListTail(ListTail(l)))) 
@@ -1226,7 +1242,7 @@ static void wrt_expr(FILE *of, Term num, List sym, List ten)
 			}
 			
 			WriteVertex(cv);WriteTerm(ListFirst(l));
-			puts(": color structure error");il2=IntegerValue(in2);
+			puts(": color structure error");il2=(int)IntegerValue(in2);
 			sno+=fprintf(of,"SUNT[c%d, c%d, c%d] ",il3+1,il1+1,il2+1);
 			if(sno>60 && ListTail(l)) {fprintf(of,"*\n\t\t");sno=15;}
 			continue;
@@ -1251,10 +1267,10 @@ static void wrt_expr(FILE *of, Term num, List sym, List ten)
 			if(in3==0) continue;
 			for(i=0;i<4;i++) if(in1==pind[i]) break; il1=i;
 			if(i==4){WriteVertex(cv);WriteTerm(ListFirst(l));
-			puts(": color structure error(1)");il1=IntegerValue(in1);}
+			puts(": color structure error(1)");il1=(int)IntegerValue(in1);}
 			for(i=0;i<4;i++) if(in2==pind[i]) break; il2=i;
 			if(i==4){WriteVertex(cv);WriteTerm(ListFirst(l));
-			puts(": color structure error(1)");il2=IntegerValue(in2);}
+			puts(": color structure error(1)");il2=(int)IntegerValue(in2);}
 			for(i=0;i<4;i++) if(in3==pind[i]) break; il3=i;
 			if(i<4)
 			{
@@ -1272,10 +1288,10 @@ static void wrt_expr(FILE *of, Term num, List sym, List ten)
 			in4=ListFirst(ListTail(CompoundArg2(ListFirst(l2))));
 			for(i=0;i<4;i++) if(in3==pind[i]) break; il3=i;
 			if(i==4){WriteVertex(cv);WriteTerm(ListFirst(l2));
-			puts(": color structure error(2)");il3=IntegerValue(in3);}
+			puts(": color structure error(2)");il3=(int)IntegerValue(in3);}
 			for(i=0;i<4;i++) if(in4==pind[i]) break; il4=i;
 			if(i==4){WriteVertex(cv);WriteTerm(ListFirst(l2));
-			puts(": color structure error(2)");il4=IntegerValue(in4);}
+			puts(": color structure error(2)");il4=(int)IntegerValue(in4);}
 			sno+=fprintf(of,"SUNF[c%d, c%d, c%d, c%d] ",il1+1,il2+1,il3+1,il4+1);
 			if(sno>60 && ListTail(l) && (ListTail(l)!=l2 || ListTail(l2))) 
 				{fprintf(of,"*\n\t\t");sno=15;}
@@ -1284,7 +1300,7 @@ static void wrt_expr(FILE *of, Term num, List sym, List ten)
 			continue;
 			}
 			{WriteVertex(cv);WriteTerm(ListFirst(l));
-			puts(": color structure error(3)");il3=IntegerValue(in3);}
+			puts(": color structure error(3)");il3=(int)IntegerValue(in3);}
 			sno+=fprintf(of,"SUNT[c%d, c%d, c%d] ",il1+1,il2+1,il3+1);
 			if(sno>60 && ListTail(l)) {fprintf(of,"*\n\t\t");sno=15;}
 			continue;
@@ -1310,10 +1326,10 @@ static void wrt_expr(FILE *of, Term num, List sym, List ten)
 			if(in3==0) continue;
 			for(i=0;i<4;i++) if(in1==pind[i]) break; il1=i;
 			if(i==4){WriteVertex(cv);WriteTerm(ListFirst(l));
-			puts(": color structure error(1)");il1=IntegerValue(in1);}
+			puts(": color structure error(1)");il1=(int)IntegerValue(in1);}
 			for(i=0;i<4;i++) if(in2==pind[i]) break; il2=i;
 			if(i==4){WriteVertex(cv);WriteTerm(ListFirst(l));
-			puts(": color structure error(1)");il2=IntegerValue(in2);}
+			puts(": color structure error(1)");il2=(int)IntegerValue(in2);}
 			for(i=0;i<4;i++) if(in3==pind[i]) break; il3=i;
 			if(i<4)
 			{
@@ -1331,10 +1347,10 @@ static void wrt_expr(FILE *of, Term num, List sym, List ten)
 			in4=ListFirst(ListTail(CompoundArg2(ListFirst(l2))));
 			for(i=0;i<4;i++) if(in3==pind[i]) break; il3=i;
 			if(i==4){WriteVertex(cv);WriteTerm(ListFirst(l2));
-			puts(": color structure error(2)");il3=IntegerValue(in3);}
+			puts(": color structure error(2)");il3=(int)IntegerValue(in3);}
 			for(i=0;i<4;i++) if(in4==pind[i]) break; il4=i;
 			if(i==4){WriteVertex(cv);WriteTerm(ListFirst(l2));
-			puts(": color structure error(2)");il4=IntegerValue(in4);}
+			puts(": color structure error(2)");il4=(int)IntegerValue(in4);}
 			sno+=fprintf(of,"SUNDF[c%d, c%d, c%d, c%d] ",il1+1,il2+1,il3+1,il4+1);
 			if(sno>60 && ListTail(l)&& (ListTail(l)!=l2 || ListTail(l2))) {fprintf(of,"*\n\t\t");sno=15;}
 			l2=ListTail(ListTail(CompoundArg2(ListFirst(l2))));
@@ -1351,10 +1367,10 @@ static void wrt_expr(FILE *of, Term num, List sym, List ten)
 			in4=ListFirst(ListTail(CompoundArg2(ListFirst(l2))));
 			for(i=0;i<4;i++) if(in3==pind[i]) break; il3=i;
 			if(i==4){WriteVertex(cv);WriteTerm(ListFirst(l2));
-			puts(": color structure error(2)");il3=IntegerValue(in3);}
+			puts(": color structure error(2)");il3=(int)IntegerValue(in3);}
 			for(i=0;i<4;i++) if(in4==pind[i]) break; il4=i;
 			if(i==4){WriteVertex(cv);WriteTerm(ListFirst(l2));
-			puts(": color structure error(2)");il4=IntegerValue(in4);}
+			puts(": color structure error(2)");il4=(int)IntegerValue(in4);}
 			sno+=fprintf(of,"SUND[c%d, c%d, c%d, c%d] ",il1+1,il2+1,il3+1,il4+1);
 			if(sno>60 && ListTail(l)&& (ListTail(l)!=l2 || ListTail(l2))) {fprintf(of,"*\n\t\t");sno=15;}
 			l2=ListTail(ListTail(CompoundArg2(ListFirst(l2))));
@@ -1362,7 +1378,7 @@ static void wrt_expr(FILE *of, Term num, List sym, List ten)
 			continue;
 			}
 			{WriteVertex(cv);WriteTerm(ListFirst(l));
-			puts(": color structure error(3)");il3=IntegerValue(in3);}
+			puts(": color structure error(3)");il3=(int)IntegerValue(in3);}
 			sno+=fprintf(of,"SUND[c%d, c%d, c%d] ",il1+1,il2+1,il3+1);
 			if(sno>60 && ListTail(l)) {fprintf(of,"*\n\t\t");sno=15;}
 			continue;
@@ -1536,14 +1552,14 @@ void alg2_fix_ff(Term a2)
 	{
 	  int cf;
 	  SetCompoundArg(mom,1,NewInteger(2));
-	  cf=IntegerValue(CompoundArg1(m));
+	  cf=(int)IntegerValue(CompoundArg1(m));
 	  SetCompoundArg(m,1,NewInteger(-cf));
 	}
       if(mom && CompoundArg1(mom)==NewInteger(2) && gpm==A_GAMMAM)
 	{
 	  int cf;
 	  SetCompoundArg(mom,1,NewInteger(1));
-	  cf=IntegerValue(CompoundArg1(m));
+	  cf=(int)IntegerValue(CompoundArg1(m));
 	  SetCompoundArg(m,1,NewInteger(-cf));
 	}
 	
@@ -1551,7 +1567,62 @@ void alg2_fix_ff(Term a2)
 	  
 }
 
-
+void alg2_fix_mom2(Term a2)
+{
+	List l=CompoundArg1(a2);
+	return;
+	if(ListLength(l)!=2)
+		return;
+	for(l=CompoundArgN(a2,5);l;l=ListTail(l))
+	{
+	Term d1=0, d2=0;
+	int dno=0;
+    List l2;
+	for(l2=CompoundArgN(ListFirst(l),3);l2;l2=ListTail(l2))
+		{
+		Term m=ListFirst(l2);
+	    if(is_compound(m) && CompoundName(m)==A_MOMENT)
+		{
+			dno++;
+			if(dno==1) d1=m;
+			if(dno==2) d2=m;
+		}
+		}
+	if(dno==2)
+	{
+		int i1=(int)IntegerValue(ListFirst(CompoundArg2(d1)));
+		int i2=(int)IntegerValue(ListFirst(CompoundArg2(d2)));
+		int ch=0;
+		if(i1!=i2 && i1<3 && i2<3 &&
+			CompoundArg1(d1)==CompoundArg1(d2))
+		{
+			SetCompoundArg(d1,1,NewInteger(i2));
+			SetCompoundArg(d2,1,NewInteger(i1));
+			ch=1;
+		}
+		else
+		if(CompoundArg1(d1)==NewInteger(1) && CompoundArg1(d2)==NewInteger(1))
+		{
+			SetCompoundArg(d2,1,NewInteger(2));
+			ch=1;
+		} else
+		if(CompoundArg1(d1)==NewInteger(2) && CompoundArg1(d2)==NewInteger(2))
+		{
+			SetCompoundArg(d1,1,NewInteger(1));
+			ch=1;
+		}
+		if(ch)
+		{
+			
+			Term m=ListFirst(l);
+		//	WriteTerm(m);puts("");
+			SetCompoundArg(m,1,NewInteger(-IntegerValue(CompoundArg1(m))));
+		}
+		
+	}
+	}
+	
+}
 
 void alg2_fix_uuv(Term a2)
 {
@@ -1689,7 +1760,9 @@ void alg2_red_rc(Term a2)
 	{
 		rcf=0;
 		for(l2=CompoundArg2(ListFirst(l1));l2;l2=ListTail(l2))
-			if(GetAtomProperty(CompoundArg1(ListFirst(l2)),A_INFINITESIMAL))
+			if(GetAtomProperty(CompoundArg1(ListFirst(l2)),A_INFINITESIMAL) &&
+                            !GetAtomProperty(CompoundArg1(ListFirst(l2)),PROP_TYPE)
+                        )
 				rcf++;
 		if(rcf)
 			FreeAtomic(ListFirst(l1));

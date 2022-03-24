@@ -1,12 +1,12 @@
 
 extern int  nnazini_(int*h1,int*h2,int*h3,int*h4,double *v);
-extern void  azdifferentialcs_(double *result,double * costh);
+extern void  gzdifferentialcs_(double *result,double * costh);
 
 double vcsnngz(double v)
 {
    int h1[4]={1,1,1,1};
    int h2[4]={1,1,-1,-1};
-   double vcs1,vcs2;
+   double vcs1;
    double res[2];
    double coss=0;
    int ok=nnazini_(h1,h1+1,h1+2,h1+3,&v);

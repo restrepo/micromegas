@@ -109,7 +109,7 @@ fi
   LIBS="$CALCHEP/lib/sqme_aux.$SO"
 
   if(test -r sqme0.c) then 
-    $CC $CFLAGS  $SHARED  -o  $1.so *.c $LIBS -lm
+    $CC $CFLAGS  $SHARED  -o  $1.so *.c $LIBS -lm $lQuad
     mv $1.so  $2/$1.so 
     exit 0
   fi 
@@ -121,7 +121,7 @@ fi
   fi
   err=$? 
   if(test $err -eq 0) then
-    $CC $CFLAGS  $SHARED  -o  $1.so *.o $LIBS -lm
+    $CC $CFLAGS  $SHARED  -o  $1.so *.o $LIBS -lm $lQuad
     err=$?
   fi
 #echo compilation finishes  

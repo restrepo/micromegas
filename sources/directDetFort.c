@@ -60,7 +60,7 @@ double nucleusrecoil_(
   }    
 }
 
-double nucleusrecoilaux_(
+double nucleusrecoilcs_(
      double(*fDv)(double*),int*A, int*Z, double*J, 
      void(*Sxx)(double*,double*,double*,double*),
      double *LmbdP, double*XiP, double *LmbdN, double*XiN,  double * dNdE )
@@ -71,7 +71,7 @@ double nucleusrecoilaux_(
   if(fDv  == maxwell_) c_fDv=Maxwell;
   else { _fDv=fDv; c_fDv=fDv_;}
    
-    return  nucleusRecoilAux(c_fDv, *A,*Z,*J,Sxx_,*LmbdP,*XiP,*LmbdN,*XiN, dNdE);
+    return  nucleusRecoilCS(c_fDv, *A,*Z,*J,Sxx_,*LmbdP,*XiP,*LmbdN,*XiN, dNdE);
 }
 
 
@@ -88,7 +88,7 @@ double nucleusrecoil0_( double (*fDv)(double*),
   }
 }
 
-double nucleusrecoil0aux_( double (*fDv)(double*),
+double nucleusrecoil0cs_( double (*fDv)(double*),
  int*A,int*Z,double*J,double*Sp,double*Sn,
  double *LmbdP, double*XiP, double *LmbdN, double*XiN, double*dNdE)
 {
@@ -97,15 +97,9 @@ double nucleusrecoil0aux_( double (*fDv)(double*),
   if(fDv  == maxwell_) c_fDv=Maxwell;
   else { _fDv=fDv; c_fDv=fDv_;}
 
-  return nucleusRecoil0Aux(c_fDv,*A,*Z,*J,*Sp,*Sn,*LmbdP,*XiP,*LmbdN,*XiN,dNdE);
+  return nucleusRecoil0CS(c_fDv,*A,*Z,*J,*Sp,*Sn,*LmbdP,*XiP,*LmbdN,*XiN,dNdE);
 }
 
-int displayrecoilplot_(double * tab, char * text, double *E1, double *E2,int len)
-{
-   char c_name[200];
-   fName2c(text,c_name,len);
-   return  displayRecoilPlot(tab, c_name, *E1, *E2);
-}
 
 double cutrecoilresult_(double *tab, double *E1, double *E2)
 {

@@ -90,7 +90,7 @@ NMM55  |Zn15*MNE1*Zn15+Zn25*MNE2*Zn25+Zn35*MNE3*Zn35+Zn45*MNE4*Zn45+Zn55*MNE5*Zn
 MG1I   |NMM11
 MG2I   |NMM22
 PI     |4*atan(1)
-Mbp    |bPoleMass()
+Mbp    |MbMb*(1+4/3*alphaQCD(MbMb)/PI) %    bPoleMass()
 Mcp    |McMc*(1+4/3*alphaQCD(McMc)/PI)
 ah1F_c |(-EE)/MW*Mc/SW*Zh12/sb/2/Mc
 ah1F_b |(-EE)/MW*Mb/SW/cb/sb*(sb*Zh11-sb*Td3*Zh11+Td3*Zh12*cb)/2/Mb

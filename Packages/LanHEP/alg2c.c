@@ -2,10 +2,47 @@
 #include <math.h>
 #include "lanhep.h"
 
-extern int opTriHeu, opAbbrVrt;
+extern int opTriHeu, opAbbrVrt, has_cmplx_params;
 
-List abbr_coeffs=0;
+List abbr_coeffs=0, no_abbr_coeffs=0;
+
 void alg2_abbr_coeff(Term);
+
+static int mcmp_err=0;
+
+static int prmcmp(Term p1, Term p2)
+	{
+	if(CompoundArg1(p1)==A_I)
+		return -1;
+	if(CompoundArg1(p2)==A_I)
+		return 1;
+	return strcmp(AtomValue(CompoundArg1(p1)),AtomValue(CompoundArg1(p2)));
+	}
+
+	static int mcmp(Term p1, Term p2)
+{
+	p1=CompoundArg2(p1);
+	p2=CompoundArg2(p2);
+	if(ListLength(p1)<ListLength(p2))
+		return -1;
+	if(ListLength(p1)>ListLength(p2))
+		return 1;
+	for(;p1;p1=ListTail(p1),p2=ListTail(p2))
+	{
+		int s=strcmp(AtomValue(CompoundArg1(ListFirst(p1))),
+				AtomValue(CompoundArg1(ListFirst(p2))));
+		if(s)
+			return s;
+		s=(int)IntegerValue(CompoundArg2(ListFirst(p1)))
+				-(int)IntegerValue(CompoundArg2(ListFirst(p2)));
+		if(s)
+			return s;
+	}
+	puts("Internal error (abbr-mcmp0)");
+	mcmp_err=1;
+	return 0;
+}
+
 		
 void alg2_add_ml(Term a1, List ml)
 	{
@@ -26,7 +63,7 @@ void alg2_add_ml(Term a1, List ml)
 		if(EqualTerms(CompoundArg2(t),CompoundArg2(m2)) &&
 			EqualTerms(CompoundArgN(t,3),CompoundArgN(m2,3)))
 				{
-				int d1,n1,d2,n2,d,n,gc;
+				long int d1,n1,d2,n2,d,n,gc;
 				n1=IntegerValue(CompoundArg1(CompoundArg1(t)));
 				d1=IntegerValue(CompoundArg2(CompoundArg1(t)));
 				n2=IntegerValue(CompoundArg1(CompoundArg1(m2)));
@@ -78,7 +115,7 @@ static void alg2_add_11(Term a1, Term a2)
 		if(EqualTerms(CompoundArg2(t),CompoundArg2(m2)) &&
 			EqualTerms(CompoundArgN(t,3),CompoundArgN(m2,3)))
 				{
-				int d1,n1,d2,n2,d,n,gc;
+				long int d1,n1,d2,n2,d,n,gc;
 				n1=IntegerValue(CompoundArg1(CompoundArg1(t)));
 				d1=IntegerValue(CompoundArg2(CompoundArg1(t)));
 				n2=IntegerValue(CompoundArg1(CompoundArg1(m2)));
@@ -207,7 +244,7 @@ static Term ev_mlt(Term t, Term t1)
 	Atom p;
 	int pw;
 	p=CompoundArg1(t1);
-	pw=IntegerValue(CompoundArg2(t1));
+	pw=(int)IntegerValue(CompoundArg2(t1));
 	if(pw>1 || pw<-1)
 		p=MakeCompound2(OPR_POW,p,pw>0?NewInteger(pw):NewInteger(-pw));
 	if(t==0 && pw<0)
@@ -260,7 +297,6 @@ Term l_2_t(List l, int num, int den)
 
 void proc_abbr_param(Term name, Term value);
 
-static int adpno=0;
 
 static int var_no=0;
 
@@ -273,10 +309,9 @@ void alg2_eval_vrt(Term a2)
 {
 	
 	List l1,l2;
-	int num,den,cnt, has_i=0;
-	Term t1, t2, t2_2, ctf;
-	char cbuf[32];
-	Atom newprm;
+	
+	Term ctf;
+	
 	
 	opTriHeu=0;
 	doing_abbr=1;
@@ -321,7 +356,7 @@ void alg2_eval_vrt(Term a2)
 		
 	
 	
-	
+	if(!CalcOutput || has_cmplx_params==0)
 	{
 	int hi1=0,hi2=0;
 	List l3;
@@ -421,7 +456,7 @@ void alg2_eval_more(Term a2)
 	
 	List l0,l1,l2,newml=0;
 	int num,den,cnt,i;
-	Term t1, t2,  ctf=0;
+	Term t2,  ctf=0;
 	char cbuf[32];
 	Atom newprm;
 	
@@ -436,6 +471,13 @@ void alg2_eval_more(Term a2)
 	l1=CompoundArgN(a2,5);
 	if(ListLength(l1)<eval_vrt_more)
 		return;
+	
+	for(l1=CompoundArgN(a2,5);l1;l1=ListTail(l1))
+	{
+		l2=ConsumeCompoundArg(ListFirst(l1),2);
+		if(l2) l2=SortedList(l2,prmcmp);
+		SetCompoundArg(ListFirst(l1),2,l2);
+	}
 	
 	ctf=NewList();
 		
@@ -477,6 +519,8 @@ void alg2_eval_more(Term a2)
 	{
 		Term tf;
 		List l3,l1c;
+		int numf=1;
+		
 		l1=ListFirst(l0);
 		if(ListLength(l1)==1)
 		{
@@ -485,14 +529,33 @@ void alg2_eval_more(Term a2)
 			continue;
 		}
 		
-		num=den=1;
 		tf=ConsumeCompoundArg(ListFirst(l1),3);
+		
+		l1=SortedList(l1,mcmp);
+		if(IntegerValue(CompoundArg1(ListFirst(l1)))<0)
+		{
+			numf*=-1;
+			for(l3=l1;l3;l3=ListTail(l3))
+			{
+				int nn=(int)IntegerValue(CompoundArg1(ListFirst(l3)));
+				SetCompoundArg(ListFirst(l3),1,NewInteger(-nn));
+			}
+		}
+		
+		
+		num=den=1;
+		
 		i=b_value(l1);
 		if(i<0) i=-i;
 		for(l3=evll[i];l3;l3=ListTail(l3))
 			if(EqualTerms(l1,CompoundArg2(ListFirst(l3))))
 		{
 			newprm=CompoundArg1(ListFirst(l3));
+			if(is_compound(newprm))
+			{
+				numf*=-1;
+				newprm=CompoundArg1(newprm);
+			}
 			FreeAtomic(l1);
 			goto addprm;
 		}
@@ -506,7 +569,7 @@ void alg2_eval_more(Term a2)
 			Term t3;
 			cnt++;
 
-			num=IntegerValue(CompoundArg1(ListFirst(l2)));
+			num=(int)IntegerValue(CompoundArg1(ListFirst(l2)));
 			t3=l_2_t(ConsumeCompoundArg(ListFirst(l2),2),num,1);
 			if(t2==0)
 			{
@@ -531,13 +594,16 @@ void alg2_eval_more(Term a2)
 			}
 
 		}
-	
+		
+		
 		FreeAtomic(l1);
 		evll[i]=AppendLast(evll[i],MakeCompound2(OPR_EQSIGN,newprm,l1c));
 		if(GetAtomProperty(newprm,A_ANTI))
 		{
 			List l4,l5, l1cc=CopyTerm(l1c);
 			int j;
+			Term ccprm=GetAtomProperty(newprm,A_ANTI);
+			
 			for(l4=l1cc;l4;l4=ListTail(l4))
 				for(l5=CompoundArg2(ListFirst(l4));l5;l5=ListTail(l5))
 				{
@@ -545,7 +611,7 @@ void alg2_eval_more(Term a2)
 					p=CompoundArg1(ListFirst(l5));
 					if(p==A_I)
 					{
-						int f=IntegerValue(CompoundArg1(ListFirst(l4)));
+						int f=(int)IntegerValue(CompoundArg1(ListFirst(l4)));
 						SetCompoundArg(ListFirst(l4),1,NewInteger(-f));
 						continue;
 					}
@@ -553,15 +619,34 @@ void alg2_eval_more(Term a2)
 					if(ap)
 						SetCompoundArg(ListFirst(l5),1,ap);
 				}
+				
+			for(l4=l1cc;l4;l4=ListTail(l4))
+			{
+				l5=ConsumeCompoundArg(ListFirst(l4),2);
+				if(l5) l5=SortedList(l5,prmcmp);
+				SetCompoundArg(ListFirst(l4),2,l5);
+			}
+			
+			l1cc=SortedList(l1cc,mcmp);	
+			if(IntegerValue(CompoundArg1(ListFirst(l1cc)))<0)
+			{
+				for(l4=l1cc;l4;l4=ListTail(l4))
+				{
+					int nn=(int)IntegerValue(CompoundArg1(ListFirst(l4)));
+					SetCompoundArg(ListFirst(l4),1,NewInteger(-nn));
+				}
+				ccprm=MakeCompound1(OPR_MINUS,ccprm);
+			}
 			j=b_value(l1cc);
 			evll[j]=AppendLast(evll[j],MakeCompound2(OPR_EQSIGN,
-					GetAtomProperty(newprm,A_ANTI),l1cc));	
+					ccprm,l1cc));
+			
 		}
 
 addprm:
 		
 		t2=MakeCompound(A_MTERM,3);
-		SetCompoundArg(t2,1,NewInteger(1));
+		SetCompoundArg(t2,1,NewInteger(numf));
 		/*sprintf(cbuf,"B%05d",var_no++);
 		newprm=NewAtom(cbuf,0);*/
 		/*newprm=add_parameter(newprm,t1);*/
@@ -579,31 +664,6 @@ addprm:
 	SetCompoundArg(a2,5,newml);
 }
 
-static int mcmp_err=0;
-
-static int mcmp(Term p1, Term p2)
-{
-	p1=CompoundArg2(p1);
-	p2=CompoundArg2(p2);
-	if(ListLength(p1)<ListLength(p2))
-		return -1;
-	if(ListLength(p1)>ListLength(p2))
-		return 1;
-	for(;p1;p1=ListTail(p1),p2=ListTail(p2))
-	{
-		int s=strcmp(AtomValue(CompoundArg1(ListFirst(p1))),
-				AtomValue(CompoundArg1(ListFirst(p2))));
-		if(s)
-			return s;
-		s=IntegerValue(CompoundArg2(ListFirst(p1)))
-				-IntegerValue(CompoundArg2(ListFirst(p2)));
-		if(s)
-			return s;
-	}
-	puts("Internal error (abbr-mcmp0)");
-	mcmp_err=1;
-	return 0;
-}
 
 
 static List prmli[1713];
@@ -613,9 +673,9 @@ static int abbr_no=0, abbr_no2=0;
 
 void abbr_stat(void)
 	{
-	List l;
+
 	int i,no,max,ave;
-	Term t;
+
 	
 	no=0;max=0;ave=0;
 	if(evll_inited)
@@ -683,7 +743,7 @@ static Atom abbr_find(List pl)
 			int fit;
 			t=GetAtomProperty(CompoundArg1(ListFirst(l)),OPR_PLUS);
 			if(t)
-				fit=IntegerValue(t);
+				fit=(int)IntegerValue(t);
 			else
 				fit=0;
 			SetAtomProperty(CompoundArg1(ListFirst(l)),OPR_PLUS,
@@ -707,12 +767,12 @@ static Atom abbr_find(List pl)
 		{
 		if(CompoundArg1(ListFirst(l2))==A_EE)
 			{
-			int d=IntegerValue(CompoundArg2(ListFirst(l2)));
+			int d=(int)IntegerValue(CompoundArg2(ListFirst(l2)));
 			if(d>eo) eo=d;
 			}
 		if(CompoundArg1(ListFirst(l2))==A_GG)
 			{
-			int d=IntegerValue(CompoundArg2(ListFirst(l2)));
+			int d=(int)IntegerValue(CompoundArg2(ListFirst(l2)));
 			if(d>co) co=d;
 			}
 		if(CompoundArg1(ListFirst(l2))==A_I)
@@ -767,20 +827,20 @@ static Atom abbr_find(List pl)
 		Atom aa;
 		if(UFOutput==0)
 		{
-			t=l_2_t(ConsumeCompoundArg(ListFirst(pl),2),IntegerValue(CompoundArg1(ListFirst(pl))),1);
+			t=l_2_t(ConsumeCompoundArg(ListFirst(pl),2),(int)IntegerValue(CompoundArg1(ListFirst(pl))),1);
 			if(IntegerValue(CompoundArg1(ListFirst(pl)))<0)
 				t=MakeCompound1(OPR_MINUS,t);
 			for(l=ListTail(pl);l;l=ListTail(l))
 				t=MakeCompound2(IntegerValue(CompoundArg1(ListFirst(l)))>0?OPR_PLUS:OPR_MINUS,
 						t,l_2_t(ConsumeCompoundArg(ListFirst(l),2),
-						IntegerValue(CompoundArg1(ListFirst(l))),1));
+						(int)IntegerValue(CompoundArg1(ListFirst(l))),1));
 		}
 		else
 		{
 			Term r;
 			r=ConsumeCompoundArg(ListFirst(pl),1);
-			t=l_2_t(ConsumeCompoundArg(ListFirst(pl),2),IntegerValue(CompoundArg1(r)),
-														IntegerValue(CompoundArg2(r)));
+			t=l_2_t(ConsumeCompoundArg(ListFirst(pl),2),(int)IntegerValue(CompoundArg1(r)),
+														(int)IntegerValue(CompoundArg2(r)));
 			if(IntegerValue(CompoundArg1(r))<0)
 				t=MakeCompound1(OPR_MINUS,t);
 			for(l=ListTail(pl);l;l=ListTail(l))
@@ -788,7 +848,7 @@ static Atom abbr_find(List pl)
 				r=ConsumeCompoundArg(ListFirst(l),1);
 				t=MakeCompound2(IntegerValue(CompoundArg1(r))>0?OPR_PLUS:OPR_MINUS,
 						t,l_2_t(ConsumeCompoundArg(ListFirst(l),2),
-						IntegerValue(CompoundArg1(r)),IntegerValue(CompoundArg2(r))));
+						(int)IntegerValue(CompoundArg1(r)),(int)IntegerValue(CompoundArg2(r))));
 			}
 		}
 		FreeAtomic(pl);
@@ -824,7 +884,7 @@ static Atom abbr_find(List pl)
 		return a;
 	}
 	
-	t=l_2_t(ConsumeCompoundArg(ListFirst(pl),2),IntegerValue(CompoundArg1(ListFirst(pl))),1);
+	t=l_2_t(ConsumeCompoundArg(ListFirst(pl),2),(int)IntegerValue(CompoundArg1(ListFirst(pl))),1);
 	if(IntegerValue(CompoundArg1(ListFirst(pl)))<0)
 		t=MakeCompound1(OPR_MINUS,t);
 	pl=CutFromList(pl,pl);
@@ -839,7 +899,7 @@ static Atom abbr_find(List pl)
 		{
 			t=MakeCompound2(IntegerValue(CompoundArg1(ListFirst(pl)))>0?OPR_PLUS:OPR_MINUS,
 					t,l_2_t(ConsumeCompoundArg(ListFirst(pl),2),
-					IntegerValue(CompoundArg1(ListFirst(pl))),1));
+					(int)IntegerValue(CompoundArg1(ListFirst(pl))),1));
 			pl=CutFromList(pl,pl);
 		}
 		
@@ -852,7 +912,7 @@ static Atom abbr_find(List pl)
 	for(l=pl;l;l=ListTail(l))
 		t=MakeCompound2(IntegerValue(CompoundArg1(ListFirst(l)))>0?OPR_PLUS:OPR_MINUS,
 				t,l_2_t(ConsumeCompoundArg(ListFirst(l),2),
-				IntegerValue(CompoundArg1(ListFirst(l))),1));
+				(int)IntegerValue(CompoundArg1(ListFirst(l))),1));
 	FreeAtomic(pl);
 	if(csf)
 		t=MakeCompound2(OPR_MLT,CopyTerm(csf),t);
@@ -870,6 +930,17 @@ void alg2_abbr_vrt(Term a2)
 	List l1,l2;
 	int has_i=0, has_inf=0;
 	List nml;
+	
+	if(no_abbr_coeffs)
+	for(l1=CompoundArgN(a2,5);l1;l1=ListTail(l1))
+	{
+	  Term m=ListFirst(l1);
+	  for(l2=CompoundArg2(m);l2;l2=ListTail(l2))
+	  {
+	    if(ListMember(no_abbr_coeffs,CompoundArg1(ListFirst(l2))))
+	      return;
+	  }
+	}
 	
 	if(doing_abbr==0)
 	{
@@ -925,7 +996,8 @@ void alg2_abbr_vrt(Term a2)
 		List l2=CompoundArg2(m2);
 		for(;l2;l2=ListTail(l2))
 		if(GetAtomProperty(CompoundArg1(ListFirst(l2)),
-				A_INFINITESIMAL))
+				A_INFINITESIMAL) && !GetAtomProperty(CompoundArg1(ListFirst(l2)),
+				PROP_TYPE))
 		{
 			Atom prm=CompoundArg1(ListFirst(l2));
 			List lp=ConsumeCompoundArg(m2,2);
@@ -944,7 +1016,7 @@ void alg2_abbr_vrt(Term a2)
 	while(!is_empty_list(l1))
 	{
 		Term m2=ListFirst(l1);
-		int cnum;
+		int cnum=1;
 		Atom np;
 		List pl=0;
 		ChangeList(l1,0);
@@ -983,10 +1055,10 @@ void alg2_abbr_vrt(Term a2)
 		WriteTerm(a2);puts("");}*/
 		if(UFOutput!=1)
 		{
-		cnum=IntegerValue(CompoundArg1(ListFirst(pl)));
+		cnum=(int)IntegerValue(CompoundArg1(ListFirst(pl)));
 		if(cnum<0) cnum=-cnum;
 		for(l2=ListTail(pl);l2;l2=ListTail(l2))
-			cnum=gcf(cnum,IntegerValue(CompoundArg1(ListFirst(l2))));
+			cnum=(int)gcf(cnum,IntegerValue(CompoundArg1(ListFirst(l2))));
 		if(IntegerValue(CompoundArg1(ListFirst(pl)))<0)
 			cnum=-cnum;
 		for(l2=pl;l2;l2=ListTail(l2))
@@ -1039,7 +1111,7 @@ void alg2_abbr_vrt(Term a2)
 void alg2_abbr_coeff(Term a2)
 {
 	List l1,l2;
-	int has_i=0, has_inf=0, has_c=0;
+	int has_i=0, has_c=0;
 	List nml;
 
 	if(abbr_coeffs==0)
@@ -1085,7 +1157,8 @@ void alg2_abbr_coeff(Term a2)
 	
 	if(has_c==0)
 		return;
-					
+	
+	if(!has_cmplx_params)				
 	for(;l1;l1=ListTail(l1))
 	{
 		List l3;
@@ -1103,7 +1176,7 @@ void alg2_abbr_coeff(Term a2)
 			break;
 		}
 	}
-	
+	/*
 	for(l1=CompoundArgN(a2,5);l1;l1=ListTail(l1))
 	{
 		Term m2=ListFirst(l1);
@@ -1123,7 +1196,7 @@ void alg2_abbr_coeff(Term a2)
 			break;
 		}
 	}
-
+	*/
 	l1=ConsumeCompoundArg(a2,5);
 	nml=NewList();
 	while(!is_empty_list(l1))
@@ -1168,10 +1241,10 @@ void alg2_abbr_coeff(Term a2)
 		{
 		WriteTerm(a2);puts("");}*/
 		
-		cnum=IntegerValue(CompoundArg1(ListFirst(pl)));
+		cnum=(int)IntegerValue(CompoundArg1(ListFirst(pl)));
 		if(cnum<0) cnum=-cnum;
 		for(l2=ListTail(pl);l2;l2=ListTail(l2))
-			cnum=gcf(cnum,IntegerValue(CompoundArg1(ListFirst(l2))));
+			cnum=(int)gcf(cnum,IntegerValue(CompoundArg1(ListFirst(l2))));
 		if(IntegerValue(CompoundArg1(ListFirst(pl)))<0)
 			cnum=-cnum;
 		for(l2=pl;l2;l2=ListTail(l2))
@@ -1239,7 +1312,8 @@ static void setzprm(List ml)
 		List l3=ConsumeCompoundArg(ListFirst(ml),3);
 		l3=SortedList(l3,sp_cmp);
 		for(l1=l2;l1;l1=ListTail(l1))
-			if(GetAtomProperty(CompoundArg1(ListFirst(l1)),A_INFINITESIMAL))
+			if(GetAtomProperty(CompoundArg1(ListFirst(l1)),A_INFINITESIMAL) &&
+                            !GetAtomProperty(CompoundArg1(ListFirst(l1)),PROP_TYPE) )
 			{
 				l3=AppendFirst(l3,ListFirst(l1));
 				ChangeList(l1,0);

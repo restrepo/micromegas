@@ -62,8 +62,8 @@ static int sp_cmp(Term t1, Term t2)
 		{return 1; }
 	if(f1==A_MOMENT)
 		{
-		i1=IntegerValue(CompoundArg1(t1));
-		i2=IntegerValue(CompoundArg1(t2));
+		i1=(int)IntegerValue(CompoundArg1(t1));
+		i2=(int)IntegerValue(CompoundArg1(t2));
 		if(i1==i2) goto cmpl;
 		if(i1<i2)
 			return -1;
@@ -307,7 +307,7 @@ static List inv_prt(Term a2c)
 			for(l=CompoundArgN(a2c,5);l;l=ListTail(l))
 			{
 				int num;
-				num=IntegerValue(CompoundArg1(CompoundArg1(ListFirst(l))));
+				num=(int)IntegerValue(CompoundArg1(CompoundArg1(ListFirst(l))));
 				SetCompoundArg(CompoundArg1(ListFirst(l)),1,NewInteger(-num));
 			}
 		}
@@ -479,7 +479,7 @@ static void fix_spin(List ord, List prt, List ml)
 		if(chs)
 		{
 			int n;
-			n=IntegerValue(CompoundArg1(CompoundArg1(m2)));
+			n=(int)IntegerValue(CompoundArg1(CompoundArg1(m2)));
 			SetCompoundArg(CompoundArg1(m2),1,NewInteger(-n));
 		}
 		
@@ -594,7 +594,7 @@ static void fix_i(List ml)
 		if(s==-1)
 		{
 			int num;
-			num=IntegerValue(CompoundArg1(CompoundArg1(ListFirst(l))));
+			num=(int)IntegerValue(CompoundArg1(CompoundArg1(ListFirst(l))));
 			SetCompoundArg(CompoundArg1(ListFirst(l)),1,NewInteger(-num));
 		}
 	}
@@ -620,7 +620,7 @@ static void fix_gh_C(List prt, List ml)
 	for(l=ml;l;l=ListTail(l))
 	{
 		int num;
-		num=IntegerValue(CompoundArg1(CompoundArg1(ListFirst(l))));
+		num=(int)IntegerValue(CompoundArg1(CompoundArg1(ListFirst(l))));
 		SetCompoundArg(CompoundArg1(ListFirst(l)),1,NewInteger(-num));
 	}
 	
@@ -636,10 +636,27 @@ static void fix_delta(List pl, List ml)
 }
 
 Atom inv_color_eps(Atom);
+Atom inv_color_k6(Atom);
 
-static void fix_color_f(List ml)
+static void fix_color_f(List ml, List prts)
 {
 	List l;
+	int spcase=0;
+	int hasceps=0;
+	if(ListLength(prts)>2)
+	{
+	  Atom p1=CompoundArg1(ListFirst(prts));
+	  Atom p2=CompoundArg1(ListFirst(ListTail(prts)));
+	  Term prp=GetAtomProperty(p1,PROP_TYPE);
+	  if(prp && is_compound(prp) && CompoundName(prp)==OPR_FIELD
+	    && CompoundArg2(prp)==NewInteger(4) && CompoundArg1(prp)==p2)
+	    spcase=1;
+	  prp=GetAtomProperty(p2,PROP_TYPE);
+	  if(prp && is_compound(prp) && CompoundName(prp)==OPR_FIELD
+	    && CompoundArg2(prp)==NewInteger(4) && CompoundArg1(prp)==p1)
+	    spcase=1;
+	}
+	
 	for(l=ml;l;l=ListTail(l))
 	{
 		
@@ -691,12 +708,28 @@ static void fix_color_f(List ml)
 	for(l=ml;l;l=ListTail(l))
 	{
 		List l1;
+		Term prp;
 		for(l1=CompoundArgN(ListFirst(l),3);l1;l1=ListTail(l1))
 			if(CompoundName(ListFirst(l1))==OPR_SPECIAL && 
-				GetAtomProperty(CompoundArg1(ListFirst(l1)),A_COLOR)==A_COLOR_EPS)
+				(prp=GetAtomProperty(CompoundArg1(ListFirst(l1)),A_COLOR)))
+			{
+			  if(prp==A_COLOR_EPS)
+			  {
 					SetCompoundArg(ListFirst(l1),1,
-						inv_color_eps(CompoundArg1(ListFirst(l1))));		
-		
+						inv_color_eps(CompoundArg1(ListFirst(l1))));
+				hasceps=1;
+			  }
+			 if(prp==A_COLOR_K6)
+					SetCompoundArg(ListFirst(l1),1,
+						inv_color_k6(CompoundArg1(ListFirst(l1))));
+			}
+		if(hasceps && spcase) 
+		{
+		  Term rt=ConsumeCompoundArg(ListFirst(l),1);
+		  Integer num=CompoundArg1(rt);
+		  SetCompoundArg(rt,1,NewInteger(-IntegerValue(num)));
+		  SetCompoundArg(ListFirst(l),1,rt);
+		}
 	}
 }
 
@@ -736,13 +769,13 @@ static int wrt_mono(Term m2)
 		ms=AppendLast(ms,MakeCompound2(OPR_POW,ListFirst(l),NewInteger(1)));
 	if(is_compound(CompoundArg1(m2)))
 	{
-		n=IntegerValue(CompoundArg1(CompoundArg1(m2)));
-		d=IntegerValue(CompoundArg2(CompoundArg1(m2)));
+		n=(int)IntegerValue(CompoundArg1(CompoundArg1(m2)));
+		d=(int)IntegerValue(CompoundArg2(CompoundArg1(m2)));
 		ret=printf("%d/%d",n,d);
 	}
 	else
 	{
-		n=IntegerValue(CompoundArg1(m2));
+		n=(int)IntegerValue(CompoundArg1(m2));
 		d=1;
 		ret=printf("%d",n);
 	}
@@ -751,7 +784,7 @@ static int wrt_mono(Term m2)
 		Atom a;
 		int p;
 		a=CompoundArg1(ListFirst(l));
-		p=IntegerValue(CompoundArg2(ListFirst(l)));
+		p=(int)IntegerValue(CompoundArg2(ListFirst(l)));
 		if(p>0)
 			ret+=printf("*");
 		else
@@ -764,11 +797,24 @@ static int wrt_mono(Term m2)
 	return ret;
 }
 
-
 static void compare_vertices(Term a2, Term a2cg, Term a2cf)
 {
 	List o, l1, l2;
 	int mfound=0, pos;
+	
+	for(l1=CompoundArgN(a2cf,5);l1;l1=ListTail(l1))
+	{
+		o=ConsumeCompoundArg(ListFirst(l1),2);
+		if(o) o=SortedList(o,prmcmp);
+		SetCompoundArg(ListFirst(l1),2,o);
+	}
+	for(l1=CompoundArgN(a2cg,5);l1;l1=ListTail(l1))
+	{
+		o=ConsumeCompoundArg(ListFirst(l1),2);
+		if(o) o=SortedList(o,prmcmp);
+		SetCompoundArg(ListFirst(l1),2,o);
+	}
+	
 	if(EqualTerms(a2cg,a2cf))
 		return;
 		
@@ -822,11 +868,11 @@ static void compare_vertices(Term a2, Term a2cg, Term a2cf)
 	alg2_reduce(a2cf);
 	alg2_reduce(a2cg);
 
-
+/*
 	printf("\nori: ");WriteTerm(a2);puts("\n");
 	printf("\ngen: ");WriteTerm(a2cg);puts("\n");
 	printf("\nfou: ");WriteTerm(a2cf);puts("\n");
-
+*/
 	
 	printf("CheckHerm: inconsistent conjugate vertices:\n\n");
 	printf("    ");WriteVertex(CompoundArg1(a2));
@@ -844,7 +890,7 @@ static void compare_vertices(Term a2, Term a2cg, Term a2cf)
 		ll+=wrt_mono(ListFirst(l2));
 		WriteBlank(stdout,35-ll);
 		printf(" <->   ");
-		wrt_mono(ListNth(CompoundArgN(a2cf,5),IntegerValue(ListFirst(l1))));
+		wrt_mono(ListNth(CompoundArgN(a2cf,5),(int)IntegerValue(ListFirst(l1))));
 		puts("");
 	}
 	
@@ -970,9 +1016,13 @@ Term ProcHermiticity(Term arg, Term ind)
 					WriteVertex(prt);puts("internal error he01");
 					exit(0);
 				}
-				if(CompoundName(pr)==OPR_PARTICLE && 
-						CompoundArgN(pr,7) == OPR_MLT)
+				if(CompoundName(pr)==OPR_PARTICLE)
+                                { 
+                                        Atom prp=CompoundArgN(pr,7);
+                                        if(is_atom(prp) && (AtomValue(prp)[0]=='*'
+                                            || AtomValue(prp)[1]=='*'))
 					cf=1;
+                                }
 				if(CompoundName(pr)==OPR_FIELD &&
 						CompoundArg2(pr)==NewInteger(5))
 					cf=1;
@@ -1021,7 +1071,7 @@ Term ProcHermiticity(Term arg, Term ind)
 			fix_spin(ord,CompoundArg1(a2c),CompoundArgN(a2c,5));
 			fix_color_lambda(CompoundArgN(a2c,5));
 			fix_ind_order(CompoundArg1(a2c),CompoundArgN(a2c,5));
-			fix_color_f(CompoundArgN(a2c,5));
+			fix_color_f(CompoundArgN(a2c,5),CompoundArg1(a2c));
 			fix_delta(CompoundArg1(a2c),CompoundArgN(a2c,5));
 			fix_i(CompoundArgN(a2c,5));
 			fix_gh_C(CompoundArg1(a2c),CompoundArgN(a2c,5));
@@ -1117,7 +1167,7 @@ List alg2_add_hermconj(List vert_list)
 			fix_spin(ord,CompoundArg1(a2c),CompoundArgN(a2c,5));
 			fix_color_lambda(CompoundArgN(a2c,5));
 			fix_ind_order(CompoundArg1(a2c),CompoundArgN(a2c,5));
-			fix_color_f(CompoundArgN(a2c,5));
+			fix_color_f(CompoundArgN(a2c,5),CompoundArg1(a2c));
 			fix_delta(CompoundArg1(a2c),CompoundArgN(a2c,5));
 			fix_i(CompoundArgN(a2c,5));
 			fix_gh_C(CompoundArg1(a2c),CompoundArgN(a2c,5));

@@ -1,8 +1,10 @@
 #include "lanhep.h"
 #include "math.h"
 
-/*#define DEB*/
-	
+/*
+#define DEB
+*/
+
 static void split_m2(Term m, Term *m1, Term *m2, int *anti, int spin)
 	{
 	int diff=0, fff1=1, fff2=1;
@@ -22,7 +24,7 @@ static void split_m2(Term m, Term *m1, Term *m2, int *anti, int spin)
 		Term t;
 		int i1,i2;
 		t=ListFirst(l);
-		i2=IntegerValue(CompoundArg2(t));
+		i2=(int)IntegerValue(CompoundArg2(t));
 		i1=i2/2;
 		i2-=i1;
 		if(i1!=i2)
@@ -39,8 +41,8 @@ static void split_m2(Term m, Term *m1, Term *m2, int *anti, int spin)
 	
 	
 	l=CompoundArg1(m);
-	i1=IntegerValue(CompoundArg1(l));
-	i2=IntegerValue(CompoundArg2(l));
+	i1=(int)IntegerValue(CompoundArg1(l));
+	i2=(int)IntegerValue(CompoundArg2(l));
 	
 	if(i1<0)
 		{
@@ -71,8 +73,8 @@ static void split_m2(Term m, Term *m1, Term *m2, int *anti, int spin)
 		}
 	
 	
-	n1=floor(sqrt(i1)+0.5);
-	d1=floor(sqrt(i2)+0.5);
+	n1=(int)floor(sqrt(i1)+0.5);
+	d1=(int)floor(sqrt(i2)+0.5);
 	
 	if(n1*n1!=i1 || d1*d1!=i2)
 		{
@@ -99,6 +101,8 @@ static void split_m2(Term m, Term *m1, Term *m2, int *anti, int spin)
 			List l1;
 			co1=AppendLast(co1,
 					MakeCompound2(OPR_POW,NewAtom("Maux",0),NewInteger(1)));
+			if(spin==1)
+			{
 			for(l1=co1;l1;l1=ListTail(l1))
 				if(CompoundArg1(ListFirst(l1))==A_I)
 					break;
@@ -109,9 +113,12 @@ static void split_m2(Term m, Term *m1, Term *m2, int *anti, int spin)
 			}
 			else
 				co1=AppendFirst(co1,MakeCompound2(OPR_POW,A_I,NewInteger(1)));
+			}
 			
 			co2=AppendLast(co2,
 					MakeCompound2(OPR_POW,NewAtom("Maux",0),NewInteger(1)));
+			if(spin==1)
+			{
 			for(l1=co2;l1;l1=ListTail(l1))
 				if(CompoundArg1(ListFirst(l1))==A_I)
 					break;
@@ -122,6 +129,7 @@ static void split_m2(Term m, Term *m1, Term *m2, int *anti, int spin)
 			}
 			else
 				co2=AppendFirst(co2,MakeCompound2(OPR_POW,A_I,NewInteger(1)));
+			}
 		}
 		
 	if(*anti==0)
@@ -474,10 +482,10 @@ cnt4:	l1=ListTail(l1);
 		printf(" (rs08).\n");
 		return 0;
 		}
-	FreeAtomic(i2);
+//	FreeAtomic(i2);
 
 #ifdef DEB
-printf("im indices: ");	WriteTerm(i1); puts("");
+printf("im indices: ");	WriteTerm(i1); printf(" x "); WriteTerm(i2); puts("");
 #endif
 
 
@@ -500,7 +508,8 @@ printf("im indices: ");	WriteTerm(i1); puts("");
 	split_m2(m,&m2,&m22,&anti, ListLength(i1));
 	FreeAtomic(m);
 	
-	l2=mk_im_field(0, ListLength(i1), anti, prt);
+	l2=mk_im_field(0, ListLength(i1), anti, 
+		       ConcatList(CopyTerm(prt1),CopyTerm(prt2)));
 	
 	pl1=ConcatList(pl1,osp1);
 	pl1=ConcatList(pl1,csp1);

@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include "lanhep.h"
 
+#define TBSIZE 65500
+
 #ifdef MTHREAD
 #include <pthread.h>
 
@@ -23,12 +25,19 @@ void FreeAtomic2(Atomic a, int m);
   48-63 - lists
   64 - * labels
   
+  ---- new notation
   
+  1 - atoms
+  2 - functors
+  3 - floats
+  4 - compounds
+  5 - lists
+  6 - labels
 ***********/
 
 union fpoint
 	{
-	double d;
+	struct { double d,i;} v;
 	struct 	{
 		union fpoint *next;
 		Float f;
@@ -57,17 +66,26 @@ Float NewFloat(double d)
 			{
 			p[i].p.next=f_next_free;
 			f_next_free=p+i;
-			p[i].p.f=0x1f000000+f_blocks*0x10000+i;
+			p[i].p.f=(3L<<56)+f_blocks*0x10000+i;
 			}
 		f_blocks++;
 		}
 	p=f_next_free;
 	f_next_free=f_next_free->p.next;
 	f=p->p.f;
-	p->d=d;
+	p->v.d=d;
+	p->v.i=0.0;
 	f_dtf++;
 	return f;
 	}
+
+
+Float NewComplex(cmplx cx)
+{
+  Float f=NewFloat(0.0);
+  SetFloat(f,cx.r,cx.i);
+  return f;
+}
 
 double FloatValue(Float f)
 	{
@@ -77,17 +95,48 @@ double FloatValue(Float f)
 	bno/=0x10000;
 	bpos=f&0xffff;
 	p=fbuffers[bno]+bpos;
-	return p->d;
+	return p->v.d;
 	}
+
+cmplx ComplexValue(Float f)
+{
+  cmplx ret;
+  ret.r=FloatValue(f);
+  ret.i=ImaginaryValue(f);
+  return ret;
+}
+
+void SetFloat(Float f, double r, double i)
+{
+  union fpoint *p;
+	int bno,bpos;
+	bno=f&0xff0000;
+	bno/=0x10000;
+	bpos=f&0xffff;
+	p=fbuffers[bno]+bpos;
+	p->v.d=r;
+	p->v.i=i;
+}
+
+double ImaginaryValue(Float f)
+{
+  union fpoint *p;
+	int bno,bpos;
+	bno=f&0xff0000;
+	bno/=0x10000;
+	bpos=f&0xffff;
+	p=fbuffers[bno]+bpos;
+	return p->v.i;
+}
 
 #ifdef MTHREAD
 union COMPOpoint *COMPO_next_free[17]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 #else
 union COMPOpoint *COMPO_next_free=NULL;
 #endif
-union COMPOpoint *COMPO_buffers[4096];
+union COMPOpoint *COMPO_buffers[400096];
 int COMPO_blocks=0, COMPO_tall=0, COMPO_tfree=0;
-int LABEL_count = 0;
+long int LABEL_count = 0;
 
 
 /*
@@ -105,7 +154,7 @@ int LABEL_count = 0;
 __inline Integer NewInteger(long l)
 	{
 	Integer i;
-	i=l-1073741824;
+	i=l-2223372036854775807L;
 	if(i>=0)
 		{  puts("Internal error (integer out of range)."); 
 		/*abort();*/
@@ -115,7 +164,7 @@ __inline Integer NewInteger(long l)
 
 __inline long IntegerValue(Integer i)
 	{
-	return i+1073741824;
+	return i+2223372036854775807L;
 	}
 
 /*static int newfu[30];*/
@@ -123,10 +172,10 @@ __inline long IntegerValue(Integer i)
 
 __inline Functor NewFunctor(Atom name, int arity)
 	{
-	if(arity<1 || arity >100)
+	if(arity<1 || arity >250)
 		{  puts("Internal error (arity out of range)."); exit(0); }
 	/*newfu[arity]++;*/
-	return (name&0xffffff) + (arity+1)*0x1000000;
+	return (name&0xffffff) + (((long)arity+1)<<48)+ (2L<<56);
 	}
 
 /*
@@ -144,12 +193,12 @@ __inline int 	FunctorArity(Functor f)
 __inline void COMPO_free(Compound c)
 	{
 	union COMPOpoint *p;
-	int bno,bpos;
+	long int bno,bpos;
 #ifdef MTHREAD
 	int *ind;
 	ind=pthread_getspecific(TermsKey);
 #endif
-	bno=c&0xfff0000;
+	bno=c&0xfffff0000;
 	bno/=0x10000;
 	bpos=c&0xffff;
 	p=COMPO_buffers[bno]+bpos;
@@ -170,7 +219,7 @@ __inline void COMPO_free2(Compound c, int ind)
 	{
 	union COMPOpoint *p;
 	int bno,bpos;
-	bno=c&0xfff0000;
+	bno=c&0xfffff0000;
 	bno/=0x10000;
 	bpos=c&0xffff;
 	p=COMPO_buffers[bno]+bpos;
@@ -204,10 +253,10 @@ __inline union COMPOpoint *COMPO_alloc(Compound *cco)
 	if(COMPO_next_free==NULL)
 #endif
 		{
-		int i;
-		if(COMPO_blocks==4096)
+		unsigned int i;
+		if(COMPO_blocks==400096)
 			{  puts("Internal error (too much terms)."); exit(0); }
-		i=sizeof(union COMPOpoint)*65500;
+		i=sizeof(union COMPOpoint)*TBSIZE;
 
 #ifdef MTHREAD	
 		pthread_mutex_lock(&mtx);	
@@ -220,7 +269,7 @@ __inline union COMPOpoint *COMPO_alloc(Compound *cco)
 #endif
 		if(p==NULL)
 			{  puts("Internal error (lack space for terms)."); exit(0); }
-		for(i=0;i<65500;i++)
+		for(i=0;i<TBSIZE;i++)
 			{
 #ifdef MTHREAD
 			p[i].p.next=COMPO_next_free[*ind];
@@ -229,7 +278,7 @@ __inline union COMPOpoint *COMPO_alloc(Compound *cco)
 			p[i].p.next=COMPO_next_free;
 			COMPO_next_free=p+i;
 #endif
-			p[i].p.this_a=0x20000000+cb*0x10000+i;
+			p[i].p.this_a=(4L<<56)+cb*0x10000+i;
 			}
 		
 		}
@@ -261,9 +310,9 @@ __inline union COMPOpoint *COMPO_alloc2(Compound *cco, int ind)
 #endif
 		{
 		int i;
-		if(COMPO_blocks==4096)
+		if(COMPO_blocks==400096)
 			{  puts("Internal error (too much terms)."); exit(0); }
-		i=sizeof(union COMPOpoint)*65500;
+		i=sizeof(union COMPOpoint)*TBSIZE;
 
 #ifdef MTHREAD	
 		pthread_mutex_lock(&mtx);	
@@ -276,7 +325,7 @@ __inline union COMPOpoint *COMPO_alloc2(Compound *cco, int ind)
 #endif
 		if(p==NULL)
 			{  puts("Internal error (lack space for terms)."); exit(0); }
-		for(i=0;i<65500;i++)
+		for(i=0;i<TBSIZE;i++)
 			{
 #ifdef MTHREAD
 			p[i].p.next=COMPO_next_free[ind];
@@ -285,7 +334,7 @@ __inline union COMPOpoint *COMPO_alloc2(Compound *cco, int ind)
 			p[i].p.next=COMPO_next_free;
 			COMPO_next_free=p+i;
 #endif
-			p[i].p.this_a=0x20000000+cb*0x10000+i;
+			p[i].p.this_a=(4L<<56)+cb*0x10000+i;
 			}
 		
 		}
@@ -364,7 +413,7 @@ __inline Functor CompoundFunctor(Compound c)
 	{
 	union COMPOpoint *p;
 	int bno,bpos;
-	bno=c&0xfff0000;
+	bno=c&0xfffff0000;
 	bno/=0x10000;
 	bpos=c&0xffff;
 	p=COMPO_buffers[bno]+bpos;
@@ -375,9 +424,10 @@ __inline Functor CompoundFunctor(Compound c)
 __inline void SetCompoundName(Compound c, Atom name)
 	{
 	union COMPOpoint *p;
-	int bno,bpos, ar;
+	long int bno,bpos;
+	int ar;
 	Functor f;
-	bno=c&0xfff0000;
+	bno=c&0xfffff0000;
 	bno/=0x10000;
 	bpos=c&0xffff;
 	p=COMPO_buffers[bno]+bpos;
@@ -390,7 +440,7 @@ __inline Term CompoundArg1(Compound c)
 	{
 	union COMPOpoint *p;
 	int bno,bpos;
-	bno=c&0xfff0000;
+	bno=c&0xfffff0000;
 	bno/=0x10000;
 	bpos=c&0xffff;
 	p=COMPO_buffers[bno]+bpos;
@@ -401,7 +451,7 @@ __inline Term CompoundArg2(Compound c)
 	{
 	union COMPOpoint *p;
 	int bno,bpos;
-	bno=c&0xfff0000;
+	bno=c&0xfffff0000;
 	bno/=0x10000;
 	bpos=c&0xffff;
 	p=COMPO_buffers[bno]+bpos;
@@ -411,8 +461,8 @@ __inline Term CompoundArg2(Compound c)
 __inline Term CompoundArgN(Compound c, int arg)
 	{
 	union COMPOpoint *p;
-	int bno,bpos;
-	bno=c&0xfff0000;
+	long int bno,bpos;
+	bno=c&0xfffff0000;
 	bno/=0x10000;
 	bpos=c&0xffff;
 	p=COMPO_buffers[bno]+bpos;
@@ -424,9 +474,9 @@ __inline Term CompoundArgN(Compound c, int arg)
 __inline Term ConsumeCompoundArg(Compound c, int arg)
 	{
 	union COMPOpoint *p;
-	int bno,bpos;
+	long int bno,bpos;
 	Term ret;
-	bno=c&0xfff0000;
+	bno=c&0xfffff0000;
 	bno/=0x10000;
 	bpos=c&0xffff;
 	p=COMPO_buffers[bno]+bpos;
@@ -442,8 +492,8 @@ __inline Term ConsumeCompoundArg(Compound c, int arg)
 __inline void SetCompoundArg(Compound c, int arg, Term t)
 	{
 	union COMPOpoint *p;
-	int bno,bpos;
-	bno=c&0xfff0000;
+	long int bno,bpos;
+	bno=c&0xfffff0000;
 	bno/=0x10000;
 	bpos=c&0xffff;
 	p=COMPO_buffers[bno]+bpos;
@@ -507,7 +557,7 @@ __inline int is_atomic(Atomic a)
 
 __inline int is_float(Atomic a)
 	{
-	return (a&0xff000000)==0x1f000000;
+	return TERMTYPE(a)==3;
 	}
 
 __inline int is_integer(Atomic a)
@@ -517,44 +567,42 @@ __inline int is_integer(Atomic a)
 
 __inline int is_atom(Atomic a)
 	{
-	return (a&0xff000000)==0x01000000;
+	return TERMTYPE(a)==1;
 	}
 
 __inline int is_functor(Atomic a)
 	{
-	int b;
-	b=a/0x1000000;
-	return (b>1 && b<31);
+	return TERMTYPE(a)==2;
 	}
 
 __inline int is_compound(Term a)
 	{
-	return a/0x10000000 == 2;
+	return TERMTYPE(a)==4;
 	}
 
 __inline int is_label(Term a)
 	{
-	return a/0x10000000 >3 ;
+	return TERMTYPE(a)==6;
 	}
 
 
 __inline Atomic NewLabel(void)
 	{
-	return ((++LABEL_count)&0x3fffffff)+0x40000000;
+	return ((++LABEL_count)&0xffffffffffffff)+(6L<<56);
 	}
 
-__inline int   LabelValue(Atomic l)
+__inline long   LabelValue(Atomic l)
 	{
-	return l-0x40000000;
+	return l-(6L<<56);
 	}
 
 
 void FreeCompound(Compound c)
 	{
 	union COMPOpoint *p,*ps,*p1;
-	int bno,bpos,arity;
+	long int bno,bpos,arity;
 	Compound c1;
-	bno=c&0xfff0000;
+	bno=c&0xfffff0000;
 	bno/=0x10000;
 	bpos=c&0xffff;
 	p=COMPO_buffers[bno]+bpos;
@@ -582,7 +630,7 @@ void FreeCompound2(Compound c, int m)
 	union COMPOpoint *p,*ps,*p1;
 	int bno,bpos,arity;
 	Compound c1;
-	bno=c&0xfff0000;
+	bno=c&0xfffff0000;
 	bno/=0x10000;
 	bpos=c&0xffff;
 	p=COMPO_buffers[bno]+bpos;
@@ -609,9 +657,8 @@ void FreeAtomic(Atomic a)
 	{
 	long type;
 	if(a<0) return;
-	type = a&0xff000000;
-	type = type/0x1000000;
-	if(type==31)
+	type = TERMTYPE(a);
+	if(type==3)
 		{
 		union fpoint *p;
 		int bno,bpos;
@@ -625,12 +672,12 @@ void FreeAtomic(Atomic a)
 		f_ftd++;
 		return;
 		}
-	if(type>=32 && type<48)
+	if(type==4)
 		{
 		FreeCompound(a);
 		return;
 		}
-	if(type>=48 && type<64)
+	if(type==5)
 		{
 		FreeList(a);
 		return;
@@ -643,9 +690,8 @@ void FreeAtomic2(Atomic a, int m)
 	{
 	long type;
 	if(a<0) return;
-	type = a&0xff000000;
-	type = type/0x1000000;
-	if(type==31)
+	type = TERMTYPE(a);
+	if(type==3)
 		{
 		union fpoint *p;
 		int bno,bpos;
@@ -659,12 +705,12 @@ void FreeAtomic2(Atomic a, int m)
 		f_ftd++;
 		return;
 		}
-	if(type>=32 && type<48)
+	if(type==4)
 		{
 		FreeCompound2(a,m);
 		return;
 		}
-	if(type>=48 && type<64)
+	if(type==5)
 		{
 		FreeList2(a,m);
 		return;
@@ -770,19 +816,18 @@ char AtomicType(Atomic a)
 	{
 	long type;
 	if(a<0) return 'i';
-	type = a&0xff000000;
-	type = type/0x1000000;
+	type = TERMTYPE(a);
 	if(type==1)
 		return 'a';
-	if(type==31)	/* 0xff */
+	if(type==3)	/* 0xff */
 		return 'f';
-	if(type>=32 && type<48)   /* 0xfe */
+	if(type==4)   /* 0xfe */
 		return 'c';
-	if(type>=48 && type<64)  /*  0xfd */ 
+	if(type==5)  /*  0xfd */ 
 		return 'l';
-	if(type>=64)  /*  0xfc */
+	if(type==6)  /*  0xfc */
 		return 'L';
-	if(type>1 && type<31)
+	if(type==2)
 		return 'u';
 	if(a==0)
 		return 'e';
@@ -796,7 +841,7 @@ void AtomStatistics(void)
 	printf("Atoms: %d       , %d a->s  , %d s->a\n",ATOM_count,ATOM_tscount,
 				ATOM_stcount);
 	printf("Terms: %d blocks use %ld Kbytes, %d allocs ( %d remain) \n",
-		COMPO_blocks,COMPO_blocks*sizeof(union COMPOpoint)*64,
+		COMPO_blocks,COMPO_blocks*(int)sizeof(union COMPOpoint)*64,
 		COMPO_tall,COMPO_tall-COMPO_tfree);
 	printf("Float: %d blocks, %d allocs, %d frees\n",f_blocks,f_dtf,f_ftd);
 	printf("Labels:          %d allocs\n",LABEL_count);
@@ -812,7 +857,7 @@ void AtomStat1(void)
 
 long TermMemory(void)
 	{
-	return (long)COMPO_blocks*sizeof(union COMPOpoint)*64;
+	return (long)COMPO_blocks*(long)sizeof(union COMPOpoint)*64;
 	}
 
 int EqualTerms(Term t1, Term t2)
@@ -823,7 +868,7 @@ int EqualTerms(Term t1, Term t2)
 		CompoundFunctor(t1) == CompoundFunctor(t2))
 		{
 		int i,a;
-		a=CompoundArity(t1);
+		a=(int)CompoundArity(t1);
 		for(i=1;i<=a;i++)
 			if(!EqualTerms(CompoundArgN(t1,i),CompoundArgN(t2,i)))
 				return 0;

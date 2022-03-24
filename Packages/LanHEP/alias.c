@@ -45,20 +45,85 @@ static Term tolab(Term t, List li)
 	return t;
 	}
 
+static List plused_atoms=0;
+
+static Term del_plus(Term t)
+{
+  if(is_compound(t) && CompoundArity(t)==1 && CompoundName(t)==OPR_PLUS)
+  {
+	Term t1=ConsumeCompoundArg(t,1);
+	if(!is_atom(t1))
+	{
+	  ErrorInfo(1);
+	  printf("alias: argument of '+' must be a symbol, got ");
+	  WriteTerm(t1);puts("");
+	}
+	else
+	  plused_atoms=AppendLast(plused_atoms,t1);
+	
+	FreeAtomic(t);
+	return t1;
+  }
+  
+  if(is_compound(t))
+  {
+	int i, a=CompoundArity(t);
+	for(i=1;i<=a;i++)
+	{
+	  Term t1=ConsumeCompoundArg(t,i);
+	  SetCompoundArg(t,i,del_plus(t1));
+	}
+	return t;
+  }
+	
+  if(is_list(t))
+  {
+	List l;
+	for(l=t;l;l=ListTail(l))
+	{
+	  ChangeList(l,del_plus(ListFirst(l)));
+	}
+	return t;
+  }
+  
+  return t;
+  
+}
+
 Term SetAlias(Term al, Term sub, int ver)
 	{
 	List l1,l2,l3,l4;
 	Term tt, alsv;
+	
+	alsv=CopyTerm(al);
+	
+	plused_atoms=0;
+	al=del_plus(al);
+	
 	l1=AtomsInTerm(al,0);
 	l2=AtomsInTerm(sub,0);
-	alsv=CopyTerm(al);
+	
+	
 	for(l3=l1;l3;l3=ListTail(l3))
 		if(AtomValue(ListFirst(l3))[0]=='_' && !ListMember(l2,ListFirst(l3)))
 			l2=AppendLast(l2,ListFirst(l3));
 	l3=IntersectList(l1,l2);
+
+	
 	FreeAtomic(l1);
 	FreeAtomic(l2);
-	l1=l3;
+	
+	l1=0;
+	
+	for(l2=l3;l2;l2=ListTail(l2))
+	  if(!ListMember(plused_atoms,ListFirst(l2)))
+		l1=AppendLast(l1,ListFirst(l2));
+	  
+	RemoveList(l3);
+	RemoveList(plused_atoms);
+	plused_atoms=0;
+	l3=l1;
+	
 	while(!is_empty_list(l1))
 		{
 		ChangeList(l1,MakeCompound2(OPR_DIV,ListFirst(l1),NewLabel()));
@@ -274,7 +339,10 @@ Term proc_alias(Term t)
 		return grs;
 	}
 		
-					
+	if(is_compound(t) && CompoundArity(t)==1 && CompoundName(t)==OPR_PLUS)
+	{
+	  return CopyTerm(CompoundArg1(t));
+	}
 			
 	if(is_compound(t) && GetAtomProperty(CompoundName(t),OPR_UNALIAS)==0)
 		{
@@ -320,9 +388,17 @@ Term proc_alias(Term t)
 	
 Term ProcessAlias(Term t)
 	{
+	 int cnt=0;
 	do
 		{
 		Term t1;
+		cnt++;
+		if(cnt>15)
+		{
+		  ErrorInfo(100);
+		  printf("possible infine loop in processing aliases.\n");
+		  return 0;
+		}
 		subs_in_ali=0;
 		t1=proc_alias(t);
 		FreeAtomic(t);
@@ -344,7 +420,7 @@ Term InterfProcessAlias(Term a, Term i)
 void RemoveAlias(Term lab)
 	{
 	List li;
-	int lv;
+	long int lv;
 	if(is_compound(lab)&&CompoundName(lab)==OPR_COMMA)
 		lab=CommaToList(lab);
 	if(is_list(lab))

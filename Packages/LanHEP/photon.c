@@ -8,7 +8,7 @@ static Atom ph_f=0, ph_c=0;
 
 void cls_set_em(void);
 
-int defined_em_charge(void)
+Atom defined_em_charge(void)
 	{
 	return ph_f;
 	}
@@ -89,10 +89,10 @@ static void set_sc_ch(Term a2, Atom p1, Atom p2, int php)
            CompoundName(cn)==A_MOMENT  &&
 			CompoundArg1(cn)==mprt && ListFirst(CompoundArg2(cn))==mind)
 			{
-			num=IntegerValue(CompoundArg1(CompoundArg2(a2)));
-			num*=IntegerValue(CompoundArg1(m2));
-			den=IntegerValue(CompoundArg2(CompoundArg2(a2)));
-			cd=gcf(num,den);
+			num=(int)IntegerValue(CompoundArg1(CompoundArg2(a2)));
+			num*=(int)IntegerValue(CompoundArg1(m2));
+			den=(int)IntegerValue(CompoundArg2(CompoundArg2(a2)));
+			cd=(int)gcf(num,den);
 			num/=cd;
 			den/=cd;
 			num*=charge_sign;
@@ -181,10 +181,10 @@ static void set_sp_ch(Term a2, Atom p1, Atom p2, int php)
 		return;
 		}
 	
-	num=IntegerValue(CompoundArg1(CompoundArg2(a2)));
-	num*=IntegerValue(CompoundArg1(ListFirst(l)));
-	den=IntegerValue(CompoundArg2(CompoundArg2(a2)));
-	cd=gcf(num,den);
+	num=(int)IntegerValue(CompoundArg1(CompoundArg2(a2)));
+	num*=(int)IntegerValue(CompoundArg1(ListFirst(l)));
+	den=(int)IntegerValue(CompoundArg2(CompoundArg2(a2)));
+	cd=(int)gcf(num,den);
 	num/=cd;
 	den/=cd;
 	num*=charge_sign;
@@ -251,10 +251,10 @@ static void set_ve_ch(Term a2, Atom p1, Atom p2, int php)
 			CompoundName(cn)==A_MOMENT)) &&
 			CompoundArg1(cn)==mprt && ListFirst(CompoundArg2(cn))==mind)
 			{
-			num=IntegerValue(CompoundArg1(CompoundArg2(a2)));
-			num*=IntegerValue(CompoundArg1(m2));
-			den=IntegerValue(CompoundArg2(CompoundArg2(a2)));
-			cd=gcf(num,den);
+			num=(int)IntegerValue(CompoundArg1(CompoundArg2(a2)));
+			num*=(int)IntegerValue(CompoundArg1(m2));
+			den=(int)IntegerValue(CompoundArg2(CompoundArg2(a2)));
+			cd=(int)gcf(num,den);
 			num/=cd;
 			den/=cd;
 			num*=charge_sign;
@@ -293,8 +293,8 @@ static void set_num(void)
 static void add_num(Term dv)
 	{
 	int nu, de;
-	nu=IntegerValue(CompoundArg1(dv));
-	de=IntegerValue(CompoundArg2(dv));
+	nu=(int)IntegerValue(CompoundArg1(dv));
+	de=(int)IntegerValue(CompoundArg2(dv));
 	c_num=c_num*de+nu*c_den;
 	c_den*=de;
 	}
@@ -381,6 +381,7 @@ void check_em_charge(List lagr)
 		{
 		List l2;
 		Term a2;
+                int auf=0;
 		a2=ListFirst(l1);
 		if(CompoundArgN(a2,5)==0)
 			goto cnt;
@@ -390,6 +391,13 @@ void check_em_charge(List lagr)
 			{
 			Term prp;
 			prp=GetAtomProperty(CompoundArg1(ListFirst(l2)),PROP_TYPE);
+                        if(is_compound(prp) && CompoundName(prp)==OPR_PARTICLE)
+                        {
+                            Atom aaa=CompoundArgN(prp,7);
+                            if(is_atom(aaa) && (AtomValue(aaa)[0]=='*' ||
+                                AtomValue(aaa)[1]=='*'))
+                                auf=1;
+                        }
 			if(!is_compound(prp) || CompoundName(prp)!=OPR_PARTICLE ||
 				CompoundArgN(prp,7)==OPR_MLT)
 				{
@@ -414,7 +422,7 @@ void check_em_charge(List lagr)
 				add_num(prp);
 			l2=ListTail(l2);
 			}
-		if(get_num())
+		if(!auf && get_num())
 			{
 			Term a22;
 			a22=CopyTerm(a2);

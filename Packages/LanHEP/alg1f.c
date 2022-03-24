@@ -226,7 +226,7 @@ static List alg1_s_w_m_1(Term m1, Term by)
 	c1=c2=0;
 	i=1;	
 	ind=CompoundArg1(by);
-	range=IntegerValue(CompoundArg2(by));
+	range=(int)IntegerValue(CompoundArg2(by));
 	
 	l1=CompoundArgN(m1,3);
 	while(!is_empty_list(l1))

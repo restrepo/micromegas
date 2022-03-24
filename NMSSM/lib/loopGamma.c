@@ -33,7 +33,7 @@ int loopGamma(double * csAA, double *csAZ)
     return 10;
   }  
 
-  sprintf(buff+strlen(buff)," %E", Vrot/299792.*1.5957691);
+  sprintf(buff+strlen(buff)," %E", vRot/299792.*1.5957691);
 
   err=System(buff);
   double ee=findValW("EE");

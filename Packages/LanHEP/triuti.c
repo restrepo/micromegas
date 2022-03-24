@@ -87,7 +87,7 @@ static int tri_x_c2_1(List *l, Atom s)
 		for(l3=CompoundArg2(ListFirst(l2));l3;l3=ListTail(l3))
 			if(CompoundArg1(ListFirst(l3))==s && 
 					IntegerValue(CompoundArg2(ListFirst(l3)))>scoeff)
-				scoeff=IntegerValue(CompoundArg2(ListFirst(l3)));
+				scoeff=(int)IntegerValue(CompoundArg2(ListFirst(l3)));
 	if(scoeff<2)
 	{
 		FreeAtomic(l1);
@@ -120,7 +120,7 @@ static int tri_x_c2_1(List *l, Atom s)
 				else
 					SetCompoundArg(ListFirst(l4),2,
 						NewInteger(IntegerValue(CompoundArg2(ListFirst(l4)))-2));
-				n=IntegerValue(CompoundArg1(m2));
+				n=(int)IntegerValue(CompoundArg1(m2));
 				if(n%2)
 				{
 					FreeAtomic(l1);
@@ -204,7 +204,7 @@ int tri_divf(Term a1, List *l_1, List *l_2, List ml)
 			ps=0;
 		else
 		{
-			ps=IntegerValue(CompoundArg2(ListFirst(ls)));
+			ps=(int)IntegerValue(CompoundArg2(ListFirst(ls)));
 			lp=CutFromList(lp,ls);
 		}
 		
@@ -239,11 +239,11 @@ int tri_divf(Term a1, List *l_1, List *l_2, List ml)
 		
 		ml=SortedList(ml,tri_mcmp);
 		
-		cf=IntegerValue(CompoundArg1(ListFirst(ml)));
+		cf=(int)IntegerValue(CompoundArg1(ListFirst(ml)));
 		if(cf<0)
 			cf=-cf;
 		for(l2=ListTail(ml);l2;l2=ListTail(l2))
-			cf=gcf(cf,IntegerValue(CompoundArg1(ListFirst(l2))));
+			cf=(int)gcf(cf,IntegerValue(CompoundArg1(ListFirst(l2))));
 		if(IntegerValue(CompoundArg1(ListFirst(ml)))<0)
 			cf=-cf;
 		for(l2=ml;l2;l2=ListTail(l2))
@@ -271,8 +271,8 @@ int tri_divf(Term a1, List *l_1, List *l_2, List ml)
 		Term m2;
 		List pl;
 		int pc, ps;
-		ps=IntegerValue(CompoundArg1(ListFirst(l1)));
-		pc=IntegerValue(CompoundArg2(ListFirst(l1)));
+		ps=(int)IntegerValue(CompoundArg1(ListFirst(l1)));
+		pc=(int)IntegerValue(CompoundArg2(ListFirst(l1)));
 		pl=NewList();
 		if(pc)
 			pl=AppendLast(pl,MakeCompound2(OPR_POW,c,NewInteger(pc)));
@@ -344,6 +344,7 @@ Atom tri_dummy_prm(List ml)
 
 	SetAtomProperty(np,PROP_TYPE,OPR_PARAMETER);
 	SetAtomProperty(np,A_DUMMY_PRM,ml);
+	//WriteTerm(np); printf(" -> "); WriteTerm(ml);puts("");
 	buf[0]='(';
 	buf[1]=0;
 	m2_1=ListFirst(ml);
@@ -416,7 +417,7 @@ static int tri_rep_c(List *ml, Atom s, Atom c, int c2a)
 		pps=CopyTerm(CompoundArg2(ListFirst(l1)));
 		pp=tri_rcos_mlt(CopyTerm(pps),s,2);
 		
-		nu=IntegerValue(CompoundArg1(ListFirst(l1)));
+		nu=(int)IntegerValue(CompoundArg1(ListFirst(l1)));
 		
 		for(l2=*ml;l2;l2=ListTail(l2))
 		{
@@ -468,7 +469,7 @@ static int tri_rep_c2(List *ml, Atom s, Atom c, Atom c2)
 		pp=tri_rcos_mlt(CopyTerm(pps),s,2);
 		pp=tri_rcos_mlt(pp,c,2);
 		
-		nu=IntegerValue(CompoundArg1(ListFirst(l1)));
+		nu=(int)IntegerValue(CompoundArg1(ListFirst(l1)));
 		
 		for(l2=*ml;l2;l2=ListTail(l2))
 		{
@@ -517,7 +518,7 @@ static int tri_rep_cc(List *ml, Atom s1, Atom s2, Atom c1, Atom c2)
 		Term m2;
 		
 		pps=CopyTerm(CompoundArg2(ListFirst(l1)));
-		nu=IntegerValue(CompoundArg1(ListFirst(l1)))/2;
+		nu=(int)IntegerValue(CompoundArg1(ListFirst(l1)))/2;
 		if(2*nu!=IntegerValue(CompoundArg1(ListFirst(l1))))
 		{
 			FreeAtomic(pps);
@@ -633,7 +634,7 @@ static int tri_rep_d(List *ml, int s1, Atom i1, int s2, Atom i2,
 		Term m2;
 		
 		pps=CopyTerm(CompoundArg2(ListFirst(l1)));
-		nu=IntegerValue(CompoundArg1(ListFirst(l1)))*s1;		
+		nu=(int)IntegerValue(CompoundArg1(ListFirst(l1)))*s1;		
 		
 		for(l2=pps;l2;l2=ListTail(l2))
 			if(CompoundArg1(ListFirst(l2))==i1)
@@ -703,7 +704,7 @@ static int tri_rep_e(List *ml, int s1, Atom i11, Atom i12,
 		Term m2;
 		
 		pps=CopyTerm(CompoundArg2(ListFirst(l1)));
-		nu=IntegerValue(CompoundArg1(ListFirst(l1)))*s1;		
+		nu=(int)IntegerValue(CompoundArg1(ListFirst(l1)))*s1;		
 		
 		for(l2=pps;l2;l2=ListTail(l2))
 			if(CompoundArg1(ListFirst(l2))==i11)
@@ -783,7 +784,7 @@ static int tri_rep_f(List *ml, Atom sp, Atom sm, Atom cp, Atom cm,
 		Term m2;
 		
 		pps=CopyTerm(CompoundArg2(ListFirst(l1)));
-		nu=IntegerValue(CompoundArg1(ListFirst(l1)))*sn2/2;		
+		nu=(int)IntegerValue(CompoundArg1(ListFirst(l1)))*sn2/2;		
 		
 		for(k1=pps;k1;k1=ListTail(k1))
 			if(CompoundArg1(ListFirst(k1))==cp)
@@ -948,7 +949,7 @@ static int tri_rep_g(List *ml, Atom sp, Atom sm, Atom cp, Atom cm,
 		Term m2;
 		
 		pps=CopyTerm(CompoundArg2(ListFirst(l1)));
-		nu=IntegerValue(CompoundArg1(ListFirst(l1)))*sp_s*cp_s;		
+		nu=(int)IntegerValue(CompoundArg1(ListFirst(l1)))*sp_s*cp_s;		
 		
 		for(k1=pps;k1;k1=ListTail(k1))
 			if(CompoundArg1(ListFirst(k1))==cp)
@@ -1076,7 +1077,7 @@ static int tri_rep_h(List *ml, Atom i1, Atom i2, Atom i3, Atom i4,
 		Term m2;
 		
 		pps=CopyTerm(CompoundArg2(ListFirst(l1)));
-		nu=IntegerValue(CompoundArg1(ListFirst(l1)))*s_1;
+		nu=(int)IntegerValue(CompoundArg1(ListFirst(l1)))*s_1;
 		
 		for(k1=pps;k1;k1=ListTail(k1))
 			if(CompoundArg1(ListFirst(k1))==i1)
@@ -1208,7 +1209,7 @@ int tri_opti_2(Term v2d, List *m2l)
 	
 	{
 		int i;
-		i=IntegerValue(CompoundArg1(v2d));
+		i=(int)IntegerValue(CompoundArg1(v2d));
 
 		sa1=CompoundArg1(ListNth(tri_si_co_list,i));
 		ca1=CompoundArg2(ListNth(tri_si_co_list,i));
@@ -1220,7 +1221,7 @@ int tri_opti_2(Term v2d, List *m2l)
 			c2a1=CompoundArg1(c2a1);
 		}
 
-		i=IntegerValue(CompoundArg2(v2d));
+		i=(int)IntegerValue(CompoundArg2(v2d));
 
 		sa2=CompoundArg1(ListNth(tri_si_co_list,i));
 		ca2=CompoundArg2(ListNth(tri_si_co_list,i));
@@ -1406,8 +1407,8 @@ xyz:
 		{
 			Atom a1,a2;
 			int po1,po2;
-			po1=IntegerValue(CompoundArg2(ListFirst(l1)));
-			po2=IntegerValue(CompoundArg2(ListFirst(l2)));
+			po1=(int)IntegerValue(CompoundArg2(ListFirst(l1)));
+			po2=(int)IntegerValue(CompoundArg2(ListFirst(l2)));
 			if(po1!=po2 && po1!=-po2)
 				continue;
 			a1=CompoundArg1(ListFirst(l1));
@@ -1470,11 +1471,11 @@ xyz:
 	if(rnum>1 || rden>1)
 	{
 		int num, den;
-		num=IntegerValue(CompoundArg1(CompoundArg2(a2)));
-		den=IntegerValue(CompoundArg2(CompoundArg2(a2)));
+		num=(int)IntegerValue(CompoundArg1(CompoundArg2(a2)));
+		den=(int)IntegerValue(CompoundArg2(CompoundArg2(a2)));
 		den*=rden;
 		num*=rnum;
-		rnum=gcf(num,den);
+		rnum=(int)gcf(num,den);
 		num/=rnum;
 		den/=rnum;
 		SetCompoundArg(CompoundArg2(a2),1,NewInteger(num));

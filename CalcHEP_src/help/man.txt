@@ -17,7 +17,7 @@ press the F1 key to get a context sensitive help information. If the screen
 height in not enough to display the full help message, you will see PgDn
 mark in the right-bottom corner of the help window. To get next page of the
 message press the PgDn key or click on the mark. To close the help window,
-press the Esc key or click the asterisk in the upper-left corner of the
+press the Esc key, or click the asterisk in the upper-left corner of the
 help border.
   
                 II. Menu.
@@ -28,8 +28,9 @@ function to activate it.
    If the menu is too large - you will see only a part of it. Use the
 PgDn/PgUp buttons or click on the corresponding marks in the menu corners
 to scroll.
-   In order to get back to the previous menu level press the Esc key or
-click the asterisk in the top-left corner of the menu border.
+   In order to get back to the previous menu level press the Esc key, or
+click the asterisk in the top-left corner of the menu border, or use 
+double click out of menu region.
    The menu program is also sensitive to the functional keys. The list of
 active function keys depends on the program point and is displayed on the
 bottom line of the screen. Generally the function keys activate the

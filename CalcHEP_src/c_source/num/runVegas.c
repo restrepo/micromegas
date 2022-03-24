@@ -100,7 +100,7 @@ static void writeEvent(double *x,  double  w)
 
 //static long n_cube=1000;
 #define n_cube EventGrid
-long EventGrid=10000;
+int  EventGrid=10000;
 
 int regenEvents=0; 
 static int nEvents=10000;
@@ -306,7 +306,7 @@ static double func_(double *x, double wgt);
 int readVegasGrid(FILE * f)
 {
   int i,j,ndim,ndmx;
-  long nCubes;
+  int nCubes;
   
   if(veg_Ptr) {vegas_finish(veg_Ptr);veg_Ptr=NULL;}  
   fscanf(f," Vegas_grid: dim=%d  size=%d\n", &ndim, &ndmx);
@@ -314,7 +314,7 @@ int readVegasGrid(FILE * f)
   { 
     veg_Ptr=vegas_init(ndim,func_,ndmx);
     for(i=0;i<ndim;i++)for(j=0;j<=ndmx;j++) fscanf(f," %lf",&(veg_Ptr->x_grid[i][j]) );
-    fscanf(f," Max(%ld):\n",&nCubes);   
+    fscanf(f," Max(%d):\n",&nCubes);   
     
     setEventCubes(veg_Ptr, nCubes);
     if(nCubes && veg_Ptr->evnCubes==nCubes) 
@@ -561,7 +561,7 @@ int runVegas(void)
                 }   
                 break;
         case 9: 
-           if(correctLong(50,12,"Enter new value ",&EventGrid,1))
+           if(correctInt(50,12,"Enter new value ",&EventGrid,1))
            { if(veg_Ptr->fMax) {free(veg_Ptr->fMax); veg_Ptr->fMax=NULL;}
              printf("EventGrid=%d\n",EventGrid);
              setEventCubes(veg_Ptr, EventGrid);
@@ -572,7 +572,7 @@ int runVegas(void)
            if( !veg_Ptr || !veg_Ptr->fMax)
            { char * mess="Before event generation one has to launch  Vegas session with freezed grid\n"
                                            "to prepare generator";
-                if(blind) { printf("%s\n",mess); sortie(200);}  else messanykey(4,13,mess);
+                messanykeyErr(4,13,mess);
            } else  runEvents();
        }
     }    

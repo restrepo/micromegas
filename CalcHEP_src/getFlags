@@ -19,74 +19,96 @@ EOF
 $MAKE
 }
 
+
 defaultFlags()
 {
 
-HXll=  
-LX11=-lX11
-SNUM=
-SO=so
-echo UNIX `uname`
-case `uname` in
-
-Linux) if(test "$CC" = "icc") then
-          CFLAGS="-g -fsigned-char -Qoption,cpp,--extended_float_type -std=gnu99 -fPIC" 
-       else
-          CC=gcc
-          CFLAGS="-g -fsigned-char -Wstrict-prototypes -Wimplicit -Wmissing-prototypes -std=gnu99"
+  UNAME=`uname`
+  unKnownC=Yes
+  gccExt=  
+  if(test -n "$CC") then 
+     if(test "$CC" = icc) then
+       CFLAGS="-g -fsigned-char -Qoption,cpp,--extended_float_type -std=gnu99 -fPIC"
+       CXX=icpc
+       CXXFLAGS="-g  -Qoption,cpp,--extended_float_type -fPIC"
+       unKnownC=
+     else
+       gccExt=`echo $CC |sed s/gcc//`
+       gcc=gcc$gccExt
+       if(test $CC = $gcc) then 
+          CFLAGS="-g -fsigned-char -std=gnu99 -fPIC"
+          CXX=g$gccExt++
+          CXXFLAGS="-g -fPIC"
+          unKnownC=
+       else 
+          if(test $CC = cc) then
+             CFLAGS="-g -fsigned-char -std=gnu99 -fPIC"
+             CXX=c++
+             CXXFLAGS="-g -fPIC"
+             unKnownC=
+          else 
+            CFLAGS="-g -std=gnu99 -fPIC"
+            CXX=$CC
+            CXXFLAGS="-g -fPIC"
+            echo Unknown compiler $CC  
+          fi
        fi
-       lDL="-rdynamic -ldl"       
-       SHARED=-shared
-       SONAME=
-       FC=gfortran
-       FFLAGS="-fno-automatic"       
-       lFort=-lgfortran
-       CXX=g++
-       CXXFLAGS=-g
-       RANLIB=ranlib
-     ;;
-
-Darwin)CC=clang
-       CFLAGS="-g -fsigned-char -std=gnu99"
-       lDL=-ldl
-       SHARED=-dynamiclib
-       SONAME="-install_name "
-       FC=gfortran
-       FFLAGS= 
-       lFort="-L/sw/lib  -lgfortran"
+     fi
+  else
+    if(test "$UNAME" = Darwin) then 
+       CC=clang
        CXX=clang++
-       CXXFLAGS=-g
-       RANLIB="ranlib -c"
-     ;;
-CYGWIN*)
+    else 
        CC=gcc
-       CFLAGS="-g -fsigned-char -std=gnu99"
-       lDL=
-       SHARED=-shared
-       SONAME=
-       SO=dll
-       FC=g77
-       FFLAGS=-fno-automatic 
-       lFort=-lg2c
        CXX=g++
-       CXXFLAGS=-g
-       RANLIB="ranlib"
+       echo   CC=gcc by default
+    fi
+    CFLAGS="-g -fsigned-char -std=gnu99 -fPIC"
+    CXXFLAGS="-g -fPIC"
+    unKnownC=
+  fi
+
+echo UNAME=$UNAME ???
+
+   if(test "$UNAME" = Darwin) then
+     RANLIB="ranlib -c"
+     SONAME="-install_name "
+     lDL=-ldl
+   else 
+     RANLIB="ranlib" 
+     SONAME=
+     lDL="-rdynamic -ldl"  
+   fi
+
+   case `uname` in 
+     CYGWIN*)
+       SO=so
+     ;;   
+     *) 
+       SO=dll
      ;;
+    esac
+
+   if(test $CC = clang) then 
+       SHARED=-dynamiclib
+   else 
+       SHARED=-shared
+   fi  
 
 
-   *) CC=cc
-      CFLAGS="-g -std=gnu99" 
-      FC=f77
-      lFort=
-      lDL=
-      SO=so
-      RANLIB=ranlib
-      CXX=c++ 
-      CXXFLAGS=-g
-      echo Unknown Unix  
-     ;;
-esac
+   FC=gfortran
+   FFLAGS="-fno-automatic"
+   if(test "$UNAME" = Darwin) then 
+       lFort="-L/sw/lib  -lgfortran"   
+   else 
+        lFort=-lgfortran
+   fi     
 
+   
+   HXll=  
+   LX11=-lX11
+   SNUM=
+   SO=so
 }
 
 writeFlags()
@@ -143,7 +165,10 @@ RANLIB=\"$RANLIB\"
 # MAKE 
 MAKE=$MAKE        
 
-export CC CFLAGS  lDL LX11 SHARED SONAME SO FC FFLAGS RANLIB CXX CXXFLAGS lFort MAKE
+# Quadruple
+lQuad=\"$lQuad\" 
+
+export CC CFLAGS  lDL LX11 SHARED SONAME SO FC FFLAGS RANLIB CXX CXXFLAGS lFort lQuad MAKE 
 " > ../FlagsForSh    
 }
 
@@ -165,6 +190,7 @@ FC = $FC
 FFLAGS = $FFLAGS
 RANLIB = $RANLIB
 lFort = $lFort
+lQuad = $lQuad
 CXX=$CXX    
 CXXFLAGS = $CXXFLAGS 
 CALCHEP = `pwd`
@@ -184,7 +210,12 @@ if(test ! -x "`which $CC`") then
   echo  ... trying  gcc ...
   if(test -x "`which gcc`") then
      CC=gcc
-     CFLAGS=-fsigned-char
+     CFLAGS="-g -fsigned-char -std=gnu99 -fPIC"
+     CXX=g++
+     CXXFLAGS="-g -fPIC"
+     SONAME=
+     SHARED=-shared
+     lDL="-rdynamic -ldl"
   else   
      echo gcc also is not detected ...
      echo Write down the compile name  and its options in FlagsForSh file.
@@ -225,6 +256,56 @@ if(test $? -ne 0) then
   return  1
 fi 
 
+cat >test.c <<EOF
+#include"../include/nType.h"
+int main(void)
+{ 
+
+#ifdef _QUADGCC_
+   return 5;
+#else 
+   return 6;
+#endif   
+   return 0;
+}
+EOF
+
+$CC $CFLAGS  -c test.c  1>/dev/null 2>/dev/null
+if(test $? -ne 0) then
+  echo  C compiler does not support numerical type defined in CalcHEP/include/nType.h
+  echo  One needs icc for _QUADICC_ and gcc for _QUADGCC_
+  echo  Change  compiler and  flags or numerical type in nType.h 
+  return  1
+fi 
+
+rm ./a.out
+$CC $CFLAGS  test.c  1>/dev/null 2>/dev/null
+./a.out
+if(test $? -eq 5) then 
+   lQuad="-lquadmath"
+else 
+   lQuad=
+fi 
+
+cat >test.c <<EOF
+#include<math.h>
+#include"../include/nType.h"
+REAL main(void)
+{ 
+   REAL a=0.1;
+   REAL s=Sin(a);
+   return s;
+}
+EOF
+
+$CC $CFLAGS  test.c  -lm $lQuad    1>/dev/null 2>/dev/null
+if(test $? -eq 0) then 
+   echo numerical type Ok
+else 
+   echo Problem in usage of numerical type defined in CalcHEP/include/nType.h
+   return 1
+fi
+
 echo C compiler detected
 return 0  
 
@@ -236,10 +317,11 @@ cat >test.c<<EOF
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
-void main(void)
+int  main(void)
 {
   static Display *display;
   display = XOpenDisplay (NULL);
+  return 0;
 }
 EOF
 
@@ -415,7 +497,7 @@ fi
 
 
 if(test $SNUM = "-DNUM_LONG_LONG" -o $SNUM = "OFF"  ) then
-  echo "void main(void){exit(sizeof(long long ));}" >test.c
+  echo "int  main(void){return (sizeof(long long ));}" >test.c
   $CC -o a.out test.c 1>/dev/null 2>/dev/null
   if(test $? -ne 0) then
      echo -DNUM_LONG_LONG option is refused
@@ -434,7 +516,7 @@ fi
 if(test "$SNUM" = "OFF") then
 # selection of integer type for symbolic calculation 
  
-  echo "void main(void){exit(sizeof(long ));}" >test.c
+  echo "int  main(void){ return (sizeof(long ));}" >test.c
 
   $CC -o a.out test.c 1>/dev/null 2>/dev/null
   ./a.out
@@ -553,7 +635,8 @@ if(test -z "$LX11") then
   If you  would like to use CalcHEP in interactive
   mode, please, install the following additional package:
     libX11-devel    for Fedora/Scientific, Darwin(MAC)
-    libX11-dev      for Ubuntu/Debian
+    libX11-dev      for Ubuntu/Debian [old Ubunty]
+    libx11-dev      for Ubuntu/Debian [new Ubunty]
     xorg-x11-devel  for SUSE"
 
 else 

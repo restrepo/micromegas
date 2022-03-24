@@ -27,7 +27,7 @@ extern void  nilprtcl(whohow      p_list);
 
 
 extern shortstr processch;
-char limpch[STRSIZ], deloutch[STRSIZ];
+extern char limpch[STRSIZ], deloutch[STRSIZ];
 extern int  nin, nout, n_x;   /* Number of X-particles */
 extern int  enter(void);
 extern  hadron hadrons[MAXINOUT];

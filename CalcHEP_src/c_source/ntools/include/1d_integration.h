@@ -9,4 +9,6 @@ extern int simpson_err;
 extern double simpson( double (*func)(double),double a,double b, double  eps, int *err);
 extern double simpson_arg( double (*func)(double,void*par), void*par,double a,double b,double eps, int*err);
 
+extern double peterson21(double (*func)(double), double a, double b, double *aerr);
+extern double peterson21_arg(double (*F)(double,void*),void*par, double a, double b, double *aerr);
 #endif

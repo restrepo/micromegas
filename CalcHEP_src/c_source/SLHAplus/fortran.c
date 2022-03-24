@@ -318,49 +318,49 @@ int slhastrformat_(char * Block, char * format, char * fRes, int len1,int len2,i
 
 /*================ Diagonalizing ==========================*/
 
-int rjacobi_(double*a,int*n,double*d,double*v){ return rJacobi(a,*n,d,v); }
+int rjacobi_(REAL*a,int*n,REAL*d,REAL*v){ return rJacobi(a,*n,d,v); }
 
-int rjacobia_(double*a,int*n,double*d,double*u,double*v)
+int rjacobia_(REAL*a,int*n,REAL*d,REAL*u,REAL*v)
      {return rJacobiA(a,*n,d,u,v);}
-int cjacobih_(double complex*a,int*n,double*d,double complex*v){return cJacobiH(a,*n,d,v);}
-int cjacobis_(double complex*a,int*n,double*d,double complex*v){return cJacobiS(a,*n,d,v);}
-int cjacobia_(double complex*a,int*n,double*d,double complex*u,double complex*v)
+int cjacobih_(COMPLEX*a,int*n,REAL*d,COMPLEX*v){return cJacobiH(a,*n,d,v);}
+int cjacobis_(COMPLEX*a,int*n,REAL*d,COMPLEX*v){return cJacobiS(a,*n,d,v);}
+int cjacobia_(COMPLEX*a,int*n,REAL*d,COMPLEX*u,COMPLEX*v)
      { return  cJacobiA(a,*n,d,u,v);}
 
 int initdiagonal_(void) { return initDiagonal();}
 
-int rdiagonal2_(aList3(double*))  { return rDiagonal(2,aList3(*));}
-int rdiagonal3_(aList6(double*))  { return rDiagonal(3,aList6(*));}
-int rdiagonal4_(aList10(double*)) { return rDiagonal(4,aList10(*));}
-int rdiagonal5_(aList15(double*)) { return rDiagonal(5,aList15(*));}
+int rdiagonal2_(aList3(REAL*))  { return rDiagonal(2,aList3(*));}
+int rdiagonal3_(aList6(REAL*))  { return rDiagonal(3,aList6(*));}
+int rdiagonal4_(aList10(REAL*)) { return rDiagonal(4,aList10(*));}
+int rdiagonal5_(aList15(REAL*)) { return rDiagonal(5,aList15(*));}
 
-int cdiagonalh2_(aList3(double complex*))  { return cDiagonalH(2,aList3(*));}
-int cdiagonalh3_(aList6(double complex*))  { return cDiagonalH(3,aList6(*));}
-int cdiagonalh4_(aList10(double complex*)) { return cDiagonalH(4,aList10(*));}
-int cdiagonalh5_(aList15(double complex*)) { return cDiagonalH(5,aList15(*));}
+int cdiagonalh2_(aList3(COMPLEX*))  { return cDiagonalH(2,aList3(*));}
+int cdiagonalh3_(aList6(COMPLEX*))  { return cDiagonalH(3,aList6(*));}
+int cdiagonalh4_(aList10(COMPLEX*)) { return cDiagonalH(4,aList10(*));}
+int cdiagonalh5_(aList15(COMPLEX*)) { return cDiagonalH(5,aList15(*));}
 
-int cdiagonals2_(aList3(double complex*))  { return cDiagonalS(2,aList3(*));}
-int cdiagonals3_(aList6(double complex*))  { return cDiagonalS(3,aList6(*));}
-int cdiagonals4_(aList10(double complex*)) { return cDiagonalS(4,aList10(*));}
-int cdiagonals5_(aList15(double complex*)) { return cDiagonalS(5,aList15(*));}
+int cdiagonals2_(aList3(COMPLEX*))  { return cDiagonalS(2,aList3(*));}
+int cdiagonals3_(aList6(COMPLEX*))  { return cDiagonalS(3,aList6(*));}
+int cdiagonals4_(aList10(COMPLEX*)) { return cDiagonalS(4,aList10(*));}
+int cdiagonals5_(aList15(COMPLEX*)) { return cDiagonalS(5,aList15(*));}
 
-int cdiagonala2_(aList4(double complex*))  { return cDiagonalA(2,aList4(*));}
-int cdiagonala3_(aList9(double complex*))  { return cDiagonalA(3,aList9(*));}
-int cdiagonala4_(aList16(double complex*)) { return cDiagonalA(4,aList16(*));}
-int cdiagonala5_(aList25(double complex*)) { return cDiagonalA(5,aList25(*));}
+int cdiagonala2_(aList4(COMPLEX*))  { return cDiagonalA(2,aList4(*));}
+int cdiagonala3_(aList9(COMPLEX*))  { return cDiagonalA(3,aList9(*));}
+int cdiagonala4_(aList16(COMPLEX*)) { return cDiagonalA(4,aList16(*));}
+int cdiagonala5_(aList25(COMPLEX*)) { return cDiagonalA(5,aList25(*));}
 
-int rdiagonala2_(aList4(double*))  { return rDiagonalA(2,aList4(*));}
-int rdiagonala3_(aList9(double*))  { return rDiagonalA(3,aList9(*));}
-int rdiagonala4_(aList16(double*)) { return rDiagonalA(4,aList16(*));}
-int rdiagonala5_(aList25(double*)) { return rDiagonalA(5,aList25(*));}
+int rdiagonala2_(aList4(REAL*))  { return rDiagonalA(2,aList4(*));}
+int rdiagonala3_(aList9(REAL*))  { return rDiagonalA(3,aList9(*));}
+int rdiagonala4_(aList16(REAL*)) { return rDiagonalA(4,aList16(*));}
+int rdiagonala5_(aList25(REAL*)) { return rDiagonalA(5,aList25(*));}
 
-double  massarray_(int * id, int *i){ return   MassArray(*id,  *i);}
-double   mixmatrix_ (int*id, int*i,int*j){ return    MixMatrix (*id,*i,*j);}
-double   mixmatrixu_(int*id, int*i,int*j){ return    MixMatrixU(*id,*i,*j);}
-double remixmatrix_ (int*id, int*i,int*j){return creal(cMixMatrix (*id,*i,*j));}
-double remixmatrixu_(int*id, int*i,int*j){return creal(cMixMatrixU(*id,*i,*j));}
-double immixmatrix_ (int*id, int*i,int*j){return cimag(cMixMatrix (*id,*i,*j));}
-double immixmatrixu_(int*id, int*i,int*j){return cimag(cMixMatrixU(*id,*i,*j));}
+REAL  massarray_(int * id, int *i){ return   MassArray(*id,  *i);}
+REAL   mixmatrix_ (int*id, int*i,int*j){ return    MixMatrix (*id,*i,*j);}
+REAL   mixmatrixu_(int*id, int*i,int*j){ return    MixMatrixU(*id,*i,*j);}
+REAL remixmatrix_ (int*id, int*i,int*j){return creal(cMixMatrix (*id,*i,*j));}
+REAL remixmatrixu_(int*id, int*i,int*j){return creal(cMixMatrixU(*id,*i,*j));}
+REAL immixmatrix_ (int*id, int*i,int*j){return cimag(cMixMatrix (*id,*i,*j));}
+REAL immixmatrixu_(int*id, int*i,int*j){return cimag(cMixMatrixU(*id,*i,*j));}
 
 /*========================  QCD ===================== */
 

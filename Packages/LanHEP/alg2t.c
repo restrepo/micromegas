@@ -22,7 +22,7 @@ static void fix_ino(List l3, int inomin)
 		for(l2=CompoundArg2(ListFirst(l1));l2;l2=ListTail(l2))
 		{
 			int i;
-			i=IntegerValue(ListFirst(l2));
+			i=(int)IntegerValue(ListFirst(l2));
 			if(i>=inomin && !ListMember(ii,NewInteger(i)))
 			{
 				ii=AppendLast(ii,NewInteger(i));
@@ -141,7 +141,7 @@ static void wrt_prt_name(FILE *f, Atom prt)
 
 static void wrt_cnf(FILE *f, Term dv)
 	{
-	int num, den;
+	long int num, den;
 	num=IntegerValue(CompoundArg1(dv));
 	den=IntegerValue(CompoundArg2(dv));
 
@@ -208,7 +208,7 @@ static void wrt_csf(FILE *f, List l)
 			else
 				{
 				int po;
-				po=IntegerValue(CompoundArg2(ListFirst(l)));
+				po=(int)IntegerValue(CompoundArg2(ListFirst(l)));
 				wrt_param(f,CompoundArg1(ListFirst(l)));
 				if(po>1)
 					fprintf(f,"{}^%d ",po);
@@ -234,7 +234,7 @@ static void wrt_csf(FILE *f, List l)
 			else
 				{
 				int po;
-				po=IntegerValue(CompoundArg2(ListFirst(l)));
+				po=(int)IntegerValue(CompoundArg2(ListFirst(l)));
 				wrt_param(f,CompoundArg1(ListFirst(l)));
 				if(po>1)
 					fprintf(f,"{}^%d ",po);
@@ -254,7 +254,7 @@ static void wrt_csf(FILE *f, List l)
 		else
 				{
 				int po;
-				po=-IntegerValue(CompoundArg2(ListFirst(l)));
+				po=-(int)IntegerValue(CompoundArg2(ListFirst(l)));
 				wrt_param(f,CompoundArg1(ListFirst(l)));
 				if(po>1)
 					fprintf(f,"{}^%d ",po);
@@ -416,7 +416,7 @@ static int twl_1(FILE *f, Term a2)
 		wrt_prt_name(f,n);
 		while(!is_empty_list(l1))
 			{
-			fprintf(f,"%s ",AtomValue(ListNth(ind,IntegerValue(ListFirst(l1)))));
+			fprintf(f,"%s ",AtomValue(ListNth(ind,(int)IntegerValue(ListFirst(l1)))));
 			l1=ListTail(l1);
 			}
 		fprintf(f,"}$ \\phantom{-} ");
@@ -439,7 +439,7 @@ static int twl_1(FILE *f, Term a2)
 			if(CompoundName(sp)==A_MOMENT)
 				{
 				int ii;
-				ii=IntegerValue(ListFirst(CompoundArg2(sp)));
+				ii=(int)IntegerValue(ListFirst(CompoundArg2(sp)));
 				if(ii>ino)
 					{
 					puts("Internal error twl4m.");
@@ -457,7 +457,7 @@ static int twl_1(FILE *f, Term a2)
 					 CompoundArg1(sp)==A_GAMMAM || CompoundArg1(sp)==A_GAMMA)
 				{
 				int ii;
-				ii=IntegerValue(ListFirst(CompoundArg2(sp)));
+				ii=(int)IntegerValue(ListFirst(CompoundArg2(sp)));
 				if(ii>ino)
 					{
 					puts("Internal error twl4g5.");
@@ -469,7 +469,7 @@ static int twl_1(FILE *f, Term a2)
 					ind=AppendLast(ind, NewAtom(ibuf,1));
 					ino++;
 					}
-				ii=IntegerValue(ListNth(CompoundArg2(sp),2));
+				ii=(int)IntegerValue(ListNth(CompoundArg2(sp),2));
 				if(ii>ino)
 					{
 					puts("Internal error twl4g.");
@@ -483,7 +483,7 @@ static int twl_1(FILE *f, Term a2)
 					}
 				if(CompoundArg1(sp)==A_GAMMA)
 					{
-					ii=IntegerValue(ListNth(CompoundArg2(sp),3));
+					ii=(int)IntegerValue(ListNth(CompoundArg2(sp),3));
 					if(ii>ino)
 						{
 						puts("Internal error twl4gv.");
@@ -502,7 +502,7 @@ static int twl_1(FILE *f, Term a2)
 			while(!is_empty_list(l))
 				{
 				int ii;
-				ii=IntegerValue(ListFirst(l));
+				ii=(int)IntegerValue(ListFirst(l));
 				if(ii>ino)
 					{
 					puts("Internal error twl4s.");
@@ -536,48 +536,48 @@ static int twl_1(FILE *f, Term a2)
 			if(CompoundName(sp)==A_MOMENT)
 				{
 				fprintf(f,"p_%ld^%s ",IntegerValue(CompoundArg1(sp)),
-					AtomValue(ListNth(ind,IntegerValue(ListFirst(CompoundArg2(sp))))));
+					AtomValue(ListNth(ind,(int)IntegerValue(ListFirst(CompoundArg2(sp))))));
 				silcnt++;
 				goto cnt8;
 				}
 			if(CompoundArg1(sp)==A_GAMMA)
 				{
 				fprintf(f,"\\gamma_{%s %s}^%s ",
-					AtomValue(ListNth(ind,IntegerValue(ListNth(CompoundArg2(sp),1)))),
-					AtomValue(ListNth(ind,IntegerValue(ListNth(CompoundArg2(sp),2)))),
-					AtomValue(ListNth(ind,IntegerValue(ListNth(CompoundArg2(sp),3)))));
+					AtomValue(ListNth(ind,(int)IntegerValue(ListNth(CompoundArg2(sp),1)))),
+					AtomValue(ListNth(ind,(int)IntegerValue(ListNth(CompoundArg2(sp),2)))),
+					AtomValue(ListNth(ind,(int)IntegerValue(ListNth(CompoundArg2(sp),3)))));
 				silcnt+=2;
 				goto cnt8;
 				}
 			if(CompoundArg1(sp)==A_GAMMA5)
 				{
 				fprintf(f,"\\gamma_{%s %s}^5 ",
-					AtomValue(ListNth(ind,IntegerValue(ListNth(CompoundArg2(sp),1)))),
-					AtomValue(ListNth(ind,IntegerValue(ListNth(CompoundArg2(sp),2)))));
+					AtomValue(ListNth(ind,(int)IntegerValue(ListNth(CompoundArg2(sp),1)))),
+					AtomValue(ListNth(ind,(int)IntegerValue(ListNth(CompoundArg2(sp),2)))));
 				silcnt+=2;
 				goto cnt8;
 				}
 			if(CompoundArg1(sp)==A_GAMMAP)
 				{
 				fprintf(f,"{(1+\\gamma^5)_{%s %s}\\over 2} ",
-					AtomValue(ListNth(ind,IntegerValue(ListNth(CompoundArg2(sp),1)))),
-					AtomValue(ListNth(ind,IntegerValue(ListNth(CompoundArg2(sp),2)))));
+					AtomValue(ListNth(ind,(int)IntegerValue(ListNth(CompoundArg2(sp),1)))),
+					AtomValue(ListNth(ind,(int)IntegerValue(ListNth(CompoundArg2(sp),2)))));
 				silcnt+=6;
 				goto cnt8;
 				}
 			if(CompoundArg1(sp)==A_GAMMAM)
 				{
 				fprintf(f,"{(1-\\gamma^5)_{%s %s}\\over 2} ",
-					AtomValue(ListNth(ind,IntegerValue(ListNth(CompoundArg2(sp),1)))),
-					AtomValue(ListNth(ind,IntegerValue(ListNth(CompoundArg2(sp),2)))));
+					AtomValue(ListNth(ind,(int)IntegerValue(ListNth(CompoundArg2(sp),1)))),
+					AtomValue(ListNth(ind,(int)IntegerValue(ListNth(CompoundArg2(sp),2)))));
 				silcnt+=6;
 				goto cnt8;
 				}
 			if(CompoundArg1(sp)==A_DELTA)
 				{
 				int n1,n2;
-				n1=IntegerValue(ListNth(CompoundArg2(sp),1));
-				n2=IntegerValue(ListNth(CompoundArg2(sp),2));
+				n1=(int)IntegerValue(ListNth(CompoundArg2(sp),1));
+				n2=(int)IntegerValue(ListNth(CompoundArg2(sp),2));
 				if(ListMember(vind,NewInteger(n1)) && ListMember(vind,NewInteger(n2)))
 					fprintf(f,"g^{%s %s} ",
 						AtomValue(ListNth(ind,n1)),
@@ -592,10 +592,10 @@ static int twl_1(FILE *f, Term a2)
 			if(CompoundArg1(sp)==A_EPS_V)
 			{
 				fprintf(f,"\\varepsilon_{%s %s %s %s} ",
-					AtomValue(ListNth(ind,IntegerValue(ListNth(CompoundArg2(sp),1)))),
-					AtomValue(ListNth(ind,IntegerValue(ListNth(CompoundArg2(sp),2)))),
-					AtomValue(ListNth(ind,IntegerValue(ListNth(CompoundArg2(sp),3)))),
-					AtomValue(ListNth(ind,IntegerValue(ListNth(CompoundArg2(sp),4)))));
+					AtomValue(ListNth(ind,(int)IntegerValue(ListNth(CompoundArg2(sp),1)))),
+					AtomValue(ListNth(ind,(int)IntegerValue(ListNth(CompoundArg2(sp),2)))),
+					AtomValue(ListNth(ind,(int)IntegerValue(ListNth(CompoundArg2(sp),3)))),
+					AtomValue(ListNth(ind,(int)IntegerValue(ListNth(CompoundArg2(sp),4)))));
 				silcnt+=3;
 				goto cnt8;
 			}
@@ -603,36 +603,36 @@ static int twl_1(FILE *f, Term a2)
 			if(GetAtomProperty(CompoundArg1(sp),A_COLOR)==A_COLOR_LAMBDA)
 				{
 				fprintf(f,"\\lambda_{%s %s}^%s ",
-					AtomValue(ListNth(ind,IntegerValue(ListNth(CompoundArg2(sp),1)))),
-					AtomValue(ListNth(ind,IntegerValue(ListNth(CompoundArg2(sp),2)))),
-					AtomValue(ListNth(ind,IntegerValue(ListNth(CompoundArg2(sp),3)))));
+					AtomValue(ListNth(ind,(int)IntegerValue(ListNth(CompoundArg2(sp),1)))),
+					AtomValue(ListNth(ind,(int)IntegerValue(ListNth(CompoundArg2(sp),2)))),
+					AtomValue(ListNth(ind,(int)IntegerValue(ListNth(CompoundArg2(sp),3)))));
 				silcnt+=2;
 				goto cnt8;
 				}
 			if(GetAtomProperty(CompoundArg1(sp),A_COLOR)==A_COLOR_F)
 				{
 				fprintf(f,"f_{%s %s %s} ",
-					AtomValue(ListNth(ind,IntegerValue(ListNth(CompoundArg2(sp),1)))),
-					AtomValue(ListNth(ind,IntegerValue(ListNth(CompoundArg2(sp),2)))),
-					AtomValue(ListNth(ind,IntegerValue(ListNth(CompoundArg2(sp),3)))));
+					AtomValue(ListNth(ind,(int)IntegerValue(ListNth(CompoundArg2(sp),1)))),
+					AtomValue(ListNth(ind,(int)IntegerValue(ListNth(CompoundArg2(sp),2)))),
+					AtomValue(ListNth(ind,(int)IntegerValue(ListNth(CompoundArg2(sp),3)))));
 				silcnt+=3;
 				goto cnt8;
 				}
 			if(GetAtomProperty(CompoundArg1(sp),A_COLOR)==A_COLOR_D)
 				{
 				fprintf(f,"d_{%s %s %s} ",
-					AtomValue(ListNth(ind,IntegerValue(ListNth(CompoundArg2(sp),1)))),
-					AtomValue(ListNth(ind,IntegerValue(ListNth(CompoundArg2(sp),2)))),
-					AtomValue(ListNth(ind,IntegerValue(ListNth(CompoundArg2(sp),3)))));
+					AtomValue(ListNth(ind,(int)IntegerValue(ListNth(CompoundArg2(sp),1)))),
+					AtomValue(ListNth(ind,(int)IntegerValue(ListNth(CompoundArg2(sp),2)))),
+					AtomValue(ListNth(ind,(int)IntegerValue(ListNth(CompoundArg2(sp),3)))));
 				silcnt+=3;
 				goto cnt8;
 				}
 			if(GetAtomProperty(CompoundArg1(sp),A_COLOR)==A_COLOR_EPS)
 				{
 				fprintf(f,"\\varepsilon_{%s %s %s} ",
-					AtomValue(ListNth(ind,IntegerValue(ListNth(CompoundArg2(sp),1)))),
-					AtomValue(ListNth(ind,IntegerValue(ListNth(CompoundArg2(sp),2)))),
-					AtomValue(ListNth(ind,IntegerValue(ListNth(CompoundArg2(sp),3)))));
+					AtomValue(ListNth(ind,(int)IntegerValue(ListNth(CompoundArg2(sp),1)))),
+					AtomValue(ListNth(ind,(int)IntegerValue(ListNth(CompoundArg2(sp),2)))),
+					AtomValue(ListNth(ind,(int)IntegerValue(ListNth(CompoundArg2(sp),3)))));
 				silcnt+=3;
 				goto cnt8;
 				}	
@@ -669,7 +669,7 @@ static int twl_1(FILE *f, Term a2)
 		m2=ListFirst(l1);
 		{
 		int num;
-		num=IntegerValue(CompoundArg1(m2));
+		num=(int)IntegerValue(CompoundArg1(m2));
 		if(num==1)
 			{
 			if(fflag)
@@ -710,13 +710,13 @@ static int twl_1(FILE *f, Term a2)
 				{
 				int po;
 				Integer sle;
-				po=IntegerValue(CompoundArg2(ListFirst(l2)));
+				po=(int)IntegerValue(CompoundArg2(ListFirst(l2)));
 				wrt_param(f,CompoundArg1(ListFirst(l2)));
 				if(po>1)
 					fprintf(f,"{}^%d ",po);
 				sle=GetAtomProperty(CompoundArg1(ListFirst(l2)),A_TEXLENGTH);
 				if(sle)
-					silcnt+=2*IntegerValue(sle);
+					silcnt+=2*(int)IntegerValue(sle);
 				else
 					silcnt+=2;
 				}
@@ -743,7 +743,7 @@ static int twl_1(FILE *f, Term a2)
 			if(CompoundName(sp)==A_MOMENT)
 				{
 				int ii;
-				ii=IntegerValue(ListFirst(CompoundArg2(sp)));
+				ii=(int)IntegerValue(ListFirst(CompoundArg2(sp)));
 				if(ii>ino1)
 					{
 					puts("Internal error twl3m.");
@@ -763,7 +763,7 @@ static int twl_1(FILE *f, Term a2)
 					 CompoundArg1(sp)==A_GAMMAM || CompoundArg1(sp)==A_GAMMA)
 				{
 				int ii;
-				ii=IntegerValue(ListFirst(CompoundArg2(sp)));
+				ii=(int)IntegerValue(ListFirst(CompoundArg2(sp)));
 				if(ii>ino1)
 					{
 					puts("Internal error twl3g5.");
@@ -775,7 +775,7 @@ static int twl_1(FILE *f, Term a2)
 					ind1=AppendLast(ind1, NewAtom(ibuf,1));
 					ino1++;
 					}
-				ii=IntegerValue(ListNth(CompoundArg2(sp),2));
+				ii=(int)IntegerValue(ListNth(CompoundArg2(sp),2));
 				if(ii>ino1)
 					{
 					puts("Internal error twl3g.");
@@ -808,7 +808,7 @@ static int twl_1(FILE *f, Term a2)
 			while(!is_empty_list(l))
 				{
 				int ii;
-				ii=IntegerValue(ListFirst(l));
+				ii=(int)IntegerValue(ListFirst(l));
 				if(ii>ino1)
 					{
 					puts("Internal error twl3s.");

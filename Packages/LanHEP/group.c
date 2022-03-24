@@ -43,7 +43,7 @@ Term SpecToGroup(Term t)
 		}
 	fu=CompoundName(t);
 	ar=CompoundArg1(t);
-	N=IntegerValue(ar);
+	N=(int)IntegerValue(ar);
 	name=AtomValue(fu);
 	
 	if(strcmp(name,"U")==0 || strcmp(name,"u")==0)

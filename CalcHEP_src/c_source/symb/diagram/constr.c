@@ -350,7 +350,7 @@ static void dtc(int* incond,int l,decayDiagram restmp)
    dooutres(res);
 	goto_xy(1,24);  print("%u",n_diagram); refresh_scr();
    if (n_diagram > m_diagram)
-      { if ( mess_y_n(35,15,"Continue")) m_diagram += 500;  else  errorcode = -1;}
+      { if ( mess_y_n(35,15,"Continue")) m_diagram += 5000;  else  errorcode = -1;}
 }
 
 
@@ -816,7 +816,7 @@ int construct(void)
    diagrp=fopen(DIAGRP_NAME,"wb");
    sprintf(buf_name,"%stmp%cbuf.res",pathtouser,f_slash);
    menup=fopen(MENUP_NAME,"wb");
-   m_diagram = 500;
+   m_diagram = 5000;
    kmenu = 0;
    f_write(format,2,1,menup);
    head = (indexlink)m_alloc(sizeof(indexStruct));

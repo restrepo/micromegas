@@ -1,6 +1,6 @@
 #include "lanhep.h"
 
-int gcf(int i1, int i2)
+long int gcf(long int i1, long  int i2)
 	{
 	if(i1==0 || i2==0)
 		return 1;

@@ -190,7 +190,7 @@ Term CallFunction(Term t, Term ind)
 		CompoundName(prop)!=OPR_FUNCTION ||
 		!is_integer(CompoundArg1(prop)))
 			return fnotfound(t);
-	i=IntegerValue(CompoundArg1(prop));
+	i=(int)IntegerValue(CompoundArg1(prop));
 	fu=funcs[i].fu;
 	return fu(t,ind);
 	}

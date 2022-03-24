@@ -8,6 +8,7 @@ extern void  menu0(int col,int row,char* label, char* filename,
 
 extern int   mess_y_n(int    x1,int    y1,	char  * txtstr);
 extern void  messanykey(int    x1,	int    y1, char  * txtstr);
+extern void  messanykeyErr(int    x1,      int    y1, char  * txtstr);
 extern int   yesnokey(void);
 extern int   informline(long curent,long total);
 extern int infoLine(double rate);

@@ -1,6 +1,7 @@
 #include"num_in.h"
 
 REAL Helicity[2]={0.,0.};
+REAL N_pol_11_,N_pol_12_,N_pol_21_,N_pol_22_;
 
 int  CalcConst=0;
 
@@ -58,6 +59,10 @@ static REAL sqrMom(int nin, char * momnum, REAL * lv)
 }
 
 
+#ifdef forMICROMEGAS
+double DDmomSQ=0;
+#endif
+
 int prepDen(int nden, int nin,double BWrange2, REAL*dmass,REAL*dwidth, char** Qtxt,REAL*momenta,
      REAL*Q0,COMPLEX*Q1,REAL*Q2)
 { static int ndenmem=0;
@@ -89,16 +94,19 @@ int prepDen(int nden, int nin,double BWrange2, REAL*dmass,REAL*dwidth, char** Qt
      int k;
      for(k=1;k<4;k++){ mq2 -=momenta[k]*momenta[k]; 
                        mne2-=momenta[k+4]*momenta[k+4];}
-     Q1[i]=(*loopFF__)(sgn,sqrt(fabs(mq2)),dmass[i],sqrt(fabs(mne2)));
+     Q1[i]=(*loopFF__)(sgn,Sqrt(Fabs(mq2)),dmass[i],Sqrt(Fabs(mne2)));
      Q2[i]=Q1[i]*Q1[i];
      Q0[i]=1;
      continue;
    } 
-   if(WIDTH_FOR_OMEGA && !stype(nin,Qtxt[i])) dwidth[i]=0.01*fabs(dmass[i]);
+   if(WIDTH_FOR_OMEGA && !stype(nin,Qtxt[i])) dwidth[i]=0.01*Fabs(dmass[i]);
 #endif
 
-  Q1[i]=dmass[i]*dmass[i]-sqrMom(nin,Qtxt[i],momenta);   
-  if(dwidth[i])
+  Q1[i]=dmass[i]*dmass[i]-sqrMom(nin,Qtxt[i],momenta);
+#ifdef forMICROMEGAS  
+  if(strcmp(Qtxt[i],"\1\3")==0) Q1[i]+=DDmomSQ;   
+#endif  
+  if(dwidth[i] && BWrange2>0)
   {  REAL w,w2, q2=Q1[i]*Q1[i];
      w=dmass[i]*dwidth[i];
      w2=w*w;
@@ -106,12 +114,12 @@ int prepDen(int nden, int nin,double BWrange2, REAL*dmass,REAL*dwidth, char** Qt
 
      Q2[i]=1/(q2+w2);
      Q0[i]=Q2[i]*Q1[i]*Q1[i];
-     Q1[i]=1/(Q1[i] + I*sqrt(w2));
+     Q1[i]=1/(Q1[i] + I*Sqrt(w2));
   } else
-  {  if(cabs(Q1[i]) < 100*s0max) err=2;
-//     if(cabs(Q1[i]) < 100*s0max)   printf("i=%d s0max=%E cabs(Q1[i]=%E  eps=%E E=%E\n",i, (double)s0max,(double)cabs(Q1[i]),(double)computer_eps,
+  {  if(Cabs(Q1[i]) < 100*s0max) err=2;
+//     if(Cabs(Q1[i]) < 100*s0max)   printf("i=%d s0max=%E Cabs(Q1[i]=%E  eps=%E E=%E\n",i, (double)s0max,(double)Cabs(Q1[i]),(double)computer_eps,
 //     (double)(momenta[0]+momenta[4]));
-//     if(cabs(Q1[i]) < 1000*s0max*computer_eps){ err=2; } 
+//     if(Cabs(Q1[i]) < 1000*s0max*computer_eps){ err=2; } 
      if(!Q1[i]) Q1[i]=s0max;
      Q1[i]=1/Q1[i];
      Q2[i]=Q1[i]*Q1[i];

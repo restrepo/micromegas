@@ -7,7 +7,7 @@ int block_transf=0;
 
 Term ExprTo1kl(Term);
 
-static void c_mlt(int n1, int d1, int n2, int d2, int *n, int *d)
+static void c_mlt(long int n1, long int d1, long int n2, long int d2, long int *n, long int *d)
 	{
 	*n=n1*n2;
 	*d=d1*d2;
@@ -72,7 +72,7 @@ Term alg1_inv_alg(Term a1)
 				return 0;
 				}
 			if(prp && IntegerValue(CompoundArg1(prp))>0)
-				ino+=IntegerValue(CompoundArg1(prp));
+				ino+=(int)IntegerValue(CompoundArg1(prp));
 			}
 		if(!ino)
 			{
@@ -95,7 +95,7 @@ Term alg1_inv_alg(Term a1)
 	SetCompoundArg(m2_b,4,l);
 		
 		{
-		int n, ns, d, ds;
+		long int n, ns, d, ds;
 		n=IntegerValue(CompoundArg1(m2_b));
 		d=IntegerValue(CompoundArg2(m2_b));
 		ns=ds=1;
@@ -124,7 +124,7 @@ Term alg1_inv_alg(Term a1)
 		l=ConcatList(l,CopyTerm(l));
 		SetCompoundArg(m2_b2,4,l);
 			{
-			int n,d,n1,d1;
+			long int n,d,n1,d1;
 			n=IntegerValue(CompoundArg1(m2_b2));
 			d=IntegerValue(CompoundArg2(m2_b2));
 			c_mlt(n,d,-n,d,&n1,&d1);
@@ -142,7 +142,7 @@ Term alg1_inv_alg(Term a1)
 						  CopyTerm(CompoundArgN(ListFirst(l),4)));
 			SetCompoundArg(a1,4,l1);
 				{
-				int n,d;
+				long int n,d;
 				c_mlt(	IntegerValue(CompoundArg1(m2_b2)),
 						IntegerValue(CompoundArg2(m2_b2)),
 						IntegerValue(CompoundArg1(ListFirst(l))),
@@ -219,14 +219,12 @@ Term ProcLet(Term t, Term ind)
 	Term t1,nm,sub,kl=0;
 	List il,ol,l1;	
 	int transf_fl=0;
-	
 	Atom anti1=0, anti2=0;
 	
 	ol=il=NewList();
 	t1=ConsumeCompoundArg(t,1);
 	FreeAtomic(t);
 	
-	t1=ProcessAlias(t1);
 	
 	if(is_compound(t1) && CompoundArity(t1)==2 && CompoundName(t1)==OPR_COMMA)
 		{
@@ -298,6 +296,7 @@ Term ProcLet(Term t, Term ind)
 			}
 		}
 	
+	
 	if(GetAtomProperty(nm,A_KEEP_LETS))
 	{
 		Term prp;
@@ -312,7 +311,8 @@ Term ProcLet(Term t, Term ind)
 	{
 	
 	sub=ExprTo1(sub);
-	
+	if(sub==0)
+		return 0;
 	alg1_set_cos0(sub);
 	alg1_inf_wild(sub);
 	}
@@ -565,7 +565,7 @@ void alg1_opt_let(Term a1)
 	for(l=lm;l;l=ListTail(l))
 	{
 		Term m1=ListFirst(l);
-		int n,d,g;
+		long int n,d,g;
 		List ln=ConsumeCompoundArg(m1,3);
 		List ld=ConsumeCompoundArg(m1,4);
 		Term f1=0, f2=0, w=0;
@@ -702,9 +702,9 @@ void alg1_opt_let(Term a1)
 					IntegerValue(CompoundArg2(ListFirst(l1)))*d>0)
 			{
 				Term om1=ListFirst(l1);
-				int n1=IntegerValue(CompoundArg1(om1));
-				int d1=IntegerValue(CompoundArg2(om1));
-				int rn,rd,cc=0;
+				long int n1=IntegerValue(CompoundArg1(om1));
+				long int d1=IntegerValue(CompoundArg2(om1));
+				long int rn,rd,cc=0;
 				if(d1<0)
 				{
 					d=-d;d1=-d1;cc=1;

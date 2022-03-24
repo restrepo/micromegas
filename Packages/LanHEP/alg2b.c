@@ -52,8 +52,8 @@ static int sp_cmp(Term t1, Term t2)
 		{return 1; }
 	if(f1==A_MOMENT)
 		{
-		i1=IntegerValue(CompoundArg1(t1));
-		i2=IntegerValue(CompoundArg1(t2));
+		i1=(int)IntegerValue(CompoundArg1(t1));
+		i2=(int)IntegerValue(CompoundArg1(t2));
 		if(i1==i2) goto cmpl;
 		if(i1<i2)
 			return -1;
@@ -359,9 +359,9 @@ void alg2_norm(Term a2)
 	
 		/*  p1 -> -p2 if two prtcls */
 	
-	if(ListLength(pl)==2)
+	if(ListLength(pl)==2 && !FAOutput)
 		{
-		int num;
+		long int num;
 		num=IntegerValue(CompoundArg1(CompoundArg1(m2)));
 		num*=inv_moment(l1);
 		SetCompoundArg(CompoundArg1(m2),1,NewInteger(num));
@@ -379,7 +379,7 @@ void alg2_norm(Term a2)
 					t1==OPR_SPINOR3 || t1==OPR_TENSOR)
 			{
 			int no;
-			no=IntegerValue(CompoundArg1(t));
+			no=(int)IntegerValue(CompoundArg1(t));
 			t2=ListNth(pl,no);
 			t1=MakeCompound1(t1,ConsumeCompoundArg(t,2));
 			SetCompoundArg(t2,2,t1);
@@ -524,7 +524,7 @@ List alg2_denorm(Term a2)
 			for(l3=CompoundArg2(ListFirst(l2));l3;l3=ListTail(l3))
 			{
 				int k;
-				k=IntegerValue(ListFirst(l3));
+				k=(int)IntegerValue(ListFirst(l3));
 				if(k>j)
 					j=k;
 			}

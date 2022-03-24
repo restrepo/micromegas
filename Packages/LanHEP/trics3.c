@@ -62,8 +62,8 @@ static int tri_find_pure_ab(List *ml, Atom s1, Atom s2, Atom c1, Atom c2)
 	if(m2_1 ==0 || m2_2==0 || m2_3==0)
 		return 0;
 	
-	comf=IntegerValue(CompoundArg1(m2_1));
-	comf1=IntegerValue(CompoundArg1(m2_3));
+	comf=(int)IntegerValue(CompoundArg1(m2_1));
+	comf1=(int)IntegerValue(CompoundArg1(m2_3));
 	if(IntegerValue(CompoundArg1(m2_2))!=-comf || (comf!=comf1 && comf!=-comf1))
 		return 0;
 	
@@ -455,7 +455,7 @@ static void find_3_cnf_pm(List ll, int type, int sign, int *cnf, int *fno,
 	llen=ListLength(ll);
 	
 	for(i=1,l=ll;i<=llen;i++,l=ListTail(l))
-		nr[i-1]=IntegerValue(CompoundArg1(ListFirst(ListFirst(l))));
+		nr[i-1]=(int)IntegerValue(CompoundArg1(ListFirst(ListFirst(l))));
 	
 	nd[0]=(type<3?2:4)*sign;
 	nd[1]=(type<3?2:-2)*sign;
@@ -508,7 +508,7 @@ static void find_3_cnf_ab(List ll, int type, int *cnf, int *fno,
 	llen=ListLength(ll);
 	
 	for(i=1,l=ll;i<=llen;i++,l=ListTail(l))
-		nr[i-1]=IntegerValue(CompoundArg1(ListFirst(ListFirst(l))));
+		nr[i-1]=(int)IntegerValue(CompoundArg1(ListFirst(ListFirst(l))));
 	
 	nd[0]=(type%2)?2:-2;
 	nd[1]=(type%2)?-2:2;

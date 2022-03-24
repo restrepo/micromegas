@@ -13,7 +13,7 @@
 //#include "vp.h"
 
 
-double tWidth21(char *name, double T)
+double tWidth21(char *name, double T, int show)
 {
   REAL pvect[12];
   double width=0.;
@@ -22,7 +22,8 @@ double tWidth21(char *name, double T)
   double GG;
   char proc[20];
   if(T==0) return 0;
-  
+
+  if(show) printf("Thermal width %s (T=%.2E GeV)\n", name);  
   double tWidth=0;
 
   sprintf(proc,"%s->2*x",name);
@@ -55,23 +56,23 @@ double tWidth21(char *name, double T)
 
        double md=m[0]-m[pOut];
        double ms=m[0]+m[pOut];
-       double pRestOut=sqrt((m[pIn]*m[pIn] - ms*ms)*(m[pIn]*m[pIn]-md*md))/(2*m[pIn]);
+       double pRestOut=Sqrt((m[pIn]*m[pIn] - ms*ms)*(m[pIn]*m[pIn]-md*md))/(2*m[pIn]);
        double totcoef= pRestOut/(8. * M_PI * m[pIn]*m[pIn]);
 
        for(i=1;i<12;i++) pvect[i]=0;
 
-       pvect[0]=sqrt(pRestOut*pRestOut+m[0]*m[0]);
+       pvect[0]=Sqrt(pRestOut*pRestOut+m[0]*m[0]);
        pvect[1]=pRestOut;
 
        pvect[4*pIn]=m[pIn];
-       pvect[4*pOut]=sqrt(pRestOut*pRestOut+m[pOut]*m[pOut]);
+       pvect[4*pOut]=Sqrt(pRestOut*pRestOut+m[pOut]*m[pOut]);
        pvect[4*pOut+1]=-pRestOut;
 
-       if(cc->SC) GG=*(cc->SC); else GG=sqrt(4*M_PI*alphaQCD(m[pIn]));
+       GG=sqrt(4*M_PI*alphaQCD(m[pIn]));
 
        width = totcoef * (cc->interface->sqme)(nsub,GG,pvect,NULL,&err_code);
        if((spin2[0]&1)!=(spin2[pIn]&1)) width*=-1;
-       double tf=m[pIn]*m[pIn]/m[0]/m[0];
+       double tf=  ndf[1]*m[pIn]*m[pIn]/m[0]/m[0];
        if(m[0]!=0)
        {
          if(m[pIn]/T > 20 ) tf*=exp(-m[pIn]/T+m[0]/T)*sqrt(m[0]/m[pIn]);   
@@ -80,6 +81,7 @@ double tWidth21(char *name, double T)
            if(m[pIn]/T<0.01) tf/=m[pIn]/T; else tf*=bessK1(m[pIn]/T);
            if(m[0]/T<0.01)   tf*=m[0]/T  ; else tf/=bessK1(m[0]/T);
          }
+         
 //         printf("width(%s -> %s,%s)=%e  ft=%E tWidth=%E %E %E \n", p[pIn],p[0],p[pOut],width*ndf[0]/(double)ndf[pIn],tf,width*tf,m[pIn]/T,m[0]/T );
 
          width*=tf;
@@ -88,6 +90,8 @@ double tWidth21(char *name, double T)
           exit(0);
          } 
        }
+       
+       if(show)  printf(" %s %s -> %s %.2E\n",name, antiParticle(p[pIn]), p[pOut], width);
        tWidth+=width;
      }  
   }
@@ -118,31 +122,33 @@ double tWidth21(char *name, double T)
 
        double md=0;
        double ms=2*m[1];
-       double pRestOut=sqrt(m[2]*m[2] - ms*ms)/2;
+       double pRestOut=Sqrt(m[2]*m[2] - ms*ms)/2;
        double totcoef= pRestOut/(8. * M_PI * m[2]*m[2]);
 
        for(i=1;i<12;i++) pvect[i]=0;
 
        pvect[8]=m[2];
 
-       pvect[0]=sqrt(m[0]*m[0]+pRestOut*pRestOut);
+       pvect[0]=Sqrt(m[0]*m[0]+pRestOut*pRestOut);
        pvect[1]=pRestOut;
        
        pvect[4]=pvect[0];
        pvect[5]=-pRestOut;
 
-       if(cc->SC) GG=*(cc->SC); else GG=sqrt(4*M_PI*alphaQCD(m[0]));
+       GG=sqrt(4*M_PI*alphaQCD(m[0]));
 
        width = totcoef * (cc->interface->sqme)(nsub,GG,pvect,NULL,&err_code);
-       double tf=m[0]*m[0]/m[1]/m[1]*bessK1(m[0]/T)/bessK1(m[1]/T);
+       double tf=ndf[1]*m[2]*m[2]/m[0]/m[0]*bessK1(m[2]/T)/bessK1(m[0]/T);
        if(p[1]==p[2]) tf*=2;
-//       printf("width(%s -> %s,%s)=%e  tWidth=%E  \n", p[2],p[0],p[1], width*ndf[0]*ndf[1]/(double)ndf[2], width*tf);
+       
+       if(show) printf(" %s %s -> %s %.2E\n",p[0],p[1],p[2]);
 
        width*=tf;
 
        tWidth+=width;
      }       
   }
+  if(show) printf("  sum=%.2E GeV\n",tWidth);
   return tWidth;
   
 }

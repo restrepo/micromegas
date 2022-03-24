@@ -49,7 +49,7 @@ double h1eff(double mu,int eta)
 }   
 
 
-double Hubble(double T) { return sqrt(8*M_PI/3.*M_PI*M_PI/30.*gEff(T))*T*T/MPlank;}
+double Hubble(double T) { return sqrt(8*M_PI/3.*M_PI*M_PI/30.*gEff(T))*T*T/MPlanck;}
 
 
 static int Tdim=0;
@@ -114,6 +114,6 @@ double hEff(double T)
   return polint1(T,Tdim,t_,heff_);
 } 
 
-double T_s3(double s3) { return polint3(s3,Tdim,s3_,t_);} 
-double s3_T(double T)  { return polint3(T,Tdim,t_,s3_);}
+double T_s3(double s3) {if(s3>s3_[Tdim-1]) return t_[Tdim-1]*(s3/s3_[Tdim-1]); else  return polint3(s3,Tdim,s3_,t_);} 
+double s3_T(double T)  { if(T> t_[Tdim-1]) return s3_[Tdim-1]*T/t_[Tdim-1];    else  return polint3(T,Tdim,t_,s3_);}
 

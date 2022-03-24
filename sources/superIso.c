@@ -1,7 +1,7 @@
 #include "../include/micromegas.h"
 #include "../include/micromegas_aux.h"
 
-static char *VERSION="4.0";
+static char *VERSION="4.1";
 
 int callSuperIsoSLHA(void)
 { 

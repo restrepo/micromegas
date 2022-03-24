@@ -8,7 +8,7 @@
     exit 1
   fi 
   
-  rm -rf Packages/HiggsBounds*  Packages/HiggsSignals* Packages/smodels-* Packages/softsusy* Packages/SPheno-* Packages/superiso_v*
+  rm -rf Packages/higgsbounds*  Packages/higgssignals* Packages/smodels-* Packages/softsusy* Packages/SPheno-* Packages/superiso_v*
   
   if(test -x "`which gmake`") then
      MAKE=gmake
@@ -25,6 +25,9 @@
     fi
   done
 
+  rm -f include/microPath.h
+  rm -rf */*.dSYM */*/*.dSYM
+  rm  -f ._* */._* */*/._* */*/*/._*
   
   
   exit 0

@@ -154,8 +154,8 @@ static List mk_let(Term m1, List cut, Term a1)
 	List l,l2;
 	List lb,le;
 	List sd;
-	int num1,den1;
-	int io1=0,io2=0,rmn=0;
+	long int num1,den1;
+	long int io1=0,io2=0,rmn=0;
 	
 	for(l=CompoundArgN(m1,3);l;l=ListTail(l))
 	{
@@ -217,7 +217,7 @@ static List mk_let(Term m1, List cut, Term a1)
 	l=a1;
 	while(!is_empty_list(l))
 		{
-		int n1,n2,d1,d2,num,den,cf;
+		long int n1,n2,d1,d2,num,den,cf;
 		List lb1,lb1e,le1,le1e,lm;
 		m1=ListFirst(l);
 		lm=ConsumeCompoundArg(m1,3);
@@ -280,8 +280,8 @@ static List mk_let_d(Term m1,  Term a1)
 	List l,l2;
 	List lb;
 	List sd;
-	int num1,den1;
-	int io1=0,io2=0,rmn=0;
+	long int num1,den1;
+	long int io1=0,io2=0,rmn=0;
 	
 	for(l=CompoundArgN(m1,3);l;l=ListTail(l))
 	{
@@ -345,7 +345,7 @@ static List mk_let_d(Term m1,  Term a1)
 	l=a1;
 	while(!is_empty_list(l))
 		{
-		int n1,n2,d1,d2,num,den,cf;
+		long int n1,n2,d1,d2,num,den,cf;
 		List lb1,lm;
 		m1=ListFirst(l);
 		lm=ConsumeCompoundArg(m1,3);

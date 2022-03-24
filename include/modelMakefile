@@ -14,7 +14,7 @@ cLib = $(CALCHEP)/lib
 # files to compile
 SSS = $(wildcard lib/*.a) ../lib/micromegas.a  $(cLib)/dynamic_me.a ../lib/micromegas.a \
  work/work_aux.a  $(wildcard lib/*.a)   $(cLib)/sqme_aux.$(SO) $(cLib)/libSLHAplus.a   \
- $(cLib)/num_c.a   $(cLib)/serv.a $(cLib)/ntools.a    $(LX11)
+ $(cLib)/num_c.a   $(cLib)/serv.a $(cLib)/ntools.a  $(CURDIR)/../lib/maxGap.so  ../lib/dummy.a   $(LX11)
 
 
 ifneq ($(LHAPDFPATH),)
@@ -35,16 +35,16 @@ endif
 
 all: $(main) libs work/bin
   ifeq (.cpp,$(suffix $(main)))
-	$(DLSET) $(CXX) $(CXXFLAGS) -o $(main:.cpp=) $(main)  $(SSS)  $(lDL)  -lm -lpthread
+	$(DLSET) $(CXX) $(CXXFLAGS) -o $(main:.cpp=) $(main)  $(SSS)  $(lDL)  -lm  $(lQuad) -lpthread
   else  
     ifeq (.c,$(suffix $(main)))
-	$(DLSET) $(CC)  $(CFLAGS) -o $(main:.c=) $(main)  $(SSS) $(lDL)  -lm -lpthread
+	$(DLSET) $(CC)  $(CFLAGS)   -o $(main:.c=)   $(main)  $(SSS)  $(lDL)  -lm  $(lQuad) -lpthread 
     else  
       ifeq (.F,$(suffix $(main)))
         ifeq ($(FC), )
 	$(error  Fortran compiler was not detected.)
         else 
-	$(DLSET) $(FC) $(FFLAGS) -ffixed-line-length-none -o $(main:.F=) $(main) $(cLib)/faux.o  $(SSS)   $(lDL)  -lm -lpthread
+	$(DLSET) $(FC) $(FFLAGS) -ffixed-line-length-none -o $(main:.F=) $(main) $(cLib)/faux.o  $(SSS)   $(lDL)  -lm $(lQuad) -lpthread
         endif
       else
 	$(error Only .c, .cpp, and .F  main programs  are supported).
@@ -70,7 +70,7 @@ clean:  specialClean
 	@-unlink work/bin
 	rm -f HB.* HS.* hb.* hs.*  debug_channels.txt debug_predratio.txt  Key.dat
 	rm -f Lilith_*   particles.py*
-	rm -f  smodels.* summary.*
+	rm -f  smodels.* 
 	rm -f  official*.pcl
 	rm -rf  __pycache__ 
 	rm -f STXS*.txt  HS_correlations.txt  

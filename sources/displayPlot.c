@@ -46,7 +46,7 @@ void displayPlotN(char * title,char*xName,  double xMin, double xMax,  int lScal
      sprintf(pathtocalchep,"%s/",rootDir);
      sprintf(pathtohelp,"%s/help/",pathtocalchep);
      clearTypeAhead();     
-     plot_Nar(NULL,title,xMin,xMax,xName, lScale,N, Dim,f,ff,Y);
+     plot_Nar(NULL,title,xName,xMin,xMax, lScale,N, Dim,f,ff,Y);
      finish();
      exit(0);
   } else pidList[newPID++]=pid;

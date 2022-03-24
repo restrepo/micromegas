@@ -9,7 +9,7 @@ static int prtcmp(Term p1, Term p2)
 	if(is_atom(pp1) && is_atom(pp2))
 		return strcmp(AtomValue(pp1),AtomValue(pp2));
 	if(is_integer(pp1) && is_integer(pp2))
-		return IntegerValue(pp1)-IntegerValue(pp2);
+		return (int)(IntegerValue(pp1)-IntegerValue(pp2));
 	if(is_integer(pp1))
 		return -1;
 	return 1;
@@ -27,12 +27,12 @@ static List mn_mlt(List l, Atom par, int pw)
 		if(CompoundArg1(pp)==par)
 			{
 			int n;
-			n=pw+IntegerValue(CompoundArg2(pp));
+			n=pw+(int)IntegerValue(CompoundArg2(pp));
 			if(n==0)
 				return CutFromList(l,l1);
 			if(par==A_SQRT2)
 			{
-				int n,d,c;
+				long int n,d,c;
 				n=IntegerValue(CompoundArg1(ListFirst(l)));
 				d=IntegerValue(CompoundArg2(ListFirst(l)));
 				if(pw>0)
@@ -93,7 +93,7 @@ static Term mk_mpl_el(Term a1)
 		Atom prt=0;
 		List prms=0;
 		List l1;
-		int num, den;
+		long int num, den;
 		num=IntegerValue(CompoundArg1(ListFirst(l)));
 		den=IntegerValue(CompoundArg2(ListFirst(l)));
 		
@@ -204,7 +204,7 @@ static void remake_2(Term a1, List sub, Label ind1, Label ind2, int d1, int d2)
 					int pw,i;
 					Term pt;
 					prm=CompoundArg1(ListFirst(l4));
-					pw=IntegerValue(CompoundArg2(ListFirst(l4)));
+					pw=(int)IntegerValue(CompoundArg2(ListFirst(l4)));
 
 					if(pw>0)
 					{
@@ -311,7 +311,7 @@ static void remake_3(Term a1, List sub, Label ind1, Label ind2, Label ind3,
 						int pw,i;
 						Term pt;
 						prm=CompoundArg1(ListFirst(l4));
-						pw=IntegerValue(CompoundArg2(ListFirst(l4)));
+						pw=(int)IntegerValue(CompoundArg2(ListFirst(l4)));
 
 						if(pw>0)
 						{
@@ -383,7 +383,7 @@ static List a12pl_add(List sum, List m)
 	for(l=sum;l;l=ListTail(l))
 	{
 		Term l1;
-		int n1,n2,d1,d2,n,d,c;
+		long int n1,n2,d1,d2,n,d,c;
 		
 		l1=ListFirst(l);
 		if(!EqualTerms(ListTail(l1),ListTail(m)))
@@ -494,7 +494,7 @@ extern void sub_ind_alg(Term a1, Atomic ind, int i);
 Term alg1_guess_mtr(Term a1, int *tp)
 {
 	Term a11;
-	int dd,d1,d2,d3=0;
+	long int dd,d1,d2,d3=0;
 	Atomic ind1, ind2, ind3=0;
 	int i,j,k;
 	
@@ -554,7 +554,7 @@ Term alg1_guess_mtr(Term a1, int *tp)
 		if(mtr_has_sum)
 			mtr_has_prm=1;
 		
-		remake_2(a1,l1,ind1,ind2,d1,d2);
+		remake_2(a1,l1,ind1,ind2,(int)d1,(int)d2);
 /*
 		WriteTerm(a1);
 		puts("\n");
@@ -601,7 +601,7 @@ Term alg1_guess_mtr(Term a1, int *tp)
 		if(mtr_has_sum)
 			mtr_has_prm=1;
 		
-		remake_3(a1,l1,ind1,ind2,ind3,d1,d2,d3);
+		remake_3(a1,l1,ind1,ind2,ind3,(int)d1,(int)d2,(int)d3);
 		
 		*tp=2+mtr_has_prm+4*mtr_has_sum;
 		return l1;

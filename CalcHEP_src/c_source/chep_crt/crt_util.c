@@ -137,6 +137,10 @@ void  messanykey(int x1,int y1,char* txtstr)
    scrcolor(fcolor_tmp,bcolor_tmp);
 }
 
+void messanykeyErr(int x1,int y1,char* txtstr)
+{ if(blind) { fprintf(stderr,"%s\n",txtstr); exit(33);}  
+  else messanykey(x1,y1,txtstr); 
+}
 
 
 int infoLine(double rate)
@@ -364,7 +368,18 @@ label_1:
             for(i=0; i<10;i++)
             if ((mouse_info.col > fkPos[i]) && (mouse_info.col < fkPos[i+1]))
             {  if (i==9)ink='0'; else ink='1'+i;}
-         } else if ( (mouse_info.col < col ) || (mouse_info.col >col+ncol+1) || (mouse_info.row < row ) || (mouse_info.row >row+height+1) )   goto label_3; 
+         } else if ( (mouse_info.col < col ) || (mouse_info.col >col+ncol+1) || (mouse_info.row < row ) || (mouse_info.row >row+height+1) ) 
+         {   int col=mouse_info.col;
+             int row=mouse_info.row;
+             usleep(200000);
+             if(crt0_keypressed())
+             { 
+                 if(inkey()==KB_MOUSE &&  mouse_info.row==row && mouse_info.col==col)
+                 {  clearTypeAhead();
+                    goto label_3;
+                 }
+             }    
+         } 
          else  
          {  mousePos = mouse_info.row - row;
             if (mousePos==0)

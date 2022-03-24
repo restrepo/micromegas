@@ -13,9 +13,7 @@
 #include "plot.h"
 
 
-static    int logX=0;
-
-
+ static    int logX=0;
 
  static int X1, Y1, X2, Y2;
 
@@ -87,17 +85,22 @@ static void  gminmax(double *f ,double * df,int dim, double *ymin,double*ymax)
    int i;
    if (dim==0) return;
 
-   *ymin=f[0];
-   *ymax=f[0];
-   if(df) { *ymax += df[0]; *ymin -= df[0];}
- 
-   if(df) for(i=1;i<dim;i++)
-   { *ymin=MIN(*ymin, f[i]-df[i]); 
-     *ymax=MAX(*ymax, f[i]+df[i]);
-   } else for(i=1;i<dim;i++)
-   { *ymin=MIN(*ymin, f[i]); 
-     *ymax=MAX(*ymax, f[i]);
-   } 
+   for(i=0;i<dim;i++)  if(isfinite(f[i])) break;
+   
+   *ymin=f[i];
+   *ymax=f[i];
+
+   if(df && isfinite(df[i]) ) { *ymax += df[i]; *ymin -= df[i];}
+   i++;
+   for(;i<dim;i++) if(isfinite(f[i]))
+   { if(df && isfinite(df[i])) 
+     { *ymin=MIN(*ymin, f[i]-df[i]); 
+       *ymax=MAX(*ymax, f[i]+df[i]);
+     } else
+     { *ymin=MIN(*ymin, f[i]); 
+       *ymax=MAX(*ymax, f[i]);
+     }
+   }   
    double z=(*ymax-*ymin)/50;
    *ymax+=z;
 }
@@ -315,22 +318,25 @@ static void plot_curve(double xMin,double xMax,int dim, double *f)
       } else
       {  x =dscx(xMin+(i-0.5)*step);
          xx=dscx(xMin+(i+0.5)*step);
-      }    
-      y =dscy(f[i-1]);
-      yy=dscy(f[i]);
+      } 
+      if(isfinite(f[i-1]) && isfinite(f[i]))
+      {   
+        y =dscy(f[i-1]);
+        yy=dscy(f[i]);
       
-      if ( yy < y) 
-      { double z;
-        z=yy;yy=y;y=z;
-        z=xx;xx=x;x=z;
-      }
+        if ( yy < y) 
+        { double z;
+          z=yy;yy=y;y=z;
+          z=xx;xx=x;x=z;
+        }
    
-      if (yy>ymin &&  y<ymax)         
-      {
-        if(yy>ymax){ xx= xx-((xx-x)*(yy-ymax))/(yy-y); yy=ymax;}
-        if(y<ymin) {  x=  x-((x-xx)*(y -ymin))/(y-yy); y=ymin;}
-        tg_line((int)x,(int)y,(int)xx,(int)yy);
-      }
+        if (yy>ymin &&  y<ymax)         
+        {
+          if(yy>ymax){ xx= xx-((xx-x)*(yy-ymax))/(yy-y); yy=ymax;}
+          if(y<ymin) {  x=  x-((x-xx)*(y -ymin))/(y-yy); y=ymin;}
+          tg_line((int)x,(int)y,(int)xx,(int)yy);
+        }
+      }  
    }
       
 }
@@ -754,7 +760,7 @@ fprintf(outfile,
    fprintf(outfile, " TLatex ltx;\n");
    fprintf(outfile, " ltx.SetTextFont(42);\n");
    fprintf(outfile, " ltx.SetTextSize(0.04);\n");
-           
+   fprintf(outfile, "int i0,i1;\n");        
    for(k=0;k<N;k++)
    { if(type[k]=='h') 
      {  fprintf(outfile,"   TGraphErrors *gr%d =new TGraphErrors(%d,X%d,Y%d,dX%d,dY%d);\n",k,Dim[k],k,k,k,k);
@@ -762,7 +768,9 @@ fprintf(outfile,
         fprintf(outfile,"   gr%d->Draw(\"P\");\n",k);
      } else 
      {   
-       fprintf(outfile, "   TGraph *gr%d = new TGraph (%d,X%d,Y%d);\n",k,Dim[k],k,k); 
+       fprintf(outfile, "   for(i0=0;!isfinite(Y%d[i0]);i0++);\n",k);
+       fprintf(outfile, "   for(i1=%d;!isfinite(Y%d[i1]);i1--);\n",Dim[k]-1, k); 
+       fprintf(outfile, "   TGraph *gr%d = new TGraph (1+i1-i0,X%d+i0,Y%d+i0);\n",k,k,k); 
        fprintf(outfile, "   gr%d->SetLineColor(%d);\n",k,k+1);
        if(type[k]=='l') fprintf(outfile, "   gr%d->Draw(\"L\");\n",k);
        else fprintf(outfile, "   gr%d->Draw(\"C\");\n",k);
@@ -1304,7 +1312,7 @@ double * f, double *df, char*  upstr,  char*  x_str, char*  y_str)
 
 
    
-int  plot_Nar( char*file, char*  title, double xMin, double xMax, char*xName, int xScale,
+int  plot_Nar( char*file, char*  title, char*xName, double xMin, double xMax,  int xScale,
                int N, int*Dim, double **f,double**ff,char**Y)
 {   
   void *     prtscr;  
@@ -1314,11 +1322,12 @@ int  plot_Nar( char*file, char*  title, double xMin, double xMax, char*xName, in
   char * type=malloc(sizeof(char)*N);
   static int mouseXY=0;
   
+/*
   for(i=0;i<N;i++) 
   {            for(k=0;k<Dim[i];k++) if(!isfinite( f[i][k])) return 1;
      if(ff[i]) for(k=0;k<Dim[i];k++) if(!isfinite(ff[i][k])) return 1; 
   }
-  
+*/  
 #define MESS "Esc - exit; Mouse - position; Other keys - menu"
    get_text(1,1,maxCol(),maxRow(),&prtscr);
 
@@ -1337,7 +1346,7 @@ int  plot_Nar( char*file, char*  title, double xMin, double xMax, char*xName, in
    ymax=grafminmax.ymax;
    
    logX=xScale;
-   logY=0;//(ymin >0 && grafminmax.ymax/grafminmax.ymin >10);   
+   logY=(ymin >0 && grafminmax.ymax/grafminmax.ymin >100);   
    k = 0;      
 REDRAW:
    nCol0=maxCol();
@@ -1534,7 +1543,7 @@ exi:
    return 0;
 }
 
-int  plot_N(char*title, double xMin, double xMax,  char*  xName, int xScale, int N,...)
+int  plot_N(char*title, char*  xName,  double xMin, double xMax,  int xScale, int N,...)
 { int err, k,i;
                                                                
   double **f; double**ff; char**Y;
@@ -1560,7 +1569,7 @@ int  plot_N(char*title, double xMin, double xMax,  char*  xName, int xScale, int
    }  
    va_end(ap);
 
-   err=plot_Nar(NULL,title,xMin,xMax,xName,xScale, N,Dim,f,ff,Y);
+   err=plot_Nar(NULL,title,xName,xMin,xMax,xScale, N,Dim,f,ff,Y);
 
    free(f);free(ff);free(Y),free(Dim);
    return err;
@@ -1568,7 +1577,7 @@ int  plot_N(char*title, double xMin, double xMax,  char*  xName, int xScale, int
 
 void   plot_1(double xMin, double xMax, int dim,
                     double *f, double *ff,char* title, char* xstr, char* ystr)
-{  plot_Nar(NULL,title,xMin, xMax,xstr,0, 1,&dim,&f,&ff, &ystr); } 
+{  plot_Nar(NULL,title,xstr,xMin, xMax,0, 1,&dim,&f,&ff, &ystr); } 
                     
 
 void plot_2D(double hMin1,double hMax1,int nBin1,double hMin2,double hMax2,int nBin2,

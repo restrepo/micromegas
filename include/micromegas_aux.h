@@ -1,7 +1,7 @@
 #ifndef __MICRO_AUX__
 #define __MICRO_AUX__
 
-#define MPlank      1.22091E19   /* Plank mass in [GeV] */
+#define MPlanck      1.22091E19   /* Planck mass in [GeV] */
 #define EntropyNow  2.8912E9     /* Present day entropy   [1/m^3] */
 #define RhoCrit100  10.537       /* A critical density of Universe
                                     for Hubble rate  100 km/s/Mpc [GeV/m^3] */
@@ -38,8 +38,13 @@ extern int simpson_err;
 extern double gauss(double (*func)(double), double a, double b, int n);
 extern double gauss_arg( double (*func)(double,void*par),void*par,double a,double b, int n);
 extern double gauss345_arg( double (*func)(double,void*),void*par,double a,double b, double eps,int * err_code);
+extern double peterson21(    double (*F)(double),                double a, double b, double *aerr);
+extern double peterson21_arg(double (*F)(double,void*),void*par, double a, double b, double *aerr);
+
+
 
 extern int solveLinEq( int N,double *A, double *c);
+extern double detAl( int N, double  *A);
 /*======================
    Lock/UnLock service
 ========================*/
@@ -60,6 +65,7 @@ extern int createTableOddPrtcls(void);
 extern char * OddParticles(int mode);
 extern int  * oddPpos;
 extern char * EvenParticles(void); 
+extern int maxPlistLen;
     
 /*=============================================
 C->F and F->C    string convertation     
@@ -160,6 +166,9 @@ extern void mass22_par(par_22*arg,double T);
 extern int  kin22_par(par_22*arg, REAL sqrtS,double GG);
 extern double sqmeInt(par_22*arg,double eps);
 
+extern void mass22_parDel(par_22*arg,double T);
+extern double sqmeIntDel(par_22*arg,double eps);
+
 #define NTOF(X) extern forCalchep1 X; double X(double ok){return findValW(#X);}
 
 typedef  double (forCalchep1)(double);
@@ -182,7 +191,7 @@ extern double convStrFun2(double x, double q, int pc1, int pc2, int ppFlag );
 extern int  wimpPos(void);
 
 
-extern int vPolar(int out1,int out2,int out3,double*left,double*right,double*lng);
+extern int  vPolar( char**N,  double*lng);
 extern double plazmaWidth(char *process,double T);
 
 extern double cs23MM(numout*cc, int nsub, double Pcm, int fast,int ii3, double M45min, double M45max);
@@ -205,12 +214,32 @@ extern int initPDFconv(void);
 extern double FeldmanCousins(int n0, double b, double cl);
 extern double ch2pval(int nexp, double ch2obs);
 
+extern double plr2pval(double l);
+extern double pval2plr(double p); 
+
+extern double uConversion(int u1,int u2);
+
+#define  _GeV_  0
+#define  _g_    1
+#define  _K_    2   
+#define  _cm_1_ 3
+#define  _s_1_  4
+#define  _MP_   5
+#define  _erg_  6
+
+extern double FSRdNdE(double E, double p,double m, double q, int spin2);
+
 //  python
 void  pythonversion_(int *n1,int *n2);
 
 //  LHAPDF
 
-extern double tWidth21(char *name, double T);
+extern double tWidth21(char *name, double T,int show);
+
+extern float UpperLim(float CL,int If, int N, float* FC, float muB,float*FB,int *Iflag);
+
+extern void  addErrorMess( char** All, char * one);
+extern void delInterval(double x1,double x2,double **intervals, int*n);
 
 #include"../CalcHEP_src/include/num_in.h"
 

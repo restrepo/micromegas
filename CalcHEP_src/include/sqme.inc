@@ -26,6 +26,18 @@ double sqme_ext(int nsub, double GG,REAL*momenta,REAL*cb_coeff, int * err)
 
 
   if(cb_coeff) for(i=0;i<cb_pow;i++) cb_coeff[i]=0;
+
+  if(nin_ext==2)
+  {  REAL p1p2=momenta[0]*momenta[4]-momenta[1]*momenta[5]-momenta[2]*momenta[6]-momenta[3]*momenta[7];
+     REAL m1,m2; 
+     pinf_ext(nsub,1,&m1,NULL); 
+     pinf_ext(nsub,2,&m2,NULL);
+     N_pol_11_= p1p2/sqrt(p1p2*p1p2-m1*m1*m2*m2)/m1;
+//     printf(" p1p2=%E m1*m2=%E m1=%E \n", (double)p1p2, (double)(m1*m2), (double)(m1));
+     N_pol_12_=-m1/sqrt(p1p2*p1p2-m1*m1*m2*m2);
+     N_pol_22_= p1p2/sqrt(p1p2*p1p2-m1*m1*m2*m2)/m2;
+     N_pol_21_=-m2/sqrt(p1p2*p1p2-m1*m1*m2*m2);
+  }
    
   result=darr[nsub-1](GG,momenta,cb_coeff,&Fmax, err);
   nperm=permMap[nsub-1][1];

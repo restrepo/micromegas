@@ -11,9 +11,6 @@ include/microPath.h:
         
    
 clean:  
-	rm -f include/microPath.h
 	./clean
-	rm -rf */*.dSYM 
-
 flags: 
 	$(MAKE) -C CalcHEP_src flags

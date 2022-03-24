@@ -38,22 +38,28 @@ static void f5_key_prog(int x)
     char strmen[]="\040"
                   " Virtual W/Z decays          OF5"
                   " Parallelization          nCORES"
-                  " Allow weighted events      OF_ ";   
+                  " Allow weighted events      OF_ "
+                  " SLHA widths                 OF2" ;   
  
+    improveStr(strmen,"OF2",(useSLHAwidth)? "ON ":"OFF");
+     
     if(VWdecay)  improveStr(strmen,"OF5","ON ");
         else     improveStr(strmen,"OF5","OFF");    
     improveStr(strmen,"nCORES","%d",nPROCSS); 
     if(regenEvents) improveStr(strmen,"OF_","OFF"); else improveStr(strmen,"OF_","ON");   
                                           
     menu1(20,18,"Switches",strmen,"n_switch_*",&pscr,&kmenu);
-    if(kmenu==1) 
-    {  VWdecay=!VWdecay;
-       if(checkParam()>0){VWdecay=!VWdecay;checkParam();};
-    } else if(kmenu==2) 
-    { char mess[40];
-      sprintf(mess,"There are %d processors. To use ", (int) sysconf(_SC_NPROCESSORS_ONLN));
-      correctInt(20,22,mess,&nPROCSS,1);
-    } else if(kmenu==3) regenEvents=!regenEvents;   
+    switch(kmenu)
+    { case 1:   VWdecay=!VWdecay; VZdecay=VWdecay; cleanDecayTable(); if(checkParam()>0){VWdecay=!VWdecay; VZdecay=VWdecay; checkParam();}; 
+                break;
+      case 2: 
+       { char mess[40];
+         sprintf(mess,"There are %d processors. To use ", (int) sysconf(_SC_NPROCESSORS_ONLN));
+         correctInt(20,22,mess,&nPROCSS,1);
+       }  break;
+      case 3: regenEvents=!regenEvents; break;
+      case 4: useSLHAwidth=!useSLHAwidth; cleanDecayTable(); break;
+    }    
   }
   VZdecay=VWdecay;                     
 }
@@ -133,7 +139,11 @@ int main(int argc,char** argv)
   { fprintf(stderr,"locked by other n_calchep. See .lock\n");
     exit(100);
   }
-                 
+  if(strlen(rootDir)>1000) 
+  {
+      printf("Too long path to CalcHEP directory. Maximal path length is 1000\n"); 
+      exit(1);         
+  }               
   setenv("CALCHEP",rootDir,0);
   sprintf(pathtocalchep,"%s%c",rootDir,f_slash);
   sprintf(pathtohelp,"%shelp%c",pathtocalchep,f_slash);

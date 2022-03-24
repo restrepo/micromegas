@@ -17,10 +17,10 @@
 #define rightMULTr(A,i1,i2,c1,s) { REAL a1,a2; int k; for(k=0;k<dim;k++)\
   { a1=A[k*dim+i1]; a2=A[k*dim+i2]; A[k*dim+i1]+=c1*a1-s*a2 ; A[k*dim+i2]+=c1*a2+s*a1;}}
 
-#define leftMULTc(A,i1,i2,c1,s) { COMPLEX a1,a2,sc=conj(s); int k; for(k=0;k<dim;k++)\
+#define leftMULTc(A,i1,i2,c1,s) { COMPLEX a1,a2,sc=Conj(s); int k; for(k=0;k<dim;k++)\
   { a1=A[i1*dim+k]; a2=A[i2*dim+k]; A[i1*dim+k]+=c1*a1+s*a2 ; A[i2*dim+k]+=c1*a2-sc*a1;}}
 
-#define rightMULTc(A,i1,i2,c1,s) { COMPLEX a1,a2,sc=conj(s); int k; for(k=0;k<dim;k++)\
+#define rightMULTc(A,i1,i2,c1,s) { COMPLEX a1,a2,sc=Conj(s); int k; for(k=0;k<dim;k++)\
   { a1=A[k*dim+i1]; a2=A[k*dim+i2]; A[k*dim+i1]+=c1*a1-sc*a2 ; A[k*dim+i2]+=c1*a2+s*a1;}}
   
 /*
@@ -51,23 +51,23 @@ int rJacobi(REAL* as, int dim, REAL *d, REAL* v)
 
    for(N=0;N<NMAX;N++) 
    {  REAL sm=0;
-      for(i1=0;i1<dim-1;i1++) for(i2=i1+1;i2<dim;i2++) sm += fabs(Ar[i1+dim*i2]); 
+      for(i1=0;i1<dim-1;i1++) for(i2=i1+1;i2<dim;i2++) sm += Fabs(Ar[i1+dim*i2]); 
       if(sm == 0) break;
       if(i < 4) cut= 0.2*sm/(dim*dim); else cut=0;
       for(i1=0;i1< dim-1;i1++) for(i2=i1+1;i2<dim;i2++) 
       {
-         g= fabs(Ar[i1+dim*i2]);
+         g= Fabs(Ar[i1+dim*i2]);
          if(i>4 &&  d[i1]+100*g== d[i1] && d[i2]+100*g==d[i2])  Ar[i1+dim*i2]=0;
          else if(g > cut) 
          {
             h=d[i2]-d[i1];
-            if((fabs(h)+g) == fabs(h)) t=(Ar[i1+dim*i2])/h; else 
+            if((Fabs(h)+g) == Fabs(h)) t=(Ar[i1+dim*i2])/h; else 
             {
                theta= (0.5*h/(Ar[i1+dim*i2]));
-               t= 1/(fabs(theta)+sqrt(1.0+theta*theta));
+               t= 1/(Fabs(theta)+Sqrt(1.0+theta*theta));
                if (theta < 0) t = -t;
             }
-            c= 1/sqrt(1+t*t);
+            c= 1/Sqrt(1+t*t);
             dc=-t*t*c*c/(1+c);
             s=t*c;
             h=t*Ar[i1+dim*i2];
@@ -85,7 +85,7 @@ int rJacobi(REAL* as, int dim, REAL *d, REAL* v)
       }
    }
   
-   for(i=0;i<dim-1; )if(fabs(d[i])>fabs(d[i+1]))
+   for(i=0;i<dim-1; )if(Fabs(d[i])>Fabs(d[i+1]))
    {  int i1=i+1;
       REAL mr=d[i]; d[i]=d[i1]; d[i1]=mr;
       for(j=0;j<dim;j++)
@@ -109,19 +109,19 @@ int cJacobiH(COMPLEX* ah, int dim, REAL *d, COMPLEX* v)
 
    if(dimc<dim) { Ac=realloc(Ac,dim*dim*sizeof(COMPLEX)); dimc=dim; }     
    for(i=0;i<dim;i++) for(j=i;j<dim;j++) Ac[i*dim+j]=ah[sMT(i,j)];
-   for(i=0;i<dim-1;i++) for(j=i+1;j<dim;j++) Ac[j*dim+i]=conj(ah[sMT(i,j)]);
+   for(i=0;i<dim-1;i++) for(j=i+1;j<dim;j++) Ac[j*dim+i]=Conj(ah[sMT(i,j)]);
    
    for(i=0;i<dim*dim;i++) v[i]=0; 
    for(i=0;i<dim;i++) {v[i+dim*i]=1; d[i]=Ac[i+dim*i];}
    for(N=0;N<NMAX;N++) 
    {
       sm=0;
-      for(i1=0;i1<dim-1;i1++) for(i2=i1+1;i2<dim;i2++) sm += cabs(Ac[i1+dim*i2]); 
+      for(i1=0;i1<dim-1;i1++) for(i2=i1+1;i2<dim;i2++) sm += Cabs(Ac[i1+dim*i2]); 
       if(sm == 0)  break; 
       if(i < 4) cut= 0.2*sm/(dim*dim); else cut=0;
       for(i1=0;i1< dim-1;i1++) for(i2=i1+1;i2<dim;i2++) 
       {  
-        g= cabs(Ac[i1+dim*i2]);         
+        g= Cabs(Ac[i1+dim*i2]);         
         if(i>4 && d[i1]+100*g==d[i1] && d[i2]+100*g==d[i2]) Ac[i1+dim*i2]=0;
         else if(g > cut) 
         {
@@ -129,11 +129,11 @@ int cJacobiH(COMPLEX* ah, int dim, REAL *d, COMPLEX* v)
             if(h+g == h) t=g/h; else 
             {
                theta= (0.5*h/g);
-               t= 1/(fabs(theta)+sqrt(1.0+theta*theta));
+               t= 1/(Fabs(theta)+Sqrt(1.0+theta*theta));
                if (theta < 0) t = -t;
             }
-            c= 1/sqrt(1+t*t);
-            s=t*c*cexp(-I*carg(Ac[i1+dim*i2]));
+            c= 1/Sqrt(1+t*t);
+            s=t*c*Cexp(-I*Carg(Ac[i1+dim*i2]));
             dc=-t*t/(1+t*t)/(1+c);
             h=t*g;
             d[i1] -= h;
@@ -150,7 +150,7 @@ int cJacobiH(COMPLEX* ah, int dim, REAL *d, COMPLEX* v)
       }
    }
 
-   for(i=0;i<dim-1;) if(fabs(d[i])>fabs(d[i+1]))
+   for(i=0;i<dim-1;) if(Fabs(d[i])>Fabs(d[i+1]))
    {  int i1=i+1;
       REAL  mr=d[i];  d[i]=d[i1]; d[i1]=mr;
        for(j=0;j<dim;j++)
@@ -160,7 +160,7 @@ int cJacobiH(COMPLEX* ah, int dim, REAL *d, COMPLEX* v)
        if(i) i--; else  i=1;
    } else i++;
    
-   for(i=0;i<dim*dim;i++)   v[i]=conj(v[i]);
+   for(i=0;i<dim*dim;i++)   v[i]=Conj(v[i]);
    for(i=0;i<dim-1;i++) for(j=i+1;j<dim;j++) { COMPLEX mem=v[j*dim+i]; v[j*dim+i]= v[i*dim+j];v[i*dim+j]=mem;}
      
    if(N<NMAX) return 0; else return 1;
@@ -181,7 +181,7 @@ int rJacobiA(REAL*aa, int dim, REAL*d, REAL*u, REAL*v)
   for(N=0;N<NMAX;N++) 
   { 
      sm=0;
-     for(i1=0;i1<dim-1;i1++)for(i2=i1+1;i2<dim;i2++)sm+=fabs(Ar[i1+dim*i2])+fabs(Ar[i2+dim*i1]); 
+     for(i1=0;i1<dim-1;i1++)for(i2=i1+1;i2<dim;i2++)sm+=Fabs(Ar[i1+dim*i2])+Fabs(Ar[i2+dim*i1]); 
      if(sm == 0) break;
      cut= 0.1*sm/(dim*(dim-1));
      for(i1=0;i1< dim-1;i1++) for(i2=i1+1;i2<dim;i2++) 
@@ -192,7 +192,7 @@ int rJacobiA(REAL*aa, int dim, REAL*d, REAL*u, REAL*v)
         a21=Ar[i2*dim+i1];
         a22=Ar[i2*dim+i2];
 
-        g= fabs(a12)+fabs(a21);
+        g= Fabs(a12)+Fabs(a21);
         if(a11+100*g== a11 && a22+100*g==a22) { Ar[i1+dim*i2]=Ar[i2+dim*i1]=0; }
         else 
         if( g  > 2*cut) 
@@ -205,11 +205,11 @@ int rJacobiA(REAL*aa, int dim, REAL*d, REAL*u, REAL*v)
              m12=a11*a21+a22*a12;
            
              if(m12==0) tu=0; else 
-             {  REAL D= fabs(m11-m22) +sqrt( (m11-m22)*(m11-m22)+4*m12*m12 );
+             {  REAL D= Fabs(m11-m22) +Sqrt( (m11-m22)*(m11-m22)+4*m12*m12 );
                 if(m11-m22>0) tu=-2*m12/D; else tu=2*m12/D;
              }
 
-             cu=1/sqrt(1+tu*tu); su=cu*tu;
+             cu=1/Sqrt(1+tu*tu); su=cu*tu;
              if(cu>0.9)  dcu=-tu*tu*cu*cu/(1+cu); else dcu=cu-1; 
 
              m11=a11-tu*a21;    /* m = ut * a */
@@ -222,11 +222,11 @@ int rJacobiA(REAL*aa, int dim, REAL*d, REAL*u, REAL*v)
              {  if(m22==0) tv=-m12/m11; 
                 else if(m11==0) tv=m21/m22;
                 else 
-                { double prec1=fabs(m11*m12)/(fabs(a11)+fabs(tu*a21))/(fabs(a12)+fabs(tu*a22));
-                  double prec2=fabs(m22*m21)/(fabs(a22)+fabs(tu*a12))/(fabs(a21)+fabs(tu*a11));
+                { double prec1=Fabs(m11*m12)/(Fabs(a11)+Fabs(tu*a21))/(Fabs(a12)+Fabs(tu*a22));
+                  double prec2=Fabs(m22*m21)/(Fabs(a22)+Fabs(tu*a12))/(Fabs(a21)+Fabs(tu*a11));
                   if(prec1>prec2) tv=-m12/m11; else tv=m21/m22;
                 }  
-                cv=1/sqrt(1+tv*tv); 
+                cv=1/Sqrt(1+tv*tv); 
                 sv=tv*cv;            
                 if(cv>0.9) dcv=-tv*tv*cv*cv/(1+cv); else dcv=cv-1;
              }  
@@ -275,7 +275,7 @@ int cJacobiA(COMPLEX*aa, int dim, REAL*d, COMPLEX*u, COMPLEX*v)
   for(N=0;N<NMAX;N++) 
   { 
      sm=0;
-     for(i1=0;i1<dim-1;i1++)for(i2=i1+1;i2<dim;i2++)sm+=cabs(Ac[i1+dim*i2])+cabs(Ac[i2+dim*i1]); 
+     for(i1=0;i1<dim-1;i1++)for(i2=i1+1;i2<dim;i2++)sm+=Cabs(Ac[i1+dim*i2])+Cabs(Ac[i2+dim*i1]); 
      if(sm == 0) break;
      cut= 0.1*sm/(dim*(dim-1)); 
      for(i1=0;i1< dim-1;i1++) for(i2=i1+1;i2<dim;i2++) 
@@ -286,62 +286,62 @@ int cJacobiA(COMPLEX*aa, int dim, REAL*d, COMPLEX*u, COMPLEX*v)
         a21=Ac[i2*dim+i1];
         a22=Ac[i2*dim+i2];
 
-        g= cabs(a12)+cabs(a21); 
-        if( cabs(g)  > 2*cut) 
+        g= Cabs(a12)+Cabs(a21); 
+        if( Cabs(g)  > 2*cut) 
         if(a11+100*g==a11 && a22+100*g==a22) { Ac[i1+dim*i2]=Ac[i2+dim*i1]=0; }
         else
         { 
            COMPLEX m11,m12,m22,m21,tu,tv,su,sv,dcu,dcv,cu,cv;        
-           m11=a11*conj(a11)+a12*conj(a12);    /* m=a*at */
-           m22=a22*conj(a22)+a21*conj(a21);
-           m12=a11*conj(a21)+a12*conj(a22);
-           m21=conj(m12);
+           m11=a11*Conj(a11)+a12*Conj(a12);    /* m=a*at */
+           m22=a22*Conj(a22)+a21*Conj(a21);
+           m12=a11*Conj(a21)+a12*Conj(a22);
+           m21=Conj(m12);
            
-           if(cabs(m12)==0) tu=0; 
+           if(Cabs(m12)==0) tu=0; 
            else 
-           { REAL D= cabs(m11-m22) +sqrt( cabs((m11-m22)*(m11-m22))+4*cabs(m12*m21));
-             if(creal(m11-m22)>0) tu=-2*m12/D; else tu=2*m12/D;
+           { REAL D= Cabs(m11-m22) +Sqrt( Cabs((m11-m22)*(m11-m22))+4*Cabs(m12*m21));
+             if(Creal(m11-m22)>0) tu=-2*m12/D; else tu=2*m12/D;
            }  
 
-           cu=1/sqrt(1+cabs(tu*tu));
-           if(creal(cu)>0.9) dcu=-tu*conj(tu)*cu*cu/(1+cu); else dcu=cu-1;
+           cu=1/Sqrt(1+Cabs(tu*tu));
+           if(Creal(cu)>0.9) dcu=-tu*Conj(tu)*cu*cu/(1+cu); else dcu=cu-1;
            
            su=cu*tu;
            m11=a11-tu*a21;    /* m = ut * a */
            m12=a12-tu*a22;
-           m21=a21+conj(tu)*a11;
-           m22=a22+conj(tu)*a12;
+           m21=a21+Conj(tu)*a11;
+           m22=a22+Conj(tu)*a12;
 
            if(m11==0 && m22==0) { dcv=-1; sv=1;} 
            else 
            {  if(m22==0) tv=-m12/m11; 
-              else if(m11==0) tv=conj(m21/m22);
+              else if(m11==0) tv=Conj(m21/m22);
               else 
-              { double prec1=cabs(m11*m12)/(cabs(a11)+cabs(tu*a21))/(cabs(a12)+cabs(tu*a22));
-                double prec2=cabs(m22*m21)/(cabs(a22)+cabs(tu*a12))/(cabs(a21)+cabs(tu*a11));
-                if(prec1>prec2) tv=-m12/m11; else tv=conj(m21/m22);
+              { double prec1=Cabs(m11*m12)/(Cabs(a11)+Cabs(tu*a21))/(Cabs(a12)+Cabs(tu*a22));
+                double prec2=Cabs(m22*m21)/(Cabs(a22)+Cabs(tu*a12))/(Cabs(a21)+Cabs(tu*a11));
+                if(prec1>prec2) tv=-m12/m11; else tv=Conj(m21/m22);
               }  
             
-              cv=1/sqrt(1+cabs(tv*tv)); 
+              cv=1/Sqrt(1+Cabs(tv*tv)); 
               sv=tv*cv;            
-              if(creal(cv)>0.9) dcv=-tv*conj(tv)*cv*cv/(1+cv); else dcv=cv-1;
+              if(Creal(cv)>0.9) dcv=-tv*Conj(tv)*cv*cv/(1+cv); else dcv=cv-1;
            }  
-//printf("-res= (%e %e)[%e] (%e %e)[%e]  \n",creal( Ac[i2*dim+i1]),
-//cimag( Ac[i2*dim+i1]), cabs(Ac[i1*dim+i1]),  creal(Ac[i1*dim+i2]), cimag(Ac[i1*dim+i2]),
-//cabs(Ac[i2*dim+i2])  );            
+//printf("-res= (%e %e)[%e] (%e %e)[%e]  \n",Creal( Ac[i2*dim+i1]),
+//Cimag( Ac[i2*dim+i1]), Cabs(Ac[i1*dim+i1]),  Creal(Ac[i1*dim+i2]), Cimag(Ac[i1*dim+i2]),
+//Cabs(Ac[i2*dim+i2])  );            
 
            rightMULTc(v,i1,i2,dcv,sv)
            rightMULTc(u,i1,i2,dcu,su)
            leftMULTc(Ac,i1,i2, dcu,(-su))
            rightMULTc(Ac,i1,i2,dcv,sv)
-//printf("+res= (%e %e) (%e %e) \n",creal( Ac[i2*dim+i1]),
-//cimag( Ac[i2*dim+i1]), creal(Ac[i1*dim+i2]), cimag(Ac[i1*dim+i2]));            
+//printf("+res= (%e %e) (%e %e) \n",Creal( Ac[i2*dim+i1]),
+//Cimag( Ac[i2*dim+i1]), Creal(Ac[i1*dim+i2]), Cimag(Ac[i1*dim+i2]));            
 //           Ac[i2*dim+i1]=0; Ac[i1*dim+i2]=0;
         }
      }
    }
    for(i=0;i<dim;i++)
-   {   COMPLEX e=cexp(-I*carg(Ac[i*dim+i]));   
+   {   COMPLEX e=Cexp(-I*Carg(Ac[i*dim+i]));   
        for(j=0;j<dim;j++) v[j*dim+i]*=e;
        d[i]=Ac[i+dim*i]*e;
    }
@@ -358,8 +358,8 @@ int cJacobiA(COMPLEX*aa, int dim, REAL*d, COMPLEX*u, COMPLEX*v)
      } else i++;
       
 
-   for(i=0;i<dim*dim;i++)   v[i]=conj(v[i]);
-   for(i=0;i<dim*dim;i++)   u[i]=conj(u[i]);
+   for(i=0;i<dim*dim;i++)   v[i]=Conj(v[i]);
+   for(i=0;i<dim*dim;i++)   u[i]=Conj(u[i]);
       
    for(i=0;i<dim-1;i++) for(j=i+1;j<dim;j++) { COMPLEX mem=v[j*dim+i]; v[j*dim+i]=v[i*dim+j];v[i*dim+j]=mem;}
    for(i=0;i<dim-1;i++) for(j=i+1;j<dim;j++) { COMPLEX mem=u[j*dim+i]; u[j*dim+i]=u[i*dim+j];u[i*dim+j]=mem;} 
@@ -380,7 +380,7 @@ int cJacobiS(COMPLEX*as, int dim, REAL*d, COMPLEX*v)
   for(i=0;i<dim;i++)  v[i*dim+i]=1;
   for(N=0;N<NMAX;N++) 
   {  REAL sm=0;
-     for(i=0;i<dim-1;i++)for(j=i+1;j<dim;j++) sm+=cabs(Ac[i+dim*j]);
+     for(i=0;i<dim-1;i++)for(j=i+1;j<dim;j++) sm+=Cabs(Ac[i+dim*j]);
       
      if(sm == 0) break;
      if(i < 4) cut= 0.2*sm/(dim*dim); else cut=0;
@@ -389,29 +389,29 @@ int cJacobiS(COMPLEX*as, int dim, REAL*d, COMPLEX*v)
         a11=Ac[i1*dim+i1];  a12=(Ac[i1*dim+i2]+Ac[i2*dim+i1])/2;  
                             a22=Ac[i2*dim+i2]; 
         if(i>4 && a11+100*a12==a11 && a22+100*a12==a22){Ac[i1*dim+i2]=Ac[i2*dim+i1]=0;}
-        else if(cabs(a12)  >  cut) 
+        else if(Cabs(a12)  >  cut) 
         {  REAL cv,dcv,tau,nn,fi,fa;
            COMPLEX ff,sv;
-           nn=a11*conj(a11)-a22*conj(a22);
-           ff=conj(a11)*a12+a22*conj(a12);
-           fi=carg(ff);
-           fa=cabs(ff);
+           nn=a11*Conj(a11)-a22*Conj(a22);
+           ff=Conj(a11)*a12+a22*Conj(a12);
+           fi=Carg(ff);
+           fa=Cabs(ff);
              
-           if( fabs(nn) < fa)
+           if( Fabs(nn) < fa)
            { REAL R= 0.5*nn/fa;
-             if(R>0) tau=-1/(R+sqrt(R*R+1));else tau=-1/(R-sqrt(R*R+1));
+             if(R>0) tau=-1/(R+Sqrt(R*R+1));else tau=-1/(R-Sqrt(R*R+1));
            }            
            else 
            { REAL r=2*fa/nn;
-             tau=-r/(1+sqrt(1+r*r));
+             tau=-r/(1+Sqrt(1+r*r));
            }
            
-           cv=1/sqrt(1+tau*tau);
+           cv=1/Sqrt(1+tau*tau);
            dcv=-tau*tau*cv*cv/(1+cv);
-           sv=cv*cexp(I*fi)*tau;
+           sv=cv*Cexp(I*fi)*tau;
                     
            rightMULTc(v,i1,i2,dcv,sv)              /* V' =  V v   */           
-           leftMULTc(Ac,i1,i2,dcv,(-conj(sv)))     /* A' = ut A   */
+           leftMULTc(Ac,i1,i2,dcv,(-Conj(sv)))     /* A' = ut A   */
            rightMULTc(Ac,i1,i2,dcv,sv)             /* A' =  A v   */
            Ac[i2*dim+i1]=0; Ac[i1*dim+i2]=0;
         }
@@ -419,10 +419,10 @@ int cJacobiS(COMPLEX*as, int dim, REAL*d, COMPLEX*v)
    }
    
    for(i=0;i<dim;i++)
-   {   REAL fi=carg(Ac[i*dim+i]);
-       COMPLEX e=cexp(-I*fi/2);   
+   {   REAL fi=Carg(Ac[i*dim+i]);
+       COMPLEX e=Cexp(-I*fi/2);   
        for(j=0;j<dim;j++) v[j*dim+i]*=e;
-       d[i]=Ac[i+dim*i]*cexp(-I*fi);
+       d[i]=Ac[i+dim*i]*Cexp(-I*fi);
    }
 
    for(i=0;i<dim-1; ) if(d[i]>d[i+1])
@@ -435,7 +435,7 @@ int cJacobiS(COMPLEX*as, int dim, REAL*d, COMPLEX*v)
      if(i) i--; else i=1;
    } else i++;
 
-   for(i=0;i<dim*dim;i++)   v[i]=conj(v[i]);
+   for(i=0;i<dim*dim;i++)   v[i]=Conj(v[i]);
    for(i=0;i<dim-1;i++) for(j=i+1;j<dim;j++) { COMPLEX mem=v[j*dim+i]; v[j*dim+i]=v[i*dim+j];v[i*dim+j]=mem;}
 
       

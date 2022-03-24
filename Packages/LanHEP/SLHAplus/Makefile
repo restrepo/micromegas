@@ -1,5 +1,5 @@
-#CC = 
-#FC =
+CC = gcc
+FC = gfortran
 #CXX =
 #CFLAGS = 
 #FFLAGS = 

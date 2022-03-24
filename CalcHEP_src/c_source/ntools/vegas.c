@@ -32,7 +32,7 @@ static void drand_arr(int dim, double * x)
   }
 }
 
-static void  generateVegasCubes(int dim, long*nCubes, int*size) 
+static void  generateVegasCubes(int dim, int*nCubes, int*size) 
 {  int i;
    long nC1=1,nCmem=*nCubes;
    double nCd=nCmem+0.001;
@@ -45,7 +45,7 @@ static void  generateVegasCubes(int dim, long*nCubes, int*size)
    if(nC1!=nCmem)  *nCubes=nC1;
 }
 
-void setEventCubes(vegasGrid*vegPtr, long nCubes)
+void setEventCubes(vegasGrid*vegPtr, int nCubes)
 { 
   generateVegasCubes(vegPtr->dim,&nCubes, vegPtr->NgE);
   vegPtr->evnCubes=nCubes;
@@ -343,7 +343,7 @@ static void* event_cycle(void * par_)
    int nCore=par->nCore;
    int dim=par->vegPtr->dim;
    int Ndmx=par->vegPtr->ndmx;
-   long nCubes=par->vegPtr->evnCubes;
+   int nCubes=par->vegPtr->evnCubes;
    double (*fxn)(double*,double)=par->vegPtr->fxn;
    double gmax=par->gmax;
    double*smax=par->vegPtr->fMax;

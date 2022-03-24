@@ -33,7 +33,8 @@ static void init_safe(int * exitlevel)
    n_model = 1;
    newCodes=0;
    *exitlevel = 0;
-   nPROCSS=sysconf(_SC_NPROCESSORS_ONLN);
+   char * nPROCSSch=getenv("nParProc");
+   if(!nPROCSSch || 1!=sscanf(nPROCSSch,"%d",&nPROCSS)) nPROCSS=sysconf(_SC_NPROCESSORS_ONLN);
 }
 
 void restoreent(int * exitlevel)
@@ -71,7 +72,7 @@ void restoreent(int * exitlevel)
        ||1!=fscanf(ff,"#T-widths    %d\n", &tWidths)    
        ||1!=fscanf(ff,"#VVdecays  %d\n", &VWdecay)
        ||1!=fscanf(ff,"#NewCodes  %d\n", &newCodes)
-       ||1!=fscanf(ff,"#nPROCSS %d\n",&nPROCSS)   
+       ||1!=fscanf(ff,"#nPROCSS %d\n",&nPROCSS)
        ||1!=fscanf(ff,"#ExitCode %d\n",exitlevel) ) init_safe(exitlevel); 
       fclose(ff);
       trim(processch); trim(limpch); trim(deloutch);
@@ -108,7 +109,7 @@ void saveent(int  exitlevel)
    fprintf(ff,"#T-widths    %d\n", tWidths);
    fprintf(ff,"#VVdecays    %d\n", VWdecay);
    fprintf(ff,"#NewCodes  %d\n", newCodes);
-   fprintf(ff,"#nPROCSS %d\n",nPROCSS);         
+   fprintf(ff,"#nPROCSS %d\n",nPROCSS);       
    fprintf(ff,"#ExitCode %d\n",exitlevel);
 //   fprintf(ff,"#Model paramters:\n");
 //   { for(i=0;i<nModelVars;i++) fprintf(ff,"%s\n",varNames[i]);}

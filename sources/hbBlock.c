@@ -181,8 +181,8 @@ int hbBlocksMO(char *fname, int *nHiggsCh)
       double  LAASM=lAAhSM(mH,alphaQCD(mH)/M_PI, Mcp,Mbp,Mtp,vev);
               lamQGG[i]=(ffC*conj(ffC) +4*faC*conj(faC));
               lamQAA[i]=(ffE*conj(ffE) +4*faE*conj(faE));      
-      fprintf(f," %12.4E  3  %3d  %3d  %3d  # %s %s %s\n", lamQGG[i]/LGGSM/LGGSM, pNum(Higgs[i]) ,pNum(G), pNum(G), Higgs[i] ,G ,G);
-      fprintf(f," %12.4E  3  %3d  %3d  %3d  # %s %s %s\n", lamQAA[i]/LAASM/LAASM, pNum(Higgs[i]) ,pNum(A), pNum(A), Higgs[i] ,A ,A);
+      fprintf(f," %12.4E  3  %3d  %3d  %3d  # %s %s %s\n", sqrt(lamQGG[i])/fabs(LGGSM), pNum(Higgs[i]) ,pNum(G), pNum(G), Higgs[i] ,G ,G);
+      fprintf(f," %12.4E  3  %3d  %3d  %3d  # %s %s %s\n", sqrt(lamQAA[i])/fabs(LAASM), pNum(Higgs[i]) ,pNum(A), pNum(A), Higgs[i] ,A ,A);
    }
   
    if(VZdecay==0 || VWdecay==0) 

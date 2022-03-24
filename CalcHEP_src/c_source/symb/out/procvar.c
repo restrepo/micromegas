@@ -124,8 +124,20 @@ int initvararray(int nsub, char key, polyvars * vardef_ext)
       case 'M': sprintf( vararr[k].alias, "(1/SC[p1,p2])");  break;
       case 'c': sprintf( vararr[k].alias, "N_p1p2_"      );  break;
     }                                      
-    vararr[k].used = 1;                                      
-      
+    vararr[k].used = 1;
+
+   for(i=1;i<=2;i++) for(j=1;j<=2;j++)
+   { 
+      k=nmodelvar+5+ 2*(i-1)+j-1;
+      switch(key)
+      { case 'R':
+        case 'F':
+        case 'M': 
+        case 'c': sprintf( vararr[k].alias, "N_pol_%d%d_"  , i,j ); break;
+      } 
+      vararr[k].used = 1;
+   }
+ 
    nvar=0; nfunc=0;
    
    if(key=='F' ||key=='R'||key== 'M') for(k=0;k<=nmodelvar;k++) 

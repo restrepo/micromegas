@@ -1,20 +1,22 @@
 #include"micromegas.h"
 #include"micromegas_aux.h"
+#include "../CalcHEP_src/include/version.h"
 
-void smodels(int Run, int nf,double csMinFb,  char*fileName,int wrt) 
+int smodels(int Run, int nf,double csMinFb,  char*fileName, char*version, int wrt) 
 { 
-   int SMP[16]={1,2,3,4,5,6, 11,12,13,14,15,16, 21,22,23,24};
+   int SMP[18]={1,2,3,4,5,6, 11,12,13,14,15,16, 21,22,23,24, 111, 211};
    int i,j;
+   int nChan=0;
    double PcmMax=6500; // LHC pcm
    double PcmMin=4000;
-   if(Run & (LHC8|LHC13) == 0) 
+   if((Run & (LHC8|LHC13)) == 0) 
    { printf("SMODELS: The third parameter has to be either  LHC8 or  LHC13 or  LHC8+LHC13 \n");      
-     return;
+     return 1;
    }  
    if((Run & LHC8) == 0)  PcmMin=6500;
    if((Run & LHC13) == 0) PcmMax=4000;
    
-   FILE*f=fopen(fileName,"w");
+   FILE*f=fopen(fileName,"w");  
    int np=0;
    char**plist=NULL;
    int smH=-1; 
@@ -29,7 +31,9 @@ void smodels(int Run, int nf,double csMinFb,  char*fileName,int wrt)
    char* zname=NULL;
    int  VZdecay_=VZdecay,VWdecay_=VWdecay;
    
-  // find SM Higgs 
+   fprintf(f,"####################################################################\n");   
+   fprintf(f,"# SLHA input file for SModelS, automatically created by micrOMEGAs #\n");   
+   fprintf(f,"####################################################################\n\n");   
     
    for(i=0;i<nModelParticles;i++)
    {
@@ -43,11 +47,37 @@ void smodels(int Run, int nf,double csMinFb,  char*fileName,int wrt)
       if(ModelPrtcls[i].NPDG== 24) { wname=ModelPrtcls[i].name;  Wname=ModelPrtcls[i].aname;} 
       if(ModelPrtcls[i].NPDG==-24) { wname=ModelPrtcls[i].aname; Wname=ModelPrtcls[i].name; }   
    }
+   
+   for(i=0;i<nModelParticles;i++)
+   {  
+      // check whether in SM list 
+      int isBSMparticle=1;
+      for(j=0;j<18;j++) {
+         if(abs(ModelPrtcls[i].NPDG)==SMP[j]) {
+           isBSMparticle=0;
+           continue;
+         }  
+      } 
+      if(abs(ModelPrtcls[i].NPDG)==25) isBSMparticle=0; // Higgs is SM particle
 
-//printf("gluname  %s bname %s lname %s\n", gluname,bname,lname);  
+      // write QNUMBERS for BSM particles
+      if(isBSMparticle==1) 
+      {
+        fprintf(f,"BLOCK QNUMBERS %d  # %s\n", ModelPrtcls[i].NPDG, ModelPrtcls[i].name);   
+        fprintf(f," 1  %d # 3*el.charge\n 2  %d # 2*spin+1\n 3  %d # color dim\n 4  %d # 0={ self-conjugated}\n",
+             ModelPrtcls[i].q3, 
+             ModelPrtcls[i].spin2+1, 
+             ModelPrtcls[i].cdim, 
+             strcmp(ModelPrtcls[i].name,ModelPrtcls[i].aname)? 1:0   );
+        if(ModelPrtcls[i].name[0]=='~') fprintf(f,"11  1 # Z2-like symmetry factor (0=even,1=odd)\n\n"); 
+        else                            fprintf(f,"11  0 # Z2-like symmetry factor (0=even,1=odd)\n\n"); 
 
+      } 
+   }   
+   
    if(!VZdecay || !VWdecay) { VZdecay=1; VWdecay=1; cleanDecayTable();} 
 
+// look for SM Higgs 
 
    if(gluname && bname && lname && wname && zname)
    for(smH=0;smH<nModelParticles;smH++) if( ModelPrtcls[smH].spin2==0 && ModelPrtcls[smH].cdim==1 
@@ -64,11 +94,11 @@ void smodels(int Run, int nf,double csMinFb,  char*fileName,int wrt)
       double hMass=pMass(ModelPrtcls[smH].name);
       if(hMass<123 || hMass>128)  continue;
       double a123= (hMass-125)*(hMass-128)/(2*5), a125=-(hMass-123)*(hMass-128)/(2*3), a128=(hMass-123)*(hMass-125)/(3*5);
-      double  ggBrSM=a123*Br123SM[0]+a125*Br125SM[0]+a128*Br123SM[0],
-              bbBrSM=a123*Br123SM[1]+a125*Br125SM[1]+a128*Br123SM[1],
-              llBrSM=a123*Br123SM[2]+a125*Br125SM[2]+a128*Br123SM[2],
-              zzBrSM=a123*Br123SM[3]+a125*Br125SM[3]+a128*Br123SM[3],
-              wwBrSM=a123*Br123SM[4]+a125*Br125SM[4]+a128*Br123SM[4],
+      double  ggBrSM=a123*Br123SM[0]+a125*Br125SM[0]+a128*Br128SM[0],
+              bbBrSM=a123*Br123SM[1]+a125*Br125SM[1]+a128*Br128SM[1],
+              llBrSM=a123*Br123SM[2]+a125*Br125SM[2]+a128*Br128SM[2],
+              zzBrSM=a123*Br123SM[3]+a125*Br125SM[3]+a128*Br128SM[3],
+              wwBrSM=a123*Br123SM[4]+a125*Br125SM[4]+a128*Br128SM[4],
               wSM   =a123*wSM_123+a125*wSM_125+a128*wSM_128;
                       
       w=pWidth(ModelPrtcls[smH].name,&L);
@@ -103,7 +133,9 @@ void smodels(int Run, int nf,double csMinFb,  char*fileName,int wrt)
    
    if(smH<nModelParticles) printf("found SM-like Higgs = %s\n",ModelPrtcls[smH].name);
    else  printf("warning: no SM-like Higgs\n");
-    
+
+   printf("writing mass block and decay tables ... \n");
+
    fprintf(f,"BLOCK MASS\n");
    for(i=0;i<nModelParticles;i++) if(pMass(ModelPrtcls[i].name) <PcmMax)
    { 
@@ -129,8 +161,10 @@ void smodels(int Run, int nf,double csMinFb,  char*fileName,int wrt)
       if(j==16) slhaDecayPrint(ModelPrtcls[i].name,0,f); 
    }
 
+   printf("computing LHC cross sections ... \n");
+
    for(i=0;i<np;i++) for(j=i;j<np;j++) if(pMass(plist[i])+pMass(plist[j])<PcmMax)
-    if(plist[i][0]=='~' && plist[j][0]=='~')
+    if(plist[i][0]=='~' && plist[j][0]=='~') 
     {  int q31,q32,q3,c1,c2;
 
        qNumbers(plist[i], NULL, &q31,&c1);
@@ -159,7 +193,10 @@ void smodels(int Run, int nf,double csMinFb,  char*fileName,int wrt)
        }
    
        if(ok==0) continue;
-        
+       //------------------------- MSSM EWinos only -----------------------------------
+       //if( abs(pNum(plist[i]))<1000022 || abs(pNum(plist[i]))>1000037 || 
+       //    abs(pNum(plist[j]))<1000022 || abs(pNum(plist[j]))>1000037) continue;
+       //------------------------------------------------------------------------------
        {  double dcs;
           double Qf=0.5*(pMass(plist[i])+pMass(plist[j]));
           for(double Pcm=PcmMin; ; ) 
@@ -168,7 +205,8 @@ void smodels(int Run, int nf,double csMinFb,  char*fileName,int wrt)
              if(dcs>csMinFb*0.001)
              {
                fprintf(f,"XSECTION  %E   2212  2212  2  %d  %d\n",2*Pcm, pNum(plist[i]),pNum(plist[j])); 
-/*pb*/         fprintf(f," 0  0  0  0  0  0 %E micrOMEGAs 4.3\n\n", dcs);
+/*pb*/         fprintf(f," 0  0  0  0  0  0 %E # CalcHEP %s\n\n", dcs,VERSION);
+               nChan++;
              }
              if(Pcm==PcmMax) break; else Pcm=PcmMax;
           }  
@@ -177,118 +215,20 @@ void smodels(int Run, int nf,double csMinFb,  char*fileName,int wrt)
 
   fclose(f);
   free(plist);
-  
-  f=fopen("particles.py","w");
-  fprintf(f,"#!/usr/bin/env python\n");
-  
-  fprintf(f,"rOdd ={\n");
-  for(np=0,i=0;i<nModelParticles;i++) if(ModelPrtcls[i].name[0]=='~'  && pMass(ModelPrtcls[i].name) <PcmMax )
-  {  
-     if(np) fprintf(f,",\n");
-     fprintf(f, " %d : \"%s\",\n",  ModelPrtcls[i].NPDG,ModelPrtcls[i].name);
-     fprintf(f, " %d : \"%s\""   , -ModelPrtcls[i].NPDG,ModelPrtcls[i].aname);
-     np++; 
-  }
-  fprintf(f,"\n}\n");
 
-  fprintf(f,"rEven ={\n");
-  for(np=0,i=0;i<nModelParticles;i++) if(ModelPrtcls[i].name[0]!='~' && pMass(ModelPrtcls[i].name) <PcmMax  )
-  {  
-     for(j=0;j<16;j++) if(abs(ModelPrtcls[i].NPDG)==SMP[j]) break;
-     if(j==16 )
-     { if(np) fprintf(f,",\n");
-       if(i==smH)
-       { 
-          fprintf(f, " %d : \"higgs\",\n", ModelPrtcls[i].NPDG);
-          fprintf(f, " %d : \"higgs\"", -ModelPrtcls[i].NPDG);
-       } else
-       {  char * n=ModelPrtcls[i].name;
-          char * an=ModelPrtcls[i].aname;
-          if(strcmp( n,"higgs")==0)  n="!higgs";
-          if(strcmp(an,"higgs")==0) an="!higgs";
-          fprintf(f, " %d : \"%s\",\n",  ModelPrtcls[i].NPDG,n);
-          fprintf(f, " %d : \"%s\""   , -ModelPrtcls[i].NPDG,an);
-       }
-       np++;
-     }
-  }
-if(smH>=nModelParticles)
-{int   pdgH=12345;
-   for(i=0;i<nModelParticles;i++) if(abs(ModelPrtcls[i].NPDG)==pdgH){ pdgH++; i=0;}  
-   fprintf(f, ",\n %d : \"higgs\",\n",pdgH);
-   fprintf(f, " %d : \"higgs\"",-pdgH);
-}
-     fprintf(f,",\n"
-"  23 : \"Z\",\n"
-" -23 : \"Z\",\n" 
-"  22 : \"photon\",\n"
-" -22 : \"photon\",\n"
-"  24 : \"W+\",\n"
-" -24 : \"W-\",\n"
-"  16 : \"nu\",\n"
-" -16 : \"nu\",\n"
-"  15 : \"ta-\",\n"
-" -15 : \"ta+\",\n"
-"  14 : \"nu\",\n"
-" -14 : \"nu\",\n"
-"  13 : \"mu-\",\n"
-" -13 : \"mu+\",\n"
-"  12 : \"nu\",\n"
-" -12 : \"nu\",\n"
-"  11 : \"e-\",\n"
-" -11 : \"e+\",\n"
-"  5  : \"b\",\n"
-" -5  : \"b\",\n"
-"  6  : \"t+\",\n"
-" -6  : \"t-\",\n"
-"  1  : \"q\",\n"
-"  2  : \"q\",\n"
-"  3  : \"q\",\n"
-"  4  : \"c\",\n"
-"  21 : \"g\",\n"
-" -21 : \"g\",\n" 
-" -1  : \"q\",\n"
-" -2  : \"q\",\n"
-" -3  : \"q\",\n"
-" -4  : \"c\""  );
-  
-  fprintf(f,"\n}\n");
-
-fprintf(f,  
-"\nptcDic = {\"e\"  : [\"e+\",  \"e-\"],\n"
-"          \"mu\" : [\"mu+\", \"mu-\"],\n"
-"          \"ta\" : [\"ta+\", \"ta-\"],\n"
-"          \"l+\" : [\"e+\",  \"mu+\"],\n"
-"          \"l-\" : [\"e-\",  \"mu-\"],\n"
-"          \"l\"  : [\"e-\",  \"mu-\", \"e+\", \"mu+\"],\n"
-"          \"W\"  : [\"W+\",  \"W-\"],\n"
-"          \"t\"  : [\"t+\",  \"t-\"],\n"
-"          \"L+\" : [\"e+\",  \"mu+\", \"ta+\"],\n"
-"          \"L-\" : [\"e-\",  \"mu-\", \"ta-\"],\n"
-"          \"L\"  : [\"e+\",  \"mu+\", \"ta+\", \"e-\", \"mu-\", \"ta-\"],\n"
-"          \"jet\" : [\"q\", \"g\", \"c\"]}\n"
-);  
+  printf("SLHA input file done.\n\n");
   
 
-  fprintf(f,"qNumbers ={\n");
-  for(np=0,i=0;i<nModelParticles;i++) if(pMass(ModelPrtcls[i].name) <PcmMax  )
-  {  
-     for(j=0;j<16;j++) if(abs(ModelPrtcls[i].NPDG)==SMP[j]) break;
-     if(j==16 )
-     { if(np) fprintf(f,",\n");
-       fprintf(f, " %d : [%d,%d,%d]", ModelPrtcls[i].NPDG, ModelPrtcls[i].spin2, ModelPrtcls[i].q3, ModelPrtcls[i].cdim);
-       np++;
-     }           
-  }
-  fprintf(f,"\n}\n");
-
-  fclose(f); 
   if(VZdecay!= VZdecay_ || VWdecay!=VWdecay_ ) { VZdecay=VZdecay_; VWdecay=VWdecay_; cleanDecayTable();}  
+  if(nChan) return 0; else return 1;
 }
 
-void smodels_(int*LHCrun, int *nf,double *csMinFb, char*fileName,int *wrt,int len)
+int  smodels_(int*LHCrun, int *nf,double *csMinFb, char*fileName, char*version, int *wrt,int len1,int len2)
 {
-  char cName[30];
-  fName2c(fileName,cName, len);
-  smodels(*LHCrun,*nf, *csMinFb,  cName,*wrt);
+  char cName1[30];
+  fName2c(fileName,cName1, len1);
+  char cName2[30];
+  fName2c(version,cName2, len2);
+     
+  return smodels(*LHCrun,*nf, *csMinFb, cName1,cName2,*wrt);
 }

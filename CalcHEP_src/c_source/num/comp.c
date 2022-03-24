@@ -86,7 +86,7 @@ int fillCompositeArray(void)
   return 0;
   errorExit:
     sprintf(errorText," Error in Composite table line %d.\n%s",lineNum,fieldName);
-    messanykey(2,10,errorText);
+    messanykeyErr(2,10,errorText);
     return 1;  
 }
 

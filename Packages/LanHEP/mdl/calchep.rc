@@ -1,8 +1,6 @@
 % Definitions specific for CalcHEP format of Feynman rules.
 
-external_func(creal,1).
-external_func(cimag,1).		   
-external_func(cabs,1).		   
+keys OutputFormat=CalcHEP.
 
 prtcformat fullname: 'Full   Name     ', 
            name:' P ', aname:' aP', pdg:'  number  ',
@@ -11,8 +9,8 @@ prtcformat fullname: 'Full   Name     ',
 
 prtcproperty pdg:(A=22, Z=23, 'W+'=24, G=21, 
 				d=1, u=2, s=3, c=4, b=5, t=6,
-                ne=12, n1=12, nm=14, n2=14, nl=16, n3=16,
-                e=11, e1=11, m=13, e2=13, l=15, e3=15,
+                ne=12, nm=14, nl=16,
+                e=11, m=13, l=15,
   ~ne=1000012, ~nm=1000014, ~nl=1000016,  
   ~e1=1000011, ~m1=1000013, ~l1=1000015,
   ~e2=2000011, ~m2=2000013, ~l2=2000015,

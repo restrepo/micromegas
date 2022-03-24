@@ -77,7 +77,7 @@ static Term dif_term(Term t)
 		{
 		Term d1;
 		int ppow;
-		ppow=IntegerValue(CompoundArg2(t));
+		ppow=(int)IntegerValue(CompoundArg2(t));
 		d1=dif_term(CompoundArg1(t));
 		if(d1==0)
 			return 0;
@@ -561,18 +561,18 @@ rpt:
 	int n,d;
 	Term cf;
 	Term res;
-	n=IntegerValue(CompoundArg1(CompoundArg2(a2)));
-	d=IntegerValue(CompoundArg2(CompoundArg2(a2)));
+	n=(int)IntegerValue(CompoundArg1(CompoundArg2(a2)));
+	d=(int)IntegerValue(CompoundArg2(CompoundArg2(a2)));
 	cf=l2expr(CompoundArgN(a2,3),n);
 	ml=CompoundArgN(a2,5);
 	if(ml==0)
 		return NewInteger(0);
 	res=l2expr(CompoundArg2(ListFirst(ml)),
-			IntegerValue(CompoundArg1(ListFirst(ml))));
+			(int)IntegerValue(CompoundArg1(ListFirst(ml))));
 	for(l=ListTail(ml);l;l=ListTail(l))
 	{
 		Term ccc;
-		n=IntegerValue(CompoundArg1(ListFirst(l)));
+		n=(int)IntegerValue(CompoundArg1(ListFirst(l)));
 		ccc=l2expr(CompoundArg2(ListFirst(l)),n>0?n:-n);
 		if(n>0)
 			res=MakeCompound2(OPR_PLUS,res,ccc);
@@ -946,7 +946,7 @@ Term ProcMkProc(Term t, Term ind)
 			strcmp(AtomValue(CompoundArg1(t1)),"THETACUT")==0)
 			{
 			if(is_integer(CompoundArg2(t1)))
-				thcut=IntegerValue(CompoundArg2(t1));
+				thcut=(int)IntegerValue(CompoundArg2(t1));
 			else if(is_float(CompoundArg2(t1)))
 				thcut=FloatValue(CompoundArg2(t1));
 			else
@@ -988,7 +988,7 @@ Term ProcMkProc(Term t, Term ind)
 			}
 		if(prt[i]==CompoundArg2(prp))
 			prp=GetAtomProperty(CompoundArg1(prp),PROP_TYPE);
-		spin[i]=IntegerValue(CompoundArgN(prp,4));
+		spin[i]=(int)IntegerValue(CompoundArgN(prp,4));
 		mass[i]=CompoundArgN(prp,5);
 		color[i]=GetAtomProperty(prt[i],A_COLOR);
 		t7=CompoundArgN(prp,7);
@@ -1069,7 +1069,8 @@ Term ProcMkProc(Term t, Term ind)
 	fprintf(f,"then echo Output directory is not created | tee -a scan.log && exit;\n");
 	fprintf(f,"fi\n\n");
 	
-	fprintf(f,"cat > scan_%s/process.h <<END\n",pname);
+        fprintf(f,"if test ! -d drivers/F ;\n");
+	fprintf(f,"then cat > scan_%s/process.h <<END\n",pname);
 	for(i=1;i<=4;i++)
 		{
 		int i1=i;
@@ -1090,13 +1091,14 @@ Term ProcMkProc(Term t, Term ind)
 	{fprintf(f,"#define SCALE sqrtS\n#define LUMI \"lumi_parton.F\"\n");
 	 fprintf(f,"c#define FORCE_ONSHELL\n");
 	}
-	fprintf(f,"#define NCOMP 2\n#include \"%cto2.F\"\nEND\n\n",dec?'1':'2');
+	fprintf(f,"#define NCOMP 2\n#include \"%cto2.F\"\nEND\n\nfi\n\n",dec?'1':'2');
 	
 	
-	
+	/*
 	fprintf(f,"cp model%d.h scan_%s/model.h\n",ModelNumber,pname);
 	fprintf(f,"cp mdl_ini%d.F scan_%s/mdl_ini.F\n\n",ModelNumber,pname);
-	
+	*/
+        
 	if(FAver==4)
 		fprintf(f,"cp main.F scan_%s/\n\n",pname);
 	
@@ -1112,7 +1114,7 @@ Term ProcMkProc(Term t, Term ind)
 	fprintf(f,"sz0=`du -sm .`\n");
 	
 	fprintf(f,"if test ! -f run ;\n");
-	fprintf(f,"then ./configure && cp ../makefile . ;\n");
+	fprintf(f,"then ./configure ;\n");
 	fprintf(f,"fi\n\n");
 	fprintf(f,"rm run ru*.01000*/*\n");
 	fprintf(f,"gmake\n");

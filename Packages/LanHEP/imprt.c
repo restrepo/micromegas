@@ -123,17 +123,36 @@ void check_hint(int col, int spin, int ch, List hint, Atom *n, Atom *an)
 	}
 
 
+static int imppdg=100500;
 
 List mk_im_field(int col, int spin, int ch, List hint)
 	{
 	Atom n, an, spp;
 	int  checked_hint=0;
 	Term prt;
-
+	int hc_corr=0;
+		
+	if(ListLength(hint)==4)
+	{
+	  Atom nms[4];
+	  Term prp;
+	  int i;
+	  nms[0]=CompoundArg1(ListFirst(hint));
+	  nms[1]=CompoundArg1(ListNth(hint,2));
+	  nms[2]=CompoundArg1(ListNth(hint,3));
+	  nms[3]=CompoundArg1(ListNth(hint,4));
+	  for(i=0;i<4;i++)
+	  if((prp=GetAtomProperty(nms[i],PROP_TYPE)) && CompoundName(prp)==OPR_FIELD
+	    && CompoundArg2(prp)==NewInteger(4))
+	      nms[i]=CompoundArg1(prp);
+	  if((nms[0]==GetAtomProperty(nms[2],A_ANTI) || nms[0]==GetAtomProperty(nms[3],A_ANTI)) &&
+	      (nms[1]==GetAtomProperty(nms[2],A_ANTI) || nms[1]==GetAtomProperty(nms[3],A_ANTI)))
+	    hc_corr=1;
+	}
 	
 	n=0;
 	check_hint(col, spin, ch, hint, &n, &an);
-
+	
 	if(n) checked_hint=1;
 
 	if(n==0)
@@ -168,6 +187,7 @@ List mk_im_field(int col, int spin, int ch, List hint)
 		{
 		char bbb[64];
 		prt=MakeCompound(OPR_PARTICLE,8);
+		SetAtomProperty(n,NewAtom("_pdg",0),NewInteger(imppdg++));
 		SetCompoundArg(prt,1,n);
 		SetCompoundArg(prt,2,an);
 		sprintf(bbb,"%s",AtomValue(spp));
@@ -178,13 +198,20 @@ List mk_im_field(int col, int spin, int ch, List hint)
 		  SetCompoundArg(prt,4,NewInteger(spin?2:0));
 		SetCompoundArg(prt,5,(spin==2&&!CalcOutput)?0:NewAtom("Maux",0));
 		if(spin<2 || CalcOutput)
+		{
+		  if(CalcOutput && !hc_corr)
+		    SetCompoundArg(prt,7,NewAtom("!*",0));
+		  else
 			SetCompoundArg(prt,7,OPR_MLT);
+		}
 	  else
 		    SetCompoundArg(prt,7,A_GAUGE);
 		if(col)
 			{
 			Term cl;
-			if(col==3)
+			if(col==6)
+				cl=MakeCompound2(A_COLOR,NewAtom("c6",0),NewAtom("c6b",0));
+			else if(col==3)
 				cl=MakeCompound2(A_COLOR,NewAtom("c8",0),NewAtom("c8",0));
 			else
 				cl=MakeCompound2(A_COLOR,NewAtom("c3",0),NewAtom("c3b",0));
@@ -261,9 +288,9 @@ Term ProcImPrt(Term t,  Term ind)
 		}
 	
 
-	spin=IntegerValue(CompoundArg1(t));
-	col= IntegerValue(CompoundArg2(t));
-	anti=IntegerValue(CompoundArgN(t,3));
+	spin=(int)IntegerValue(CompoundArg1(t));
+	col= (int)IntegerValue(CompoundArg2(t));
+	anti=(int)IntegerValue(CompoundArgN(t,3));
 	if(CompoundArity(t)>3)
 		pcomm=CompoundArgN(t,4);
 	if(CompoundArity(t)>4)
@@ -280,6 +307,7 @@ Term ProcImPrt(Term t,  Term ind)
 	if(1)
 		{
 		prt=MakeCompound(OPR_PARTICLE,8);
+		SetAtomProperty(n,NewAtom("_pdg",0),NewInteger(imppdg++));
 		SetCompoundArg(prt,1,n);
 		SetCompoundArg(prt,2,an);
 		SetCompoundArg(prt,3,pcomm?pcomm:NewAtom("im particle",0));
@@ -288,8 +316,8 @@ Term ProcImPrt(Term t,  Term ind)
 		else*/
 		  SetCompoundArg(prt,4,NewInteger((spin>0)?(spin?2:0):(-spin)));
 		SetCompoundArg(prt,5,(spin==2&&!CalcOutput)?0:NewAtom("Maux",0));
-		if(spin<2 || CalcOutput)
-			SetCompoundArg(prt,7,OPR_MLT);
+		if(spin<2 || CalcOutput || UFOutput)
+			SetCompoundArg(prt,7,anti>0?OPR_MLT:NewAtom("!*",0));
     	else
 		    SetCompoundArg(prt,7,A_GAUGE);
 

@@ -21,7 +21,7 @@ static void trigg1_color(Atom name, List ind)
 	while(!is_empty_list(l))
 		{
 		r+=color_repres(ListFirst(l));
-		if(r<0)
+		if(r<0 && !CalcOutput)
 			{
 			printf("Warning: particle %s breaks CompHEP color conventions.\n",
 				AtomValue(name));

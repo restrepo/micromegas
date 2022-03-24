@@ -62,7 +62,7 @@ extern   MOcommonSTR  mocommon_;
 
 #define Rsun        mocommon_.par[23]
 #define rhoDM       mocommon_.par[24]
-#define Vearth      mocommon_.par[25]
+#define vEarth      mocommon_.par[25]
 
 #define K_dif       mocommon_.par[26]      
 #define L_dif       mocommon_.par[27]
@@ -73,8 +73,8 @@ extern   MOcommonSTR  mocommon_;
 
 #define deltaY      mocommon_.par[32]
 #define dmAsymm     mocommon_.par[33]
-#define Vesc        mocommon_.par[34]
-#define Vrot        mocommon_.par[35]
+#define vEsc        mocommon_.par[34]
+#define vRot        mocommon_.par[35]
 #define etaSHMpp    mocommon_.par[36]
 #define betaSHMpp   mocommon_.par[37]
 #define fracCDM2    mocommon_.par[38]
@@ -199,8 +199,13 @@ extern int isFeeble(char*name);
 extern double hEffLnDiff(double T);
 extern double vSigma(double T,double Beps ,int Fast);
 extern double darkOmega(double *Xf,int Fast, double Beps,int *err);
-extern double darkOmega2(double fast, double Beps0);
+extern char*ExcludedFor2DM;
+extern double darkOmega2(double fast, double Beps);
 extern double darkOmegaExt(double *Xf, double (*f0)(double), double (*f1)(double));
+extern double darkOmegaTR(double TR, double YR, int Fast, double Beps,int *err);
+extern double darkOmega2TR(double TR, double Y1R, double Y2R,double fast, double Beps);
+extern double checkFO(double Besp,double T);
+extern double collisionWidth(numout*cc, double Beps,double T);
 
 extern double vs1120F(double T);       
 extern double vs2200F(double T);          
@@ -218,8 +223,6 @@ extern double vs2221F(double T);
 extern double vs1211F(double T);
 
 extern double TCoeffF(double T);
-extern double dY1F(double T);
-extern double dY2F(double T);
 extern double Y1F(double T);
 extern double Y2F(double T);
 extern double YF(double T);
@@ -238,6 +241,13 @@ extern double Beps;
 extern int Fast_;
 
 // Freeze-in
+
+typedef struct{ numout*cc; REAL m[4]; double sqrtSmin; double C; double T; int Ton;}  frin22Par;
+
+extern double tTcut;
+extern    double dYfreezeIn(double T, frin22Par*arg);
+int initFrinArg(char * process,  frin22Par*arg);
+extern double YfreezeIn22(char*process, double T0, double TR,  int plot);
 extern double  darkOmegaFi22(double TR, char *Proc, int vegas, int plot, int *err);
 extern double  decayAbundance(double TR, double M, double w, int Ndf,double  eta, int plot);
 extern double  darkOmegaFiDecay(double TR, char * pname, int KE, int plot);
@@ -251,16 +261,18 @@ extern void sort2FiDm( double * omg1,double * omg2);
 #define NZ 250                                                                                
 
 extern double calcSpectrum(int key, double *Sg, double *Se, double *Sp, double *Sne, double*Snu, double *Snl, int*errcode);
-/* input parameters:
-       a)  v velocity in c=1 units, v is about 0.001.
-       b)  outP   0-gamma; 1-positron; 2-antiproton; 3,4,5 -
-         for neutrinos (electron, muon and tau correspondinly)
-output parameters:
-       a) returned value v*sigma/M_lop^2 in sm^3/(GeV^2*sec)
-       b) array of 250 double elements to store spectra.
-       c) errcode !=0 if  in process of decays of outgoing particles 
-          we get a non-SM particle which has not 1->2 decays.  
-*/
+/*
+ calculates the spectra of DM annihilation at rest and returns σv in cm^3/s. The calculated spectra for 
+ γ, e + , p̄, ν_e , ν_μ , ν_τ are stored in arrays Sg, Se, Sp, Sne, Snm, Snl  of dimension NZ(=250 by default).
+
+ key =n1+2*n2+4*n4    is a bit switch where n_i is 1 or zero 
+ n1=1  switch on effect of W,Z polarization 
+ n2=1  includes photon radiation for DM annihilation into light fermions (2->3 process)  
+ n4=1  prints contribution of different annihilation channels to σv 
+*/ 
+
+extern void  decaySpectrum(char*pName,int outP, double*tabD);
+extern void getSpectrum2(int wPol, double M, char*n1,char*n2,int outP, double *tab);
 
 extern aChannel* vSigmaCh;
 extern double zInterp(double z, double * tab);
@@ -356,7 +368,7 @@ extern void muonUpward(double*nu,double*Nu,double*mu);
 extern void muonUpward_I(double*nu,double*Nu,double*mu);
 
 
-extern double  captureAux(double(*vfv)(double),int forSun, double M_cdm, double csIp, double csIn,double csDp,double csDn);
+extern double  captureCS(double(*vfv)(double),int forSun, double M_cdm, double csIp, double csIn,double csDp,double csDn);
 extern double  ATMmuonUpward(double cosFi, double E);
 extern double  ATMmuonContained(double cosFi, double E, double rho);
 
@@ -380,9 +392,13 @@ extern double FermiFF(int A, double Qfermi);
 
 extern double Maxwell(double v);
 extern double maxwell_(double*v);
+extern double SHMpp(double v);
 
+#define RE_DIM     150    // dimention of recoil energy array
+#define RE_START   1.E-3  // energy [keV] corresponding to zero element.
+#define RE_STEP    1.08   // factor for  recoil energies grid  E_{n+1}=E_n*RE_STEP 
 
-#define REDIM 150
+extern double maxRecoil(double A); // calculate maximal recoil energy using  atomic numner A, Mcdm1,Mcdm2,Mcdm
 
 extern double nucleusRecoil(
 double(*fDv)(double),   /*  f(v)/v where f(v) is velocity distribution, 
@@ -399,19 +415,50 @@ double * dNdE   /* distribution of number of events respect to recoil
 extern double nucleusRecoil0(double (*vfv)(double),
  int A,int Z,double J,double Sp,double Sn, double*dNdE);
  
-extern double nucleusRecoilAux(
+extern double nucleusRecoilCS(
       double(*vfv)(double),
       int A, int Z, double J,
       void (*Sxx)(double,double*,double*,double*),
       double cs_SI_P,double cs_SI_N,  double cs_SD_P, double cs_SD_N,
       double * dNdE);
 
-extern double nucleusRecoil0Aux(
+extern double nucleusRecoil0CS(
       double(*vfv)(double),
       int A, int Z, double J,
       double Sp, double Sn,
       double cs_SI_P,double cs_SI_N,  double cs_SD_P, double cs_SD_N,
       double * dNdE);
+      
+#define XENON1T_2018   1
+#define DarkSide_2018  2
+#define PICO_2019      4  
+#define CRESST_2019    8 
+
+#define  AllDDexp  0xFFFFFFF
+
+extern double (*dNdEfact)(double Enr_kev,int  A);
+extern double DD_factorCS(unsigned int Experiment, double pval, double(*vfv)(double), double cs_SI_P, double cs_SI_N,  double cs_SD_P, double cs_SD_N,char**expName);
+extern double DD_pvalCS(unsigned  int Experiment, double(*vfv)(double), double cs_SI_P, double cs_SI_N,  double cs_SD_P, double cs_SD_N,char**expName);  
+
+extern double DD_factor(unsigned int Experiment, double pval, double(*vfv)(double),char**expName);
+extern double DD_pval(unsigned int Experiment, double(*vfv)(double), char**expName);  
+
+
+extern double  XENON1T_90(double M);            
+extern double  DS50_90(double M);
+extern double  DS50_90_noB(double M);
+extern double  CRESST_III_90(double M);
+extern double  CRESST_III_SDn_90(double M);
+extern double  PICO60_90(double M);
+extern double  PICO60_SDp_90(double M);
+extern double  XENON1T_SDp_90(double M);
+extern double  XENON1T_SDn_90(double M);
+
+extern int Xe1TnEvents;
+extern double Xe1TpEff0(double E);
+extern double Xe1TpEff1(double E);
+extern double Xe1TpEff2(double E);
+extern int PICO60Flag;
 
 extern double MaxGapLim(double x, double mu);
 /* S.Yellin, Phys.Rev. D66,032005(2002)                                                                                                                        
@@ -424,16 +471,15 @@ extern double MaxGapLim(double x, double mu);
 extern double widthSMh(double Mh);
 extern double brSMhGG(double Mh);
 extern double brSMhAA(double Mh);
+extern int    isSMP(int pdg);
 
-
-extern int displayRecoilPlot(double * tab, char * text, double E1, double E2);
 
 extern double cutRecoilResult(double *tab, double E1, double E2);
 extern double dNdERecoil(double E,double *tab);
 
 extern void killPlots(void);
 
-extern void smodels(int Run, int nf,double csMinFb, char*fileName,int wrt);
+extern int smodels(int Run, int nf,double csMinFb, char*fileName, char*version, int wrt);
 
 
 typedef void (SxxType)(double,double*,double*,double*);
@@ -442,7 +488,21 @@ extern SxxType SxxF19,SxxNa23, SxxAl27, SxxSi29, SxxK39, SxxGe73, SxxNb93,SxxTe1
 SxxXe129M,SxxXe131,SxxPb207,
 SxxNa23A,SxxSi29A,SxxTe125A,SxxI127A,SxxXe129A,SxxXe131A,SxxXe131Me,SxxGe73A,SxxXe131B;
 
+extern SxxType SxxF19EFT,    SxxXe131EFT,   SxxXe129EFT, 
+               SxxF19SHELL,  SxxXe129SHELL, SxxXe131SHELL, 
+               SxxF19SHELLm, SxxXe129SHELLm,SxxXe131SHELLm;
 
+
+
+extern int XENON1T_2018_SDFF;
+extern int PICO_60_SDFF;
+
+
+extern int setSpinDepFF( int experiment, int name_of_FF_set);
+
+#define EFT   2  // 1203.3542
+#define SHELL  0  // 1304.7684  (min+max)/2
+#define SHELLm 1  // 1304.7684  1P_min 
 typedef double (double2double)(double);
 
 /* for testing SD form factors */
@@ -459,6 +519,7 @@ extern  int Plot3SS0(double xiP,double xiN, double Sp, double Sn,
 #define Sn_H1       0.
 #define Sp_He3    (-0.081)
 #define Sn_He3      0.552
+#define Sn_O17      (0.5)
 #define Sp_F19    ( 0.4751)
 #define Sn_F19    (-0.0087)
 #define Sp_Na23   ( 0.2477)
@@ -492,6 +553,7 @@ http://www.nndc.bnl.gov/nudat2/indx_sigma.jsp
 */
 #define J_H1    0.5
 #define J_He3   0.5
+#define J_O17   2.5
 #define J_F19   0.5
 #define J_Na23  1.5
 #define J_Al27  2.5
@@ -520,6 +582,9 @@ http://www.nndc.bnl.gov/nudat2/indx_sigma.jsp
 #define Z_Xe  54
 #define Z_Pb  82
 #define Z_Cs  55
+#define Z_Ca  20
+#define Z_W   74
+#define Z_O    8 
 
 
 #define LHC8   1

@@ -105,8 +105,7 @@ int fillCutArray(void)
   errorExit:
   { char buff[300];
     sprintf(buff," Error in Cut table line %d \n%s\n%s",lineNum,fieldName,errorText);
-    
-    if(blind) { printf("%s\n",buff); sortie(150);} else messanykey(2,10,buff);
+    messanykeyErr(2,10,buff);
     return 1;
   }     
 }
@@ -114,7 +113,7 @@ int fillCutArray(void)
 
 int rancor_(double *vmin, double *vmax, double shift, double fmult,int nn)
 {
-    static double vnew,v;
+    double vnew,v;
 
     if(!nn) return 0;
     if(invcut_1[nn-1].aux!=1) return 0;
@@ -156,13 +155,14 @@ double  calcCutFactor(double*V)
 
   for(i=0; i<nCuts; i++)
   { physValRec* pList;
+    int First=1;
     for(pList=invcut_1[i].pLists;pList;pList=pList->next)
     {  
        val=calcPhysVal(invcut_1[i].key[0],pList->pstr,V);
        if(!isfinite(val)) continue;
        switch(invcut_1[i].key[1])
-       { case '^': if(i){ if(val>valM) valM=val;}  else valM=val; break;
-         case '_': if(i){ if(val<valM) valM=val;}  else valM=val; break;
+       { case '^': if(First) {valM=val;First=0;}  else { if(val>valM) valM=val;}   break;
+         case '_': if(First) {valM=val;First=0;}  else { if(val<valM) valM=val;}   break;
          default:
          if(invcut_1[i].aux==1)
          {
@@ -181,7 +181,7 @@ double  calcCutFactor(double*V)
          }                      
        }
     }
-    if(invcut_1[i].key[1])
+    if(invcut_1[i].key[1]&& First==0)
     {  if(invcut_1[i].aux==1)   
        {
          if ( invcut_1[i].minon && (valM < invcut_1[i].cvmin)) return 0;

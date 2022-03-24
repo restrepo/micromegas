@@ -31,11 +31,14 @@ double calcPhysVal(char key,char * lv,double*V)
             p1 = V[np1+1];
             p2 = V[np1+2];
             p3 = V[np1+3];
-            if(np2==-4) np2=0;
-            q1 = V[np2+1];
-            q2 = V[np2+2];
-            q3 = V[np2+3];
-
+            if(np2==-4)
+            { 
+              q1=0;q2=0;q3=1;
+            } else    
+            {  q1 = V[np2+1];
+               q2 = V[np2+2];
+               q3 = V[np2+3];
+            } 
             cs = (p1*q1+p2*q2+p3*q3)/
                 sqrt( (p1*p1+p2*p2+p3*p3) * (q1*q1+q2*q2+q3*q3) );
             if (key == 'A') return  acos(cs)*180/M_PI; 
@@ -52,7 +55,7 @@ double calcPhysVal(char key,char * lv,double*V)
             mq = sqrt(q1*q1 + q2*q2 + q3*q3);
             
             cs = (p1*q1 + p2*q2)/sqrt( (p1*p1 + p2*p2)*(q1*q1 + q2*q2) );
-            cs = acos(cs);
+            if(cs>1) cs=0; else if (cs<-1) cs=M_PI; else cs = acos(cs);
                    
             dl = (mp + p3) * (mq - q3)  / (mp - p3) / (mq +q3);
             dl = 0.5*log(dl);

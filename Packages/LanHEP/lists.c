@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include "lanhep.h"
 
+#define TBSIZE 65500
+
 #ifdef MTHREAD
 #include <pthread.h>
 
@@ -13,7 +15,7 @@ union LISTpoint *LISTS_next_free[17]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 #else
 union LISTpoint *LISTS_next_free=NULL;	
 #endif
-union LISTpoint *LISTS_buffers[4096];
+union LISTpoint *LISTS_buffers[400096];
 int LISTS_blocks=0, LISTS_allocs=0, LISTS_free=0;
 
 Term CopyTerm2(Term, int);
@@ -102,14 +104,14 @@ __inline union LISTpoint *LIST_alloc(List *li)
 #endif
 		{
 		int i;
-		if(LISTS_blocks==4096)
+		if(LISTS_blocks==400096)
 			{  puts("Internal error (too much lists)."); exit(0); }
-		i=sizeof(union LISTpoint)*65500;
+		i=sizeof(union LISTpoint)*TBSIZE;
 
 #ifdef MTHREAD	
 		pthread_mutex_lock(&mtx);	
 #endif		
-		p=LISTS_buffers[LISTS_blocks]=(union LISTpoint*)malloc(i);
+		p=LISTS_buffers[LISTS_blocks]=(union LISTpoint*)malloc((unsigned)i);
 		lb=LISTS_blocks;
 		LISTS_blocks++;
 #ifdef MTHREAD			
@@ -118,7 +120,7 @@ __inline union LISTpoint *LIST_alloc(List *li)
 		if(p==NULL)
 			{  printf("Internal error (lack space for lists, %d blocks of %d bytes).\n",
 					LISTS_blocks, i); exit(0); }
-		for(i=0;i<65500;i++)
+		for(i=0;i<TBSIZE;i++)
 			{
 #ifdef MTHREAD
 			p[i].p.next=LISTS_next_free[*ind];
@@ -127,7 +129,7 @@ __inline union LISTpoint *LIST_alloc(List *li)
 			p[i].p.next=LISTS_next_free;
 			LISTS_next_free=p+i;
 #endif	
-			p[i].p.l=0x30000000+lb*0x10000+i;
+			p[i].p.l=(5L<<56)+lb*0x10000+i;
 			}
 		
 		}
@@ -161,9 +163,9 @@ __inline union LISTpoint *LIST_alloc2(List *li, int ind)
 #endif
 		{
 		int i;
-		if(LISTS_blocks==4096)
+		if(LISTS_blocks==400096)
 			{  puts("Internal error (too much lists)."); exit(0); }
-		i=sizeof(union LISTpoint)*65500;
+		i=sizeof(union LISTpoint)*TBSIZE;
 
 #ifdef MTHREAD	
 		pthread_mutex_lock(&mtx);	
@@ -177,7 +179,7 @@ __inline union LISTpoint *LIST_alloc2(List *li, int ind)
 		if(p==NULL)
 			{  printf("Internal error (lack space for lists, %d blocks of %d bytes).\n",
 					LISTS_blocks, i); exit(0); }
-		for(i=0;i<65500;i++)
+		for(i=0;i<TBSIZE;i++)
 			{
 #ifdef MTHREAD
 			p[i].p.next=LISTS_next_free[ind];
@@ -186,7 +188,7 @@ __inline union LISTpoint *LIST_alloc2(List *li, int ind)
 			p[i].p.next=LISTS_next_free;
 			LISTS_next_free=p+i;
 #endif	
-			p[i].p.l=0x30000000+lb*0x10000+i;
+			p[i].p.l=(5L<<56)+lb*0x10000+i;
 			}
 		
 		}
@@ -314,7 +316,7 @@ __inline void ChangeList(List li, Term nv)
 
 __inline int is_list(Term a)
 	{
-	return a/0x10000000 == 3;
+	return TERMTYPE(a) == 5;
 	}
 
 
@@ -560,13 +562,13 @@ void InsertList(List l,Term ins)
 void ListStatistics(void)
 	{
 	printf("Lists: %d blocks use %ld Kbytes, %d allocs ( %d remain)\n",
-		LISTS_blocks,LISTS_blocks*sizeof(union LISTpoint)*64,
+		LISTS_blocks,LISTS_blocks*(int)sizeof(union LISTpoint)*64,
 		LISTS_allocs,LISTS_allocs-LISTS_free);
 	}
 
 long ListMemory(void)
 	{
-	return (long)LISTS_blocks*sizeof(union LISTpoint)*64;
+	return (long)LISTS_blocks*(long)sizeof(union LISTpoint)*64;
 	}
 
 void ListStat1(void)

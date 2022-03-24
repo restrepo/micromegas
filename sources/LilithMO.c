@@ -1,7 +1,7 @@
 #include"../include/micromegas.h"
 #include"../include/micromegas_aux.h"
 
-static int isSMP(int pdg)
+int isSMP(int pdg)
 {  
   int SMP[16]={1,2,3,4,5,6, 11,12,13,14,15,16, 21,22,23,24};
   int apdg=abs(pdg);
@@ -30,7 +30,7 @@ static int txt2plist(char*txt,double *br, int * ind)
 int LilithMO(char * fname)  
 { int i,j,k;
 
-printf("LILITH_MO\n");
+//printf("LILITH_MO\n");
   
   double Mcp=1.478662E+00, Mbp=bPoleMass(), Mtp=tPoleMass();
   int VZdecay_save=VZdecay, VWdecay_save=VWdecay, changeVirtual=0;
@@ -102,6 +102,10 @@ printf("LILITH_MO\n");
               if(strcmp(hff->SymbVert[k],"G5*i")==0) c[1]=coeff[k]*vev/m;
             }
          }
+//printf("Fe,fe,Higgs = %s %s %s\n", Fe,fe,Higgs[i]);
+//printf("nTerms=%d\n", hff->nTerms);
+//         for(int i=0;i<hff->nTerms;i++)   printf(" %s %e\n", hff->SymbVert[i], coeff[i]);  
+
          if(c[1]==0 ) fprintf(f,"       <C to=\"%s\" >  %E </C>\n", fn[j],c[0]);
          else 
          {  if(c[0]) fprintf(f,"       <C to=\"%s\" part=\"re\"> %E </C>\n",fn[j], c[0]); 

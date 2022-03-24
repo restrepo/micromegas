@@ -29,7 +29,7 @@ $(lib)/dummy.a:$(lib)/dummy.a(usrfun_dummy.o usrFF_dummy.o)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(bin)/Int: userInt.c $(lib)/serv.a $(lib)/num_c.a $(lib)/ntools.a
-	$(CC) -o $@ $(CFLAGS) $^ -lm
+	$(CC)   -o $@ $(CFLAGS) $^ -lm $(lQuad)
 
 ifneq ($(SONAME),)
   soname_sqme_aux := $(SONAME)$(CALCHEP)/lib/sqme_aux.$(SO)
@@ -39,5 +39,5 @@ endif
 
 
 $(lib)/sqme_aux.$(SO): sqme_aux.c ferror.c
-	$(CC) $(CFLAGS) -DforMICROMEGAS $(SHARED) -o $@ $(soname_sqme_aux) $^ -lm
+	$(CC) $(CFLAGS) -DforMICROMEGAS $(SHARED) -o $@ $(soname_sqme_aux) $^ -lm  $(lQuad)
 

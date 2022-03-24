@@ -1,7 +1,8 @@
 #include "lanhep.h"
 
 
-Atom ColorLambda=0, ColorF=0, ColorD=0, ColorEps=0, ColorEpsB=0;
+Atom ColorLambda=0, ColorF=0, ColorD=0, ColorEps=0, ColorEpsB=0, 
+		ColorK6=0, ColorK6b=0, ColorL6=0;
 
 int is_color_eps(Atom s)
 {
@@ -31,15 +32,37 @@ Term inv_color_eps(Atom s)
 	return s==ColorEps?ColorEpsB:ColorEps;
 }
 
-
+Term inv_color_k6(Atom s)
+{
+	if(s!=ColorK6 && s!=ColorK6b)
+	{
+		puts("Internal error (cepi)");
+		return s;
+	}
+	
+	return s==ColorK6?ColorK6b:ColorK6;
+}
 int color_repres(Term ind)
 	{
 	Atom a1,a2;
+	char *v1, *v2;
 	ind=CompoundArg1(ind);
 	if(CompoundName(ind)!=A_COLOR)
 		return 0;
 	a1=CompoundArg1(ind);
 	a2=CompoundArg2(ind);
+	v1=AtomValue(a1);
+	if(v1[1]=='8')
+	  return 3;
+	if(v1[1]=='3' && v1[2]==0)
+	  return 1;
+	if(v1[1]=='3' && v1[2]=='b')
+	  return 2;
+	
+	if(v1[1]=='6' && v1[2]==0)
+	  return 6;
+	if(v1[1]=='6' && v1[2]=='b')
+	  return 7;
 	if(a1==a2)
 		return 3;
 	if(a1<a2)
@@ -92,6 +115,7 @@ static int f_symm_factor(List *ll)
 
 void color_symm_f(List pl, Term m2)
 	{
+	
 	int fact=1;
 	List l;
 	l=CompoundArgN(m2,3);
@@ -119,6 +143,19 @@ void color_symm_f(List pl, Term m2)
 			f_symm_factor(&ll);
 			SetCompoundArg(t,2,ll);
 			}
+		if(CompoundName(t)==OPR_SPECIAL && (
+				GetAtomProperty(CompoundArg1(t),A_COLOR)==A_COLOR_K6))
+		{
+		  List ill=CompoundArg2(t);
+		  Integer in1=ListFirst(ill);
+		  Integer in2=ListFirst(ListTail(ill));
+		  if(IntegerValue(in1)>IntegerValue(in2))
+		  {
+		    ChangeList(ill,in2);
+		    ChangeList(ListTail(ill),in1);
+		  }
+		}
+		
 		l=ListTail(l);
 		}
 
@@ -306,6 +343,10 @@ void color_check_spec(Atom name, List ind)
 	if(itc==0)
 		return;
 	
+	/*printf("%s: ",AtomValue(name));
+	WriteTerm(itc);
+	puts("");
+	*/
 	if(ito)
 	{
 		ErrorInfo(71);
@@ -322,9 +363,9 @@ void color_check_spec(Atom name, List ind)
 		return ;
 	}
 	
-	t1=IntegerValue(ListFirst(itc));
-	t2=IntegerValue(ListFirst(ListTail(itc)));
-	t3=IntegerValue(ListFirst(ListTail(ListTail(itc))));
+	t1=(int)IntegerValue(ListFirst(itc));
+	t2=(int)IntegerValue(ListFirst(ListTail(itc)));
+	t3=(int)IntegerValue(ListFirst(ListTail(ListTail(itc))));
 	
 	if(t1==1 && t2==2 && t3==3)
 		{
@@ -382,6 +423,21 @@ void color_check_spec(Atom name, List ind)
 		SetAtomProperty(name,A_COLOR,A_COLOR_EPS);
 		}
 		
+	if(t1==1 && t2==1 &&  t3==7)
+	{
+	  ColorK6=name;
+	  SetAtomProperty(name,A_COLOR,A_COLOR_K6);
+	}
+	if(t1==2 && t2==2 &&  t3==6)
+	{
+	  ColorK6b=name;
+	  SetAtomProperty(name,A_COLOR,A_COLOR_K6);
+	}
+	if(t1==6 && t2==7 && t3==3)
+	{
+	  ColorL6=name;
+	  SetAtomProperty(name,A_COLOR,A_COLOR_L6);
+	}
 	}
 
 extern int check_splitting_c2;

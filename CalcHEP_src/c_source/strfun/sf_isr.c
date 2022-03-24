@@ -29,7 +29,7 @@ static double xi[NPOINTS+4],yi[NPOINTS+4];
 
 /* E.A.Kuraev,V.S.Fadin:Sov.J.Nucl.Phys.41(1985)466 */
 /* S.Jadach,B.F.L.Ward:Comp.Phys.Commun.56(1990)351 */
-
+// S. Jadach, M. Skrzypek, Z.Phys. C 49,(1991) 577
 
 
 
@@ -118,15 +118,6 @@ static void calc_params(void)
 static double norm_test(double y) { return 3*cfbeam(1-y*y*y);}
  
 
-static double cisrf_(double x) { return cfisr(1-pow(x,1/beta));}
-
-static double norm_tot_func(double z)
-{ double x=1-pow(z,1/beta);
-  double y=pow(1-x,R3);
-  return dinter_(y, NPOINTS+4, xi, yi);
-}
-
-
 int i_isr__(int ii,double * be,double * mass)
 {
   int i;
@@ -158,6 +149,13 @@ int i_isr__(int ii,double * be,double * mass)
   }
 //#define CHECK_NORN
 #ifdef CHECK_NORN
+
+static double norm_tot_func(double z)
+{ double x=1-pow(z,1/beta);
+  double y=pow(1-x,R3);
+  return dinter_(y, NPOINTS+4, xi, yi);
+}
+
 if(bOn)
  printf("Check of Beamstralung normalization  delta(1-x)*%E  + %E(Beamstralung) =1?\n",(1-exp(-b_ng))/b_ng, 
  simpson(norm_test,0.,1.,1.E-8,NULL)/b_ng);

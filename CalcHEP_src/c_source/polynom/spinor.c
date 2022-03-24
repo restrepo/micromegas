@@ -8,7 +8,7 @@
 #include "spinor.h"
 #include <string.h>
 
-int spinLength;
+//int spinLength;
 
 static void  kahane(SpinTensor * spnrs)
 {  int     m1, m2, nrevol, i, j, l, mI1=maxIndex+1; 

@@ -174,7 +174,7 @@ List alg1_spl_col2(List a1)
 	for(l1=a1;l1;l1=ListTail(l1))
 	{
 
-		int nu=0, de=0, apdim=0, apcol=0, need_sq2;	
+		long int nu=0, de=0, apdim=0, apcol=0, need_sq2;	
 		Term inw=0, inc=0, inv=0, inv2=0, ins=0;
 		List in1=0, in2=0;
 		Atom Maux;
@@ -295,7 +295,7 @@ List alg1_spl_col2(List a1)
 		if(nu<0)
 			nu=-nu;
 	
-		ar=mk_im_f(apdim,apcol,inw,inc,inv,inv2);
+		ar=mk_im_f((int)apdim,(int)apcol,inw,inc,inv,inv2);
 		Maux=NewAtom("Maux",0);
 	
 		l2=MakeList1(ar);
@@ -337,7 +337,8 @@ List alg1_spl_col(List a1)
 {
 	List ar=0, al=0, ltc=0;
 	List l1,l2;
-	int nu=0, de=0, apdim=0, apcol=0, need_sq2;
+	long int nu=0, de=0;
+	int apdim=0, apcol=0, need_sq2;
 	Term inw=0, inc=0;
 	List in1=0, in2=0;
 	Atom Maux;
@@ -374,7 +375,7 @@ List alg1_spl_col(List a1)
 						cw-=1000;
 						continue;
 					}
-					cw+=IntegerValue(pp);
+					cw+=(int)IntegerValue(pp);
 					continue;
 				}
 			}
@@ -502,7 +503,7 @@ List alg1_spl_col(List a1)
 				FreeAtomic(in2);
 				return a1;
 			}
-			apdim=IntegerValue(CompoundArgN(ListFirst(l1),3));
+			apdim=(int)IntegerValue(CompoundArgN(ListFirst(l1),3));
 			inw=ListFirst(l1);
 		}
 		else
@@ -579,7 +580,7 @@ List alg1_spl_col(List a1)
 
 		if(l2!=l1)
 		{
-			int nu1, de1;
+			long int nu1, de1;
 
 			a1=CutFromList(a1,l2);
 
@@ -658,7 +659,8 @@ List alg1_spl_col(List a1)
 	
 }
 
-extern int allow_dfdfc, fromdfdfc;
+extern int allow_dfdfc;
+extern List fromdfdfc;
 
 Term ProcDFDFC(Term t, Term ind)
 {
@@ -736,7 +738,7 @@ Term ProcDFDFC(Term t, Term ind)
 				need_crdc=0;
 				break;
 			}
-			apdim=IntegerValue(CompoundArgN(ListFirst(l1),3));
+			apdim=(int)IntegerValue(CompoundArgN(ListFirst(l1),3));
 			inw1=CopyTerm(ListFirst(l1));
 		}
 		else
@@ -777,7 +779,7 @@ Term ProcDFDFC(Term t, Term ind)
 	for(l2=CompoundArg1(t1);l2;l2=ListTail(l2))
 	{
 		Term m, m1, m2;
-		int n,n1,n2,d,d1,d2,c;
+		long int n,n1,n2,d,d1,d2,c;
 		
 		m1=ListFirst(l1);
 		m2=ListFirst(l2);
@@ -947,7 +949,7 @@ static int alg1_cw_mono(Term m1)
 				{
 					if(IntegerValue(prop)==-1)
 						return -1;
-					ret+=IntegerValue(prop);
+					ret+=(int)IntegerValue(prop);
 				}
 		}
 	}
@@ -1005,7 +1007,7 @@ static int alg1_sw_mono(Term m1)
 			prop=GetAtomProperty(CompoundArg2(ListFirst(l1)),OPR_SCALAR);
 			if(IntegerValue(prop)==-1)
 				return -1;
-			ret+=IntegerValue(prop);
+			ret+=(int)IntegerValue(prop);
 		}
 	}
 	
@@ -1058,7 +1060,7 @@ static int alg1_fw_mono(Term m1)
 			prop=GetAtomProperty(CompoundArg2(ListFirst(l1)),OPR_FIELD);
 			if(IntegerValue(prop)==-1)
 				return -1;
-			ret+=IntegerValue(prop);
+			ret+=(int)IntegerValue(prop);
 		}
 	}
 	

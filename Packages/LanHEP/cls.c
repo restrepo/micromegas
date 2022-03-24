@@ -45,7 +45,7 @@ void prt2cls(Atom *p)
 
 extern int lterm_used;
 
-int ProcClass(Term cl, Term ind)
+Term  ProcClass(Term cl, Term ind)
 {
 	Term t=ConsumeCompoundArg(cl,1);
 	Atom clnm, anti=0;
@@ -180,7 +180,7 @@ int ProcClass(Term cl, Term ind)
 			p2=GetAtomProperty(CompoundArg1(p2),PROP_TYPE);
 		}
 		else
-			csp=IntegerValue(CompoundArgN(p2,4));
+			csp=(int)IntegerValue(CompoundArgN(p2,4));
 		if(CompoundArgN(p2,5))
 			ms++;
 		else
@@ -326,8 +326,8 @@ void cls_wrt_nms(FILE *f, List cpml)
 		int cl, no, j, m=0;
 		if(fp==0)
 			continue;
-		cl=IntegerValue(ListFirst(fp));
-		no=IntegerValue(ListFirst(ListTail(fp)));
+		cl=(int)IntegerValue(ListFirst(fp));
+		no=(int)IntegerValue(ListFirst(ListTail(fp)));
 		if(no<0) {m=1; no=-no;}
 		for(l1=cls_membs[i],j=1;l1;l1=ListTail(l1),j++)
 		{
@@ -422,7 +422,7 @@ int cls_prt_info(Term *prp, Atom *a)
 	int  n;
 	if(cl==0)
 		return 0;
-	n=IntegerValue(CompoundArg1(cl));
+	n=(int)IntegerValue(CompoundArg1(cl));
 	if(cls_ini[n])
 	{
 		*prp=0;
@@ -446,7 +446,9 @@ static void setzprm(List ml)
 		List l3=ConsumeCompoundArg(ListFirst(ml),3);
 		l3=SortedList(l3,sp_cmp);
 		for(l1=l2;l1;l1=ListTail(l1))
-			if(GetAtomProperty(CompoundArg1(ListFirst(l1)),A_INFINITESIMAL))
+			if(GetAtomProperty(CompoundArg1(ListFirst(l1)),A_INFINITESIMAL) && 
+                            !GetAtomProperty(CompoundArg1(ListFirst(l1)),PROP_TYPE)
+                        )
 			{
 				if(oprcmatr)
 					l3=AppendFirst(l3,MakeCompound2(OPR_CLASS,OPR_CLASS,0));
@@ -557,7 +559,7 @@ static int mtrcmp(Term t1, Term t2)
 	List l1=CompoundArg1(t1),l2=CompoundArg1(t2);
 	for(;l1;l1=ListTail(l1),l2=ListTail(l2))
 	{
-		int c=IntegerValue(ListFirst(l1))-IntegerValue(ListFirst(l2));
+		int c=(int)IntegerValue(ListFirst(l1))-(int)IntegerValue(ListFirst(l2));
 		if(c) return c;
 	}
 	puts("internal error: mtrcmp(cls)");
@@ -566,7 +568,7 @@ static int mtrcmp(Term t1, Term t2)
 
 static int icmp(Term t1, Term t2)
 {
-	return IntegerValue(t1)-IntegerValue(t2);
+	return (int)IntegerValue(t1)-(int)IntegerValue(t2);
 }
 
 static int spec_symm=0;
@@ -1184,7 +1186,7 @@ void setcls_1(Term a2, List a2l)
 			List l3;
 			for(l3=CompoundArg2(ListFirst(l2));l3;l3=ListTail(l3))
 			{
-				int ov=IntegerValue(ListFirst(l3));
+				int ov=(int)IntegerValue(ListFirst(l3));
 				int dn=0;
 				for(i=0;i<cf;i++)
 					if(ov>=ind_no[i]-i) dn++;
@@ -1216,7 +1218,7 @@ void setcls_1(Term a2, List a2l)
 		
 		for(l2=CompoundArg2(ListFirst(l1));l2;l2=ListTail(l2))
 		{
-			int k1,k2,k3,k4;
+			Term k1,k2,k3,k4;
 			l3=CompoundArg1(ListFirst(l2));
 			k1=ListFirst(l3); l3=ListTail(l3);
 			k2=ListFirst(l3); l3=ListTail(l3);
@@ -1239,7 +1241,7 @@ void setcls_1(Term a2, List a2l)
 		/*DumpList(ll);*/
 		for(l2=ll;l2;l2=ListTail(l2))
 		{
-			int k1,k2,k3,k4;
+			Term k1,k2,k3,k4;
 			l3=CompoundArg1(ListFirst(l2));
 			k1=ListFirst(l3); l3=ListTail(l3);
 			k2=ListFirst(l3); l3=ListTail(l3);
@@ -1612,7 +1614,7 @@ void cls_write_decl(FILE *f)
 		{
 			p+=fprintf(f,"%ld%c",IntegerValue(ListFirst(l1)),
 					ListTail(l1)?',':')');
-			comps*=IntegerValue(ListFirst(l1));
+			comps*=(int)IntegerValue(ListFirst(l1));
 		}
 		if(l!=lastm)
 			p+=fprintf(f,", ");
@@ -1719,7 +1721,7 @@ void cls_write_matr(FILE *f)
 		{
 			Term t3;
 			List l4;
-			int num=IntegerValue(CompoundArg1(ListFirst(l3)));
+			int num=(int)IntegerValue(CompoundArg1(ListFirst(l3)));
 			for(l4=CompoundArg2(ListFirst(l3));l4;l4=ListTail(l4))
 			{
 				Term pp=ListFirst(l4);
@@ -1780,7 +1782,7 @@ static void wrt_expr(FILE *of, Term num, List sym, List ten)
 	NoQuotes=1;
 	if(is_integer(num) || (is_compound(num)&&IntegerValue(CompoundArg2(num))==1))
 	{
-		int n=IntegerValue(is_integer(num)?num:CompoundArg1(num));
+		int n=(int)IntegerValue(is_integer(num)?num:CompoundArg1(num));
 		if(n==-1 && ((sym&&IntegerValue(CompoundArg2(ListFirst(sym)))>0)||(ten&&(!sym))))
 			sno+=fprintf(of,"- "),f=0;
 		else if(n!=1 || (is_integer(num)&&(!sym)&&(!ten)) )
@@ -1796,7 +1798,7 @@ static void wrt_expr(FILE *of, Term num, List sym, List ten)
 	for(l=sym;l;l=ListTail(l))
 	{
 		Atom p=CompoundArg1(ListFirst(l));
-		int  w=IntegerValue(CompoundArg2(ListFirst(l)));
+		int  w=(int)IntegerValue(CompoundArg2(ListFirst(l)));
 		if(w<0 && f==1)
 		{
 			sno+=fprintf(of,"1 ");

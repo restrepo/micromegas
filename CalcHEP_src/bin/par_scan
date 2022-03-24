@@ -6,7 +6,9 @@ bin=`echo $0_A_E_P |sed s/par_scan_A_E_P//`; cd $bin; bin=`pwd`
 export bin
 cd $USR
 #======================================
-echo bin=$bin
+# echo bin=$bin
+
+LANG=
 
 clean=
 
@@ -41,8 +43,9 @@ if(test -n "$FUNC") then
   done
 fi 
 printf " & Cross section         "
-printf " & prt_First-Last"
-
+if(test -z "$clean") then 
+    printf " & prt_First-Last"
+fi
 printf "\n"
 read VALUES
 while (test -n "$VALUES") 
@@ -106,15 +109,22 @@ do
      ./n_calchep -blind "[[[{{{{0"
      for name in $FUNC
      do 
-       val=`grep -w $name Constraints_$nLast| sed s/$name//`
-       printf " %10.3E" $val
+       if( test $name = Widths) then 
+        ./n_calchep -blind "[[[{[{{0"
+         printf " %10d" $nLast
+       else 
+         val=`grep -w $name Constraints_$nLast| sed s/$name//`
+         printf " %10.3E" $val
+       fi
      done 
      rm Constraints_$nLast
      printf " & "
    fi
    if(test $err -eq 0) then
       printf " %10.3E +- %7.1E "    $CSt  `$bin/calc "sqrt($dCSt)"`
-      printf "& %d-%d" $nFirst $nLast    
+   if(test -z "$clean") then     
+      printf "& %d-%d" $nFirst $nLast
+   fi    
    else 
       echo   " * * *" 
    fi

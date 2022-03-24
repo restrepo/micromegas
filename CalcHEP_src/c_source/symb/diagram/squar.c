@@ -465,7 +465,7 @@ int  squaring(void)
    diagrp=fopen(DIAGRP_NAME,"rb");
    diagrq=fopen(DIAGRQ_NAME,"wb"); 
 
-   maxdiagr = 1000;
+   maxdiagr = 20000;
    constrdiagr = 0;
    f_write(format,2,1,menuq);    
    nsubcs = 1;
@@ -569,7 +569,7 @@ label_2:             n++;
          constrdiagr += nsdiagram; 
          goto_xy(13,21); print("%5d",constrdiagr); 
          if ((constrdiagr) > maxdiagr && !feof(diagrp))
-          {  if(mess_y_n(3,17," Continue ?")) maxdiagr += 1000;  else goto label_3;}
+          {  if(mess_y_n(3,17," Continue ?")) maxdiagr += 20000;  else goto label_3;}
       }  
    } 
 label_3: 

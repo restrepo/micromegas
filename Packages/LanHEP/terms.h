@@ -7,12 +7,14 @@
 #ifndef TERMS_H
 #define TERMS_H
 
+#define TERMTYPE(t) (t>>56)
+
 #ifdef MTHREAD
 #include <pthread.h>
 extern pthread_key_t TermsKey;
 #endif
 
-typedef signed int Atom, Integer, Float,
+typedef signed long int Atom, Integer, Float,
 		Atomic, Functor, Term, Compound, List, Label;
 		
 #include "atoms.h"
@@ -45,12 +47,12 @@ typedef struct
 		
 	
 /*extern union LISTpoint *LISTS_next_free;*/
-extern union LISTpoint *LISTS_buffers[4096];
+extern union LISTpoint *LISTS_buffers[400096];
 extern int LISTS_blocks, LISTS_allocs, LISTS_free;
 
 
 #define is_empty_list(l) (l==0)
-#define LIST_pointer(l) (LISTS_buffers[(l&0xfff0000)/0x10000]+(l&0xffff))
+#define LIST_pointer(l) (LISTS_buffers[(l&0xfffff0000)/0x10000]+(l&0xffff))
 #define ListFirst(l) (LIST_pointer(l)->d.value)
 #define ListTail(l) (LIST_pointer(l)->d.nextl)
 #define ListConcat(l1,l2) (LIST_pointer(l1)->d.nextl=l2, \
@@ -92,10 +94,10 @@ union COMPOpoint
 
 
 /*extern union COMPOpoint *COMPO_next_free;*/
-extern union COMPOpoint *COMPO_buffers[4096];
+extern union COMPOpoint *COMPO_buffers[400096];
 extern int COMPO_blocks, COMPO_tall, COMPO_tfree;
 
-extern int LABEL_count;
+extern long int LABEL_count;
 
 extern char *ATOM_buffers[256];
 extern int  ATOM_buffill[256], ATOM_count, ATOM_stcount, ATOM_tscount;
@@ -119,12 +121,12 @@ int 	FunctorArity(Functor f);*/
 
 #endif
 
-#define CompoundFunctor(c) ((COMPO_buffers[(c&0xfff0000)/0x10000]+(c&0xffff))->data.a[0])
-#define CompoundArg1(c) ((COMPO_buffers[(c&0xfff0000)/0x10000]+(c&0xffff))->data.a[1])
-#define CompoundArg2(c) ((COMPO_buffers[(c&0xfff0000)/0x10000]+(c&0xffff))->data.a[2])
+#define CompoundFunctor(c) ((COMPO_buffers[(c&0xfffff0000)/0x10000]+(c&0xffff))->data.a[0])
+#define CompoundArg1(c) ((COMPO_buffers[(c&0xfffff0000)/0x10000]+(c&0xffff))->data.a[1])
+#define CompoundArg2(c) ((COMPO_buffers[(c&0xfffff0000)/0x10000]+(c&0xffff))->data.a[2])
 
-#define FunctorName(f) ((f & 0xffffff) + 0x1000000)
-#define FunctorArity(f) ((f/0x1000000)-1)
+#define FunctorName(f) ((f & 0xffffff) + (1L<<56))
+#define FunctorArity(f) ((int)(((f>>48)&0xff)-1))
 
 #define CompoundName(c) FunctorName(CompoundFunctor(c))
 #define CompoundArity(c) FunctorArity(CompoundFunctor(c))
@@ -167,8 +169,14 @@ Term    GetProperties(Term,Term);
 Term 	SetProperty(Term,Term);
 List    AtomPropertiesList(Atom);
 
+
+typedef struct { double r, i;} cmplx;
+Float   NewComplex(cmplx);
 Float 	NewFloat(double d);
 double 	FloatValue(Float);
+cmplx  ComplexValue(Float);
+void   SetFloat(Float, double, double);
+double ImaginaryValue(Float);
 
 Compound NewCompound(Functor f);
 /*Functor CompoundFunctor(Compound c);
@@ -187,7 +195,7 @@ int     CompoundArity(Compound c);
 */
 		
 Atomic  NewLabel(void);
-int 	LabelValue(Atomic l);
+long int 	LabelValue(Atomic l);
 
 void 	FreeAtomic(Atomic);
 Term	CopyTerm(Term);

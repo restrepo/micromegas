@@ -52,7 +52,7 @@ static void findAllPDT(void)
       while((dp=readdir(dirPtr)))
       { char *c=dp->d_name;
         int l=strlen(c);
-        if(l>=4 && strcmp(c+l-4,".pdt")==0) 
+        if(l>=4 && strcmp(c+l-4,".pdt")==0 && c[0]!='.' ) 
         {  sprintf(fname,"%s%c%s",dNames[k],f_slash,c); 
            makePdtList(fname, &allPDT);
         }

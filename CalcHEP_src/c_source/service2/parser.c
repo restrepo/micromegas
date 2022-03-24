@@ -2,7 +2,7 @@
  Copyright (C) 1997, Alexander Pukhov 
 */
 
-#define ILEN 200
+#define ILEN 512
 #define MAXFUN 200
 #include "parser.h"
 #include<stdio.h>

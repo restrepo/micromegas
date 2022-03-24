@@ -46,11 +46,8 @@ int checkParam(void)
   err=calcMainFunc();
   if(err>0)
   {  char mess[100];
-     sprintf(mess,"Can not evaluate constrained parameter '%s' ",
-             varNames[err]);
-    
-     if(blind) { printf("%s\n",mess); sortie(122);} 
-     else     messanykey(10,10, mess);
+     sprintf(mess,"Can not evaluate constrained parameter '%s' ",varNames[err]);   
+     messanykeyErr(10,10, mess);
      return err; 
   }
   exportParam();
@@ -61,7 +58,7 @@ int checkParam(void)
              varName_int[err]);
                                                                                 
        if(blind) { printf("%s\n",mess); sortie(122);}
-       else     messanykey(10,10, mess);
+       else     messanykeyErr(10,10, mess);
       return err;
     }
   }
@@ -183,9 +180,19 @@ int change_parameter(int x,int y, int for22)
         struct stat buf;
         
         if(!findCalcHEPfile(fName)) continue; 
-        if(stat(fName,&buf) ||   !(S_ISREG(buf.st_mode)) )  { messanykey(10,17, "Not a regular file"); continue; }
+        if(stat(fName,&buf) ||   !(S_ISREG(buf.st_mode)) )  
+        { char mess[100]; 
+          sprintf(mess,"%s is not a regular file for parameters",fName);
+          messanykeyErr(10,17, mess); 
+          continue; 
+        }
         f=fopen(fName,"r");
-        if(f==NULL) { messanykey(10,17, "Can not open file"); continue; }
+        if(f==NULL) 
+        { char mess[100]; 
+          sprintf(mess,"Can not open file %s",fName);   
+          messanykeyErr(10,17,mess); 
+          continue; 
+        }
         for(;;)
         { char name[20];
           char txt[40];
@@ -198,10 +205,10 @@ int change_parameter(int x,int y, int for22)
           if(i==nModelVars)
           {
              sprintf(txt,"unknown variable '%s' ignored",name);  
-              messanykey(10,10,txt);
+              messanykeyErr(10,10,txt);
           } else if(fscanf(f,"%lf",&val)!=1)
           { sprintf(txt," wrong defined number for '%s'",name);
-            messanykey(10,10,txt);
+            messanykeyErr(10,10,txt);
           } else  { varValues[i]=val; returnCode=1;}
           
           fscanf(f,"%*[^\n]");
@@ -241,7 +248,7 @@ void show_depend(int x, int y)
 { void *pscr1=NULL;
   int i,mPos=1; 
 
-  if(!nModelFunc) { messanykey(5,10,"There are no public constraints in this model"); return;}
+  if(!nModelFunc) { messanykeyErr(5,10,"There are no public constraints in this model"); return;}
   REAL*allfunc=(REAL*) malloc(sizeof(REAL)*nModelFunc);
   for(i=0;i<nModelFunc;i++) allfunc[i]=varValues[1+nModelVars+i];
 
@@ -258,7 +265,7 @@ void show_depend(int x, int y)
       correctStr(10,17,"File name: ",fname,50,1);
       FILE *f =fopen(fname,"w");
       for(int i=0; i< nModelFunc;i++) 
-         fprintf(f, " %10.10s %E\n", varNames[i+nModelVars],varValues[i+nModelVars]); 
+         fprintf(f, " %10.10s %E\n", varNames[i+nModelVars],(double)varValues[i+nModelVars]); 
       fclose(f);
        continue;
      }
@@ -311,7 +318,7 @@ void show_depend(int x, int y)
                   if(NaN) 
                   {  char mess[100];
                      sprintf(mess,"Can not evaluate constraints for %s=%G",name2, x);
-                     messanykey(16,5,mess);        
+                     messanykeyErr(16,5,mess);        
                      break;
                   }
                   f[i]=*fPos;
@@ -325,7 +332,7 @@ void show_depend(int x, int y)
                if(!(NaN||Esc)) plot_1(xMin,xMax,nPoints,f,NULL,"Parameter dependence",
                                name2,name1);
                                
-            } else messanykey(16,5," Correct input is \n"
+            } else messanykeyErr(16,5,"Parameter dependence: Correct input is \n"
                                    "  xMin<xMax,\n"
                                    " 3<=nPoints<=150");
             break;

@@ -75,7 +75,7 @@ static void split_m2(Term m, Term *m1, Term *m2, int *anti, int spin)
 		Term t;
 		int i1,i2;
 		t=ListFirst(l);
-		i2=IntegerValue(CompoundArg2(t));
+		i2=(int)IntegerValue(CompoundArg2(t));
 		i1=i2/2;
 		i2-=i1;
 		if(i1!=i2)
@@ -92,8 +92,8 @@ static void split_m2(Term m, Term *m1, Term *m2, int *anti, int spin)
 
 
 	l=CompoundArg1(m);
-	i1=IntegerValue(CompoundArg1(l));
-	i2=IntegerValue(CompoundArg2(l));
+	i1=(int)IntegerValue(CompoundArg1(l));
+	i2=(int)IntegerValue(CompoundArg2(l));
 
 	if(i1<0)
 		{
@@ -125,8 +125,8 @@ static void split_m2(Term m, Term *m1, Term *m2, int *anti, int spin)
 		}
 
 
-	n1=floor(sqrt(i1)+0.5);
-	d1=floor(sqrt(i2)+0.5);
+	n1=(int)floor(sqrt(i1)+0.5);
+	d1=(int)floor(sqrt(i2)+0.5);
 
 	if(n1*n1!=i1 || d1*d1!=i2)
 		{
@@ -273,7 +273,7 @@ static List color_reduce_2(Term a2, List pl, List pil, List csp, List osp)
 	for(i1=1;i1<=3;i1++)
 	for(i2=1;i2<=3;i2++)
 		{
-		if(ListNth(l1,i1)==ListNth(l2,i2))
+		if(ListNth(l1,(int)i1)==ListNth(l2,(int)i2))
 			{
 			if(co1)
 				{
@@ -284,7 +284,7 @@ static List color_reduce_2(Term a2, List pl, List pil, List csp, List osp)
 				}
 			co1=i1;
 			co2=i2;
-			collab=ListNth(l1,i1);
+			collab=ListNth(l1,(int)i1);
 			}
 		}
 
@@ -334,7 +334,8 @@ static List color_reduce_2(Term a2, List pl, List pil, List csp, List osp)
 		ctype=1;
 		goto cnt4;
 		}
-			
+		
+		
 	if(i1==A_COLOR_F && i2==A_COLOR_F)
 		{
 		ctype=3;
@@ -359,6 +360,32 @@ static List color_reduce_2(Term a2, List pl, List pil, List csp, List osp)
 			csp1=csp2;
 			csp2=co1;
 			ctype=1;
+			goto cnt4;
+			}
+		printf("Internal error in vertex ");
+		WriteVertex(CompoundArg1(a2));
+		printf(" (rc23).\n");
+		return AppendFirst(NewList(),a2);
+		}
+	if(i1==A_COLOR_L6 && i2==A_COLOR_L6)
+		{
+		  
+		if(co1==3 && co2==3)
+			{
+			ctype=3;
+			goto cnt4;
+			}
+		if(co1==1 && co2==2)
+			{
+			ctype=6;
+			goto cnt4;
+			}
+		if(co1==2 && co2==1)
+			{
+			co1=csp1;
+			csp1=csp2;
+			csp2=co1;
+			ctype=6;
 			goto cnt4;
 			}
 		printf("Internal error in vertex ");
@@ -657,9 +684,8 @@ cnt1:	l1=ListTail(l1);
 
 	split_m2(m,&m2,&m22,&anti, ListLength(i1)-1);
 	FreeAtomic(m);
-	
-		
-	l2=mk_im_field(ctype, ListLength(i1)-1, (ctype==3&&opNeutrC8)?0:anti, prt);
+	l2=mk_im_field(ctype, ListLength(i1)-1, (ctype==3&&opNeutrC8)?0:anti, 
+	  ConcatList(CopyTerm(prt1),CopyTerm(prt2)));
 	
 	pl1=ConcatList(pl1,osp1);
 	pl1=AppendLast(pl1,csp1);
@@ -953,7 +979,7 @@ cnt1:	l1=ListTail(l1);
 	split_m2(m,&m2,&m22,&anti, ListLength(i1));
 	FreeAtomic(m);
 
-	l2=mk_im_field(0, ListLength(i1), anti, prt);
+	l2=mk_im_field(0, ListLength(i1), anti, ConcatList(CopyTerm(prt1),CopyTerm(prt2)));
 
 	pl1=ConcatList(pl1,osp1);
 	co1=NewLabel();
@@ -1015,8 +1041,8 @@ static int lab2col(Label lab, List pl, int *pos)
 			prp=GetAtomProperty(CompoundArg1(ListFirst(pl)),A_COLOR);
 			if(prp==0)
 				return 0;
-			*pos=IntegerValue(CompoundArg2(prp));
-			return IntegerValue(CompoundArg1(prp));
+			*pos=(int)IntegerValue(CompoundArg2(prp));
+			return (int)IntegerValue(CompoundArg1(prp));
 			}
 		pl=ListTail(pl);
 		}
@@ -1024,9 +1050,12 @@ static int lab2col(Label lab, List pl, int *pos)
 	return 0;
 	}
 
+extern Atom ColorK6, ColorK6b;
+	
 List color_reduce(Term a2)
 	{
 	List m2, cp_l, op_l, cs_l, os_l, pi_l, l1,l2;
+	int colc6=0, colc6b=0;
 	
 	cp_l=pi_l=op_l=cs_l=os_l=NewList();
 
@@ -1157,9 +1186,20 @@ List color_reduce(Term a2)
 	if(ListLength(cs_l)==2)
 		return color_reduce_2(a2, cp_l, pi_l, cs_l, os_l);
 
-
+  
+	 for(l1=cs_l;l1;l1=ListTail(l1))
+	 {
+	   if(CompoundArg1(ListFirst(l1))==ColorK6)
+	     colc6++;
+	   if(CompoundArg1(ListFirst(l1))==ColorK6b)
+	     colc6b++;
+	 }
+	
+	if(ListLength(cs_l)!=4 || !colc6 || !colc6b)
+	{
 	printf("Error in vertex "); WriteVertex(CompoundArg1(a2));
 	printf(": illegal color structure. (incorrect #cs)\n");
+	}
 	RemoveList(os_l);
 	RemoveList(cp_l);
 	RemoveList(cs_l);
@@ -1196,7 +1236,7 @@ int need_col_rdc(Term a2)
 			if(is_atom(CompoundArg1(ListFirst(l2))) &&
 					GetAtomProperty(CompoundArg1(ListFirst(l2)),A_COLOR))
 				cs_no++;
-		if((cp_no<3 && cs_no>0) || (cp_no==3 && cs_no!=1))
+		if((cp_no<3 && cs_no>0) || (cp_no==3 && cs_no>1))
 		{
 			printf("Error in vetrex ");
 			WriteVertex(CompoundArg1(a2));

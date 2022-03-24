@@ -78,6 +78,8 @@ static int is_ferm(Atom p)
 	if(prp==0)
 		return 0;
 	
+        if(!is_compound(prp)) return 0;
+        
 	if(CompoundName(prp)==OPR_PARTICLE)
 	{
 		if(CompoundArgN(prp,4)==NewInteger(1))
@@ -100,6 +102,8 @@ static int is_maj(Atom p)
 	if(prp==0)
 		return 0;
 	
+         if(!is_compound(prp)) return 0;
+         
 	if(CompoundName(prp)==OPR_PARTICLE)
 	{
 		if((CompoundArgN(prp,4)==NewInteger(1)||CompoundArgN(prp,4)==NewInteger(3)) &&
@@ -310,7 +314,7 @@ void alg1_anti(Term a1)
 	}
 	
 }
-
+/*
 void alg1_cc(Term a1)
 {
 	List l1,l2,l3;
@@ -467,6 +471,7 @@ void alg1_cc(Term a1)
 	}
 	
 }
+*/
 
 static Term app_ind(Term t, List ind)
 {
@@ -563,7 +568,11 @@ Term ProcCC(Term p, Term ii)
 	
 	if(is_atom(t1) && is_particle(t1,NULL))
 		return app_ind(anti_maj(t1),ii);
-		
+	
+	ErrorInfo(0);
+	puts("Argument of cc() function must be a fermion.\n");
+	return 0;
+	/*
 	t1=ExprTo1(t1);
 	
 	if(t1==0)
@@ -602,7 +611,7 @@ Term ProcCC(Term p, Term ii)
 		t1=il_to_caret(t1,ii);
 		
 	return t1;
-	
+	*/
 	}	
 
 	

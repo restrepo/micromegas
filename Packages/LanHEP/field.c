@@ -3,7 +3,7 @@
 
 static List particles = 0;
 static List pformat = 0, newprops=0;
-extern int max_prt_lenp, max_prt_lenl;
+extern int max_prt_lenp, max_prt_lenl, NoQuotes;
 
 int pformat_def(void) { return pformat!=0;}
 
@@ -252,13 +252,31 @@ static int set_particle_specs(Term t, Term sv, int pflag, int first)
 		return 1;		
 	}
 	
+	if(is_compound(t) && strcmp(AtomValue(CompoundName(t)),"aux")==0)
+	{
+		Atom n1;
+		n1=CompoundArg1(t);
+		
+		if(!is_atom(n1) && !is_integer(n1))
+			{
+			ErrorInfo(113);
+			printf(" bad specification \'");
+			WriteTerm(t);
+			printf("\'.\n");
+			return 0;
+			}
+		SetAtomProperty(CompoundArg2(sv),A_AUX,n1);
+		SetCompoundArg(sv,7,n1);
+		return 1;		
+	}
+	
 	if(is_compound(t) && strcmp(AtomValue(CompoundName(t)),"echarge")==0)
 	{
 		int n,d=1;
 		Term t1, p1, p2;
 		t1=CompoundArg1(t);
 		if(is_integer(t1))
-			n=IntegerValue(t1);
+			n=(int)IntegerValue(t1);
 		else
 		{
 			if(!is_compound(t1)||CompoundName(t1)!=OPR_DIV ||
@@ -272,8 +290,8 @@ static int set_particle_specs(Term t, Term sv, int pflag, int first)
 			printf("\'.\n");
 			return 0;
 			}
-			n=IntegerValue(CompoundArg1(t1));
-			d=IntegerValue(CompoundArg2(t1));
+			n=(int)IntegerValue(CompoundArg1(t1));
+			d=(int)IntegerValue(CompoundArg2(t1));
 		}
 		p1=CompoundArg1(sv);
 		p2=CompoundArg2(sv);
@@ -330,7 +348,7 @@ static int set_particle_specs(Term t, Term sv, int pflag, int first)
 			{
 			Term m,m1;
 			m=ConsumeCompoundArg(t,1);
-			m=ProcessAlias(m);
+			
 			if(m==NewInteger(0))
 				return 1;
 			FreeAtomic(t);
@@ -353,13 +371,22 @@ static int set_particle_specs(Term t, Term sv, int pflag, int first)
 				is_atom(CompoundArg2(m))&&
 				strcmp(AtomValue(CompoundArg2(m)),"auto")==0)
 			{
-				if(is_parameter(CompoundArg1(m)))
+				if(UFOutput)
+                {
+                    SetCompoundArg(m,2,NewInteger(0));
+                    if(CompoundArgN(sv,3)==0)
+                    m1=make_param(m,"width",CompoundArg1(sv));
+                    else
+                    m1=make_param(m,"width",CompoundArgN(sv,3));
+                }
+                else {
+                if(is_parameter(CompoundArg1(m)))
 					{WarningInfo(0);
 					 printf("%s is already declared parameter.\n",
 					 	AtomValue(CompoundArg1(m)));
 					}
 				SetAtomProperty(CompoundArg1(m),OPR_WIDTH,A_I);
-				m1=CompoundArg1(m);
+                    m1=CompoundArg1(m);}
 			}
 			else
 			{
@@ -842,8 +869,8 @@ static void texWritePrt(int fno)
 			else				
 				{
 				int num, den;
-				num=IntegerValue(CompoundArg1(prp));
-				den=IntegerValue(CompoundArg2(prp));
+				num=(int)IntegerValue(CompoundArg1(prp));
+				den=(int)IntegerValue(CompoundArg2(prp));
 				if(num<0)
 					{
 					fprintf(f,"$-");
@@ -1068,10 +1095,14 @@ void WriteParticles(int fno, char *name)
 						t1=ListFirst(l);
 						if(CompoundArity(t1)==2 && CompoundName(t1)==A_COLOR)
 							{
+							char *v=AtomValue(CompoundArg1(t1));
+							col=v[1]-'0';
+							/*
 							if(EqualTerms(CompoundArg1(t1),CompoundArg2(t1)))
 								col=8;
 							else
 								col=3;
+							*/
 							break;
 							}
 						l=ListTail(l);
@@ -1100,7 +1131,11 @@ void WriteParticles(int fno, char *name)
 						sp=fprintf(f,"*");
 					else
 					if(CompoundArgN(ttt,7)!=0)
-						sp=fprintf(f,"%s",AtomValue(CompoundArgN(ttt,7)));
+					{
+					  NoQuotes=1;
+						sp=fWriteTerm(f,CompoundArgN(ttt,7));
+					  NoQuotes=0;
+					}
 
 					WriteBlank(f,3-sp);
 
@@ -1150,7 +1185,10 @@ void WriteParticles(int fno, char *name)
 					if(prop)
 						sp=fWriteTerm(f,prop);
 					else
-						if(CompoundArgN(ttt,7)!=OPR_MLT)
+						if(CompoundArgN(ttt,7)!=OPR_MLT && 
+						      AtomValue(CompoundArgN(ttt,7))[1]!='*'
+                                                  && 
+						      AtomValue(CompoundArgN(ttt,7))[0]!='*')
 						printf(
 					"Warning: property '%s' is not defined for particle '%s'\n",
 						AtomValue(tp),AtomValue(CompoundArg1(ttt)));
@@ -1225,10 +1263,12 @@ void WriteParticles(int fno, char *name)
 			t1=ListFirst(l);
 			if(CompoundArity(t1)==2 && CompoundName(t1)==A_COLOR)
 				{
-				if(EqualTerms(CompoundArg1(t1),CompoundArg2(t1)))
+				char *v=AtomValue(CompoundArg1(t1));
+				col=v[1]-'0';
+				/*if(EqualTerms(CompoundArg1(t1),CompoundArg2(t1)))
 					col=8;
 				else
-					col=3;
+					col=3;*/
 				break;
 				}
 			l=ListTail(l);

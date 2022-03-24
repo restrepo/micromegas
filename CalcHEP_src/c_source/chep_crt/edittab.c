@@ -1186,7 +1186,7 @@ printf(" cursor: x=%d, x1=%d, y=%d\n",c_tab.x1,c_tab.x2,c_tab.y);
     	    if (dy>0)      {push_key(KB_DOWN);push_key(dy);}
     	    else if (dy<0) {push_key(KB_UP);push_key(-dy);}	    
           }else if(strchr(sss,'$'))
-          { for(;c_tab.edit->next; c_tab.top=c_tab.top->next,c_tab.y0++,c_tab.edit=c_tab.edit->next);
+          { for(;c_tab.edit->next; c_tab.top=c_tab.top->next,c_tab.y0++,c_tab.edit=c_tab.edit->next)continue;
              redrawTable(tab);
           }
     	}							    

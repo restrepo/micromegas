@@ -28,6 +28,7 @@
 #include "sos.h"
 #include "sets.h"
 #include "symb_tot.h"
+#include "read_mdl.h"
 
 /*#define STRACE */
 #ifdef STRACE
@@ -179,40 +180,54 @@ static int  findSpinLength(void)
 #ifdef STRACE
    printf("Max Spin Length=%d\n", sLen);
 #endif      
-   return sLen;
+   return sLen+2;
 
 /*   spinLength =1+ (spinLength +1)/sizeof(long);*/
 }
 
-
-
 static void  propagatorsfirstreading(void)
-{  int  ninout, v, d, n, l;
-   char *name;
+{  int  ninout, v, n, l;
 
    ninout=nin + nout;
    for(v=0; v<vcs.sizet; v++) for(l=0; l<vcs.valence[v]; l++)
    {  edgeinvert *L= &vcs.vertlist[v][l];
       if(L->moment>0)
-      {
-         d=prtclbase1[L->partcl].spin;
-         if(d==2 && !set_in(L->lorentz,setmassindex)
-                 && !(PLR_PRTCL&L->prop)) d=0;
-	 if(d==4 && tolower(prtclbase1[L->partcl].hlp)=='t') d=2;
+      {  
+         int P=L->moment; 
+         int Paux=3 -P;
+          
+         int d=0;
+         char* name=prtclbase1[L->partcl].massidnt;
+         int mass=strcmp(name,"0");
+         int polar=PLR_PRTCL&L->prop;
+         
+         switch (prtclbase1[L->partcl].spin)
+         { case 1:  if( polar  && mass) d=2; else d=1;                             break;
+           case 2:  if(polar) 
+                    { addvar("N_p1p2_",1);
+                      d=2;
+                      if(strcmp(inoutmasses[Paux-1],"0")) { addvar("N_p1p2_",1); addvar(inoutmasses[Paux-1],2);}
+                    } else 
+                    {    
+                       if(set_in(L->lorentz,setmassindex) )  d=2; else d=0;
+                    }                                                              break; 
+           case 3:  d=3;                                                           break;
+           case 4:  if(tolower(prtclbase1[L->partcl].hlp)=='t') d=2; else d=4;     break;
+         }  
+                                                             
          maxmomdeg +=d;
-         if(d && L->moment>ninout)
+         
+         if(d && mass && L->moment>ninout)
          {
-            name=prtclbase1[L->partcl].massidnt;
-            if(strcmp(name,"0") != 0)
-            {
-               for(n=0; n<ninout && strcmp(name,inoutmasses[n]);n++);
-               if(n>=ninout) addvar(name,d);
-               addvar(name,d);
-            }
-         }
+            for(n=0; n<ninout && strcmp(name,inoutmasses[n]);n++);
+            if(n>=ninout) addvar(name,d);
+         }    
       }
    } 
 }
+
+
+
 
 
 static void  addinoutmasses(void)
@@ -248,7 +263,12 @@ static void  addscmult( int nSpin )
 
    addvar("Helicity1",1);  
    addvar("Helicity2",1);
-   addvar("N_p1p2_",2);
+   addvar("N_p1p2_",1);
+   addvar("N_pol_11_",1);
+   addvar("N_pol_12_",1);
+   addvar("N_pol_21_",1);
+   addvar("N_pol_22_",1);
+   
    sortvar();
    symb_start(vardef->nvar, vardef->vars, nSpin, findMaxIndex(),py);
 
@@ -745,7 +765,9 @@ static void  formBlocks(void)
            char txt[150];
            int Paux;
            if(P==1) Paux=2; else Paux=1;
-           sprintf(txt,"m%d.m%d -N_p1p2_*(m%d.p%d*m%d.p%d+m%d.p%d*m%d.p%d-i*Helicity%d*eps(p%d,p%d,m%d,m%d))",m1,m2, m1,P,m2,Paux,m1,Paux,m2,P, P,P,Paux,m1,m2);           
+           sprintf(txt,"m%d.m%d -N_p1p2_*(m%d.p%d*m%d.p%d+m%d.p%d*m%d.p%d  - i*Helicity%d*eps(p%d,p%d,m%d,m%d))",
+                        m1,  m2,           m1,  P,m2,Paux,m1, Paux,m2,P,                P,       P,Paux,m1,m2);
+           if(strcmp(inoutmasses[Paux-1],"0")) sprintf(txt+strlen(txt),"+N_p1p2_^2*m%d.p%d*m%d.p%d*%s^2",m1,P,m2,P,inoutmasses[Paux-1]); 
                                                       
            m=symb_read(txt);
 
@@ -1449,9 +1471,9 @@ int writeVertexCode(char*pathToModels,int Model,int N,char**field_txt,char *labe
        int Nterm=symb_expand(v, &txt, &exp);
 
     int nvars=vert_code(vardef);
-    writeF(" double R=(");writepolyC(tcN.expr.p);writeF(")/(");writepolyC(tcD.expr.p); writeF(");\n");
+    writeF(" double R=(double)(");writepolyC(tcN.expr.p);writeF(")/(double)(");writepolyC(tcD.expr.p); writeF(");\n");
         
-    for(int i=0;i<Nterm;i++) { writeF(" coeff_out[%d]=R*(",i); writepolyC(exp[i]); writeF(");\n"); }     
+    for(int i=0;i<Nterm;i++) { writeF(" coeff_out[%d]=R*(",i); writepolyC(exp[i]); writeF(");\n"); }  
     writeF(" return 0;\n}\n"); 
 
     writeF(" static char *SymbVert[%d]={",Nterm);

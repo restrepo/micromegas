@@ -53,5 +53,19 @@ int aPrintF8(char * format, double x1,double x2,double x3,double x4,double x5,do
 int aPrintF9(char * format, double x1,double x2,double x3,double x4,double x5,double x6,double x7,double x8,double x9)
     { return aPrintF(format,x1,x2,x3,x4,x5,x6,x7,x8,x9);}
 
+double dbl(REAL a){ return  (double)(a);}
+double slhaVal0(char *block, double scale){                             return   slhaVal(block,scale,0);}
+double slhaVal1(char *block, double scale,int i1){                      return   slhaVal(block,scale,1,i1);}
+double slhaVal2(char *block, double scale,int i1,int i2){               return   slhaVal(block,scale,2,i1,i2);}
+double slhaVal3(char *block, double scale,int i1,int i2,int i3){        return   slhaVal(block,scale,3,i1,i2,i3);}
+double slhaVal4(char *block, double scale,int i1,int i2,int i3,int i4){ return   slhaVal(block,scale,4,i1,i2,i3,i4);}
+
+int    slhaValExists0(char *block){                                     return   slhaValExists(block,0) ;}
+int    slhaValExists1(char *block,int i1){                              return   slhaValExists(block,1,i1);}
+int    slhaValExists2(char *block,int i1,int i2){                       return   slhaValExists(block,2,i1,i2);}
+int    slhaValExists3(char *block,int i1,int i2,int i3){                return   slhaValExists(block,3,i1,i2,i3);}
+int    slhaValExists4(char *block,int i1,int i2,int i3,int i4){         return   slhaValExists(block,4,i1,i2,i3,i4);}
+
+
     
 #include"delList.h"

@@ -129,7 +129,7 @@ static List p_m_p_s(List cm, List mo)
 			{
 			Term t=ListFirst(l),t1;
 			int ic,im;
-			ic=IntegerValue(CompoundArg2(t));
+			ic=(int)IntegerValue(CompoundArg2(t));
 			if(ic==0) continue;
 			for(l1=mo;l1;l1=ListTail(l1))
 				if(CompoundArg1(ListFirst(l1))==CompoundArg1(t))
@@ -140,7 +140,7 @@ static List p_m_p_s(List cm, List mo)
 				continue;
 				}
 			t1=ListFirst(l1);
-			im=IntegerValue(CompoundArg2(t1));
+			im=(int)IntegerValue(CompoundArg2(t1));
 			if(ic*im<0)
 				{
 				SetCompoundArg(t,2,NewInteger(0));
@@ -258,7 +258,7 @@ void alg2_common_s(Term a2)
 				if(CompoundArg1(t2)==CompoundArg1(t3))
 					{
 					int np;
-					np=IntegerValue(CompoundArg2(t3))-IntegerValue(CompoundArg2(t2));
+					np=(int)IntegerValue(CompoundArg2(t3))-(int)IntegerValue(CompoundArg2(t2));
 					if(np)
 						{
 						SetCompoundArg(t3,2,NewInteger(np));
@@ -325,7 +325,7 @@ void alg2_recommon_s(Term a2)
             {
 			if(CompoundArg1(ListFirst(l2))==CompoundArg1(ListFirst(l)))
 				{
-				int b1, b2;
+				long int b1, b2;
 				b1=IntegerValue(CompoundArg2(ListFirst(l)));
 				b2=IntegerValue(CompoundArg2(ListFirst(l2)));
 				b1+=b2;
@@ -362,7 +362,7 @@ void alg2_recommon_s(Term a2)
 				t3=ListFirst(l3);
 				if(CompoundArg1(t2)==CompoundArg1(t3))
 					{
-					int np;
+					long int np;
 					np=IntegerValue(CompoundArg2(t3))-IntegerValue(CompoundArg2(t2));
 					if(np)
 						{
@@ -416,8 +416,8 @@ void alg2_decommon_s(Term a2)
 				if(CompoundArg1(ListFirst(l2))==p)
 					{
 					int pw;
-					pw=IntegerValue(CompoundArg2(ListFirst(l2)))
-						+IntegerValue(CompoundArg2(ListFirst(l1)));
+					pw=(int)IntegerValue(CompoundArg2(ListFirst(l2)))
+						+(int)IntegerValue(CompoundArg2(ListFirst(l1)));
 					SetCompoundArg(ListFirst(l2),2,NewInteger(pw));
 					break;
 					}
@@ -445,8 +445,8 @@ static int mlt_list1(List l)
   int ret=1;
   for(;l;l=ListTail(l))
     {
-      int i=IntegerValue(ListFirst(l));
-      i/=gcf(i,ret);
+      int i=(int)IntegerValue(ListFirst(l));
+      i/=(int)gcf(i,ret);
       ret*=i;
     }
   return ret;
@@ -471,7 +471,7 @@ static int gcf_list(List l)
 	int ret;
 	if(is_empty_list(l))
 		return 1;
-	ret=IntegerValue(ListFirst(l));
+	ret=(int)IntegerValue(ListFirst(l));
     if(ret<0)
         ret=-ret;
 	l=ListTail(l);
@@ -479,7 +479,7 @@ static int gcf_list(List l)
 		{
 		if(ret==1)
 			return 1;
-		ret=gcf(ret,IntegerValue(ListFirst(l)));
+		ret=(int)gcf(ret,IntegerValue(ListFirst(l)));
 		l=ListTail(l);
 		}
 	return ret;
@@ -544,7 +544,7 @@ void alg2_common_n(Term a2)
 		l=ListTail(l);
 		}
 
-	ti=gcf(cnum,cden);
+	ti=(int)gcf(cnum,cden);
 	cnum/=ti;
 	cden/=ti;
 	RemoveList(dl);
@@ -569,7 +569,7 @@ void alg2_common_n(Term a2)
 void alg2_decommon_n(Term a2)
 	{
     List l1;
-	int cnum,cden;
+	long int cnum,cden;
 	Term t;
 
 	l1=CompoundArgN(a2,5);
@@ -587,7 +587,7 @@ void alg2_decommon_n(Term a2)
 	while(!is_empty_list(l1))
 		{
 		Term t;
-		int c1,c2,c3;
+		long int c1,c2,c3;
 		c1=cnum*IntegerValue(CompoundArg1(ListFirst(l1)));
 		c2=cden;
 		c3=gcf(c1,c2);
@@ -605,7 +605,7 @@ void alg2_decommon_n(Term a2)
 void alg2_recommon_n(Term a2)
 	{
     List m2l,l,l1,nl;
-    int cnum,n,d;
+    long int cnum,n,d;
 	m2l=CompoundArgN(a2,5);
     nl=NewList();
 	l=m2l;

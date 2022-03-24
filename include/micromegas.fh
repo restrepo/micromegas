@@ -12,7 +12,8 @@
      > Fermi_a,Fermi_b,Fermi_c,Rsun,
      > rhoDM,Vearth,
      > K_dif,L_dif,Delta_dif,Tau_dif,Vc_dif,Rdisk,
-     > deltaY,dmAsymm,Vesc,Vrot,FracCDM2,Mcdm1,Mcdm2,Tstart,Tend
+     > deltaY,dmAsymm,Vesc,Vrot, betaSHMpp,etaSHMpp,
+     > FracCDM2,Mcdm1,Mcdm2,Tstart,Tend
        COMMON/MOCOMMON/ NULL,Mcdm,ScalarFFPd,ScalarFFPu,ScalarFFPs,
      > pVectorFFPd,pVectorFFPu,pVectorFFPs,
      > SigmaFFPd,SigmaFFPu,SigmaFFPs,
@@ -42,22 +43,22 @@ c!     external iargc
 c!      integer iargc
 
       external sortOddParticles,assignVal,findVal,readVar,
-     >displaySpectrum,nucleonAmplitudes,displayRecoilPlot,
+     >displaySpectrum,nucleonAmplitudes,
      >basicSpectra,basicNuSpectra,qNumbers, slhaDecayPrint,
      > Zinvisible,LspNlsp_LEP, Zprimelimits
-     >   ic22event,hbBlockMO, LilithMO 
+     >   ic22event,hbBlockMO, LilithMO, smodels 
       integer  sortOddParticles,assignVal,findVal,readVar,
-     >displaySpectrum,nucleonAmplitudes,displayRecoilPlot,
+     >displaySpectrum,nucleonAmplitudes,
      >basicSpectra,basicNuSpectra,qNumbers, slhaDecayPrint,
      > Zinvisible, LspNlsp_LEP, Zprimelimits
-     >  IC22event, hbBlockMO, LilithMO
+     >  IC22event, hbBlockMO, LilithMO, smodels
 
       external cs22,pWidth2,decay2Info,findValW,calcSpectrum,
      >         HaloFactor,RhoQisotermic,RhoMO,RhoMOSq, 
      >         zInterp, spectdnde, darkOmega,printChannels,
      >         gammaFlux,pbarFlux,posiFlux, pwidth,findbr,
      >         hProfileABG, hProfileEinasto,noClamps,pMass,
-     >         darkOmegaFO,oneChannel, vSigma,captureAux,
+     >         darkOmegaFO,oneChannel, vSigma,captureCS,
      >         darkOmega2, width1CC,vSigmaCC,spectrInfo,
      >         vs1120F,vs2200F,vs1100F,vs1210F,vs1122F,vs2211F,vs1110F,
      >         vs2220F,vs1112F,vs1222F,vs1220F,vs2210F,vs2221F,vs1211F,
@@ -67,7 +68,7 @@ c!      integer iargc
      >         zInterp,spectdnde, darkOmega,printChannels,
      >         gammaFlux,pbarFlux,posiFlux,pwidth,findbr,
      >         hProfileABG, hProfileEinasto,noClamps,pMass,
-     >         darkOmegaFO, oneChannel, vSigma,captureAux,
+     >         darkOmegaFO, oneChannel, vSigma,captureCS,
      >         darkOmega2, width1CC,vSigmaCC,spectrInfo,
      >         vs1120F,vs2200F,vs1100F,vs1210F,vs1122F,vs2211F,vs1110F,
      >         vs2220F,vs1112F,vs1222F,vs1220F,vs2210F,vs2221F,vs1211F,
@@ -79,10 +80,10 @@ C              procInfo1,procInfo2
 *--------------------- 
 
       external Maxwell,fDvDelta,nucleusRecoil,nucleusRecoil0,
-     >nucleusRecoilAux,nucleusRecoil0Aux,cutRecoilResult,dNdERecoil
+     >nucleusRecoilCS,nucleusRecoil0CS,cutRecoilResult,dNdERecoil
  
       real*8  Maxwell,fDvDelta,nucleusRecoil,nucleusRecoil0,
-     >nucleusRecoilAux,nucleusRecoil0Aux,cutRecoilResult,dNdERecoil
+     >nucleusRecoilCS,nucleusRecoil0CS,cutRecoilResult,dNdERecoil
 
       external FeScLoop, NoLoop
       real*8   FeScLoop, NoLoop

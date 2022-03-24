@@ -1,0 +1,91 @@
+932c932
+<              if(mu[0]>mu[1]+mu[2] && ( (s[1]|| s[2]) && mu[0]<25 )) br*=K1to2(mu[0],mu[1],mu[2],eta,s[1],s[2])/K1to2(mu[0],0,0,eta,0,0);
+---
+>              if((s[1]|| s[2]) && mu[0]<25) br*=K1to2(mu[0],mu[1],mu[2],eta,s[1],s[2])/K1to2(mu[0],0,0,eta,0,0);
+1064a1065
+> static int maxIntervals=0;
+1073a1075,1099
+> static void delInterval(double x1,double x2)
+> { 
+> 
+> //printf("delInterval [%e,%e]\n",x1,x2);
+>  
+>   int i1,i2;
+>   for(i1=0;i1<2*nIntervals;i1++) if(x1<=intervals[i1]) break; i1--; 
+>   for(i2=0;i2<2*nIntervals;i2++) if(x2<intervals[i2]) break; i2--;
+>   if(i1==i2)
+>   {  if(i1&1==1) return; // this interval is already excluded
+>      if(nIntervals==maxIntervals) { maxIntervals++; intervals=realloc(intervals,2*maxIntervals*sizeof(double));}
+>      for(int k=2*nIntervals+1;k>=i1+3;k--) intervals[k]=intervals[k-2];  
+>      intervals[i1+1]=x1; intervals[i1+2]=x2;
+>      nIntervals++;
+>      return;
+>   }
+>   if((i1&1)==0) intervals[++i1]=x1;  
+>   if(!(i2&1)) intervals[i2]=x2; else i2++;
+>   if(i2-i1>1)
+>   {
+>      for(int k=i1+1;k<2*nIntervals-2;k++) intervals[k]=intervals[k-i1+i2-1];
+>      nIntervals-=(i2-i1)/2;
+>   }  
+> }
+> 
+1099c1125
+<      mass22_parDel(arg,T);
+---
+>      mass22_par(arg,T);
+1102a1129
+> //  if(arg->err) return 0;
+1104c1131,1133
+<   sqme_Int=sqmeIntDel(arg,eps/3);
+---
+> 
+>   sqme_Int=sqmeInt(arg,eps/3);
+> //  if(arg->err) return 0;
+1138,1145c1167,1168
+<   mass22_parDel(arg,T);
+<   double sqrtSmin=arg->pmass[0]+arg->pmass[1];
+<   double dM=0;
+<   for(int i=0;i<2;i++) if(arg->pmass[i]==0)
+<   {  if(arg->pdg[i]==21) dM+= T*sqrt(4*M_PI*alphaQCD(T));
+<      if(arg->pdg[i]==22) dM+= T*0.31/sqrt(6);
+<   }   
+<   sqrtSmin+=dM;   
+---
+>   mass22_par(arg,T);
+>   double sqrtSmin=arg->pmass[0]+arg->pmass[1];   
+1149d1171
+<   intervals=realloc(intervals,2*sizeof(double));
+1181c1203
+<          delInterval(exp(-Mm/Tx -d0)  ,exp(-Mm/Tx+d0),&intervals,&nIntervals);
+---
+>          delInterval(exp(-Mm/Tx -d0)  ,exp(-Mm/Tx+d0));
+1191a1214
+> //printf("sum=%e\n",sum);
+1236c1259
+<   mass22_parDel(&arg_stat,T);
+---
+>   mass22_par(&arg_stat,T);
+1248c1271
+<   return P*arg_stat.PcmIn*arg_stat.PcmOut*sqmeIntDel(&arg_stat, 0.01);
+---
+>   return P*arg_stat.PcmIn*arg_stat.PcmOut*sqmeInt(&arg_stat, 0.01);
+1255d1277
+<    intervals=realloc(intervals,2*sizeof(double));
+1284c1306
+<        if(sqS1< Mm*(1+d0) && sqS2>Mm*(1-d0) ) delInterval( log(Mm) -d0  ,log(Mm)+d0,&intervals,&nIntervals);
+---
+>        if(sqS1< Mm*(1+d0) && sqS2>Mm*(1-d0) ) delInterval( log(Mm) -d0  ,log(Mm)+d0 );
+1373c1395
+<        case  13: fprintf(f,"Lost of precision in angle integration\n");break;
+---
+>        case  13: fprintf(f,"Lost of precision in angle integrand\n");break;
+1461a1484,1485
+>         if(maxIntervals==0) { intervals=realloc(intervals,2*sizeof(double)); maxIntervals=1; }                                                                                               
+> 
+1480d1503
+<         
+1599a1623
+> 
+1602d1625
+<        

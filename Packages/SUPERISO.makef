@@ -12,7 +12,7 @@ $(SuIso)/slha.x:$(SuIso)
 
 $(SuIso):
 ifneq (, $(shell command -v curl 2> /dev/null))
-	curl https://$(SOURCE)/$(SuIso).tgz  -O -L
+	curl http://$(SOURCE)/$(SuIso).tgz  -O -L
 else 
 ifneq (, $(shell command -v wget 2> /dev/null))
 	wget http://$(SOURCE)/$(SuIso).tgz

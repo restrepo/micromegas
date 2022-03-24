@@ -15,6 +15,8 @@ int DDLflag=1;
 int QCDcorrections=1;
 int Twist2On=1;
 
+extern double DDmomSQ;
+ 
 #define INMAX 100
 
 //  SECTION  MODEL GENERATION 
@@ -160,7 +162,7 @@ static int  create2_th_model(char * disp,char * pname,char *ProcNameSI, char* Pr
 #endif                 
    sprintf(ProcNameSI,"QUARKS,%s->QUARKS,%s{",pname, pname);
    strcpy(ProcNameSD,ProcNameSI);
-   { char lquarks[50], allcol[300];
+   {  char *lquarks=malloc(maxPlistLen), *allcol=malloc(maxPlistLen);
       for(i=1,lquarks[0]=0, allcol[0]=0;i<K;i++)
       { int forlQ=(abs(pInvolved[i].num)<=3);
         sprintf(allcol+strlen(allcol),"%s,",pInvolved[i].name);
@@ -177,6 +179,7 @@ static int  create2_th_model(char * disp,char * pname,char *ProcNameSI, char* Pr
       if( allcol[0]) strcat(ProcNameSI, allcol); else ProcNameSI[0]=0; 
       if(lquarks[0]) strcat(ProcNameSD,lquarks); else ProcNameSD[0]=0;
       if(pInvolved[0].spin2==0) ProcNameSD[0]=0;
+      free(lquarks), free(allcol);
    }    
    return 0;
 }     
@@ -188,7 +191,6 @@ static int getAuxCodesForDD(char*pname,numout**ccSI,numout**ccSD)
   int newDir=0;
   char ProcNameSI[4000], ProcNameSD[4000];
   int err=0;
-  char * A=NULL;
   char exclude[30];
   pname2lib(pname,libnameSD+5);
   pname2lib(pname,libnameSI+5);
@@ -200,21 +202,21 @@ static int getAuxCodesForDD(char*pname,numout**ccSI,numout**ccSD)
     newDir=prepareWorkPlace();
     err=create2_th_model(compDir,pname,ProcNameSI,ProcNameSD);
     if(err) return err;
-    for(line=0;line<nModelParticles;line++) if( ModelPrtcls[line].NPDG==22)
-    { A=ModelPrtcls[line].name; break;}    
   }  
   
    
   if(ccSI && !*ccSI && ProcNameSI[0])
   {  sprintf(exclude,"_S0_!=1,_V5_"); 
-     if(A) sprintf(exclude+strlen(exclude),",%s",A);
      *ccSI=getMEcode(0,1,ProcNameSI,exclude,NULL,libnameSI);
   }
   if(ccSD && !*ccSD && ProcNameSD[0])
   {  sprintf(exclude,"_V5_!=1,_S0_"); 
-     if(A) sprintf(exclude+strlen(exclude),",%s",A);
      *ccSD=getMEcode(0,1,ProcNameSD,exclude,NULL,libnameSD);
   }      
+  
+  if(ccSI && *ccSI) *((*ccSI)->interface->BWrange)=0;
+  if(ccSD && *ccSD) *((*ccSD)->interface->BWrange)=0;
+      
   if(newDir) cleanWorkPlace();
   return 0;
 }
@@ -536,7 +538,6 @@ int nucleonAmplitudes(char * WIMP, double*pA0,double*pA5,double*nA0,double*nA5)
          }             
       } else  loopFF__=NULL;
       
-      
       for(i=0;i<16;i++) pvect[i]=0;     
       for(i=0;i<4;i++) pvect[4*i]=masses[i];
       err_code=0;
@@ -558,7 +559,7 @@ int nucleonAmplitudes(char * WIMP, double*pA0,double*pA5,double*nA0,double*nA5)
               diff+=(*cc->interface->sqme)(n,GG,pvect,NULL,&err_code)*d4[k];                
           }
           diff/=pow(h*masses[1],2);            
-          cs0-=3./4.*diff*masses[1]*masses[1]*masses[0]*masses[0];                    
+          cs0-=3./4.*diff*masses[1]*masses[1]*masses[0]*masses[0];
       }
       loopFF__=NULL;
        
@@ -676,6 +677,16 @@ int nucleonAmplitudes(char * WIMP, double*pA0,double*pA5,double*nA0,double*nA5)
 
 // SECTION  NUCLEI  
 
+double maxRecoil(double A) 
+{ 
+  double Mdm=0;
+  if(CDM1!=NULL) Mdm=Mcdm1;
+  if(CDM2!=NULL && Mcdm2>Mcdm1) Mdm=Mcdm2;
+  if(Mdm==0) Mdm=Mcdm;        
+  return 1E6*2*A*0.94* pow( Mdm*(vEsc+vEarth)/299792./(A*0.94+Mdm),2);
+}
+
+
 /*===== Intergrands for  Fermi nucleus density =====*/
 
 static double R_, p_, a_, C_=1.23, B_=-0.6, A_=0.52;
@@ -696,10 +707,11 @@ double FermiFF(int A, double Qfermi)
 
 
 /*==== nucleusRecoil: main functions ================*/
-static double eStep=1.08;
-static double eStart=1E-2;
 
-static double nucleusRecoil_stat(double M_cdm, double(*vfv)(double),
+static double (*_fv_)(double v);
+static double vfv(double v){ return _fv_(v)/v;}
+
+static double nucleusRecoil_stat(double M_cdm, double(*fv)(double),
       int A, int Z, double J,
       
       void (*Sxx)(double, double *,double *, double *),
@@ -712,14 +724,14 @@ static double nucleusRecoil_stat(double M_cdm, double(*vfv)(double),
   const double  vC=299792;                   /* km/s */
   const double lDay=60.*60.*24.;             /* sec  */  
 
-  const double step=1.E-6*eStep;              /* 1KeV */
-
+  const double step=1.E-6*RE_STEP;              /* 1KeV */
+  _fv_=fv;
   int i;
   double MA,ffs,Rs,sum; 
   double FFs=1, s00,s01,s11;
   double E0,vmin,vmax;
 
-  if(vfv==Maxwell) vmax=Vesc+Vearth; 
+  if(fv==Maxwell) vmax=vEsc+vEarth; 
   else vmax=1200.;
   
   MA=0.94*A;
@@ -747,30 +759,33 @@ static double nucleusRecoil_stat(double M_cdm, double(*vfv)(double),
     ffs=simpson(FermiND0,0., R_+10*0.5, 1.E-4,NULL);
   }
   
-  for(i=0,sum=0;i<REDIM;i++)
-  { double E=eStart*1E-6*pow(eStep,i);
+  for(i=0,sum=0;i<RE_DIM;i++)
+  { double E=RE_START*1E-6*pow(RE_STEP,i);
 
     vmin=sqrt(E/E0)*vC;
     double p=sqrt(E*MA*2)/0.197327;
     
     if(vmin>=vmax)  { dNdE[i]=0;continue;}
-    if(i && A>1)
+    if(A>1)
     { 
       p_=p;    
       R_=Rs; a_=A_; 
       FFs=simpson(FermiNDP,0., R_+10*0.5, 1.E-4,NULL)/p_/ffs;      
     } else FFs=1;
-    
+
     dNdE[i]=FFs*FFs*css;
+
     if(J && Sxx)
     {  Sxx(p,&s00,&s01,&s11);
        dNdE[i]+=(csv00*s00+csv01*s01+csv11*s11);
     }   
+    
+    
     dNdE[i]*=simpson(vfv,vmin,vmax,1.E-4,NULL);
     dNdE[i]*=1/E0*1.E5*vC*vC*(rhoDM/M_cdm)*lDay*(Kg/MA)*1.E-6;
-    if(i==0)            sum+=1E6*E*sqrt(eStep)*dNdE[i];
-    else if(i==REDIM-1) sum+=1E6*E/sqrt(eStep)*dNdE[i];
-    else                sum+=1E6*E*(sqrt(eStep)+1/sqrt(eStep))*dNdE[i];
+    if(i==0)            sum+=1E6*E*sqrt(RE_STEP)*dNdE[i];
+    else if(i==RE_DIM-1) sum+=1E6*E/sqrt(RE_STEP)*dNdE[i];
+    else                sum+=1E6*E*(sqrt(RE_STEP)+1/sqrt(RE_STEP))*dNdE[i];
   }
   return sum;
 }
@@ -783,7 +798,7 @@ static void Sxx_(double p, double*s00,double*s01,double*s11)
   *s00=S00_0*r; *s01=S01_0*r; *s11=S11_0*r;
 }
 
-static double nucleusRecoil0_stat( double(*vfv)(double),
+static double nucleusRecoil0_stat( double(*fv)(double),
 int A, int Z, double J,double Sp,double Sn,
 double css, double csv00, double csv01, double csv11,
 double * dNdE)
@@ -796,60 +811,165 @@ double * dNdE)
     S11_0=  (Sp-Sn)*(Sp-Sn)*(2*J+1)*(J+1)/(4*M_PI*J);
     S01_0=2*(Sp+Sn)*(Sp-Sn)*(2*J+1)*(J+1)/(4*M_PI*J);
   }  
-  return nucleusRecoil_stat(Mcdm,vfv,A,Z,J,Sxx_, css,csv00,csv01,csv11,dNdE);
+  return nucleusRecoil_stat(Mcdm,fv,A,Z,J,Sxx_, css,csv00,csv01,csv11,dNdE);
 }
 
  
-static double nucleusRecoil1(char *WINP, double(*vfv)(double),
+static double nucleusRecoil1(char *WINP, double(*fv)(double),
       int A, int Z, double J,
       void (*Sxx)(double,double*,double*,double*),
       double * dNdE)
 {
-  double css,csv00,csv01,csv11,M; 
-  double pA0[2],pA5[2],nA0[2],nA5[2];
+  double css,csv00,csv01,csv11,M_cdm,MA,E; 
+  double pA0[2],pA5[2],nA0[2],nA5[2],pA0_[2],pA5_[2],nA0_[2],nA5_[2];
   int i;
-  
-  nucleonAmplitudes(WINP,pA0,pA5,nA0,nA5);
-  M=pMass(WINP);
-  for(i=0,css=0,csv00=0,csv01=0,csv11=0;i<2;i++)
-  { double AS=Z*pA0[i]+(A-Z)*nA0[i];
-    double AVplus =pA5[i]+nA5[i];
-    double AVminus=pA5[i]-nA5[i];
-    double C=(1+dmAsymm*(1-2*i))/2;
-    css+=AS*AS*C;
-    csv00+=AVplus*AVplus*C;
-    csv11+=AVminus*AVminus*C;
-    csv01+=AVplus*AVminus*C;
-  }  
-  return nucleusRecoil_stat(M,vfv,A,Z,J,Sxx,
-                                css,csv00,csv01,csv11,dNdE);
-} 
+  _fv_=fv;
 
-double nucleusRecoil(double(*vfv)(double),
+  M_cdm=pMass(WINP);
+  MA=A*0.94;
+  DDmomSQ=0; 
+  nucleonAmplitudes(WINP,pA0,pA5,nA0,nA5);
+
+  int smallMass=0;
+  for(int i=0;i<2;i++) if(!isfinite(pA0[i]) || !isfinite(pA5[i]) || !isfinite(nA0[i]) || !isfinite(nA5[i])) smallMass=1;
+  
+  if(! smallMass)
+  {
+     E=RE_START*1E-6*pow(RE_STEP,RE_DIM-1);
+     DDmomSQ=2*MA*E;
+     nucleonAmplitudes(WINP,pA0_,pA5_,nA0_,nA5_);
+     DDmomSQ=0;
+     double eps=0.01;
+     for(int i=0;i<2;i++) if( 
+        fabs(pA0_[i]-pA0[i])>eps*(fabs(pA0_[i])+fabs(pA0[i]))||
+        fabs(pA5_[i]-pA5[i])>eps*(fabs(pA5_[i])+fabs(pA5[i]))||
+        fabs(nA0_[i]-nA0[i])>eps*(fabs(nA0_[i])+fabs(nA0[i]))||
+        fabs(nA5_[i]-nA5[i])>eps*(fabs(nA5_[i])+fabs(nA5[i])) 
+                            ) smallMass=1;
+  }
+  
+  if(!smallMass)    
+  {
+     for(i=0,css=0,csv00=0,csv01=0,csv11=0;i<2;i++)
+     { double AS=Z*pA0[i]+(A-Z)*nA0[i];
+       double AVplus =pA5[i]+nA5[i];
+       double AVminus=pA5[i]-nA5[i];
+       double C=(1+dmAsymm*(1-2*i))/2;
+       css+=AS*AS*C;
+       csv00+=AVplus*AVplus*C;
+       csv11+=AVminus*AVminus*C;
+       csv01+=AVplus*AVminus*C;
+     }  
+     return nucleusRecoil_stat(M_cdm,fv,A,Z,J,Sxx,
+                                css,csv00,csv01,csv11,dNdE);
+  }
+//  case of small Mass in t-channel
+
+
+  const double  Kg=1./1.782662E-27;          /* GeV  */
+  const double  vC=299792;                   /* km/s */
+  const double lDay=60.*60.*24.;             /* sec  */  
+
+  const double step=1.E-6*RE_STEP;              /* 1KeV */
+
+  double ffs,Rs,sum; 
+  double FFs=1, s00,s01,s11;
+  double E0,vmin,vmax;
+  double Mr, SCcoeff;
+  
+  if(fv==Maxwell) vmax=vEsc+vEarth; 
+  else vmax=1200.;
+  
+  MA=0.94*A;
+
+  
+/*printf("css=%E, csv00=%E, csv11=%E, csv01=%E\n",css,csv00,csv11,csv01);*/
+
+  if(A>1)
+  {
+    Rs=C_*pow(A,1./3.)+B_;
+    R_=Rs; a_=A_; 
+    ffs=simpson(FermiND0,0., R_+10*0.5, 1.E-4,NULL);
+  }
+
+  E0=M_cdm/(M_cdm+MA),E0=2*MA*E0*E0;
+  Mr=MA*M_cdm/(MA+M_cdm);
+
+  SCcoeff=4/M_PI*3.8937966E-28*Mr*Mr;
+  
+  for(i=0,sum=0;i<RE_DIM;i++)
+  { double E=RE_START*1E-6*pow(RE_STEP,i);
+
+    vmin=sqrt(E/E0)*vC;
+    double p=sqrt(E*MA*2)/0.197327;
+    
+    if(vmin>=vmax)  { dNdE[i]=0;continue;}
+    if(i && A>1)
+    { 
+      p_=p;    
+      R_=Rs; a_=A_; 
+      FFs=simpson(FermiNDP,0., R_+10*0.5, 1.E-4,NULL)/p_/ffs;      
+    } else FFs=1;
+    
+    DDmomSQ=2*MA*E;
+    nucleonAmplitudes(WINP,pA0,pA5,nA0,nA5);
+    css=0,csv00=0,csv01=0,csv11=0;
+    for(int k=0;k<2;k++)
+    {  double AS=Z*pA0[k]+(A-Z)*nA0[k];
+       double AVplus =pA5[k]+nA5[k];
+       double AVminus=pA5[k]-nA5[k];
+       double C=(1+dmAsymm*(1-2*k))/2;
+       css+=AS*AS*C;
+       csv00+=AVplus*AVplus*C;
+       csv11+=AVminus*AVminus*C;
+       csv01+=AVplus*AVminus*C;
+    }
+
+    css*=SCcoeff;
+    csv00*=4*M_PI*SCcoeff/(2*J+1);    
+    csv11*=4*M_PI*SCcoeff/(2*J+1);
+    csv01*=4*M_PI*SCcoeff/(2*J+1);
+
+    dNdE[i]=FFs*FFs*css;
+
+    if(J && Sxx)
+    {  Sxx(p,&s00,&s01,&s11);
+       dNdE[i]+=(csv00*s00+csv01*s01+csv11*s11);
+    }   
+        
+    dNdE[i]*=simpson(vfv,vmin,vmax,1.E-4,NULL);
+    dNdE[i]*=1/E0*1.E5*vC*vC*(rhoDM/M_cdm)*lDay*(Kg/MA)*1.E-6;
+    if(i==0)            sum+=1E6*E*sqrt(RE_STEP)*dNdE[i];
+    else if(i==RE_DIM-1) sum+=1E6*E/sqrt(RE_STEP)*dNdE[i];
+    else                sum+=1E6*E*(sqrt(RE_STEP)+1/sqrt(RE_STEP))*dNdE[i];
+  }
+   DDmomSQ=0;
+  return sum;
+}
+ 
+
+double nucleusRecoil(double(*fv)(double),
 int A, int Z, double J,
 void (*Sxx)(double,double*,double*,double*),
 double * dNdE)  
-{  int i;
-   double NfracCDM2; 
-   if(CDM1  && !CDM2)   return nucleusRecoil1(CDM1,vfv,A,Z,J,Sxx,dNdE); 
-   if(!CDM1 &&  CDM2)   return nucleusRecoil1(CDM2,vfv,A,Z,J,Sxx,dNdE); 
+{  int i; 
+   if(CDM1  && !CDM2)   return nucleusRecoil1(CDM1,fv,A,Z,J,Sxx,dNdE); 
+   if(!CDM1 &&  CDM2)   return nucleusRecoil1(CDM2,fv,A,Z,J,Sxx,dNdE); 
    if(CDM1  &&  CDM2) 
-   { double dNdE1[REDIM];
+   { double dNdE1[RE_DIM];
      double r1=0,r2=0;
-     if(fracCDM2!=1) r1= nucleusRecoil1(CDM1,vfv,A,Z,J,Sxx,dNdE1); 
-     if(fracCDM2!=0) r2= nucleusRecoil1(CDM2,vfv,A,Z,J,Sxx,dNdE);
+     if(fracCDM2!=1) r1= nucleusRecoil1(CDM1,fv,A,Z,J,Sxx,dNdE1); 
+     if(fracCDM2!=0) r2= nucleusRecoil1(CDM2,fv,A,Z,J,Sxx,dNdE);
      if(fracCDM2==1) {   return r2;}
-     if(fracCDM2==0) { for(i=0;i<NZ;i++) dNdE[i]=dNdE1[i];    return r1;}
+     if(fracCDM2==0) { for(i=0;i<RE_DIM;i++) dNdE[i]=dNdE1[i];    return r1;}
       
-     NfracCDM2=  fracCDM2*Mcdm1/(fracCDM2*Mcdm1 +(1-fracCDM2)*Mcdm2);      
-     
-     for(i=0;i<NZ;i++) dNdE[i]=(1-NfracCDM2)*dNdE1[i]+ NfracCDM2*dNdE[i];
-     return r1*(NfracCDM2-1)+r2*NfracCDM2;
+     for(i=0;i<RE_DIM;i++) dNdE[i]=(1-fracCDM2)*dNdE1[i]+ fracCDM2*dNdE[i];
+     return r1*(fracCDM2-1)+r2*fracCDM2;
    }
 }
 
-double nucleusRecoilAux( 
-      double(*vfv)(double),
+double nucleusRecoilCS( 
+      double(*fv)(double),
       int A, int Z, double J,
       void(*Sxx)(double,double*,double*,double*),
       double  siP, double siN, double sdP,  double sdN,
@@ -876,12 +996,12 @@ double nucleusRecoilAux(
   csv11=AVminus*AVminus;
   csv01=AVplus*AVminus;
 
-  return nucleusRecoil_stat(Mcdm,vfv,A,Z,J,Sxx,
+  return nucleusRecoil_stat(Mcdm,fv,A,Z,J,Sxx,
                                 css,csv00,csv01,csv11,dNdE);
 } 
 
-double nucleusRecoil0Aux( 
-      double(*vfv)(double),
+double nucleusRecoil0CS( 
+      double(*fv)(double),
       int A, int Z, double J,
       double Sp,double Sn, 
       double siP, double siN, double sdP,   double sdN,
@@ -906,12 +1026,12 @@ double nucleusRecoil0Aux(
   csv11=AVminus*AVminus;
   csv01=AVplus*AVminus;
 
-  return nucleusRecoil0_stat(vfv,A,Z,J,Sp,Sn,
+  return nucleusRecoil0_stat(fv,A,Z,J,Sp,Sn,
                                 css,csv00,csv01,csv11,dNdE);
 } 
 
 
-double nucleusRecoil0(double(*vfv)(double),
+double nucleusRecoil0(double(*fv)(double),
 int A, int Z, double J,double Sp,double Sn,
 double * dNdE)
 {
@@ -923,29 +1043,22 @@ double * dNdE)
     S11_0=  (Sp-Sn)*(Sp-Sn)*(2*J+1)*(J+1)/(4*M_PI*J);
     S01_0=2*(Sp+Sn)*(Sp-Sn)*(2*J+1)*(J+1)/(4*M_PI*J);
   }  
-  return nucleusRecoil(vfv,A,Z,J,Sxx_,dNdE);
+  return nucleusRecoil(fv,A,Z,J,Sxx_,dNdE);
 }
  
-
-
-/*====== Auxilarry service functions ======*/
-int displayRecoilPlot(double * tab, char * text, double  E1, double E2)
-{   
-  displayPlot(text,"E[keV]", E1, E2,0,1,"dM/dE", 0, dNdERecoil, tab);
-  return 0;
-}
 
 
 
 double dNdERecoil(double E, double *tab)
 {  double kE,alpha;
    int k;
-   
-   kE= log(E/eStart)/log(eStep);
-   if(kE<0 || kE>REDIM-1) return 0;
+   if(E<RE_START) return 0;
+   kE= log(E/RE_START)/log(RE_STEP);
+   if(kE<0 || kE>RE_DIM-1) return 0;
    k=kE;
-   if(k>REDIM-2) k=REDIM-2;
+   if(k>RE_DIM-2) k=RE_DIM-2;
    alpha= kE-k;
+   if(tab[k]>0 && tab[k+1]>0) return pow(tab[k],1-alpha)*pow(tab[k+1],alpha);
    return (1-alpha)*tab[k]+alpha*tab[k+1];
 }
 
@@ -954,731 +1067,91 @@ double dNdERecoil(double E, double *tab)
 double cutRecoilResult(double *tab, double E1, double E2)  // ????
 { int i,i1,i2;
   double sum,dx;
-  if(E2>eStep*(REDIM-1)) 
+  if(E2>RE_STEP*(RE_DIM-1)) 
   { 
     printf("cutRecoilResult:  Maximal bound %.3E is larger than data limit %.3E\n",
-       E2,eStep*(REDIM-1));
-    E2=eStep*(REDIM-1); 
+       E2,RE_STEP*(RE_DIM-1));
+    E2=RE_STEP*(RE_DIM-1); 
   } 
   if(E1<0)   E1=0;
   if(E1>=E2) return 0;
   
-  i1=E1/eStep;  i2=E2/eStep;
-  if(i1<E1/eStep) i1++;
+  i1=E1/RE_STEP;  i2=E2/RE_STEP;
+  if(i1<E1/RE_STEP) i1++;
   
   for(i=i1,sum=0;i<=i2;i++) sum+=tab[i];
   sum-=(tab[i1]+tab[i2])/2;
-  dx=i1 -E1/eStep;
+  dx=i1 -E1/RE_STEP;
   if(dx>0) sum+=tab[i1]*dx + (tab[i1-1]-tab[i1])*dx*dx/2  ;
-  dx=E2/eStep-i2;
+  dx=E2/RE_STEP-i2;
   if(dx) sum+=tab[i2]*dx  +(tab[i2+1]-tab[i2])*dx*dx/2;
   
-  return sum*eStep;
+  return sum*RE_STEP;
 }
 
 
-/* SECTIONS   Nuclear Form Factors for vector current =====*/
 
-#define beta0(u,upi) ( ((upi)*(upi)/((u)+(upi))/((u)+(upi))-1.)/3.)
-#define pimass (0.135/0.197327)
-#define P01(u)  ( 0.1145*(u)*(u) - 0.6667*(u) + 1.)
-#define P21(u)  (-0.0026*(u)*(u) + 0.0100*(u) )
-#define Q01(u)  ( 0.1088*(u)*(u) - 0.6667*(u) + 1.)
-#define Q21(u)  ( 0.0006*(u)*(u) + 0.0041*(u) )
 
-#define J 0.5
-#define A 19
 
-void SxxF19(double q, double*S00,double*S01,double*S11)
-{
-  double q_fm=q;
-  double bsq=pow(A,1./3.), u=0.5*bsq*q_fm*q_fm;
-  double upi=0.5*bsq*pimass*pimass;
-  double p01=P01(u), p21=P21(u); 
-  double q01=Q01(u), q21=Q21(u);  
-  double be0=beta0(u,upi), be2=2*be0,be02=-sqrt(2.)*be0;
-  
-  *S00=((2*J+1)/16/M_PI)*2.610*exp(-u)*(p01*p01*(1+be0)+p21*p21*(1+be2)-2*be02*p01*p21);
-  *S11=((2*J+1)/16/M_PI)*2.807*exp(-u)*(q01*q01*(1+be0)+q21*q21*(1+be2)-2*be02*q01*q21);
-  *S01=((2*J+1)/ 8/M_PI)*2.707*exp(-u)*(p01*q01*(1+be0)+p21*q21*(1+be2)-be02*(p01*q21+p21*q01));            
-}
-/*
-double S00F19(double q)
-{ double q_fm=q;
-  double bsq=pow(A,1./3.), u=0.5*bsq*q_fm*q_fm;
-  double upi=0.5*bsq*pimass*pimass;
-  double p01=P01(u), p21=P21(u);
-  double q01=Q01(u), q21=Q21(u);   
-  double be0=beta0(u,upi), be2=2*be0,be02=-sqrt(2.)*be0;
-  
-  return ((2*J+1)/16/M_PI)*2.610*exp(-u)*(p01*p01*(1+be0)+p21*p21*(1+be2)
-  -2*be02*p01*p21);
-} 
 
-double S11F19(double q)
-{ double q_fm=q;
-  double bsq=pow(A,1./3.), u=0.5*bsq*q_fm*q_fm;
-  double upi=0.5*bsq*pimass*pimass;
-  double q01=Q01(u), q21=Q21(u); 
-  double be0=beta0(u,upi), be2=2*be0,be02=-sqrt(2.)*be0;
-  
-  return ((2*J+1)/16/M_PI)*2.807*exp(-u)*(q01*q01*(1+be0)+q21*q21*(1+be2)
-  -2*be02*q01*q21);
-} 
 
-double S01F19(double q)
-{ double q_fm=q;
-  double bsq=pow(A,1./3.), u=0.5*bsq*q_fm*q_fm;
-  double upi=0.5*bsq*pimass*pimass;
-  double p01=P01(u), p21=P21(u); 
-  double q01=Q01(u), q21=Q21(u); 
-  double be0=beta0(u,upi), be2=2*be0,be02=-sqrt(2.)*be0;
-  
-  return ((2*J+1)/8/M_PI)*2.707*exp(-u)*(p01*q01*(1+be0)+p21*q21*(1+be2)
-  -be02*(p01*q21+p21*q01));
-} 
-*/
 
-#undef P01
-#undef P21
-#undef Q01
-#undef Q21
-#undef J 
-#undef A 
 
-#define P01(u)  ( 0.2843*(u)*(u) - 0.6667*(u)  + 1.)
-#define P21(u)  ( -0.0567*(u)*(u) + 0.4566*(u))
-#define Q01(u)  ( 0.2710*(u)*(u) - 0.6667*(u) + 1.)
-#define Q21(u)  ( -0.0621*(u)*(u) + 0.4680*(u) )
+#ifdef INPROGRESS
 
-#define J 0.5
-#define A 29
+static double nuSpect(double Enu/*MeV*/)  { return 1; /*1/MeV/cm^2/s*/}
+static double nuSpectF(double Enu) { return 1000*nuSpect(Enu*1000)*(1-MAEr/(2*Enu*Emu));}
 
-void SxxSi29(double q, double*S00,double*S01,double*S11)
-{ double q_fm=q;
-  double bsq=pow(A,1./3.), u=0.5*bsq*q_fm*q_fm;
-  double upi=0.5*bsq*pimass*pimass;
-  double p01=P01(u),p21=P21(u); 
-  double q01=Q01(u), q21=Q21(u);
-  double be0=beta0(u,upi), be2=2*be0,be02=-sqrt(2.)*be0;
-  *S00=((2*J+1)/16/M_PI)*0.208*exp(-u)*(p01*p01*(1+be0)+p21*p21*(1+be2)-2*be02*p01*p21);
-  *S11=((2*J+1)/16/M_PI)*0.220*exp(-u)*(q01*q01*(1+be0)+q21*q21*(1+be2)-2*be02*q01*q21);
-  *S01=((2*J+1)/8/M_PI)*(-sqrt(0.208*0.220))*exp(-u)*(p01*q01*(1+be0)+p21*q21*(1+be2)-be02*(p01*q21+p21*q01)); 
-} 
+static double MAEr;
 
-/*
-double S11Si29(double q)
-{ double q_fm=q;
-  double bsq=pow(A,1./3.), u=0.5*bsq*q_fm*q_fm;
-  double upi=0.5*bsq*pimass*pimass;
-  double q01=Q01(u), q21=Q21(u); 
-  double be0=beta0(u,upi), be2=2*be0,be02=-sqrt(2.)*be0;
-  
-  return ((2*J+1)/16/M_PI)*0.220*exp(-u)*(q01*q01*(1+be0)+q21*q21*(1+be2)
-  -2*be02*q01*q21);
-} 
 
-double S01Si29(double q)
-{ double q_fm=q;
-  double bsq=pow(A,1./3.), u=0.5*bsq*q_fm*q_fm;
-  double upi=0.5*bsq*pimass*pimass;
-  double p01=P01(u), p21=P21(u); 
-  double q01=Q01(u), q21=Q21(u); 
-  double be0=beta0(u,upi), be2=2*be0,be02=-sqrt(2.)*be0;
-    
-  return ((2*J+1)/8/M_PI)*(-sqrt(0.208*0.220))*exp(-u)*(p01*q01*(1+be0)+p21*q21*(1+be2)
-  -be02*(p01*q21+p21*q01));
-} 
-*/
-
-#undef P01
-#undef P21
-#undef Q01
-#undef Q21
-#undef J 
-#undef A 
-
-#define P01(u)  ( 0.0477*u*u - 0.6667*u + 1)
-#define P21(u)  (-0.0177*u*u + 0.1048*u)
-#define P23(u)  (-0.0767*u*u + 0.6092*u)
-#define P43(u)  ( 0.0221*u*u)
-
-#define Q01(u)  ( 0.0465*u*u - 0.6667*u + 1)
-#define Q21(u)  (-0.0349*u*u + 0.1494*u)
-#define Q23(u)  (-0.0894*u*u + 0.7405*u)
-#define Q43(u)  ( 0.0287*u*u)
-
-#define J 1.5
-#define A 23
-/*#define b 1.69*/
-
-/*========================= Na23 ===================*/
-void SxxNa23A(double q, double*S00,double*S01,double*S11)
-{
-  double q_fm=q;
-  double bsq=pow(A,1./3.), u=0.5*bsq*q_fm*q_fm;
-  double p01=P01(u),p21=P21(u),p23=P23(u),p43=P43(u);
-  double q01=Q01(u),q21=Q21(u),q23=Q23(u),q43=Q43(u); 
-  *S00=((2*J+1)/16/M_PI)*(0.478)*exp(-u)*(p01*p01+p21*p21+p23*p23+p43*p43);
-  *S01=((2*J+1)/8/M_PI)*(0.406)*exp(-u)*(p01*q01+p21*q21+p23*q23+p43*q43);
-  *S11=((2*J+1)/16/M_PI)*(0.346)*exp(-u)*(q01*q01+q21*q21+q23*q23+q43*q43);
-}
-
-#undef P01
-#undef P21
-#undef P23
-#undef P43
-#undef Q01
-#undef Q21
-#undef Q23
-#undef Q43
-#undef J 
-#undef A 
-#undef b
-
-/*--------- exponential parametrization --------*/
-
-double static ss_exp_aux(double q, double A, double a,double b)
-{   double q_fm=q, y=0.25*pow(A,1./3.)*q_fm*q_fm;
-    return a*exp(-b*y);
-}    
-
-/*================= Si29A ======	=============== */ 
-void SxxSi29A(double q,double *S00,double*S01,double*S11)
-{ *S00=ss_exp_aux(q, 29,0.00818,4.428);
-  *S01=ss_exp_aux(q, 29,0.00818*(-2.06),5.413);
-  *S11=ss_exp_aux(q, 29,0.00818*1.06,6.264);
-}  
-/*
-double S00Si29A(double q)  {return ss_exp_aux(q, 29,0.00818,4.428);}   
-double S11Si29A(double q)  {return ss_exp_aux(q, 29,0.00818*1.06,6.264);}
-double S01Si29A(double q)  {return ss_exp_aux(q, 29,0.00818*(-2.06),5.413);}
-*/
-/*================= Ge73A ===================== */
-void SxxGe73A(double q,double *S00,double*S01,double*S11)
-{
-  *S00=ss_exp_aux(q,73,0.20313*1.102,7.468);
-  *S01=ss_exp_aux(q,73,0.20313*(-2.099),8.191);
-  *S11=ss_exp_aux(q,73,0.20313,8.856);
-}
-/*
-double S00Ge73A(double q){return ss_exp_aux(q,73,0.20313*1.102,7.468);}
-double S11Ge73A(double q){return ss_exp_aux(q,73,0.20313,8.856);}
-double S01Ge73A(double q){return ss_exp_aux(q,73,0.20313*(-2.099),8.191);} 
-*/
-  
-/*-------polinomial parametrization ----------------*/
+void neutrinoNucleusRecoil(
+      int A, int Z, double J, void (*Sxx)(double, double *,double *, double *),
  
-static double SSxxYYzz(double q,double * data, int nData,int A,int expKey,double yN,double y_max)
-{ int i;
-  double q_fm=q, 
-/*  y=0.25*pow((double)A,1./3.)*q_fm*q_fm, y_i,res;*/
-    y=0.25*pow(A,1./3.)*(41.467/(45-25/pow(A,1./3.)))*q_fm*q_fm, y_i,res;
-
-  if(y>y_max) return 0.;
-  for(i=1,res=data[0],y_i=1;i<nData;i++) {y_i*=y; res+=y_i*data[i]; }
-  res+=yN/(1+y);
-  if(expKey) res*=exp(-2*y);
-  return res;
-} 
-
-/*========================= Na23 ===================*/
-void SxxNa23(double q, double*S00,double*S01,double*S11)
-{ double data00[4]={0.0380,-0.1743,0.3783,-0.3430};
-  double data01[4]={0.0647, -0.3503,0.9100,-0.9858};
-  double data11[4]={0.0275,-0.1696,0.5077,-0.6180};
-  *S00=SSxxYYzz(q,data00,4,23,0,0.,0.2);
-  *S01=SSxxYYzz(q,data01,4,23,0,0.,0.2);
-  *S11=SSxxYYzz(q,data11,4,23,0,0.,0.2);
-}
-
-/*
-double S00Na23(double q)
-{ 
-  double data[4]={0.0380,-0.1743,0.3783,-0.3430};
-  return SSxxYYzz(q,data,4,23,0,0.,0.2);
-}
-double S01Na23(double q)
-{ 
-  double data[4]={0.0647, -0.3503,0.9100,-0.9858};
-  return SSxxYYzz(q,data,4,23,0,0.,0.2);
-}
-double S11Na23(double q)
-{ 
-  double data[4]={0.0275,-0.1696,0.5077,-0.6180};
-  return SSxxYYzz(q,data,4,23,0,0.,0.2);
-}                            
-*/
-
-/* ========================= Al27 ==================*/
-
-void SxxAl27(double q,double*S00,double*S01,double*S11)
+      double * dNdE)
 {
-   double data00[4]={0.0930,-0.4721,1.0600,-1.0115};
-   double data01[4]={0.1563,-0.9360,2.4578,-2.7262};
-   double data11[4]={0.0657,-0.4498,1.3504,-1.6851};
-   *S00=SSxxYYzz(q,data00,4,27,0,0.,0.3);
-   *S01=SSxxYYzz(q,data01,4,27,0,0.,0.3);
-   *S11=SSxxYYzz(q,data11,4,27,0,0.,0.3);
-}
-/*
-double S00Al27(double q)
-{ 
-  double data[4]={0.0930,-0.4721,1.0600,-1.0115};
-  return SSxxYYzz(q,data,4,27,0,0.,0.3);
-}
-double S11Al27(double q)
-{ 
-  double data[4]={0.0657,-0.4498,1.3504,-1.6851};
-  return SSxxYYzz(q,data,4,27,0,0.,0.3);
-}
-double S01Al27(double q)
-{ 
-  double data[4]={0.1563,-0.9360,2.4578,-2.7262};
-  return SSxxYYzz(q,data,4,27,0,0,0.3);
-} 
-*/
-                           
-/*============================== K39 =================*/
+  const double  Kg=1./1.782662E-27;          /* GeV  */
+  const double  vC=299792;                   /* km/s */
+  const double lDay=60.*60.*24.;             /* sec  */  
 
-void SxxK39(double q,double*S00,double*S01,double*S11)
-{
-  double data00[5]={0.0094999,-0.0619718,0.162844,-0.194282,0.0891054};
-  double data01[5]={0.0332044,-0.2319430,0.638528,-0.798523,0.3809750};
-  double data11[5]={0.0298127,-0.2176360,0.623646,-0.814418,0.4050270};
-  *S00=SSxxYYzz(q,data00,5,39,0,0.,0.6);
-  *S01=SSxxYYzz(q,data01,5,39,0,0.,0.6);
-  *S11=SSxxYYzz(q,data11,5,39,0,0.,0.6);
-}
-/*
-double S00K39(double q)
-{ 
-  double data[5]={0.0094999,-0.0619718,0.162844,-0.194282,0.0891054};
-  return SSxxYYzz(q,data,5,39,0,0.,0.6);
-}
-double S11K39(double q)
-{ 
-  double data[5]={0.0298127,-0.2176360,0.623646,-0.814418,0.4050270};
-  return SSxxYYzz(q,data,5,39,0,0.,0.6);
-}
-double S01K39(double q)
-{ 
-  double data[5]={0.0332044,-0.2319430,0.638528,-0.798523,0.3809750};
-  return SSxxYYzz(q,data,5,39,0,0.,0.6);
-}                            
-*/
+  const double step=1.E-6*RE_STEP;              /* 1KeV */
 
-/*=========================== Ge73 =====================*/
+  int i;
+  double MA,ffs,Rs,sum; 
+  double FFs=1, s00,s01,s11;
+  double E0,vmin,vmax;
 
-void SxxGe73(double q,double*S00,double*S01,double*S11)
-{
-  double data00[7]={0.1606, -1.1052,3.2320,-4.9245,4.1229,-1.8016,0.3211};
-  double data01[7]={-0.271006,2.018922,-6.226466,9.860608,-8.502157,3.800620,-0.689352};
-  double data11[7]={0.1164,-0.9228,2.9753,-4.8709,4.3099,-1.9661,0.3624 };
-  *S00=SSxxYYzz(q,data00,7,73,0,0.,1.3);
-  *S01=SSxxYYzz(q,data01,7,73,0,0.,1.3);
-  *S11=SSxxYYzz(q,data11,7,73,0,0.,1.3);
-}
-
-/*
-double S00Ge73(double q)
-{ 
-  double data[7]={0.1606, -1.1052,3.2320,-4.9245,4.1229,-1.8016,0.3211};
-  return SSxxYYzz(q,data,7,73,0,0.,1.3);
-}
-double S11Ge73(double q)
-{ 
-  double data[7]={0.1164,-0.9228,2.9753,-4.8709,4.3099,-1.9661,0.3624 };
-  return SSxxYYzz(q,data,7,73,0,0.,1.3);
-}
-double S01Ge73(double q)
-{ 
-  double data[7]={-0.271006,2.018922,-6.226466,9.860608,-8.502157,3.800620,-0.689352};
-  return SSxxYYzz(q,data,7,73,0,0.,1.3);
-}
-*/
-
-/* ========================= Nb93 ==================== */
-void SxxNb93(double q,double*S00,double*S01,double*S11)
-{ double  q2[9]= {0,    0.002,0.004,0.006,0.008,0.01, 0.014,0.02, 0.03};
-  double s00[9]={0.284,0.19, 0.122,0.082,0.058,0.039,0.024,0.021,0.02};
-  double s01[9]={0.4,0.26, 0.161,0.105,0.07, 0.046,0.029,0.026,0.024};
-  double s11[9]={0.14,0.085,0.053,0.034,0.02, 0.012,0.0052,0.003,0.0025}; 
-  double x=q*0.197327;
-  x*=x; 
-  if(x>0.03){ *S00=0; *S01=0; *S11=0; return;}
-  *S00=polint3(x,9,q2,s00);
-  *S01=polint3(x,9,q2,s01);
-  *S11=polint3(x,9,q2,s11);
-}  
-/*  
-
-double S00Nb93(double q)
-{
- double  q2[9]= {0,    0.002,0.004,0.006,0.008,0.01, 0.014,0.02, 0.03};
- double  s00[9]={0.284,0.19, 0.122,0.082,0.058,0.039,0.024,0.021,0.02};
- double x=q*0.197327;
- x*=x;
- if(x>0.03) return 0;
- return polint3(x,9,q2,s00);
-}
-double S11Nb93(double q)
-{
- double q2[9]= {0,   0.002,0.004,0.006,0.008,0.01, 0.014, 0.02, 0.03};
- double s11[9]={0.14,0.085,0.053,0.034,0.02, 0.012,0.0052,0.003,0.0025};
- double x=q*0.197327;
- x*=x;
-  if(x>0.03) return 0;
- return  polint3(x,9,q2,s11);
-}
-double S01Nb93(double q)
-{
- double q2[9]= {0,  0.002,0.004,0.006,0.008,0.01, 0.014,0.02, 0.03};
- double s01[9]={0.4,0.26, 0.161,0.105,0.07, 0.046,0.029,0.026,0.024};
- double x=q*0.197327;
- x*=x;
- if(x>0.03) return 0;
- return polint3(x,9,q2,s01);
-}
-*/
-
-/*============================ Xe131B =======================*/
-
-void SxxXe131B(double q,double*S00,double*S01,double*S11)
-{ double q2[11]= {0,0.0025,0.005,0.01,0.015,0.02,0.025,0.03,0.04,0.05,0.06};
-  double s00[11]={0.04,0.0215,0.014,0.01,0.009,0.008,0.0075,0.0066,0.005,0.0035,0.0017};
-  double s01[11]={ -0.056,-0.028,-0.019,-0.013,-0.01,-0.009,-0.008,-0.007,-0.005,-0.003,-0.001 };
-  double s11[11]={0.020,0.009,0.006,0.004,0.003,0.0027,0.0025,0.0023,0.0019,0.0015,0.001};
-  double x=q*0.197327;
-  x*=x;
-  if(x>0.06) { *S00=0; *S01=0; *S11=0; return;} 
-  *S00= polint3(x,11,q2,s00);
-  *S01= polint3(x,11,q2,s01);
-  *S11= polint3(x,11,q2,s11);
-}
-
-void SxxXe131Me(double q,double*S00,double*S01,double*S11) // Menendez et al.;  1208.1094
-{
-  double data00[10]={ 0.0417889, -0.111171 , 0.171966, -0.133219 ,  0.0633805, -0.0178388,  0.00282476, -2.31681E-4, 7.78223E-6, -4.49287E-10};
-  double data11[10]={ 0.022446 , -0.0733931, 0.110509, -0.0868752,  0.0405399, -0.0113544,  0.00187572, -1.75285E-4, 8.40043E-6, -1.53632E-7 };
-  double data01[10]={-0.0608808,  0.181473 ,-0.272533,  0.211776 , -0.0985956,  0.027438 , -0.0044424 ,  3.97619E-4,-1.74758E-5,  2.55979E-7 };
-
-  double b=2.2905; // fm 
-  double u=q*q*b*b/2;
+  else vmax=1200.;
   
-  *S00=data00[0],*S01=data01[0]; *S11=data11[0];
-  double un=u;
-  for(int i=1;i<10;i++) { *S00+=un*data00[i];*S01+=un*data01[i];*S11+=un*data11[i]; un*=u;}
-  *S00*=exp(-u); *S01*=exp(-u); *S11*=exp(-u);  
-}
+  MA=0.94*A;
 
-
-/*
-double S00Xe131B(double q)
-{
- double q2[11]= {0,0.0025,0.005,0.01,0.015,0.02,0.025,0.03,0.04,0.05,0.06};
- double  s00[11]={0.04,0.0215,0.014,0.01,0.009,0.008,0.0075,0.0066,0.005,0.0035,0.0017};
- double x=q*0.197327;
- x*=x;
- if(x>0.06) return 0;
- return polint3(x,11,q2,s00);
-}
-double S11Xe131B(double q)
-{
- double q2[11]= {0,0.0025,0.005,0.01,0.015,0.02,0.025,0.03,0.04,0.05,0.06};
- double s11[11]={0.020,0.009,0.006,0.004,0.003,0.0027,0.0025,0.0023,0.0019,0.0015,0.001};
- double x=q*0.197327;
- x*=x;
- if(x>0.06) return 0;
- return polint3(x,11,q2,s11);
-}
-double S01Xe131B(double q)
-{
- double q2[11]= {0,0.0025,0.005,0.01,0.015,0.02,0.025,0.03,0.04,0.05,0.06};
- double s01[11]={ -0.056,-0.028,-0.019,-0.013,-0.01,-0.009,-0.008,-0.007,-0.005,-0.003,-0.001 };
- double x=q*0.197327;
- x*=x;
- if(x>0.06) return 0;
- return polint3(x,11,q2,s01);
-}
-*/
-
-/*============================ Te125 =======================*/
-
-void SxxTe125(double q,double*S00,double*S01,double*S11)
-{
-  double data00[9]={0.03971,-0.19610, 0.47265,-0.65023, 0.54193,-0.26456, 0.07489,-0.01146,0.00075};
-  double data01[9]={-0.07894, 0.42738,-1.09331, 1.55324,-1.28933, 0.61844,-0.16964, 0.02481,-0.00152};
-  double data11[9]={ 0.03922,-0.22938,0.62215,-0.92253,0.78465,-0.38245,0.1057,-0.01542,0.00093 };
-  *S00=SSxxYYzz(q,data00,9,125,1,0.,10.);
-  *S01=SSxxYYzz(q,data01,9,125,1,0.,10.);
-  *S11=SSxxYYzz(q,data11,9,125,1,0.,10.); 
-}
-/*
-double S00Te125(double q)
-{
- double data[9]={0.03971,-0.19610, 0.47265,-0.65023, 0.54193,-0.26456, 0.07489,-0.01146,0.00075};
- return SSxxYYzz(q,data,9,125,1,0.,10.);
-}
-double S11Te125(double q)
-{
- double data[9]={ 0.03922,-0.22938,0.62215,-0.92253,0.78465,-0.38245,0.1057,-0.01542,0.00093 };
- return SSxxYYzz(q,data,9,125,1,0.,10.);
-}
-double S01Te125(double q)
-{
- double data[9]={-0.07894, 0.42738,-1.09331, 1.55324,-1.28933, 0.61844,-0.16964, 0.02481,-0.00152  }; 
- return SSxxYYzz(q,data,9,125,1,0.,10.);
-}
-*/
-
-/*============================ I127 =======================*/
-
-void SxxI127(double q,double*S00,double*S01,double*S11)
-{
-  double data00[9]={0.0983,-0.4891,1.1402,-1.4717,1.1717,-0.5646,0.1583,-0.0239,0.0015};
-  double data01[9]={0.1199,-0.6184,1.5089,-2.0737,1.7731,-0.9036,0.2600,-0.0387,0.0024};
-  double data11[9]={0.0366,-0.1950,0.5049,-0.7475,0.7043,-0.3930,0.1219,-0.0192,0.0012};
-  *S00=SSxxYYzz(q,data00,9,127,1,0.,10.);
-  *S01=SSxxYYzz(q,data01,9,127,1,0.,10.);
-  *S11=SSxxYYzz(q,data11,9,127,1,0.,10.);
-}
-
-/*
-double S00I127(double q)
-{
- double data[9]={0.0983,-0.4891,1.1402,-1.4717,1.1717,-0.5646,0.1583,-0.0239,0.0015};
- return SSxxYYzz(q,data,9,127,1,0.,10.);
-}
-double S11I127(double q)
-{
- double data[9]={0.0366,-0.1950,0.5049,-0.7475,0.7043,-0.3930,0.1219,-0.0192,0.0012};
- return SSxxYYzz(q,data,9,127,1,0.,10.);
-}
-double S01I127(double q)
-{
- double data[9]={0.1199,-0.6184,1.5089,-2.0737,1.7731,-0.9036,0.2600,-0.0387,0.0024}; 
- return SSxxYYzz(q,data,9,127,1,0.,10.);
-}
-*/
-
-/*============================ Xe129 =======================*/
-void SxxXe129(double q,double*S00,double*S01,double*S11)
-{
-  double data00[9]={0.07132,-0.34478, 0.75590,-0.93345, 0.69006,-0.30248, 0.07653,-0.01032, 0.00057};
-  double data01[9]={-0.12166, 0.64435,-1.52732, 2.02061,-1.57689, 0.72398,-0.19040, 0.02638,-0.00149};
-  double data11[9]={-2.05825, 1.80756,-1.27746, 0.65459,-0.22197, 0.04546,-0.00427,-0.00014, 0.00004};
-
-  *S00=SSxxYYzz(q,data00,9,129,1,0.,10.);
-  *S01=SSxxYYzz(q,data01,9,129,1,0.,10.);
-  *S11=SSxxYYzz(q,data11,9,129,1,2.11016,10.);  
-}
-
-void SxxXe129M(double q,double*S00,double*S01,double*S11)
-{
-double data00[10]={ 0.054731, -0.146897,  0.182479,-0.128112,  0.0539978, -0.0133335,  0.00190579, -1.48373E-4,  5.11732E-6, -2.06597E-8};
-double data11[10]={ 0.02933,  -0.0905396, 0.122783,-0.0912046, 0.0401076, -0.010598,   0.00168737, -1.56768E-4,  7.69202E-6, -1.48874E-7};
-double data01[10]={-0.0796645, 0.231997, -0.304198, 0.222024, -0.096693,   0.0251835, -0.00392356,  3.53343E-4, -1.65058E-5,  2.88576E-7};
-
-  double b=2.2853; // fm 
-  double u=q*q*b*b/2;
   
-  *S00=data00[0],*S01=data01[0]; *S11=data11[0];
-  double un=u;
-  for(int i=1;i<10;i++) { *S00+=un*data00[i];*S01+=un*data01[i];*S11+=un*data11[i]; un*=u;}
-  *S00*=exp(-u); *S01*=exp(-u); *S11*=exp(-u);  
-}
 
+  if(A>1)
+  {
+    Rs=C_*pow(A,1./3.)+B_;
+    R_=Rs; a_=A_; 
+    ffs=simpson(FermiND0,0., R_+10*0.5, 1.E-4,NULL);
+  }
+  
+  for(i=0,sum=0;i<RE_DIM;i++)
+  { double E=RE_START*1E-6*pow(RE_STEP,i);
 
-/*
-double S00Xe129(double q)
-{
- double data[9]={0.07132,-0.34478, 0.75590,-0.93345, 0.69006,-0.30248, 0.07653,-0.01032, 0.00057};
- return SSxxYYzz(q,data,9,129,1,0.,10.);
-}
-double S11Xe129(double q)
-{
- double data[9]={-2.05825, 1.80756,-1.27746, 0.65459,-0.22197, 0.04546,-0.00427,-0.00014, 0.00004};
- return SSxxYYzz(q,data,9,129,1,2.11016,10.);
-}
-double S01Xe129(double q)
-{
- double data[9]={-0.12166, 0.64435,-1.52732, 2.02061,-1.57689, 0.72398,-0.19040, 0.02638,-0.00149}; 
- return SSxxYYzz(q,data,9,129,1,0.,10.);
-}
-
-*/
-
-/*============================ Xe131 =======================*/
-
-void SxxXe131(double q,double*S00,double*S01,double*S11)
-{
-  double data00[9]={ 0.02964,-0.13343, 0.37799,-0.57961, 0.57890,-0.34556, 0.11595,-0.02012, 0.00142}; 
-  double data01[9]={-0.05455, 0.27176,-0.72302, 1.05450,-0.97133, 0.53842,-0.16899, 0.02742,-0.00181};
-  double data11[9]={ 0.02510,-0.13772,0.36661,-0.53851, 0.49255,-0.26990, 0.08369,-0.01340, 0.00087};
-
-  *S00=SSxxYYzz(q,data00,9,131,1,0.,10.);
-  *S01=SSxxYYzz(q,data01,9,131,1,0.,10.);
-  *S11=SSxxYYzz(q,data11,9,131,1,0.,10.);   
-}
-/*
-double S00Xe131(double q)
-{
- double data[9]={ 0.02964,-0.13343, 0.37799,-0.57961, 0.57890,-0.34556, 0.11595,-0.02012, 0.00142};
- return SSxxYYzz(q,data,9,131,1,0.,10.);
-}
-double S11Xe131(double q)
-{
- double data[9]={ 0.02510,-0.13772,0.36661,-0.53851, 0.49255,-0.26990, 0.08369,-0.01340, 0.00087};
- return SSxxYYzz(q,data,9,131,1,0.,10.);
-}
-double S01Xe131(double q)
-{
- double data[9]={-0.05455, 0.27176,-0.72302, 1.05450,-0.97133, 0.53842,-0.16899, 0.02742,-0.00181}; 
- return SSxxYYzz(q,data,9,131,1,0.,10.);
-}
-*/
-
-/*============================ Te125A =======================*/
-
-void SxxTe125A(double q,double*S00,double*S01,double*S11)
-{
-  double data00[9]={ 0.04960,-0.24777,0.54766,-0.66553,0.47462,-0.19944,0.04819,-0.00616,0.00032};
-  double data01[9]={-0.09939,0.54303,-1.28816,1.67206,-1.26883,0.56728,-0.14545,0.01959,-0.00107};
-  double data11[9]={-1.92941,1.68075,-1.16336,0.58650,-0.20730,0.05141,-0.00870,0.00087,0.00004};
-  *S00=SSxxYYzz(q,data00,9,125,1,0.,10.);
-  *S01=SSxxYYzz(q,data01,9,125,1,0.,10.);
-  *S11=SSxxYYzz(q,data01,9,125,1,1.97923,10.);
-}
-/* 
-double S00Te125A(double q)
-{double data[9]={0.04960,-0.24777,0.54766,-0.66553,0.47462,-0.19944,0.04819,-0.00616,0.00032};
- return SSxxYYzz(q,data,9,125,1,0.,10.);
-}
-double S11Te125A(double q)
-{
- double data[9]={ -1.92941,1.68075,-1.16336,0.58650,-0.20730,0.05141,-0.00870,0.00087,0.00004};
- return SSxxYYzz(q,data,9,125,1,1.97923,10.);
-}
-double S01Te125A(double q)
-{
- double data[9]={-0.09939,0.54303,-1.28816,1.67206,-1.26883,0.56728,-0.14545,0.01959,-0.00107}; 
- return SSxxYYzz(q,data,9,125,1,0.,10.);
-}
-*/
-/*============================ I127 =======================*/
-
-void SxxI127A(double q,double*S00,double*S01,double*S11)
-{
-  double data00[9]={0.1166,-0.5721,1.3380,-1.7252,1.3774,-0.6700,0.1905,-0.0292,0.0019};
-  double data01[9]={0.1621,-0.8363,2.0594,-2.8319,2.3973,-1.2121,0.3486,-0.0522,0.0032}; 
-  double data11[9]={0.0563,-0.3038,0.7948,-1.1703,1.0637,-0.5713,0.1722,-0.0266,0.0017};
-  *S00=SSxxYYzz(q,data00,9,127,1,0.,10.);
-  *S01=SSxxYYzz(q,data01,9,127,1,0.,10.);
-  *S11=SSxxYYzz(q,data11,9,127,1,0.,10.);
-}
-
-/*
-double S00I127A(double q)
-{
- double data[9]={0.1166,-0.5721,1.3380,-1.7252,1.3774,-0.6700,0.1905,-0.0292,0.0019};
- return SSxxYYzz(q,data,9,127,1,0.,10.);
-}
-double S11I127A(double q)
-{
- double data[9]={0.0563,-0.3038,0.7948,-1.1703,1.0637,-0.5713,0.1722,-0.0266,0.0017};
- return SSxxYYzz(q,data,9,127,1,0.,10.);
-}
-double S01I127A(double q)
-{
- double data[9]={0.1621,-0.8363,2.0594,-2.8319,2.3973,-1.2121,0.3486,-0.0522,0.0032};
- return SSxxYYzz(q,data,9,127,1,0.,10.);
-}
-*/
-
-/*============================ Xe129A =======================*/
-
-void SxxXe129A(double q,double*S00,double*S01,double*S11)
-{
-  double data00[9]={0.04649,-0.22551,0.49905,-0.62244,0.46361,-0.20375,0.05109,-0.00671,0.00036};
-  double data01[9]={-0.08538,0.45343,-1.06546,1.38670,-1.05940,0.47576,-0.12208,0.01643,-0.00089};
-  double data11[9]={-1.28214,1.09276,-0.71295,0.31489,-0.08351,0.01059,0.00023,-0.00024,0.00002};
+    MAEr=MA*E;
     
-  *S00=SSxxYYzz(q,data00,9,129,1,0.,10.);
-  *S01=SSxxYYzz(q,data01,9,129,1,0.,10.);
-  *S11=SSxxYYzz(q,data11,9,129,1,1.32136,10.);
-}
-/*
-double S00Xe129A(double q)
-{
- double data[9]={0.04649,-0.22551,0.49905,-0.62244,0.46361,-0.20375,0.05109,-0.00671,0.00036};
- return SSxxYYzz(q,data,9,129,1,0.,10.);
-}
-double S11Xe129A(double q)
-{
- double data[9]={-1.28214,1.09276,-0.71295,0.31489,-0.08351,0.01059,0.00023,-0.00024,0.00002};
- return SSxxYYzz(q,data,9,129,1,1.32136,10.);
-}
-double S01Xe129A(double q)
-{
- double data[9]={-0.08538,0.45343,-1.06546,1.38670,-1.05940,0.47576,-0.12208,0.01643,-0.00089};
- return SSxxYYzz(q,data,9,129,1,0.,10.);
-}
-*/
+    double r=simpson(nuSpectF, sqrt(MA*E/2),1/*GeV*/, 1E-3,NULL)*lDay; 
+    double p=sqrt(E*MA*2)/0.197327;
 
-/*============================ Xe131A =======================*/
+    if(A>1)
+    { 
+      p_=p;    
+      R_=Rs; a_=A_; 
+      FFs=simpson(FermiNDP,0., R_+10*0.5, 1.E-4,NULL)/p_/ffs;      
+    } else FFs=1;
 
-void SxxXe131A(double q,double*S00,double*S01,double*S11)
-{
-  double data00[9]={0.02773,-0.12449,0.32829,-0.48140,0.47565,-0.28518,0.09682,-0.01710,0.00124};
-  double data01[9]={-0.04978,0.24725,-0.63231,0.89642,-0.81645,0.45235,-0.14267,0.02335,-0.00156};
-  double data11[9]={0.02234,-0.12206,0.31949,-0.46695,0.42877,-0.23679,0.07408,-0.01197,0.00079};
-  
-  *S00=SSxxYYzz(q,data00,9,131,1,0.,10.);
-  *S01=SSxxYYzz(q,data01,9,131,1,0.,10.);
-  *S11=SSxxYYzz(q,data11,9,131,1,0.,10.); 
+    dNdE[i]=FFs*FFs*r*MA*Kg;
+
+  }
 }
 
-/*
-double S00Xe131A(double q)
-{
- double data[9]={0.02773,-0.12449,0.32829,-0.48140,0.47565,-0.28518,0.09682,-0.01710,0.00124};
- return SSxxYYzz(q,data,9,131,1,0.,10.);
-}
-double S11Xe131A(double q)
-{
- double data[9]={0.02234,-0.12206,0.31949,-0.46695,0.42877,-0.23679,0.07408,-0.01197,0.00079};
- return SSxxYYzz(q,data,9,131,1,0.,10.);
-}
-double S01Xe131A(double q)
-{
- double data[9]={-0.04978,0.24725,-0.63231,0.89642,-0.81645,0.45235,-0.14267,0.02335,-0.00156};
- return SSxxYYzz(q,data,9,131,1,0.,10.);
-}
-*/
-
-/*============================ Pb207 =======================*/
-
-static double _u_;
-static double  _fPb_integrand(double x)
-{ double u=_u_*x;
-  return exp(-u/2)*(1.-u*(5./3.-u*(17./15.-u*(31./105.-u*( 9./280.-u*1./840.)))));
-}
-
-void SxxPb207(double q,double*S00,double*S01,double*S11)
-{
-  _u_=0.5*pow(207.,1./3.)*(q)*(q);
-  *S00=((2*0.5+1)/16/M_PI)*0.305*simpson(_fPb_integrand,0.,1.,1.E-4,NULL);
-  *S01=*S00*(-2)*0.266/0.305; 
-  *S11=*S00*0.231/0.305;
-}
-
-/*
-double S00Pb207(double q)
-{
- _u_=0.5*pow(207.,1./3.)*(q)*(q);
- return   ((2*0.5+1)/16/M_PI)*0.305*simpson(_fPb_integrand,0.,1.,1.E-4,NULL);
-}
-double S11Pb207(double q){return S00Pb207(q)*0.231/0.305;}
-double S01Pb207(double q){return  -2*S00Pb207(q)*0.266/0.305;}
-*/
+#endif 

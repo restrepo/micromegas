@@ -6,6 +6,8 @@
 
 #include "lanhep.h"
 
+int has_cmplx_params=0;
+
 int check_funcs=1;
 
 void proc_hash(Term);
@@ -52,11 +54,176 @@ static double cu_rt(double r, double i)
 	return mod*cos(ph);
 }
 
+static void check_fortr(Atom p)
+{
+  char cbuf[64];
+  int i;
+  static int cnt=0;
+  Atom fn, prp;
+  strcpy(cbuf,AtomValue(p));
+  
+  for(i=0; cbuf[i]&&i<64; i++)
+	cbuf[i]=(char)tolower(cbuf[i]);
+  fn=NewAtom(cbuf,0);
+  prp=GetAtomProperty(fn,A_FORT_NAME);
+  if(prp==0)
+  {
+	SetAtomProperty(fn,A_FORT_NAME,p);
+	return;
+  }
+  if(prp==p)
+	return;
+  cnt++;
+  if(cnt==5) puts("More parameters which are equivalent in FORTRAN follow.");
+  if(cnt>4) return;
+  if(FAOutput)
+	ErrorInfo(0);
+  else
+	WarningInfo(0);
+  
+  printf("parameters %s and %s are equivalent in FORTRAN\n",
+		 AtomValue(p),AtomValue(prp));
+}
+
+int ufo_gg_injected=0;
+
+static void proc_ufo_ext(Term t)
+{
+    static Atom sl, sl1=0, sl2=0, ec, eb, et, rc, rb, rt, aq;
+    if(sl1==0) 
+    {
+        sl=NewAtom("slhaVal",0);
+        sl1=NewAtom("slhaVal1",0);
+        sl2=NewAtom("slhaVal2",0);
+        ec=NewAtom("McEff",0);
+        eb=NewAtom("MbEff",0);
+        et=NewAtom("MtEff",0);
+        rc=NewAtom("McRun",0);
+        rb=NewAtom("MbRun",0);
+        rt=NewAtom("MtRun",0);
+        aq=NewAtom("alphaQCD",0);
+    }
+   // DisplayTerm(t);puts("");
+    if(is_list(t))
+    {
+        List l;
+        for(l=t;l;l=ListTail(l)) proc_ufo_ext(ListFirst(l));
+        return;
+    }
+    if(is_compound(t) && CompoundName(t)==OPR_EQSIGN)
+    {
+       int hasc=is_compound(CompoundArg2(t)) &&
+            CompoundName(CompoundArg2(t))==OPR_COLON;
+        Term rp=hasc?CompoundArg1(CompoundArg2(t)):CompoundArg2(t);
+        if(CompoundArg1(t)==A_GG)
+        {
+            Atom tn=NewAtom("aS",0);
+            SetAtomProperty(tn,PROP_TYPE,OPR_PARAMETER);
+            SetAtomProperty(tn,A_LHA,
+                MakeCompound1(NewAtom("SMINPUTS",0),MakeList1(NewInteger(3))));
+            Term t1=MakeCompound3(tn,NewFloat(0.118),0,0);
+            params=AppendLast(params,t1);
+            t1=MakeCompound2(OPR_MLT,MakeCompound1(NewAtom("cmath.acos",0),NewInteger(-1)),tn);
+            t1=MakeCompound1(NewAtom("cmath.sqrt",0),t1);
+            t1=MakeCompound2(OPR_MLT,NewInteger(2),t1);
+            if(hasc) SetCompoundArg(CompoundArg2(t),1,t1);
+            else SetCompoundArg(t,2,t1);
+            ufo_gg_injected=1;
+            printf("GG the strong coupling is automatically defined.\n");
+            return;
+        }
+        if(is_compound(rp) && CompoundName(rp)==sl1)
+        {
+            Atom bl=CompoundArg1(rp);
+            if(is_compound(bl)) bl=CompoundArg1(bl);
+            Integer i1=CompoundArgN(rp,3);
+            SetAtomProperty(CompoundArg1(t),A_LHA,
+                MakeCompound1(bl,MakeList1(i1)));
+            if(hasc) SetCompoundArg(CompoundArg2(t),1,NewInteger(0));
+            else SetCompoundArg(t,2,NewInteger(0));
+            return;
+        }
+        if(is_compound(rp) && CompoundName(rp)==sl && CompoundArity(rp)==4)
+        {
+            Atom bl=CompoundArg1(rp);
+            if(is_compound(bl)) bl=CompoundArg1(bl);
+            Integer i1=CompoundArgN(rp,4);
+            SetAtomProperty(CompoundArg1(t),A_LHA,
+                MakeCompound1(bl,MakeList1(i1)));
+            if(hasc) SetCompoundArg(CompoundArg2(t),1,NewInteger(0));
+            else SetCompoundArg(t,2,NewInteger(0));
+            return;
+        }
+        if(is_compound(rp) && CompoundName(rp)==sl2)
+        {
+            Atom bl=CompoundArg1(rp);
+            if(is_compound(bl)) bl=CompoundArg1(bl);
+            Integer i1=CompoundArgN(rp,3);
+            Integer i2=CompoundArgN(rp,4);
+            SetAtomProperty(CompoundArg1(t),A_LHA,
+                MakeCompound1(bl,MakeList2(i1,i2)));
+            if(hasc) SetCompoundArg(CompoundArg2(t),1,NewInteger(0));
+            else SetCompoundArg(t,2,NewInteger(0));
+            return;
+        }
+        if(is_compound(rp) && CompoundName(rp)==sl && CompoundArity(rp)==5)
+        {
+            Atom bl=CompoundArg1(rp);
+            if(is_compound(bl)) bl=CompoundArg1(bl);
+            Integer i1=CompoundArgN(rp,4);
+            Integer i2=CompoundArgN(rp,5);
+            SetAtomProperty(CompoundArg1(t),A_LHA,
+                MakeCompound1(bl,MakeList2(i1,i2)));
+            if(hasc) SetCompoundArg(CompoundArg2(t),1,NewInteger(0));
+            else SetCompoundArg(t,2,NewInteger(0));
+            return;
+        }
+        
+    }
+    if(is_compound(t))
+    {
+        int i, ar=CompoundArity(t);
+        for(i=1;i<=ar;i++)
+        {
+            Term ta, t1=CompoundArgN(t,i), tn;
+            char cbuf[100];
+            int cnt=1;
+            if(!is_compound(t1)) {proc_ufo_ext(t1); continue;}
+            ta=CompoundName(t1);
+            if(!GetAtomProperty(ta,A_EXT_FUNC)) {proc_ufo_ext(t1);continue;}
+            if(strncmp(AtomValue(ta),"cmath.",6)==0) {proc_ufo_ext(t1);continue;}
+            if(strcmp(AtomValue(ta),"abs")==0) {proc_ufo_ext(t1);continue;}
+            t1=ConsumeCompoundArg(t,i);
+            do {
+                sprintf(cbuf,"%s%d",AtomValue(ta),cnt++);
+                tn=NewAtom(cbuf,0);
+            } while(GetAtomProperty(tn,PROP_TYPE));
+            SetCompoundArg(t,i,tn);
+            SetAtomProperty(tn,PROP_TYPE,OPR_PARAMETER);
+            printf("New parameter %s=",cbuf);WriteTerm(t1);puts("");
+            Term nv=NewInteger(1);
+            if(ta==ec) nv=NewFloat(0.66065);
+            if(ta==eb) nv=NewFloat(3.2407);
+            if(ta==et) nv=NewFloat(171.4);
+            if(ta==rc) nv=NewFloat(0.59086);
+            if(ta==rb) nv=NewFloat(2.8984);
+            if(ta==rt) nv=NewFloat(161.91);
+            if(ta==aq) nv=NewFloat(0.1156);
+           // WriteTerm(ta); printf(" "); WriteTerm(nv);puts("");
+            t1=MakeCompound3(tn,nv,0,0);
+            params=AppendLast(params,t1);
+        }
+    }
+}
+
 static void proc_param(Term t)
 	{
 	Atom name, value, comment, aname=0;
 	List li;
 	
+    if(UFOutput)
+        proc_ufo_ext(t);
+        
 	if(is_compound(t) && CompoundName(t)==OPR_COMMA)
 		{
 		Term a,b;
@@ -137,16 +304,19 @@ static void proc_param(Term t)
 		FreeAtomic(comment);
 		return;
 		}
-
+	
+	
 	if(!doing_abbr)
 	{
 		value=WheredTerm(value);
 		proc_hash(value);
-		value=ProcessAlias(value);
+		
 		/*WriteTerm(value);printf(" -> ");*/
 		value=rm_zero(value);
 		/*WriteTerm(value);puts("");*/
 	}
+
+	
 
 	chk_cmplx=0;
 
@@ -162,11 +332,12 @@ static void proc_param(Term t)
 		printf("\' is not appropriate value for parameter \'%s\'\n",
 				AtomValue(name));
 		FreeAtomic(name);
-		FreeAtomic(value);
-		FreeAtomic(comment);
-		return;
+		value=0;
+                comment=0;
 		}
 
+	if(chk_cmplx) has_cmplx_params=1;
+		
 	if(chk_cmplx && aname==0)
 		{
 		char cbuf[80];
@@ -211,6 +382,8 @@ static void proc_param(Term t)
 			}
 		li=ListTail(li);
 		}
+	 check_fortr(name);
+	 if(aname) check_fortr(aname);
 	}
 
 /*	fu=NewFunctor(name,3);*/
@@ -295,7 +468,10 @@ Term ProcessParameter(Term t, Term ind)
 	{
 	Term arg;
 	char *s;
-	arg=ConsumeCompoundArg(t,1);
+	if(is_atom(t))
+		arg=NewAtom("?",0);
+	else
+		arg=ConsumeCompoundArg(t,1);
 	FreeAtomic(t);
 	if(is_atom(arg))
 		{
@@ -466,7 +642,9 @@ static int legal_expr(Term t)
 			}
 			else
 			{
-				printf("Error: function ");WriteTerm(t);puts(" is unknown.");
+                                ErrorInfo(0);
+				printf("unknown function %s(). Use statement:\n",AtomValue(CompoundName(t)));
+                                printf("external_func(%s,%d).\n",AtomValue(CompoundName(t)),CompoundArity(t));
 				return 0;
 			}
 		default:
@@ -643,7 +821,7 @@ Atom fa_ccf=0, fa_rabb=0, fa_cabb=0;
 Atom toccf(Atom a)
 {
 	Atom aa;
-	int no;
+	Term  no;
 	if(a==A_I)
 		return fa_i;
 	if(opAbbArr && (no=GetAtomProperty(a,A_CHNAME)))
@@ -713,7 +891,15 @@ static void repl_pow(Term t)
 			{
 			Term t1=ConsumeCompoundArg(t,i);
 			Atom n=CompoundArg1(t1);
-			int j, pw=IntegerValue(CompoundArg2(t1));
+            if(!is_integer(CompoundArg2(t1)))
+            {
+                Term n=MakeCompound1(NewAtom("math.log",0),ConsumeCompoundArg(t1,1));
+                n=MakeCompound2(OPR_MLT,ConsumeCompoundArg(t1,2),n);
+                n=MakeCompound1(NewAtom("math.exp",0),n);
+                SetCompoundArg(t,i,n);
+                continue;
+            }
+			int j, pw=(int)IntegerValue(CompoundArg2(t1));
 			if(pw<2 || pw>15)
 			{
 			puts("Internal error (rplpowuf)");
@@ -729,9 +915,11 @@ static void repl_pow(Term t)
 	}
 }
 
-extern int UFOutput;
+extern int UFOutput, ufo_gg_injected;
 extern List UFOparah,UFOcouph;
 extern char *eff_infile;
+List ufo_params_nolha=0;
+static int ufo_params_nolha_no=1;
 
 void UFWriteParameters(void)
 {
@@ -741,7 +929,10 @@ void UFWriteParameters(void)
 	FILE *f;
 
 	NoQuotes=1;
-
+    
+    if(!ufo_gg_injected)
+        puts("Warning: strong coupling was not automatically defined.");
+    
 	if(OutputDirectory!=NULL)
 		sprintf(cbuf,"%s/parameters.py",OutputDirectory);
 	else
@@ -761,7 +952,13 @@ void UFWriteParameters(void)
 	for(li=UFOparah;li;li=ListTail(li))
 		fprintf(f,"%s\n",AtomValue(ListFirst(li)));
 	fprintf(f,"\n");
-
+    
+    fprintf(f,"ZERO = Parameter(name = 'ZERO',\n");
+	fprintf(f,"                  nature = 'internal',\n");
+	fprintf(f,"                  type = 'real',\n");
+	fprintf(f,"                  value = '0.0',\n");
+	fprintf(f,"                  texname = '0')\n\n");
+    
 	fprintf(f,"Sqrt2 = Parameter(name = 'Sqrt2',\n");
 	fprintf(f,"                  nature = 'internal',\n");
 	fprintf(f,"                  type = 'real',\n");
@@ -812,6 +1009,12 @@ void UFWriteParameters(void)
 						AtomValue(CompoundName(tm)));
 		fprintf(f,"               lhacode = ");
 		fWriteTerm(f,CompoundArg1(tm));
+		}
+		else if((is_integer(val)||is_float(val)))
+		{
+		  ufo_params_nolha=AppendLast(ufo_params_nolha,t);
+		  fprintf(f,",\n               lhablock = 'USERDEF',\n");
+		  fprintf(f,"               lhacode = [ %d ]",ufo_params_nolha_no++);
 		}
 		fprintf(f," )\n\n");
 
@@ -1160,7 +1363,29 @@ void FAWriteParameters(int fno)
 	}
 
     fprintf(f,"\n      end\n\n");
-
+    
+    int firstll=1;
+    fprintf(f,"      subroutine ModelVarFromFile(nFile)\n      implicit none\n");
+    fprintf(f,"      double precision sqrtS\n      integer nFile\n");
+    fprintf(f,"      double precision Alfas\n\n#include \"decl.h\"\n");
+    fprintf(f,"      character*10 name\n       real*8  val\n\n");
+    fprintf(f,"      character*128 argv(1)\n");
+    fprintf(f,"      call ModelDefaults(0,argv)\n\n123   continue\n");
+    fprintf(f,"      read(nFile,*,end=321) name, val\n");
+    for(li=params;li;li=ListTail(li))
+	{
+		Term t, val;
+		char mt[64];
+		t=CompoundName(ListFirst(li));
+		if(strcmp(AtomValue(t),"pi")==0)
+		  continue;
+        fprintf(f,"      %s",firstll?"":"else ");
+        firstll=0;
+        fprintf(f,"if(name.eq.\"%s\") then\n",AtomValue(t));
+        fprintf(f,"         %s=val\n",AtomValue(t));
+	}
+    fprintf(f,"      endif\n      goto 123\n321   continue\n      end\n\n");
+    
 	if(FAver==4)
 	fprintf(f,"\n      subroutine ModelConstIni(*)\n      implicit none\n\n");
 	else
@@ -1236,7 +1461,7 @@ void FAWriteParameters(int fno)
 
 		if(opAbbArr && GetAtomProperty(t,A_CHNAME))
 		{
-			int no=IntegerValue(GetAtomProperty(t,A_CHNAME));
+			int no=(int)IntegerValue(GetAtomProperty(t,A_CHNAME));
 			if(mtr_visi && GetAtomProperty(t,OPR_LOCAL)==0)
 			  continue;
 			p=fprintf(f,"      %s(%d) = ",
@@ -1258,7 +1483,7 @@ void FAWriteParameters(int fno)
 		fortr_digi=0;
 		FreeAtomic(val);
 		mtp=mt;
-		while(p+strlen(mtp)>60)
+		while(p+(int)strlen(mtp)>60)
 		{
 			char sv;
 			char *sp=mtp+55-p;
@@ -1494,10 +1719,10 @@ void WriteParameters(int fno, char *name)
 		int tttl;
 		ttt=ListFirst(li);
 		val=CompoundArg1(ttt);
-		tttl=strlen(AtomValue(CompoundName(ttt)));
+		tttl=(int)strlen(AtomValue(CompoundName(ttt)));
 		attt=GetAtomProperty(CompoundName(ttt),A_ANTI);
 		if(attt)
-			tttl+=strlen(AtomValue(attt))+1;
+			tttl+=(int)strlen(AtomValue(attt))+1;
 		if(val==0 || is_integer(val) || is_float(val))
 		{
 			if(tttl>pnamel) pnamel=tttl;
@@ -1510,7 +1735,7 @@ void WriteParameters(int fno, char *name)
 
 	fprintf(f1," Name");
 	WriteBlank(f1,pnamel-5);
-	fprintf(f1,"| Value       |>  Comment                                                      <|\n");
+	fprintf(f1,"| Value       |>  Comment                                   <|\n");
 	fprintf(f2," Name");
 	WriteBlank(f2,fnamel-5);
 	fprintf(f2,"|> Expression");
@@ -1537,7 +1762,7 @@ void WriteParameters(int fno, char *name)
 		if(is_integer(val) || is_float(val) || EvalPrm)
 			{
 			int sp=0;
-			if(opAutoWidths && GetAtomProperty(CompoundName(ttt),OPR_WIDTH)
+			if(!UFOutput && opAutoWidths && GetAtomProperty(CompoundName(ttt),OPR_WIDTH)
 				&& val==NewInteger(0))
 				{li=ListTail(li); continue;}
 
@@ -1710,18 +1935,213 @@ extern double  MixMatrix(int id,  int i, int j);
 extern double  MixMatrixU(int id,  int i, int j);
 */
 
-#include "../../CalcHEP_src/c_source/SLHAplus/include/SLHAplus.h"
-
-//#include "SLHAplus/SLHAplus.h"
+#include "SLHAplus/SLHAplus.h"
 
 static double eval_ef(Atom, int, double *);
 
+static cmplx cx_pow(cmplx c, int p)
+{
+    cmplx ret;
+	int i;
+	ret.r=1.0;
+	ret.i=0.0;
+	if(p<0)
+	{
+	  cmplx t=c;
+	  c.r=t.r/(t.r*t.r+t.i*t.i);
+	  c.i=-t.i/(t.r*t.r+t.i*t.i);
+	  p=-p;
+	}
+	for(i=0;i<p;i++)
+	{
+	  cmplx t;
+	  t.r=ret.r*c.r-ret.i*c.i;
+	  t.i=ret.r*c.i+ret.i*c.r;
+	  ret=t;
+	}
+	return ret;
+}
+
+cmplx cEvalParameter(Term t)
+{
+  cmplx ret;
+  ret.r=ret.i=0.0;
+  
+  if(t==0)
+		return ret;
+
+	if(t==A_SQRT2)
+	{
+		ret.r=sqrt((double)2.0);
+		return ret;
+	}
+	
+	if(t==A_I)
+	{
+	  ret.i=1.0;
+		return ret;
+	}
+  
+  if(is_integer(t))
+	{
+		ret.r=(double)IntegerValue(t);
+		return ret;
+	}
+	
+	if(is_float(t))
+		return ComplexValue(t);
+	
+	if(is_atom(t) && is_parameter(t))
+		{
+		List l;
+		Atom at;
+
+		l=GetAtomProperty(t,A_DUMMY_PRM);
+		if(l)
+		{
+			
+			List l1;
+			for(l1=l;l1;l1=ListTail(l1))
+			{
+			  cmplx r1=cEvalParameter(CompoundArg2(ListFirst(l1)));
+			  r1.r*=IntegerValue(CompoundArg1(ListFirst(l1)));
+			  r1.i*=IntegerValue(CompoundArg1(ListFirst(l1)));
+			  ret.r+=r1.r;
+			  ret.i+=r1.i;
+			}	
+			return ret;
+		}
+
+		at=GetAtomProperty(t,A_ANTI);
+		if(at==0)
+		{
+		  ret.r=EvalParameter(t);
+		  return ret;
+		}
+
+		for(l=params;l;l=ListTail(l))
+			{
+			Atom curt=CompoundName(ListFirst(l));
+			if(curt==t || curt==at)
+				{
+				Term t1;
+				double dd;
+				t1=CompoundArg1(ListFirst(l));
+				if(is_integer(t1))
+				{
+					ret.r= (double)IntegerValue(t1);
+					return ret;
+				}
+				
+				if(is_float(t1))
+				{
+					ret= ComplexValue(t1);
+					if(curt==at) ret.i=-ret.i;
+					return ret;
+				}
+				if(t1==0)
+					return ret;
+				if(CompoundArgN(ListFirst(l),3)!=0)
+				{
+					ret=ComplexValue(CompoundArgN(ListFirst(l),3));
+					if(curt==at) ret.i=-ret.i;
+					return ret;
+				}
+				ret=cEvalParameter(t1);
+				SetCompoundArg(ListFirst(l),3,NewComplex(ret));
+				if(curt==at) ret.i=-ret.i;
+				return ret;
+				}
+			}
+		if(GetAtomProperty(t,A_EXT_FUNC))
+		{
+			if(strncmp(AtomValue(t),"initDiagonal",12)==0)
+			{initDiagonal();
+			  return ret;
+			}
+			else
+				return ret;
+		}
+
+		printf("Internal error (prm01'%s')\n",AtomValue(t));
+		return ret;
+		}
+	
+	if(is_compound(t) && CompoundArity(t)==2 && CompoundName(t)==OPR_PLUS)
+	{
+	  cmplx c1=cEvalParameter(CompoundArg1(t)), c2=cEvalParameter(CompoundArg2(t));
+	  ret.r=c1.r+c2.r;
+	  ret.i=c1.i+c2.i;
+	  return ret;
+	}
+	if(is_compound(t) && CompoundArity(t)==2 && CompoundName(t)==OPR_MINUS)
+	{
+	  cmplx c1=cEvalParameter(CompoundArg1(t)), c2=cEvalParameter(CompoundArg2(t));
+	  ret.r=c1.r-c2.r;
+	  ret.i=c1.i-c2.i;
+	  return ret;
+	}
+	if(is_compound(t) && CompoundArity(t)==2 && CompoundName(t)==OPR_MLT)
+	{
+	  cmplx c1=cEvalParameter(CompoundArg1(t)), c2=cEvalParameter(CompoundArg2(t));
+	  ret.r=c1.r*c2.r-c1.i*c2.i;
+	  ret.i=c1.r*c2.i+c1.i*c2.r;
+	  return ret;
+	}
+	if(is_compound(t) && CompoundArity(t)==2 && CompoundName(t)==OPR_DIV)
+	{
+	  cmplx c1=cEvalParameter(CompoundArg1(t)), c2=cEvalParameter(CompoundArg2(t));
+	  ret.r=(c1.r*c2.r+c1.i*c2.i)/(c2.r*c2.r+c2.i*c2.i);
+	  ret.i=(-c1.r*c2.i+c1.i*c2.r);
+	  return ret;
+	}
+	if(is_compound(t) && CompoundArity(t)==1 && CompoundName(t)==OPR_MINUS)
+	{
+	  ret=cEvalParameter(CompoundArg1(t));
+	  ret.r=-ret.r;
+	  ret.i=-ret.i;
+	  return ret;
+	}
+	if(is_compound(t) && CompoundArity(t)==2 && CompoundName(t)==OPR_POW)
+	{
+	  cmplx c1=cEvalParameter(CompoundArg1(t));
+	  Term pw=CompoundArg2(t);
+	  if(!is_integer(pw))
+	  {
+		ErrorInfo(0);
+		puts("Complex power is not implemented.");
+		return ret;
+	  }
+	  ret=cx_pow(c1,(int)IntegerValue(pw));
+	  return ret;
+	}
+	
+	if(is_list(t))
+		{
+		List l;
+		ret.r=1.0;
+		for(l=t;l;l=ListTail(l))
+			{
+			cmplx tpv, tmp;
+			int tpw;
+			tpv=cEvalParameter(CompoundArg1(ListFirst(l)));
+			tpw=(int)IntegerValue(CompoundArg2(ListFirst(l)));
+			tpv=cx_pow(tpv,tpw);
+			/*WriteTerm(ListFirst(l)); printf("=(%f,%f)\n",tpv.r,tpv.i);*/
+			tmp.r=tpv.r*ret.r-tpv.i*ret.i;
+			tmp.i=tpv.i*ret.r+tpv.r*ret.i;
+			ret=tmp;
+			}
+		return ret;
+		}
+	
+}
 
 double EvalParameter(Term t)
 	{
 
 	if(t==0)
-		return 1.0;
+		return 0.0;
 
 	if(t==A_SQRT2)
 		return sqrt((double)2.0);
@@ -1729,9 +2149,11 @@ double EvalParameter(Term t)
 		return 1.0;
 
 	if(is_integer(t))
-		return (double)IntegerValue(t);
+	  return (double)IntegerValue(t);
+
 	if(is_float(t))
 		return FloatValue(t);
+	
 	if(is_atom(t) && is_parameter(t))
 		{
 		List l;
@@ -1984,7 +2406,8 @@ double EvalParameter(Term t)
 			double tpv;
 			int tpw,i;
 			tpv=EvalParameter(CompoundArg1(ListFirst(l)));
-			tpw=IntegerValue(CompoundArg2(ListFirst(l)));
+			tpw=(int)IntegerValue(CompoundArg2(ListFirst(l)));
+			
 			if(tpw>0)
 				for(i=0;i<tpw;i++)
 					ret*=tpv;
@@ -2020,12 +2443,15 @@ Term ProcslhaRead(Term t, Term ind)
 
 Term InterfEvalParam(Term t, Term ind)
 	{
-	double ret;
+	cmplx ret;
 	if(!is_compound(t) || CompoundArity(t)!=1)
 		return 0;
-	ret=EvalParameter(CompoundArg1(t));
+	ret=cEvalParameter(CompoundArg1(t));
 	WriteTerm(CompoundArg1(t));
-	printf("=%f\n",ret);
+	if(ret.i==0)
+	  printf("=%f\n",ret.r);
+	else
+	  printf("=(%f,%f)\n",ret.r,ret.i);
 	FreeAtomic(t);
 	return 0;
 
@@ -2128,7 +2554,7 @@ Term ProcCHEPPrm(Term t, Term ind)
 		return 0;
 	}
 
-	mono=IntegerValue(CompoundArg1(t));
+	mono=(int)IntegerValue(CompoundArg1(t));
 
 	if(CompoundArity(t)>1)
 		has_fn=1;
@@ -2337,7 +2763,8 @@ Term ProcExtFunc(Term t, Term ind)
 			"external_func: evaluation of 0 arguments funcion is not supported\n");
 		}
 		SetAtomProperty(name2, A_EXT_FUNC, CompoundArg2(t));
-		ExtFuncList=AppendLast(ExtFuncList,name);
+		if(!ListMember(ExtFuncList,name))
+		  ExtFuncList=AppendLast(ExtFuncList,name);
 		return 0;
 	}
 
@@ -2396,7 +2823,7 @@ Term ProcExtFunc(Term t, Term ind)
 		else if(strcmp(AtomValue(CompoundArg1(t)),"MbEff")==0)
 			hf=(extfunc)&MbEff;
 		else if(strcmp(AtomValue(CompoundArg1(t)),"MtEff")==0)
-			hf=(extfunc)&MbEff;
+			hf=(extfunc)&MtEff;
 		else
 			hf=(extfunc)&alphaQCD;
 		fl=A_I;
@@ -2502,7 +2929,8 @@ cnt:
 	SetAtomProperty(CompoundArg1(t), A_EXT_FUNC, CompoundArg2(t));
 	if(fl)
 		SetAtomProperty(CompoundArg1(t),CompoundArg1(t),NewInteger(extfuncno));
-	ExtFuncList=AppendLast(ExtFuncList,CompoundArg1(t));
+	if(!ListMember(ExtFuncList,CompoundArg1(t)))
+	  ExtFuncList=AppendLast(ExtFuncList,CompoundArg1(t));
 	return 0;
 }
 
@@ -2686,17 +3114,19 @@ Term rm_zero(Term t)
 	{
 		int r=1;
 		for(i=0;i<IntegerValue(CompoundArg2(t));i++)
-			r*=IntegerValue(CompoundArg1(t));
+			r*=(int)IntegerValue(CompoundArg1(t));
 		return NewInteger(r);
 	}
+	
 	if(CompoundName(t)==OPR_CARET && CompoundArity(t)==2 && 
 			is_integer(CompoundArg1(t)) && is_integer(CompoundArg2(t)))
 	{
 		int r=1;
 		for(i=0;i<IntegerValue(CompoundArg2(t));i++)
-			r*=IntegerValue(CompoundArg1(t));
+			r*=(int)IntegerValue(CompoundArg1(t));
 		return NewInteger(r);
 	}
+	
 	if(CompoundName(t)==OPR_MLT && CompoundArity(t)==2 && 
 			(CompoundArg1(t)==NewInteger(0) || CompoundArg2(t)==NewInteger(0)))
 	{
@@ -2707,7 +3137,7 @@ Term rm_zero(Term t)
 	if(CompoundName(t)==OPR_MLT && CompoundArity(t)==2 && 
 			is_integer(CompoundArg1(t)) && is_integer(CompoundArg2(t)))
 	{
-		int v=IntegerValue(CompoundArg1(t))*IntegerValue(CompoundArg2(t));
+		long int v=IntegerValue(CompoundArg1(t))*IntegerValue(CompoundArg2(t));
 		FreeAtomic(t);
 		return NewInteger(v);
 	}
@@ -2726,7 +3156,7 @@ Term rm_zero(Term t)
 	if(CompoundName(t)==OPR_PLUS && CompoundArity(t)==2 &&
 			is_integer(CompoundArg1(t)) && is_integer(CompoundArg2(t)))
 	{
-		int v=IntegerValue(CompoundArg1(t))+IntegerValue(CompoundArg2(t));
+		int v=(int)IntegerValue(CompoundArg1(t))+(int)IntegerValue(CompoundArg2(t));
 		FreeAtomic(t);
 		return NewInteger(v);
 	}
@@ -2738,7 +3168,7 @@ Term rm_zero(Term t)
 	}
 	if(CompoundName(t)==OPR_MINUS && CompoundArity(t)==2 &&CompoundArg1(t)==NewInteger(0))
 	{
-		Term t1=ConsumeCompoundArg(t,1);
+		Term t1=ConsumeCompoundArg(t,2);
 		FreeAtomic(t);
 		t1=rm_zero(t1);
 		return t1==NewInteger(0)?NewInteger(0):MakeCompound1(OPR_MINUS,t1);
@@ -2746,7 +3176,7 @@ Term rm_zero(Term t)
 	if(CompoundName(t)==OPR_MINUS && CompoundArity(t)==2 &&
 			is_integer(CompoundArg1(t)) && is_integer(CompoundArg2(t)))
 	{
-		int v=IntegerValue(CompoundArg1(t))-IntegerValue(CompoundArg2(t));
+		long int v=IntegerValue(CompoundArg1(t))-IntegerValue(CompoundArg2(t));
 		FreeAtomic(t);
 		return NewInteger(v);
 	}

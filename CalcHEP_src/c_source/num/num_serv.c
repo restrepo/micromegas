@@ -42,7 +42,7 @@ label2:
    } 
    if (maxprm <= minprm) 
    { 
-      messanykey(55,17,"Range check error"); 
+      messanykeyErr(55,17,"Range check error for range of parameter"); 
       goto_xy(55,15);
       clr_eol();
       goto label2;
@@ -53,12 +53,12 @@ label4: npoints = 101;
    { 
       if (npoints < 3) 
       { 
-         messanykey(55,17,"Too few points!"); 
+         messanykeyErr(55,17,"Too few points for present parameter dependence"); 
          goto label4;
       } 
       if (npoints > 201) 
       { 
-          messanykey(55,17,"Too many points!"); 
+          messanykey(55,17,"Too many points for parameter dependence"); 
           goto label4;
       } 
    } 

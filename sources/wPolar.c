@@ -1,88 +1,66 @@
 #include "micromegas.h"
 #include "micromegas_aux.h"
 
-int vPolar( int out1,int out2,int out3, double*left,double*right,double*lng)
-{ REAL pvect[20],pcm1,pcm2,ms,md,chY,shY;
-  int i,err_code;
-  int iW,ie,in;
-  REAL m[5];
-  int code[5];
-  double massMin=-1;
-  int oId;
-  char n1[10],n2[10],n3[10];
+int vPolar( char**N,  double*lng)
+{ 
+  char process[50];
+  sprintf(process,"%s,%s->",N[0],N[1]);
+
+  int v;   // position of vector particle W,or Z
+  int pdg; // of vector
+    
+  for(v=2;v<4;v++) { pdg=pNum(N[v]); if(pdg==23 || abs(pdg)==24) break;}
+  if(v==4) return 1;
+  double Mv=pMass(N[v]);
+
+  int v_=5-v; // other outgoing particle
+  strcat(process,N[v_]);   
+  switch(pdg)
+  { case 23: sprintf(process+strlen(process),",%s,%s", pdg2name(12), pdg2name(-12)); break;
+    case 24: sprintf(process+strlen(process),",%s,%s", pdg2name(12), pdg2name(-11)); break;
+    case-24: sprintf(process+strlen(process),",%s,%s", pdg2name(11), pdg2name(-12)); break;
+  } 
+
+//printf("process=%s\n", process);    
+  numout*cc = newProcess(process);
+  if(!cc) return 2;
+  if(passParameters(cc)) return 3;
+
+  REAL m[5],pvect[20],pcm1,pcm2,chY,shY;
+  char *p[5];
+  for(int i=0;i<5;i++) { p[i]=cc->interface->pinf(1,i+1,m+i,NULL); m[i]=Fabs(m[i]);}
+
+  int i3,ie,in;
+  for(int i=2;i<5;i++)    if(strcmp(p[i],N[v_])==0)  { i3=i; break;}
+  for(int i=2;i<5;i++)    if(i!=i3)   {ie=i; break;} 
+  for(int i=ie+1;i<5;i++) if(i!=i3)   { in=i; break;} 
+//printf("proc=%s %s -> %s %s %s ; i3=%d ie=%d in=%d\n",p[0],p[1],p[2],p[3],p[4],i3,ie,in);   
   
-  numout * cc;
-  char *Wp=NULL,*el=NULL,*Ne=NULL,*o1=NULL,*O1=NULL;
-  double r[3];
-  double GG=sqrt(4*M_PI*alphaQCD(2*Mcdm));
-  
-  for(i=0;i<nModelParticles;i++)
-  { 
-    if(ModelPrtcls[i].NPDG== out1) { Wp=ModelPrtcls[i].name; sprintf(n1,"p%d",i+1);}
-    if(ModelPrtcls[i].NPDG==-out1) { Wp=ModelPrtcls[i].aname;sprintf(n1,"m%d",i+1);}
+  if( m[0]+m[1] < m[i3]+ Mv) return 4;
 
-    if(ModelPrtcls[i].NPDG== out2) { el=ModelPrtcls[i].name; sprintf(n2,"p%d",i+1);}
-    if(ModelPrtcls[i].NPDG==-out2) { el=ModelPrtcls[i].aname;sprintf(n2,"m%d",i+1);}
+  pcm1=decayPcm(m[0]+m[1],m[i3],Mv);
+  pcm2=decayPcm(Mv,m[ie],m[in]);
 
-    if(ModelPrtcls[i].NPDG== out3) { Ne=ModelPrtcls[i].name;sprintf(n3,"p%d",i+1);}
-    if(ModelPrtcls[i].NPDG==-out3) { Ne=ModelPrtcls[i].aname; sprintf(n3,"m%d",i+1);}
-
-    if(ModelPrtcls[i].name[0]=='~')
-    { double  mass=fabs(findValW(ModelPrtcls[i].mass));
-      if(mass<massMin || massMin<0) 
-      {
-        o1=ModelPrtcls[i].name; O1=ModelPrtcls[i].aname;
-        massMin=mass;
-        oId=i+1;
-      }
-    }  
- }
-
- if(!o1 || !O1 || !Wp || !el || !Ne) return 1;
-
-  { char lib[40], process[30], cond[20];
-    sprintf(lib,"p%d_Polar_%s%s%s",oId,n1,n2,n3);
-    sprintf(process,"%s,%s->%s,%s,%s",o1,O1,Wp,el,Ne);
-    sprintf(cond,"%s!=2",Wp);  
-    cc=getMEcode(0,1,process,cond,NULL,lib); 
-    if(!cc) { printf("can not generate\n");return 2;} 
-  }
-   
-  for(i=1;i<=cc->interface->nvar;i++) if(cc->link[i]) cc->interface->va[i]=*(cc->link[i]);
-  if( cc->interface->calcFunc()>0 ) { return -1;}  
-  for(i=0;i<5;i++) cc->interface->pinf(1,i+1,m+i,code+i);
-  for(i=0;i<20;i++) pvect[i]=0;
-
+  for(int i=0;i<20;i++) pvect[i]=0;
   pvect[0]=m[0];
   pvect[4]=m[1];
-  
-  iW=ie=in=-1;
-  for(i=2;i<5;i++) 
-  { if(code[i]==out1) iW=i;
-    if(code[i]==out2) ie=i; 
-    if(code[i]==out3) in=i;
-  } 
-  if(iW<0 || ie <0 || in<0) return 1; 
-  if(m[0]+m[1]<=2*m[iW]) { printf("Mcdm too low\n"); return 3;}
-  pcm1=sqrt((m[0]+m[1])*(m[0]+m[1]) - 4*m[iW]*m[iW])/2;
-  ms=m[ie]+m[in];
-  md=m[ie]-m[in];
-  pcm2=sqrt((m[iW]*m[iW] - ms*ms)*(m[iW]*m[iW]-md*md))/(2*m[iW]);
+  pvect[4*i3]= Sqrt(m[i3]*m[i3]+pcm1*pcm1);
+  pvect[4*i3+3] = -pcm1;  
 
-  for(i=0;i<3;i++)
-  {  REAL csfi=i-1;
-     pvect[4*iW]= sqrt(m[iW]*m[iW]+pcm1*pcm1);
-     pvect[4*iW+3] = -pcm1;    
-     pvect[4*ie]=sqrt(m[ie]*m[ie]+pcm2*pcm2);
+  double r[3];
+  for(int i=0;i<3;i++)
+  {  REAL csfi=i-1;  
+
+     pvect[4*ie]=Sqrt(m[ie]*m[ie]+pcm2*pcm2);
      pvect[4*ie+3]=pcm2*csfi;
-     pvect[4*ie+2]=pcm2*sqrt(1-csfi*csfi);
+     pvect[4*ie+2]=pcm2*Sqrt(1-csfi*csfi);
   
-     pvect[4*in]=sqrt(m[in]*m[in]+pcm2*pcm2);
+     pvect[4*in]=Sqrt(m[in]*m[in]+pcm2*pcm2);
      pvect[4*in+3]=-pcm2*csfi;
-     pvect[4*in+2]=-pcm2*sqrt(1-csfi*csfi);  
+     pvect[4*in+2]=-pcm2*Sqrt(1-csfi*csfi);  
 
-     chY=sqrt(1+pcm1*pcm1/m[iW]/m[iW]);
-     shY=sqrt(pcm1*pcm1/m[iW]/m[iW]);  
+     chY=Sqrt(1+pcm1*pcm1/m[i3]/m[i3]);
+     shY=Sqrt(pcm1*pcm1/m[i3]/m[i3]);  
   
      { REAL p0=pvect[4*ie], p3=pvect[4*ie+3];
        pvect[4*ie]=  chY*p0 + shY*p3;
@@ -92,23 +70,16 @@ int vPolar( int out1,int out2,int out3, double*left,double*right,double*lng)
        pvect[4*in]=  chY*p0 + shY*p3;
        pvect[4*in+3]=shY*p0 + chY*p3;
      }
-     err_code=0;
-     r[i]=(cc->interface->sqme)(1,GG,pvect,NULL,&err_code);
+     int err_code=0;
+     r[i]=(cc->interface->sqme)(1,1./*GG*/,pvect,NULL,&err_code);
+     if(err_code) return 5;
   }
-
-  { double s;
-  
-    r[2]/=4;
-    r[0]/=4;
-    r[1]=(r[1]-r[0]-r[2])/2;
-    
-    s=r[0]+r[1]+r[2];
-                  
-    s=r[0]+r[1]+r[2];
-    if(left)  *left=r[2]/s;
-     
-    if(right) *right=r[0]/s;
-    if(lng)   *lng=r[1]/s;
-  }
+//printf("r[0]=%e r[1]=%e r[3]=%e\n", r[0],r[1],r[2]);  
+  r[2]/=4;
+  r[0]/=4;
+  r[1]=(r[1]-r[0]-r[2])/2;
+  double  s=r[0]+r[1]+r[2];                 
+  *lng=r[1]/s;  //    *left=r[2]/s;  *right=r[0]/s;
+  if(*lng<0) *lng=0;
   return 0;
 }  

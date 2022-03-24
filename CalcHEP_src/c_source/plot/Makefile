@@ -14,7 +14,7 @@ lib = ../../lib
 OBJ = $(subst .c,.o,$(filter-out $(special),$(wildcard *.c)))
  
 $(bin)/plot_view: view_tab.c $(lib)/serv.a $(lib)/ntools.a
-	$(CC) $(CFLAGS) -o $@ $^ $(LX11) -lm
+	$(CC) $(CFLAGS)  -o $@ $^ $(LX11) -lm
 
 $(lib)/serv.a :$(lib)/serv.a($(OBJ))
 	$(RANLIB) $@

@@ -96,7 +96,7 @@ int fillRegArray(void)
   
   
   return 0;
-  errorExit: messanykey(2,10,errorText);
+  errorExit: messanykeyErr(2,10,errorText);
            return 1;  
 }
 

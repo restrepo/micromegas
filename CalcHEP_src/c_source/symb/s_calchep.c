@@ -2,6 +2,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <signal.h>
 
 #include "chep_crt.h"
 #include "syst2.h"
@@ -112,7 +113,12 @@ int main(int argc,char** argv)
 
 
   blind=0;
-  strcpy(pathtocalchep,argv[0]);
+  if(strlen(argv[0])>1000) 
+  {  
+     printf("Too long path to CalcHEP directory. Maximal path length is 1000\n"); 
+     exit(1);
+  }
+  strcpy(pathtocalchep,argv[0]);  
   for(n=strlen(pathtocalchep)-1; n && pathtocalchep[n]!=f_slash; n--);
   pathtocalchep[n-3]=0;
   if(pathtocalchep[0]!='/')
@@ -127,6 +133,7 @@ int main(int argc,char** argv)
     strcpy(pathtocalchep,buff);
     free(buff);                         
   }
+  setenv("CALCHEP", pathtocalchep,1);
                                            
      
    for ( n=1;n<argc;n++) 
@@ -197,15 +204,15 @@ int main(int argc,char** argv)
               readModelFiles("./models",n_model);
               break; 
    }
-
+   newCodes=0;
    switch (menulevel)
    {
       case 2:  menuhelp();
                goto label_20;
       case 3:  goto label_31;
       case 4:  goto label_40;
-      case 5:  goto label_50;
-      case 6:  
+      case 5:  newCodes=1; 
+      case 6:  goto label_50;
       case 10: goto restart2;
    }
         
@@ -504,7 +511,6 @@ restart2:
                 }
               }
               if(totC)  newCodes=1;  
-                          
               free(pow);
               free(pids);   
               free(pipes);
@@ -540,7 +546,7 @@ restart2:
 label_50:
    k5=1;
    pscr5=NULL;
-   menulevel=5;
+   if(newCodes) menulevel=5; else menulevel=6;
    saveent(menulevel);
    sq_diagramsinfo();
       
@@ -567,44 +573,36 @@ label_50:
       switch (k5)
       {  case 0: goto label_40;  break;
          case 1:
-           c_prog(); newCodes=0; saveent(menulevel);
+           system("cd results; rm -f n_calchep lib_0.a ld*.a lf*.*" );
+           c_prog(); newCodes=0; menulevel=6; saveent(menulevel);
            break;
          case 2:
-           if(newCodes) { c_prog(); newCodes=0; saveent(menulevel);}
-          n_calchep_id=setLockFile("results/.lock"); 
+           if(newCodes) 
+           { system("cd results; rm -f n_calchep lib_0.a ld*.a lf*.*");
+             c_prog(); newCodes=0; menulevel=6;saveent(menulevel);
+           }
+           n_calchep_id=setLockFile("results/.lock"); 
            if(n_calchep_id)
            {
-             if(nPROCSS)
-             { chdir("results"); 
-                makeVandP(0,"../models",n_model,2,pathtocalchep);
-               pCompile();               
-               if(access("./n_calchep",X_OK)==0)
-               { 
+             
+             chdir("results"); 
+             makeVandP(0,"../models",n_model,2,pathtocalchep);
+             pCompile(); 
+             if(access("./n_calchep",X_OK)==0)
+             { 
+                if(!blind)
+                {
                   fflush(NULL); 
                   pid=fork();   
                   if(pid==0) 
                   {
-                    system("./n_calchep");
-                    exit(0);
-                  }    
-               } else messanykey(15,15,"n_calchep is not generated");
-               chdir("../");
-             } else                       
-             { fflush(NULL); 
-               pid=fork();
-               if(pid==0)
-               {  if(chdir("results")==0)
-                  {   char*command=malloc(150+strlen(pathtocalchep));
-                      makeVandP(0,"../models",n_model,2,pathtocalchep); 
-                      sprintf(command,"command=\"%s/sbin/make__n_calchep %d\"; xterm=`which xterm`; if(test -n \"$xterm\") then   $xterm -e $command; else $command; fi", pathtocalchep,n_model);                                 
-                      system(command);
-                      free(command);
-                      system("./n_calchep");                     
-                   }
-                   exit(0);    
-               }
-             }
-             unLockFile(n_calchep_id); 
+                     system("./n_calchep");
+                     exit(0);
+                  }
+                } else printf("results/n_calchep is generated\n");     
+             } else messanykey(15,15,"n_calchep is not generated");
+             chdir("../");
+             unLockFile(n_calchep_id);
            } 
            break;
          case 3: if(edittable(1,1,&modelTab[4],1," ",0))

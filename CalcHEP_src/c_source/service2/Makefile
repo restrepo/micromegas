@@ -20,4 +20,4 @@ $(lib)/serv.a:$(lib)/serv.a($(OBJ))
 	@rm -f $(OBJ)
 
 $(bin)/calc: main_calc.c $(lib)/serv.a
-	$(CC) $(CFLAGS) -o $@ $^ -lm
+	$(CC) $(CFLAGS)   -o $@ $^ -lm

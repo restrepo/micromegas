@@ -68,6 +68,6 @@ double usrfun(char * name, int nIn, int nOut, double * pvect,char**pName,int*pCo
           }
        }      
     }  else { printf("Not defined user function %s\n",name); exit(2);}  
-   
+
     return sum;
 }

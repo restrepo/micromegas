@@ -196,13 +196,13 @@ static void f7_prog(int mode)
              case 11: sprintf(title+strlen(title)," F(x=%.2E,Q)",x0);     break;
            }
            if(pos==11) xName="Q"; else xName="x";
-           if(on[0]&&on[1]) plot_N(title,z1,z2, xName, LOG, 2, nPoints, f[0],NULL,p_name[0],nPoints,f[1],NULL,p_name[1]);
+           if(on[0]&&on[1]) plot_N(title, xName, z1,z2,  LOG, 2, nPoints, f[0],NULL,p_name[0],nPoints,f[1],NULL,p_name[1]);
            else 
            { if(on[0]) l=0; else l=1;
-              plot_N(title,z1,z2, xName, LOG,1, nPoints, f[l],NULL,p_name[l]);   
+              plot_N(title,xName,z1,z2,  LOG,1, nPoints, f[l],NULL,p_name[l]);   
            }  
            put_text(&screen);
-         } else messanykey(16,5," Correct input is \n"
+         } else messanykeyErr(16,5," Correct input is \n"
                                 "  0<=xMin<xMax<=1,\n"
                                 " 3<=nPoints<=150");
         }                        
@@ -269,7 +269,7 @@ static int  in_setting(void)
          else pinf_int(Nsub,i+1,mass+i,NULL);         
 
          if((mass[0]==0 && inP1<=0)|| (mass[1]==0 && inP2<=0)) 
-           messanykey(10,10,"For massless particle\nmomentum should be positive\n");
+           messanykeyErr(10,10,"For massless particle\nmomentum should be positive\n");
          else 
          {
            initStrFun(0);                                                                                                    
@@ -293,7 +293,7 @@ static int  in_setting(void)
                   sprintf(txt, "Enter new value [%.1f,%.1f] :", -(spin2/2.),(spin2/2.));
                   correctDouble(40,12,txt,&buf,1);
                   if(fabs(2*buf)>spin2) 
-                  { messanykey( 10,10,"Helicity out of limits");
+                  { messanykeyErr( 10,10,"Helicity out of limits");
                     if(blind) exit(111);
                   }else 
                   { Helicity[0]=buf;
@@ -308,7 +308,7 @@ static int  in_setting(void)
                   sprintf(txt, "Enter new value [%.1f,%.1f] :", -(spin2/2.),(spin2/2.));
                   correctDouble(40,12,txt,&buf,1);
                   if(fabs(2*buf)>spin2) 
-                  { messanykey( 10,10,"Helicity out of limits");
+                  { messanykeyErr( 10,10,"Helicity out of limits");
                     if(blind) exit(111);
                   }else 
                   { Helicity[1]=buf;
@@ -332,14 +332,12 @@ L1:
                       " BreitWigner range XXX  "
                       " T-channel widths   YYY "
                       " GI in t-channel    TTT "
-                      " GI in s-channel    SSS "
-                      " useSLHAwidth       WWW ";   
+                      " GI in s-channel    SSS ";   
 
       improveStr(strmen,"XXX","%.1f",*BWrange_int);
       improveStr(strmen,"YYY", (*twidth_int)? "ON" : "OFF");
       improveStr(strmen,"TTT",(*gtwidth_int)? "ON" : "OFF");
       improveStr(strmen,"SSS",(*gswidth_int)? "ON" : "OFF");
-      improveStr(strmen,"WWW",(useSLHAwidth)? "ON" : "OFF");
       menu1(54,6,"",strmen,"n_width_*",&pscr ,&key);
    }
 
@@ -352,7 +350,6 @@ L1:
      case 2:  *twidth_int = ! *twidth_int;  break;
      case 3:  *gtwidth_int =! *gtwidth_int; break; 
      case 4:  *gswidth_int =! *gswidth_int; break;
-     case 5:  useSLHAwidth= ! useSLHAwidth; break;
    }    
     goto L1;
 } /* w_men__ */
@@ -514,7 +511,7 @@ int monte_carlo_menu(void)
         case  10: 
                  if(nout_int==1 && !sf_num[0] && !sf_num[1]  ) 
                  { if(blind)  return 1;                     
-                   messanykey(15,15,"Phase space integration for 2->1 processes\n needs distribution functions.");
+                   messanykeyErr(15,15,"Phase space integration for 2->1 processes\n needs distribution functions.");
                    break;
                  }
                                                                         
@@ -563,13 +560,13 @@ int monte_carlo_menu(void)
                      return 1;
                    }
                             
-                   messanykey(15,15,"Energy is too small!");                   
+                   messanykeyErr(15,15,"Energy is too small!");                   
                    break;
                  }
 
                  if(fillCutArray()) 
                  { if(blind) return 2;
-                   messanykey(15,15,"Can not evaluate cut limits"); 
+                   messanykeyErr(15,15,"Can not evaluate cut limits"); 
                    break;
                  }  
         case 11:

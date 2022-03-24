@@ -96,8 +96,6 @@ typedef spool* pnt;
 
 static  dscreen    * res;          /* from diaprin */
 static  int      hcontr;       /* from diaprin */
-static  int         isect, jsect; /* from isector */
-static  int      ssect;        /* from isector */
 static  int      left;         /* from diaprt  */
 static  dscreen      resl, resr;   /* from diaprt  */
 static  interscreen  is;           /* from diaprt  */
@@ -523,146 +521,6 @@ static void diaprin(dscreen* res1)
 }   /* The end of Diaprin's body */ 
 
 
-static int lh(int y)
-{   
-   if (is[jsect-1][y-1] == chsp) 
-      is[jsect-1][y-1]  = ssect ? chrC4 : chrCD; 
-   else 
-      if (is[jsect-1][y-1] == chrB3) 
-         is[jsect-1][y-1]  = ssect ? chrC5 : chrD8; 
-      else 
-         if (is[jsect-1][y-1] == chrBA) 
-            is[jsect-1][y-1]  = ssect ? chrD7 : chrCE; 
-         else 
-            return 1;
-   return 0; 
-}  /* The end of Lh's body */ 
-
-
-static void lv(void)
-{int c; 
-
-   c = is[isect-1][jsect-1];
-   
-   is[isect-1][jsect-1]           = 
-      c == chsp                   ? 
-         (ssect ? chrB3 : chrBA)  : 
-      c == chrC4                  ? 
-         (ssect ? chrC5 : chrD7)  : 
-      c == chrCD                  ? 
-         (ssect ? chrD8 : chrCE)  : c; 
-}   /* The end of Lv's body */ 
-
-
-static int isector(void)
-{int  k, y1, y2, vv, ss, pp=0, tt=0, sh=0; 
- int count=0;
-
-   /* Nested function: lh */ 
-   /* Nested function: lv */ 
-
-   k = resl.mver; 
-   for (isect = 1; isect <= k; isect++) 
-   { 
-      {intsect *with1 = &resl.ints[isect-1]; 
-         y1 = with1->y; 
-         vv = with1->aliasvert; 
-         ss = with1->aliasslot;    
-      } 
-      jsect = 1; 
-      while (resr.ints[jsect-1].selfvert != vv || 
-             resr.ints[jsect-1].selfslot != ss) 
-         ++(jsect); 
-      {intsect *with1 = &resr.ints[jsect-1]; 
-         if (y1 == with1->y) 
-            ++(sh); 
-         else 
-            if (y1 == with1->y + ystep) 
-               ++(pp); 
-            else 
-               if (y1 == with1->y - ystep) 
-                  ++(tt); 
-      } 
-   }
-   sh = tt > sh ? - ystep : pp > sh ?  ystep : 0; 
-   goto b;
-
-a: count++;
-    if(sh==0) sh=-1;   else {if(sh<0) sh=-sh; else sh=-sh-1;}
-//   if (sh < 0) 
-//      ++(sh); 
-//   else 
-//      --(sh); 
-
-b: pp = sh < 0 ? resl.mxy - sh : resr.mxy + sh; 
-   if (resr.mxy > pp) pp = resr.mxy; 
-   if (resl.mxy > pp) pp = resl.mxy; 
-   ++(pp); 
-   
-   for (isect = 1; isect <= k; isect++) 
-      for (jsect = 1; jsect <= pp; jsect++) 
-         is[isect-1][jsect-1] = chsp; 
-
-   for (isect = 1; isect <= k; isect++) 
-   {  
-       
-      {intsect *with1 = &resl.ints[isect-1]; 
-         y1 = with1->y; 
-         ssect = with1->sp % 2 == 0 ? 1 : 0; 
-         vv = with1->aliasvert; 
-         ss = with1->aliasslot;    
-      }    
-      jsect = 1; 
-      while (resr.ints[jsect-1].selfvert != vv || 
-             resr.ints[jsect-1].selfslot != ss) 
-         ++(jsect); 
-          
-      y2 = resr.ints[jsect-1].y; 
-      if (sh < 0) 
-         y1 -= sh; 
-      else 
-         y2 += sh; 
-      if (y1 == y2) 
-         for (jsect = 1; jsect <= k; jsect++) 
-            tt = lh(y1); 
-      else 
-         if (y1 < y2) 
-         { 
-            for (jsect = 1; jsect <= isect - 1; jsect++) 
-               if (lh(y1) == 1) 
-                  {if(count<5)goto a;}
-            if (is[isect-1][y1-1] != chsp) 
-               {if(count<5)goto a;}
-            is[isect-1][y1-1] = ssect ? chrBF : chrBB; 
-            for (jsect = y1 + 1; jsect <= y2 - 1; jsect++) 
-               lv(); 
-            if (is[isect-1][y2-1] != chsp) 
-               {if(count<5)goto a;}
-            is[isect-1][y2-1] = ssect ? chrC0 : chrC8; 
-            for (jsect = isect + 1; jsect <= k; jsect++) 
-               if (lh(y2) == 1) 
-                  {if(count<5)goto a;}
-         } 
-         else 
-         { 
-            for (jsect = 1; jsect <= isect - 1; jsect++) 
-               if (lh(y1) == 1) 
-                  {if(count<5)goto a;}
-            if (is[isect-1][y1-1] != chsp) 
-               {if(count<5)goto a;}
-            is[isect-1][y1-1] = ssect ? chrD9 : chrBC; 
-            for (jsect = y2 + 1; jsect <= y1 - 1; jsect++) 
-               lv(); 
-            if (is[isect-1][y2-1] != chsp) 
-               {if(count<5)goto a;}
-            is[isect-1][y2-1] = ssect ? chrDA : chrC9; 
-            for (jsect = isect + 1; jsect <= k; jsect++) 
-               if (lh(y2) == 1) 
-                  {if(count<5)goto a;}
-         } 
-   } 
-   return sh; 
-}  /* The end of Isector's body */ 
 
 
 static void diaprt(pnt* fout)
@@ -675,10 +533,8 @@ static void diaprt(pnt* fout)
    left = 0; 
    diaprin(&resr); 
 
-
-//   sh = isector(); 
+ 
 sh=0;   
-//printf("isector ok  sh=%d  \n",sh);
    kk = scrwidth - resl.mhor - resl.mver - resr.mhor - 2; 
    if (kk < 0) kk = 0; 
    kk = kk / 2; 

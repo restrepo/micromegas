@@ -19,6 +19,7 @@
 #include "usrfun.h"
 #include "nType.h"
 #include "rw_sess.h"
+#include "qcdScale.h"
 
 static REAL pvect4[16];
 
@@ -62,8 +63,8 @@ static void  calccoef(void)
    
    for(i=0;i<4;i++) pinf_int(Nsub,i+1,pmass+i,NULL);
    
-   sqrt_S=sqrt(pmass[0]*pmass[0]+pRestIn*pRestIn)
-         +sqrt(pmass[1]*pmass[1]+pRestIn*pRestIn);    
+   sqrt_S=Sqrt(pmass[0]*pmass[0]+pRestIn*pRestIn)
+         +Sqrt(pmass[1]*pmass[1]+pRestIn*pRestIn);    
 
    s_=sqrt_S*sqrt_S; 
    
@@ -72,7 +73,7 @@ static void  calccoef(void)
    ms = pmass[2] + pmass[3];
    if (ms >= sqrt_S) goto errorexit;
    mdiff=pmass[2] - pmass[3];
-   lambda34 = sqrt((s_ - ms*ms) * (s_ - mdiff*mdiff));
+   lambda34 = Sqrt((s_ - ms*ms) * (s_ - mdiff*mdiff));
 
    pRestOut=lambda34/(2*sqrt_S);
    
@@ -82,10 +83,10 @@ static void  calccoef(void)
    
    pvect4[3] = pRestIn; 
    pvect4[7] =-pRestIn;
-   pvect4[0] = sqrt(pRestIn*pRestIn + pmass[0]*pmass[0]);
-   pvect4[4] = sqrt(pRestIn*pRestIn + pmass[1]*pmass[1]);
-   pvect4[8] = sqrt(pRestOut*pRestOut + pmass[2]*pmass[2]);
-   pvect4[12]= sqrt(pRestOut*pRestOut + pmass[3]*pmass[3]);
+   pvect4[0] = Sqrt(pRestIn*pRestIn   + pmass[0]*pmass[0]);
+   pvect4[4] = Sqrt(pRestIn*pRestIn   + pmass[1]*pmass[1]);
+   pvect4[8] = Sqrt(pRestOut*pRestOut + pmass[2]*pmass[2]);
+   pvect4[12]= Sqrt(pRestOut*pRestOut + pmass[3]*pmass[3]);
 
    err_code = 0;
    return;
@@ -98,7 +99,7 @@ errorexit:
 static void  calcscalars(double  cosf)
 {
    REAL cos_f=cosf;
-   REAL sin_f=sqrt(fabs((1-cos_f)*(1+cos_f)));
+   REAL sin_f=Sqrt(fabs((1-cos_f)*(1+cos_f)));
    pvect4[11]=pRestOut*cos_f;
    pvect4[15]=-pvect4[11];
    pvect4[10]=pRestOut*sin_f;
@@ -145,7 +146,7 @@ static void  drawgraph(void)
  double  f[202]; 
    
   calccoef();
-  if(err_code) { messanykey(10,10,"Error in kinematics"); return; }
+  if(err_code) { messanykeyErr(10,10,"Error in kinematics"); return; }
           
   do
   {  if (correctInt(56,8,"Number of points=",&n,1))
@@ -158,7 +159,7 @@ static void  drawgraph(void)
 
            
   if( !fillseq(n,f)) 
-  {  messanykey(10,10,"Error in calculation"); 
+  {  messanykeyErr(10,10,"Error in calculation for plot construction"); 
      return;
   }
 

@@ -7,7 +7,7 @@
 
 #include "../CalcHEP_src/include/rootDir.h"
 #include"../CalcHEP_src/c_source/strfun/include/pdt.h"
-#define dptDefault "cteq6l1"
+#define dptDefault "NNPDF31_lo_as_0118"
 
 char pdfName[50]={};
 

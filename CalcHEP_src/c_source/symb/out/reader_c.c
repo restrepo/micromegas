@@ -10,7 +10,21 @@
 
 FILE * ext_h=NULL;
 
+
+int isCMathF(char*f)
+{  
+   char _f_[50];
+   if(strcmp(f,"abs")==0) return 'N';
+   sprintf(_f_," %s ",f);
+   if(strstr(" + - * / ^ if ",_f_)) return 'b'; 
+   if(strstr(" sqrt pow  exp log log10 sin cos tan asin acos atan sinh cosh tanh asinh acosh atanh atan2 fabs cimag creal carg cabs ",_f_)) return 'R';
+   if(strstr(" conj cacos casin catan ccos csin ctan cacosh casinh catanh ccosh csinh ctanh cexp clog clog10 cpow csqrt  cproj ",_f_)) return 'C'; 
+   return 0;
+}
+
+
 int checkNaN;
+
 
 static void * bact5(char ch,void * mm1,void * mm2)
 {  int dbl;
@@ -59,7 +73,8 @@ static void * bact5(char ch,void * mm1,void * mm2)
       break;
 
       case '^':
-                 sprintf(ans,"%c%c|pow(%s,%s)",p_m,r_n,m1,m2);
+//!!!!!!      
+                 sprintf(ans,"%c%c|Pow(%s,%s)",p_m,r_n,m1,m2);
                  checkNaN=1;
       break;
       default:  checkNaN=1;                 
@@ -88,6 +103,7 @@ void * act_c(char * name,int n, void ** args)
   char * ans;
   char tp='R';
   checkNaN=1;
+
   if(!isalpha(name[0]))
   { 
     if(n==1) return uact5(name,args[0]);
@@ -128,6 +144,10 @@ void * act_c(char * name,int n, void ** args)
   }             
   else     
   { if(prnf) tp='N';
+   
+    int isC=isCMathF(name);
+    if(isC=='R' || isC=='C') name[0]=toupper(name[0]);
+   
     sprintf(ans,"M%c|%s(",tp,name);
     if(n) strcat(ans,(char*)args[0]+3);
     for(i=1;i<n;i++) 

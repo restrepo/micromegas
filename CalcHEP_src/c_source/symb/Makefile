@@ -19,7 +19,7 @@ all: $(bin)/s_calchep $(bin)/make_VandP $(sbin)/make-j $(sbin)/makeVrtLib
 #all: $(bin)/make_VandP
 
 $(bin)/s_calchep:s_calchep.c $(lib)/symb.a $(lib)/serv.a $(lib)/dynamic_vp.a $(lib)/dynamic_me.a $(lib)/libSLHAplus.a $(lib)/dummy.a $(lib)/ntools.a
-	$(CC) $(CFLAGS) -o $@ $^ $(LX11) -lm $(lDL) -lpthread
+	$(CC) $(CFLAGS)   -o $@ $^ $(LX11) -lm  $(lQuad)  $(lDL) -lpthread
 
 $(lib)/symb.a:$(lib)/symb.a($(OBJ))
 	echo $(OBJ)
@@ -27,10 +27,10 @@ $(lib)/symb.a:$(lib)/symb.a($(OBJ))
 	@rm -f $(OBJ)
 
 $(bin)/make_VandP: make_VandP.c $(lib)/symb.a $(lib)/serv.a $(lib)/dynamic_me.a $(lib)/ntools.a
-	$(CC) $(CFLAGS) -o $@ $^ $(LX11) -lm -lpthread
+	$(CC) $(CFLAGS)    -o $@ $^ $(LX11) -lm  $(lQuad) $(lDL)  -lpthread
 
 $(sbin)/makeVrtLib: makeVrtLib.c $(lib)/symb.a $(lib)/serv.a $(lib)/dynamic_me.a $(lib)/ntools.a
-	$(CC) $(CFLAGS) -o $@ $^ $(LX11) -lm -lpthread
+	$(CC) $(CFLAGS)    -o $@ $^ $(LX11) -lm $(lQuad) -lpthread
 
 $(sbin)/make-j:make-j.c
 	$(CC) $(CFLAGS) -o $@ $^ -lm -lpthread      

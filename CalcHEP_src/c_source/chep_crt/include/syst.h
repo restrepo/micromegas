@@ -12,6 +12,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdarg.h>
+#include <unistd.h>
 #include "getmem.h"
 
 #ifndef MAX
@@ -27,17 +28,13 @@
 #endif
 
 
-#ifndef SEEK_SET 
-#include<unistd.h>
-#endif 
-
 extern   void (*diskerror) (void);
 extern   int f_printf(FILE *fp,char * format, ... );
 extern   size_t f_write(void *ptr,size_t size,size_t n,FILE *fp);
 
 extern  char * trim(char *);
 
-#define strlen(x) (long)strlen(x)
+//#define strlen(x) (long)strlen(x)
 
     extern int  setLockFile(char * fname);
     extern void unLockFile(int id); 

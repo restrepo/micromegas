@@ -390,45 +390,6 @@ static void rem833_833(int n0,int n1, cgraph ** c)
 
 
 
-static void rem833_866(int n3,int n6, cgraph ** c)
-{ /* - remove gluon connected vertex n0 and n1 (see fugure) from first C-graph - 08/01/90  */ 
-  int  n31,n32,n61,n62, l31,l32,l61,l62,lg;
-  cgraph * cg=*c;   
-
-#  if (CDEBLEV > DEBLEV) 
-     printf(" rem833_866(%d,%d)\n",n3,n6); wrcg(cg); 
-#  endif 
-      
-   n31=findl2(1,n3,cg,&l31);        //         v3
-   n32=findl2(2,n3,cg,&l32);        //  v31-->--*-->--v32
-   n61=findl2(1,n6,cg,&l61);        //          :
-   n62=findl2(2,n6,cg,&l62);        //          :
-   lg=cg->vl[n3].e[0];              //  v61--<--*--<--v62
-                                    //         v6
-//   cg->pow2--;
-       
-   cg->vl[n3].vt = v633;                cg->vl[n6].vt = V633;
-   cg->vl[n3].e[0]=cg->vl[n62].e[l62];  cg->vl[n6].e[0]=cg->vl[n61].e[l61];
-   cg->vl[n3].e[1]=cg->vl[n31].e[l31];  cg->vl[n6].e[1]= cg->vl[n32].e[l32];
-   cg->vl[n3].e[2]=lg;                   cg->vl[n6].e[2]=lg;
-    
-   cg=addcg(c); 
-   cg->sgn*=-1;
-   cg->powN--; 
-   cg->vl[n3].vt = zv; 
-   cg->vl[n6].vt = zv; 
-   cg->gl -= 2;
-    
-   cg->vl[n31].e[l31] =  cg->vl[n32].e[l32]; 
-   cg->vl[n61].e[l61] =  cg->vl[n62].e[l62];  
-
-   
-#  if (CDEBLEV > DEBLEV) 
-      wrcg(cg); 
-      if (cg->next) wrcg(cg->next); 
-#  endif 
-} 
-
 static void rem833_Fabc(int nq,int ng, cgraph  ** c)
 /* - remove gluon connected vertex n0 and n1 (see figure)
      from first C-graph - 08/01/90  */ 
@@ -733,7 +694,6 @@ if(istadpole2(n0,cg)) break;  else {expFabc(n0,&cg); continue; }
             switch(cg->vl[ng].vt)
             { case v833:  rem833_833(n0,ng,&cg); continue;
               case vFabc: rem833_Fabc(n0,ng,&cg);continue;
-//              case v866:  rem833_866(n0,ng,&cg); continue; 
             }  
          }
          
@@ -815,7 +775,7 @@ void fct_print(factor *fct, char *s)
 	  }
   sprintf(s+strlen(s),")");
 
-  if(fct->powN)  sprintf(s+strlen(s),"*(N^%d)",fct->powN);
+  if(fct->powN)  sprintf(s+strlen(s),"*(N^%ld)",fct->powN);
   if(fct->pow2<0) sprintf(s+strlen(s),"*2^%d",fct->pow2);
 }
 

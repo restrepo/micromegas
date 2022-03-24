@@ -103,7 +103,7 @@ int tri_heu(List m2l)
 	
 	if(ListLength(lu)==1 && IntegerValue(ListFirst(lu))>0)
 	{
-		if(red_1(IntegerValue(ListFirst(lu)),m2l,&l1,&l2)==0)
+		if(red_1((int)IntegerValue(ListFirst(lu)),m2l,&l1,&l2)==0)
 		{
 			return 0;
 		}
@@ -112,7 +112,7 @@ int tri_heu(List m2l)
 	if(ListLength(lu)==1 && IntegerValue(ListFirst(lu))<0)
 	{
 
-		if(red_2(-IntegerValue(ListFirst(lu)),m2l,&l1,&l2)==0)
+		if(red_2(-(int)IntegerValue(ListFirst(lu)),m2l,&l1,&l2)==0)
 		{
 			return 0;
 		}
@@ -147,8 +147,8 @@ int tri_heu(List m2l)
 	if(ListLength(lu)==2 && IntegerValue(ListFirst(lu))>0)
 	{
 		int ft, a1, a2;
-		a1= IntegerValue(ListFirst(ListTail(lu)));
-		a2= IntegerValue(ListFirst(lu));
+		a1=(int) IntegerValue(ListFirst(ListTail(lu)));
+		a2=(int) IntegerValue(ListFirst(lu));
 		
 		
 		/**********************  additive case  **************************/
@@ -247,8 +247,8 @@ int tri_heu(List m2l)
 	if(ListLength(lu)==2 && IntegerValue(ListFirst(lu))<0)
 	{
 		int ft, a1, a2;
-		a1= IntegerValue(ListFirst(ListTail(lu)));
-		a2=-IntegerValue(ListFirst(lu));
+		a1= (int)IntegerValue(ListFirst(ListTail(lu)));
+		a2=-(int)IntegerValue(ListFirst(lu));
 		
 		/**************   additive case   ********************/
 		
@@ -379,8 +379,8 @@ List tri_csf(List *ml)
 			if(l2)
 			{
 				int pt,pc;
-				pt=IntegerValue(CompoundArg2(ListFirst(l2)));
-				pc=IntegerValue(CompoundArg2(ListFirst(l1)));
+				pt=(int)IntegerValue(CompoundArg2(ListFirst(l2)));
+				pc=(int)IntegerValue(CompoundArg2(ListFirst(l1)));
 				if(pt<pc)
 					SetCompoundArg(ListFirst(l1),2,NewInteger(pt));
 			}
@@ -408,8 +408,8 @@ xyz1:
 				if(CompoundArg1(ListFirst(l2))==CompoundArg1(ListFirst(l3)))
 				{
 					int pt,pc;
-					pt=IntegerValue(CompoundArg2(ListFirst(l3)));
-					pc=IntegerValue(CompoundArg2(ListFirst(l2)));
+					pt=(int)IntegerValue(CompoundArg2(ListFirst(l3)));
+					pc=(int)IntegerValue(CompoundArg2(ListFirst(l2)));
 					SetCompoundArg(ListFirst(l3),2,NewInteger(pt-pc));
 					break;
 				}
@@ -428,8 +428,8 @@ xyz1:
 	
 	for(l=lu;l;l=ListTail(l))
 		m2l=tri_cvt(m2l,
-				CompoundArg1(ListNth(tri_si_co_list,IntegerValue(ListFirst(l)))),
-				CompoundArg2(ListNth(tri_si_co_list,IntegerValue(ListFirst(l)))));
+				CompoundArg1(ListNth(tri_si_co_list,(int)IntegerValue(ListFirst(l)))),
+				CompoundArg2(ListNth(tri_si_co_list,(int)IntegerValue(ListFirst(l)))));
 	
 	csf1=CopyTerm(CompoundArg2(ListFirst(m2l)));
 	
@@ -444,8 +444,8 @@ xyz1:
 			if(l2)
 			{
 				int pt,pc;
-				pt=IntegerValue(CompoundArg2(ListFirst(l2)));
-				pc=IntegerValue(CompoundArg2(ListFirst(l1)));
+				pt=(int)IntegerValue(CompoundArg2(ListFirst(l2)));
+				pc=(int)IntegerValue(CompoundArg2(ListFirst(l1)));
 				if(pt<pc)
 					SetCompoundArg(ListFirst(l1),2,NewInteger(pt));
 			}
@@ -473,8 +473,8 @@ xyz11:
 				if(CompoundArg1(ListFirst(l2))==CompoundArg1(ListFirst(l3)))
 				{
 					int pt,pc;
-					pt=IntegerValue(CompoundArg2(ListFirst(l3)));
-					pc=IntegerValue(CompoundArg2(ListFirst(l2)));
+					pt=(int)IntegerValue(CompoundArg2(ListFirst(l3)));
+					pc=(int)IntegerValue(CompoundArg2(ListFirst(l2)));
 					SetCompoundArg(ListFirst(l3),2,NewInteger(pt-pc));
 					break;
 				}
@@ -491,8 +491,8 @@ xyz11:
 	
 	for(l=lu;l;l=ListTail(l))
 		m2l=tri_cvt(m2l,
-				CompoundArg2(ListNth(tri_si_co_list,IntegerValue(ListFirst(l)))),
-				CompoundArg1(ListNth(tri_si_co_list,IntegerValue(ListFirst(l)))));
+				CompoundArg2(ListNth(tri_si_co_list,(int)IntegerValue(ListFirst(l)))),
+				CompoundArg1(ListNth(tri_si_co_list,(int)IntegerValue(ListFirst(l)))));
 	
 	csf=ConcatList(csf,csf1);
 	csf=SortedList(csf,pcmp);
@@ -535,7 +535,7 @@ static int red_1(int var_no, List ml, List *l_l, List *l_r)
 		if(tri_dbg_mode)
 			puts("TriHeu1: monomial");
 		
-		cnum=IntegerValue(CompoundArg1(ListFirst(ml)));
+		cnum=(int)IntegerValue(CompoundArg1(ListFirst(ml)));
 		l1=CopyTerm(ml);
 		ml=CopyTerm(ml);
 		l=ConsumeCompoundArg(ListFirst(l1),2);
@@ -556,7 +556,7 @@ static int red_1(int var_no, List ml, List *l_l, List *l_r)
 	if(ListLength(ml)==1 && CompoundArg2(ListFirst(ml))==0)
 	{
 		int fa;
-		fa=IntegerValue(CompoundArg1(ListFirst(ml)));
+		fa=(int)IntegerValue(CompoundArg1(ListFirst(ml)));
 		FreeAtomic(ml);
 		ml=MakeCompound(A_MTERM,3);
 		SetCompoundArg(ml,1,NewInteger(fa));
@@ -601,11 +601,11 @@ static int red_1(int var_no, List ml, List *l_l, List *l_r)
 			goto xyz1;
 		
 
-		i1=IntegerValue(CompoundArg1(m1));
-		i2=IntegerValue(CompoundArg1(m2));
-		i3=IntegerValue(CompoundArg1(m3));
-		cf=gcf(i1,i2);
-		cf=gcf(cf,i3);
+		i1=(int)IntegerValue(CompoundArg1(m1));
+		i2=(int)IntegerValue(CompoundArg1(m2));
+		i3=(int)IntegerValue(CompoundArg1(m3));
+		cf=(int)gcf(i1,i2);
+		cf=(int)gcf(cf,i3);
 		if(i1<0)
 			cf=-cf;
 		i1/=cf;
@@ -704,7 +704,7 @@ xyz1:
 			int cf;
 			List l3;
 			l3=CopyTerm(l1);
-			cf=gcf(IntegerValue(CompoundArg1(ListFirst(l3))),
+			cf=(int)gcf(IntegerValue(CompoundArg1(ListFirst(l3))),
 						IntegerValue(CompoundArg1(ListFirst(ListTail(l3)))));
 			if(IntegerValue(CompoundArg1(ListFirst(l3)))<0)
 				cf=-cf;
@@ -807,7 +807,7 @@ static List list_vars(List m2l, int do2)
 	for(l=lu1;l;l=ListTail(l))
 	{
 		Term sc;
-		sc=ListNth(tri_si_co_list,IntegerValue(ListFirst(l)));
+		sc=ListNth(tri_si_co_list,(int)IntegerValue(ListFirst(l)));
 		if(CompoundArgN(sc,4)==0)
 			continue;
 		if(lu2==0)
@@ -825,7 +825,7 @@ static List list_vars(List m2l, int do2)
 	if(lu2)
 	{
 		Term lu22;
-		lu22=ListNth(tri_sc_2_list,IntegerValue(lu2));
+		lu22=ListNth(tri_sc_2_list,(int)IntegerValue(lu2));
 		if(!ListMember(lu1,CompoundArg1(lu22)) || 
 				!ListMember(lu1,CompoundArg2(lu22)))
 			lu2=0;
@@ -868,7 +868,7 @@ static List list_vars(List m2l, int do2)
 	{
 		Term lu22;
 		
-		lu22=ListNth(tri_sc_2_list,IntegerValue(lu2));
+		lu22=ListNth(tri_sc_2_list,(int)IntegerValue(lu2));
 		
 			for(l=lu1;l;l=ListTail(l))
 				if(ListFirst(l)==CompoundArg1(lu22))
@@ -917,7 +917,7 @@ xyz:
 						CompoundArgN(ListFirst(l3),3))
 				{
 					int po;
-					po=IntegerValue(CompoundArg2(ListFirst(l1)));
+					po=(int)IntegerValue(CompoundArg2(ListFirst(l1)));
 					if(ListLength(*p)>2)
 					{
 						*p=CutFromList(*p,l1);
@@ -957,8 +957,8 @@ int tri_mcmp(Term m1, Term m2)
 			AtomValue(CompoundArg1(ListFirst(m2))));
 		if(rs)
 			return rs;
-		rs=IntegerValue(CompoundArg2(ListFirst(m1))) -
-			IntegerValue(CompoundArg2(ListFirst(m2)));
+		rs=(int)IntegerValue(CompoundArg2(ListFirst(m1))) -
+			(int)IntegerValue(CompoundArg2(ListFirst(m2)));
 		if(rs)
 			return rs;
 		m1=ListTail(m1);
@@ -997,7 +997,7 @@ static Term m2_m_to_e(Term m2)
 	List l1;
 	Term ret;
 	
-	n=IntegerValue(CompoundArg1(m2));
+	n=(int)IntegerValue(CompoundArg1(m2));
 	if(n<0)
 		n=-n;
 	
@@ -1049,19 +1049,19 @@ void tri_red_numf(List l1, List l2, List l3, List l4)
 	int cf;
 	List l;
 	
-	cf=IntegerValue(CompoundArg1(ListFirst(l1)));
+	cf=(int)IntegerValue(CompoundArg1(ListFirst(l1)));
 	if(cf<0)
 		cf=-cf;
 	for(l=l1;l;l=ListTail(l))
-		cf=gcf(cf,IntegerValue(CompoundArg1(ListFirst(l))));
+		cf=(int)gcf(cf,IntegerValue(CompoundArg1(ListFirst(l))));
 	for(l=l2;l;l=ListTail(l))
-		cf=gcf(cf,IntegerValue(CompoundArg1(ListFirst(l))));
+		cf=(int)gcf(cf,IntegerValue(CompoundArg1(ListFirst(l))));
 	if(l3)
 		for(l=l3;l;l=ListTail(l))
-			cf=gcf(cf,IntegerValue(CompoundArg1(ListFirst(l))));
+			cf=(int)gcf(cf,IntegerValue(CompoundArg1(ListFirst(l))));
 	if(l4)
 		for(l=l4;l;l=ListTail(l))
-			cf=gcf(cf,IntegerValue(CompoundArg1(ListFirst(l))));
+			cf=(int)gcf(cf,IntegerValue(CompoundArg1(ListFirst(l))));
 	for(l=l1;l;l=ListTail(l))
 		SetCompoundArg(ListFirst(l),1,
 				NewInteger(IntegerValue(CompoundArg1(ListFirst(l)))/cf));

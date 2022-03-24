@@ -2,6 +2,7 @@
 #include "lanhep.h"
 
 static List herm_matrices = 0, hermi_matrices=0;
+static Term el_name[16];
 Label orth_del_offdiag = 0;
 Label orth_red_diag = 0;
 
@@ -43,8 +44,8 @@ static int alg2_red_herm_2(List *lm, List l1, Term prop)
     Term m1,par,matr=0, matri=0;
     List l,l2,ltc;
 
-   line1=IntegerValue(CompoundArgN(prop,4));
-    line2=IntegerValue(CompoundArgN(prop,3));
+   line1=(int)IntegerValue(CompoundArgN(prop,4));
+    line2=(int)IntegerValue(CompoundArgN(prop,3));
     	
     l=hermi_matrices;
 
@@ -82,7 +83,7 @@ static int alg2_red_herm_2(List *lm, List l1, Term prop)
     par=l2;
     ltc=NewList();
 
-    for(i=1;i<=abs(IntegerValue(CompoundArg2(prop)));i++)
+    for(i=1;i<=abs((int)IntegerValue(CompoundArg2(prop)));i++)
     	{
     	Term par1;
     	par1=CompoundArgN(CompoundArgN(matr,i),line1);
@@ -111,7 +112,7 @@ static int alg2_red_herm_2(List *lm, List l1, Term prop)
     	FreeAtomic(l2);
     	}
 		
-    for(i=1;i<=abs(IntegerValue(CompoundArg2(prop)));i++)
+    for(i=1;i<=abs((int)IntegerValue(CompoundArg2(prop)));i++)
     	{
     	Term par1;
     	par1=CompoundArgN(CompoundArgN(matri,i),line1);
@@ -144,7 +145,7 @@ goto end;
 try2:
 	RemoveList(ltc);
 	ltc=NewList();
-	for(i=1;i<=abs(IntegerValue(CompoundArg2(prop)));i++)
+	for(i=1;i<=abs((int)IntegerValue(CompoundArg2(prop)));i++)
     	{
     	Term par1;
     	par1=CompoundArgN(CompoundArgN(matr,line1),i);
@@ -175,7 +176,7 @@ try2:
     	FreeAtomic(l2);
     	}
 		
-	for(i=1;i<=abs(IntegerValue(CompoundArg2(prop)));i++)
+	for(i=1;i<=abs((int)IntegerValue(CompoundArg2(prop)));i++)
     	{
     	Term par1;
     	par1=CompoundArgN(CompoundArgN(matri,line1),i);
@@ -227,13 +228,17 @@ end:
 	
 static int alg2_red_orth_2(List *lm, List l1, Term prop)
 	{
-	int line1,line2,i;
+	int line1,line2,i, inv;
     Term m1,par,matr=0;
     List l,l2,ltc;
 
-    line1=IntegerValue(CompoundArgN(prop,4));
-    line2=IntegerValue(CompoundArgN(prop,3));
-    	
+    line1=(int)IntegerValue(CompoundArgN(prop,4));
+    line2=(int)IntegerValue(CompoundArgN(prop,3));
+	
+	if(el_name[0]==el_name[1]) inv=0;
+	else if(el_name[0]==GetAtomProperty(el_name[1],A_ANTI)) inv=1;
+	else {puts("Internal error (ro2ii)"); return 0;}
+	
     l=herm_matrices;
 
     while(!is_empty_list(l))
@@ -276,7 +281,13 @@ static int alg2_red_orth_2(List *lm, List l1, Term prop)
     	par1=CompoundArgN(CompoundArgN(matr,i),line1);
 
     	l2=CopyTerm(par);
-    	l2=AppendFirst(l2,MakeCompound2(OPR_POW,par1,NewInteger(2)));
+		if(!inv)
+		  l2=AppendFirst(l2,MakeCompound2(OPR_POW,par1,NewInteger(2)));
+		else
+		{
+		  l2=AppendFirst(l2,MakeCompound2(OPR_POW,par1,NewInteger(1)));
+		  l2=AppendFirst(l2,MakeCompound2(OPR_POW,GetAtomProperty(par1,A_ANTI),NewInteger(1)));
+		}
     	l2=SortedList(l2,prtcmp);
     	SetCompoundArg(m1,2,l2);
     	l=*lm;
@@ -310,7 +321,14 @@ try2:
 
 
     	l2=CopyTerm(par);
-    	l2=AppendFirst(l2,MakeCompound2(OPR_POW,par1,NewInteger(2)));
+		if(!inv)
+		  l2=AppendFirst(l2,MakeCompound2(OPR_POW,par1,NewInteger(2)));
+		else
+		{
+		  l2=AppendFirst(l2,MakeCompound2(OPR_POW,par1,NewInteger(1)));
+		  l2=AppendFirst(l2,MakeCompound2(OPR_POW,GetAtomProperty(par1,A_ANTI),NewInteger(1)));
+		}
+	
     	l2=SortedList(l2,prtcmp);
     	SetCompoundArg(m1,2,l2);
     	l=*lm;
@@ -355,26 +373,30 @@ end:
 static int alg2_red_orth_11(List *lm, List l1, Term prop1, Term prop2)
     {
     int type,line1,line2,i;
+	int inv1=0, inv2=0;
     Term m1,par,matr=0;
     List l,l2,ltc;
     if(CompoundArgN(prop1,3)==CompoundArgN(prop2,3))
     	{ 
     	type=1;
-    	line1=IntegerValue(CompoundArgN(prop1,4));
-    	line2=IntegerValue(CompoundArgN(prop2,4));
+    	line1=(int)IntegerValue(CompoundArgN(prop1,4));
+    	line2=(int)IntegerValue(CompoundArgN(prop2,4));
     	}
     else
     	if(CompoundArgN(prop1,4)==CompoundArgN(prop2,4))
     		{
     		type=2;
-    		line1=IntegerValue(CompoundArgN(prop1,3));
-    		line2=IntegerValue(CompoundArgN(prop2,3));
+    		line1=(int)IntegerValue(CompoundArgN(prop1,3));
+    		line2=(int)IntegerValue(CompoundArgN(prop2,3));
     		}
     	else
     		return 0;
     if(line1==line2)
     	return 0;
-    	
+    
+	
+	
+	
     l=herm_matrices;
     while(!is_empty_list(l))
     	{
@@ -390,7 +412,28 @@ static int alg2_red_orth_11(List *lm, List l1, Term prop1, Term prop2)
     	puts("Internal error a2ro11");
     	return 0;
     	}
-    	
+    
+   
+	{
+	  Atom a;
+	  a=CompoundArgN(CompoundArgN(matr,(int)IntegerValue(CompoundArgN(prop1,3))),
+				(int)IntegerValue(CompoundArgN(prop1,4)));
+	  if(a!=el_name[0])
+	  {
+		if(GetAtomProperty(a,A_ANTI)==el_name[0]) inv1=1;
+		else puts("Internal error (ro11i1)");
+	  }
+	  a=CompoundArgN(CompoundArgN(matr,(int)IntegerValue(CompoundArgN(prop2,3))),
+				(int)IntegerValue(CompoundArgN(prop2,4)));
+	   if(a!=el_name[1])
+	  {
+		if(GetAtomProperty(a,A_ANTI)==el_name[1]) inv2=1;
+		else puts("Internal error (ro11i2)");
+	  }
+	}
+    
+    
+    
     m1=CopyTerm(ListFirst(l1));
     par=l=ConsumeCompoundArg(m1,2);
     l2=NewList();
@@ -424,6 +467,8 @@ static int alg2_red_orth_11(List *lm, List l1, Term prop1, Term prop2)
     		par1=CompoundArgN(CompoundArgN(matr,line1),i);
     		par2=CompoundArgN(CompoundArgN(matr,line2),i);
     		}
+    	if(inv1) par1=GetAtomProperty(par1,A_ANTI);
+		if(inv2) par2=GetAtomProperty(par2,A_ANTI);
     	l2=CopyTerm(par);
     	l2=AppendFirst(l2,MakeCompound2(OPR_POW,par1,NewInteger(1)));
     	l2=AppendFirst(l2,MakeCompound2(OPR_POW,par2,NewInteger(1)));
@@ -477,15 +522,15 @@ static int alg2_red_herm_11(List *lm, List l1, Term prop1, Term prop2)
     if(CompoundArgN(prop1,3)==CompoundArgN(prop2,3))
     	{ 
     	type=1;
-    	line1=IntegerValue(CompoundArgN(prop1,4));
-    	line2=IntegerValue(CompoundArgN(prop2,4));
+    	line1=(int)IntegerValue(CompoundArgN(prop1,4));
+    	line2=(int)IntegerValue(CompoundArgN(prop2,4));
     	}
     else
     	if(CompoundArgN(prop1,4)==CompoundArgN(prop2,4))
     		{
     		type=2;
-    		line1=IntegerValue(CompoundArgN(prop1,3));
-    		line2=IntegerValue(CompoundArgN(prop2,3));
+    		line1=(int)IntegerValue(CompoundArgN(prop1,3));
+    		line2=(int)IntegerValue(CompoundArgN(prop2,3));
     		}
     	else
     		return 0;
@@ -528,7 +573,7 @@ static int alg2_red_herm_11(List *lm, List l1, Term prop1, Term prop2)
     par=l2;
     ltc=NewList();
     
-    for(i=1;i<=abs(IntegerValue(CompoundArg2(prop1)));i++)
+    for(i=1;i<=abs((int)IntegerValue(CompoundArg2(prop1)));i++)
     	{
     	Term par1,par2;
     	if(type==1)
@@ -567,7 +612,7 @@ static int alg2_red_herm_11(List *lm, List l1, Term prop1, Term prop2)
     	l2=ConsumeCompoundArg(m1,2);
     	FreeAtomic(l2);
     	}
-    for(i=1;i<=abs(IntegerValue(CompoundArg2(prop1)));i++)
+    for(i=1;i<=abs((int)IntegerValue(CompoundArg2(prop1)));i++)
     	{
     	Term par1,par2;
     	if(type==1)
@@ -640,15 +685,15 @@ static int alg2_red_herm_ri(List *lm, List l1, Term prop1, Term prop2)
     if(CompoundArgN(prop1,3)==CompoundArgN(prop2,3))
     	{ 
     	type=1;
-    	line1=IntegerValue(CompoundArgN(prop1,4));
-    	line2=IntegerValue(CompoundArgN(prop2,4));
+    	line1=(int)IntegerValue(CompoundArgN(prop1,4));
+    	line2=(int)IntegerValue(CompoundArgN(prop2,4));
     	}
     else
     	if(CompoundArgN(prop1,4)==CompoundArgN(prop2,4))
     		{
     		type=2;
-    		line1=IntegerValue(CompoundArgN(prop1,3));
-    		line2=IntegerValue(CompoundArgN(prop2,3));
+    		line1=(int)IntegerValue(CompoundArgN(prop1,3));
+    		line2=(int)IntegerValue(CompoundArgN(prop2,3));
     		}
     	else
     		return 0;
@@ -692,7 +737,7 @@ bgn:
 	
 	/*SetCompoundArg(m1,1,NewInteger(-IntegerValue(CompoundArg1(m1))));*/
     
-    for(i=1;i<=abs(IntegerValue(CompoundArg2(prop1)));i++)
+    for(i=1;i<=abs((int)IntegerValue(CompoundArg2(prop1)));i++)
     	{
     	Term par1,par2;
     	if(type==1)
@@ -730,8 +775,8 @@ bgn:
 			if(type==1 && line1==line2)
 			{
 				type=2;
-				line1=IntegerValue(CompoundArgN(prop1,3));
-    			line2=IntegerValue(CompoundArgN(prop2,3));
+				line1=(int)IntegerValue(CompoundArgN(prop1,3));
+    			line2=(int)IntegerValue(CompoundArgN(prop2,3));
 				goto bgn;
 			}
 
@@ -743,7 +788,7 @@ bgn:
 		
 	SetCompoundArg(m1,1,NewInteger(-IntegerValue(CompoundArg1(m1))));
 	
-    for(i=1;i<=abs(IntegerValue(CompoundArg2(prop1)));i++)
+    for(i=1;i<=abs((int)IntegerValue(CompoundArg2(prop1)));i++)
     	{
     	Term par1,par2;
     	if(type==1)
@@ -779,8 +824,8 @@ bgn:
 			if(type==1 && line1==line2)
 			{
 				type=2;
-				line1=IntegerValue(CompoundArgN(prop1,3));
-    			line2=IntegerValue(CompoundArgN(prop2,3));
+				line1=(int)IntegerValue(CompoundArgN(prop1,3));
+    			line2=(int)IntegerValue(CompoundArgN(prop2,3));
 				goto bgn;
 			}
 
@@ -820,7 +865,7 @@ static List orth_mlt(List l, Atom par)
 		if(CompoundArg1(pp)==par)
 			{
 			int n;
-			n=1+IntegerValue(CompoundArg2(pp));
+			n=1+(int)IntegerValue(CompoundArg2(pp));
 			SetCompoundArg(pp,2,NewInteger(n));
 			return l;
 			}
@@ -929,7 +974,7 @@ static int orth4_fit(List *ml, Term m1, List par, int val, List els)
 	
 	zcf=CopyTerm(CompoundArg2(ListFirst(els)));
 	for(l1=zcf;l1;l1=ListTail(l1))
-		zpo+=IntegerValue(CompoundArg2(ListFirst(l1)));
+		zpo+=(int)IntegerValue(CompoundArg2(ListFirst(l1)));
 		
 	for(l1=ListTail(els);l1;l1=ListTail(l1))
 	{
@@ -941,8 +986,8 @@ static int orth4_fit(List *ml, Term m1, List par, int val, List els)
 			for(l3=CompoundArg2(ListFirst(l1));l3;l3=ListTail(l3))
 				if(CompoundArg1(ListFirst(l3))==z)
 					break;
-			n1=IntegerValue(CompoundArg2(ListFirst(l2)));
-			n2=l3?IntegerValue(CompoundArg2(ListFirst(l3))):0;
+			n1=(int)IntegerValue(CompoundArg2(ListFirst(l2)));
+			n2=l3?(int)IntegerValue(CompoundArg2(ListFirst(l3))):0;
 			if(n2<n1)
 				SetCompoundArg(ListFirst(l2),2,NewInteger(n2));
 		}
@@ -979,8 +1024,8 @@ rpt:
 		}
 		
 		if(coeff==0)
-			coeff=IntegerValue(CompoundArg1(ListFirst(l2)))/
-					IntegerValue(CompoundArg1(ListFirst(l1)));
+			coeff=(int)IntegerValue(CompoundArg1(ListFirst(l2)))/
+					(int)IntegerValue(CompoundArg1(ListFirst(l1)));
 		if(coeff*IntegerValue(CompoundArg1(ListFirst(l1)))!=
 				IntegerValue(CompoundArg1(ListFirst(l2))))
 		{
@@ -1023,17 +1068,17 @@ static int alg2_red_orth_4(List *lm, List l1, Term *props, Term *names)
     List l,l2;
 	int rows[4], cols[4];
     
-	rows[0]=IntegerValue(CompoundArgN(props[0],3));
-	rows[1]=IntegerValue(CompoundArgN(props[1],3));
-	rows[2]=IntegerValue(CompoundArgN(props[2],3));
-	rows[3]=IntegerValue(CompoundArgN(props[3],3));
+	rows[0]=(int)IntegerValue(CompoundArgN(props[0],3));
+	rows[1]=(int)IntegerValue(CompoundArgN(props[1],3));
+	rows[2]=(int)IntegerValue(CompoundArgN(props[2],3));
+	rows[3]=(int)IntegerValue(CompoundArgN(props[3],3));
 	
-	cols[0]=IntegerValue(CompoundArgN(props[0],4));
-	cols[1]=IntegerValue(CompoundArgN(props[1],4));
-	cols[2]=IntegerValue(CompoundArgN(props[2],4));
-	cols[3]=IntegerValue(CompoundArgN(props[3],4));
+	cols[0]=(int)IntegerValue(CompoundArgN(props[0],4));
+	cols[1]=(int)IntegerValue(CompoundArgN(props[1],4));
+	cols[2]=(int)IntegerValue(CompoundArgN(props[2],4));
+	cols[3]=(int)IntegerValue(CompoundArgN(props[3],4));
 	
-	dim=IntegerValue(CompoundArg2(props[0]));
+	dim=(int)IntegerValue(CompoundArg2(props[0]));
 	
 	l=herm_matrices;
     while(!is_empty_list(l))
@@ -1142,15 +1187,15 @@ static int alg2_red_orth_3(List *lm, List l1, Term *props, Term *names)
 	int rows[3], cols[3];
     
 	
-	rows[0]=IntegerValue(CompoundArgN(props[0],3));
-	rows[1]=IntegerValue(CompoundArgN(props[1],3));
-	rows[2]=IntegerValue(CompoundArgN(props[2],3));
+	rows[0]=(int)IntegerValue(CompoundArgN(props[0],3));
+	rows[1]=(int)IntegerValue(CompoundArgN(props[1],3));
+	rows[2]=(int)IntegerValue(CompoundArgN(props[2],3));
 	
-	cols[0]=IntegerValue(CompoundArgN(props[0],4));
-	cols[1]=IntegerValue(CompoundArgN(props[1],4));
-	cols[2]=IntegerValue(CompoundArgN(props[2],4));
+	cols[0]=(int)IntegerValue(CompoundArgN(props[0],4));
+	cols[1]=(int)IntegerValue(CompoundArgN(props[1],4));
+	cols[2]=(int)IntegerValue(CompoundArgN(props[2],4));
 	
-	dim=IntegerValue(CompoundArg2(props[0]));
+	dim=(int)IntegerValue(CompoundArg2(props[0]));
 	
 	l=herm_matrices;
     while(!is_empty_list(l))
@@ -1343,14 +1388,15 @@ bgn:
 					for(nn=1;nn<=IntegerValue(CompoundArg2(ListFirst(l1)));nn++)
 					{
 						ss[no]=ss1;
-						sn[no]=CompoundArg1(ListFirst(l1));
+						el_name[no]=sn[no]=CompoundArg1(ListFirst(l1));
 						no++;
 					}
 				l1=ListTail(l1);
 			}
 			
 			
-			if(no==2 && sn[0]==sn[1] && alg2_red_orth_2(&lm,l,ss[0]))
+			if(no==2 && (sn[0]==sn[1] || sn[0]==GetAtomProperty(sn[1],A_ANTI))
+				  && alg2_red_orth_2(&lm,l,ss[0]))
 				goto bgn;
 			if(no==2 && sn[0]!=sn[1] && alg2_red_orth_11(&lm,l,ss[0],ss[1]))
 				goto bgn;
@@ -1524,14 +1570,15 @@ void alg2_red_orth(Term a2)
 					for(nn=1;nn<=IntegerValue(CompoundArg2(ListFirst(l1)));nn++)
 					{
 						ss[no]=ss1;
-						sn[no]=CompoundArg1(ListFirst(l1));
+						el_name[no]=sn[no]=CompoundArg1(ListFirst(l1));
 						no++;
 					}
 				l1=ListTail(l1);
 			}
 			
 			
-			if(no==2 && sn[0]==sn[1] && alg2_red_orth_2(&lm,l,ss[0]))
+			if(no==2 && (sn[0]==sn[1] || sn[0]==GetAtomProperty(sn[1],A_ANTI))
+					&& alg2_red_orth_2(&lm,l,ss[0]))
 				goto bgn;
 			if(no==2 && sn[0]!=sn[1] && alg2_red_orth_11(&lm,l,ss[0],ss[1]))
 				goto bgn;
@@ -1571,7 +1618,7 @@ Term ProcHermMatr(Term t)
 		{
 		char cbuf1[128],cbuf2[128];
 		int p1r=-1,p2r=-1,p1i=-1,p2i=-1;
-		dim=IntegerValue(CompoundArgN(t,3));
+		dim=(int)IntegerValue(CompoundArgN(t,3));
 		if(dim<2 || dim>9)
 			{
 			ErrorInfo(200);
@@ -1629,8 +1676,8 @@ Term ProcHermMatr(Term t)
 		for(j=0;j<dim;j++)
 			{
 			Atom a;
-			cbuf1[p1r]='1'+i;
-			cbuf1[p2r]='1'+j;
+			cbuf1[p1r]='1'+(char)i;
+			cbuf1[p2r]='1'+(char)j;
 			a=NewAtom(cbuf1,0);
 			if(!is_parameter(a))
 				{
@@ -1638,8 +1685,8 @@ Term ProcHermMatr(Term t)
 				printf("OrthMatrix: %s is undefined.\n",cbuf1);
 				return 0;
 				}
-			cbuf2[p1i]='1'+i;
-			cbuf2[p2i]='1'+j;
+			cbuf2[p1i]='1'+(char)i;
+			cbuf2[p2i]='1'+(char)j;
 			a=NewAtom(cbuf2,0);
 			if(!is_parameter(a))
 				{
@@ -1657,8 +1704,8 @@ Term ProcHermMatr(Term t)
 			for(j=0;j<dim;j++)
 				{
 				Atom a;
-				cbuf1[p1r]='1'+i;
-				cbuf1[p2r]='1'+j;
+				cbuf1[p1r]='1'+(char)i;
+				cbuf1[p2r]='1'+(char)j;
 				a=NewAtom(cbuf1,0);
 				SetCompoundArg(t2,j+1,a);
 				}
@@ -1671,8 +1718,8 @@ Term ProcHermMatr(Term t)
 			for(j=0;j<dim;j++)
 				{
 				Atom a;
-				cbuf2[p1i]='1'+i;
-				cbuf2[p2i]='1'+j;
+				cbuf2[p1i]='1'+(char)i;
+				cbuf2[p2i]='1'+(char)j;
 				a=NewAtom(cbuf2,0);
 				SetCompoundArg(t2,j+1,a);
 				}
@@ -1898,7 +1945,7 @@ Term ProcRegMatrix(Term t, Term ind)
 		{
 		char cbuf[128];
 		int p1=-1,p2=-1;
-		dim=IntegerValue(CompoundArg2(t));
+		dim=(int)IntegerValue(CompoundArg2(t));
 		if(dim<2 || dim>9)
 			{
 			ErrorInfo(200);
@@ -1932,8 +1979,8 @@ Term ProcRegMatrix(Term t, Term ind)
 		for(j=0;j<dim;j++)
 			{
 			Atom a;
-			cbuf[p1]='1'+i;
-			cbuf[p2]='1'+j;
+			cbuf[p1]='1'+(char)i;
+			cbuf[p2]='1'+(char)j;
 			a=NewAtom(cbuf,0);
 			if(!is_parameter(a))
 				{
@@ -1950,8 +1997,8 @@ Term ProcRegMatrix(Term t, Term ind)
 			for(j=0;j<dim;j++)
 				{
 				Atom a;
-				cbuf[p1]='1'+i;
-				cbuf[p2]='1'+j;
+				cbuf[p1]='1'+(char)i;
+				cbuf[p2]='1'+(char)j;
 				a=NewAtom(cbuf,0);
 				SetCompoundArg(t2,j+1,a);
 				}
@@ -2085,7 +2132,7 @@ static List rcos_mlt(List l, Atom par, int pw)
 		if(CompoundArg1(pp)==par)
 			{
 			int n;
-			n=pw+IntegerValue(CompoundArg2(pp));
+			n=pw+(int)IntegerValue(CompoundArg2(pp));
 			if(n)
 				SetCompoundArg(pp,2,NewInteger(n));
 			else
@@ -2112,8 +2159,8 @@ static List rcos_add(List l, Term m2)
 			EqualTerms(CompoundArgN(t,3),CompoundArgN(m2,3)))
 				{
 				int n1,n2,n;
-				n1=IntegerValue(CompoundArg1(t));
-				n2=IntegerValue(CompoundArg1(m2));
+				n1=(int)IntegerValue(CompoundArg1(t));
+				n2=(int)IntegerValue(CompoundArg1(m2));
 				n=n1+n2;
 				if(n==0)
 					{
@@ -2153,7 +2200,7 @@ beg:
 			{
 			Term ss,cs;
 			int ipw;
-			ipw=IntegerValue(CompoundArg2(ListFirst(lp)));
+			ipw=(int)IntegerValue(CompoundArg2(ListFirst(lp)));
 			cs=CompoundArg1(ListFirst(lp));
 			ss=GetAtomProperty(cs,A_COS);
 			if(ss && ipw>1)

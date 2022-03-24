@@ -28,7 +28,7 @@ MOcommonSTR mocommon_=
    1.23    , /* 22     Fermi_c      */
    8.0     , /* 23     Rsun         */
    0.3     , /* 24     rhoDM(Sun)   */
-  232      , /* 25     Vearth       */ 
+  232      , /* 25     vEarth       */ 
    0.0112  , /* 26     K_dif        */
    4       , /* 27     L_dif        */
    0.7     , /* 28     Delta_dif    */
@@ -37,8 +37,8 @@ MOcommonSTR mocommon_=
    20      , /* 31     Rdisk        */
    0       , /* 32     deltaY  (abandence asymmtry) */
    0       , /* 33     dmAsymm (log(dm/dm_bar)) */
-   544     , /* 34     Vesc         */
-   220     , /* 35     Vrot         */
+   544     , /* 34     vEsc         */
+   220     , /* 35     vRot         */
    0.9     , /* 36     betaSHMpp    */
    0.2     , /* 37     etaSHMpp     */
    0       , /* 38     FracCDM2     */

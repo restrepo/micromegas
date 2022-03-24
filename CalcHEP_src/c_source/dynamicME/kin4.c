@@ -15,18 +15,18 @@
 extern  char * trim(char *);
 
 int ForceUG=0;
-int useSLHAwidth=0;
+int useSLHAwidth=1;
 decayTableStr* decayTable=NULL;
 
 /*=============   decayPcm   and decayPcmW ================*/      
 
-double  decayPcm(double am0,  double  am1,  double  am2)
+REAL  decayPcm(REAL am0,  REAL  am1,  REAL am2)
 {
-  double  summ, diffm;
+  REAL  summ, diffm;
   summ = am1 + am2;
   diffm = am1 - am2;
   if(am0<summ) return 0;
-  return sqrt((am0-summ)*(am0+ summ)*(am0-diffm)*(am0+diffm))/(am0*2);
+  return Sqrt((am0-summ)*(am0+ summ)*(am0-diffm)*(am0+diffm))/(am0*2);
 }
 
 
@@ -119,7 +119,7 @@ double decayPcmW(double m0,double m1,double m2,double w1,double w2, int N)
 static double kinematic_1_3(REAL *pmass, int i3, double m12, double xcos, REAL * P)
 { 
   double factor;
-  REAL pout,mQ,chY,shY,xsin, E1,P12,P13,E2,P22,P23, m0,m1,m2,m3;
+  REAL pout,chY,shY,xsin, E1,P12,P13,E2,P22,P23, m0,m1,m2,m3;
   int i,i1,i2;
   
   for(i=1;i<4;i++)if(i3!=i) {i1=i; break;}
@@ -138,17 +138,17 @@ static double kinematic_1_3(REAL *pmass, int i3, double m12, double xcos, REAL *
   
   pout=decayPcm(m0,m12,m3);
   if(!pout) return 0;  
-  P[i3*4]=sqrt(pout*pout+m3*m3); P[i3*4+3]=-pout; 
+  P[i3*4]=Sqrt(pout*pout+m3*m3); P[i3*4+3]=-pout; 
 
   factor*=pout;  
   
   shY=pout/m12;
-  chY=sqrt(1+shY*shY);  
+  chY=Sqrt(1+shY*shY);  
   pout=decayPcm(m12,m1,m2);
   if(!pout) return 0;
   factor*=pout;
-  xsin=sqrt(1-xcos*xcos);
-  E1=sqrt(m1*m1+pout*pout);    E2=sqrt(m2*m2+pout*pout);
+  xsin=Sqrt(1-xcos*xcos);
+  E1=Sqrt(m1*m1+pout*pout);    E2=Sqrt(m2*m2+pout*pout);
   P13=xcos*pout;               P23=-P13;
   P12=xsin*pout;               P22=-P12;
   
@@ -161,8 +161,7 @@ static double kinematic_1_3(REAL *pmass, int i3, double m12, double xcos, REAL *
 
 static double kinematic_1_4(REAL *pmass, double xm1, double xm2, double xcos1, double xcos2,double fi2,  REAL * P)
 { 
-  double factor,M1,M2,Pcm,p1cm,p2cm,chY,shY,xsin;
-  double p0,p3;
+  double factor,M1,M2,Pcm,p1cm,p2cm,chY,shY;
   int i,j;
 
   factor= 1./(pow(2*M_PI,8)*2*pmass[0]*16);
@@ -178,20 +177,20 @@ static double kinematic_1_4(REAL *pmass, double xm1, double xm2, double xcos1, d
   
   P[0]=pmass[0]; P[1]=P[2]=P[3]=0;
   
-  P[4+0]=sqrt(pmass[1]*pmass[1]+p1cm*p1cm);       P[8+0]=sqrt(pmass[2]*pmass[2]+p1cm*p1cm);
+  P[4+0]=Sqrt(pmass[1]*pmass[1]+p1cm*p1cm);       P[8+0]=Sqrt(pmass[2]*pmass[2]+p1cm*p1cm);
   P[4+1]=0;   
-  P[4+2]=p1cm*sqrt(1-xcos1*xcos1);
+  P[4+2]=p1cm*Sqrt(1-xcos1*xcos1);
   P[4+3]=p1cm*xcos1;
   
           
-  P[12+0]=sqrt(pmass[3]*pmass[3]+p2cm*p2cm);       P[16+0]=sqrt(pmass[4]*pmass[4]+p2cm*p2cm);
-  P[12+1]=sin(fi2)*p2cm*sqrt(1-xcos2*xcos2);
-  P[12+2]=cos(fi2)*p2cm*sqrt(1-xcos2*xcos2); 
+  P[12+0]=Sqrt(pmass[3]*pmass[3]+p2cm*p2cm);       P[16+0]=Sqrt(pmass[4]*pmass[4]+p2cm*p2cm);
+  P[12+1]=Sin(fi2)*p2cm*Sqrt(1-xcos2*xcos2);
+  P[12+2]=Cos(fi2)*p2cm*Sqrt(1-xcos2*xcos2); 
   P[12+3]=p2cm*xcos2;  
   
   for(i=1;i<=2;i++) for(j=1;j<=3;j++) P[i*8+j]=-P[i*8-4+j];
   shY=Pcm/M1;
-  chY=sqrt(1+shY*shY);
+  chY=Sqrt(1+shY*shY);
   for(i=1;i<3;i++)
   { double  p0=P[4*i];
     double  p3=P[4*i+3];
@@ -200,7 +199,7 @@ static double kinematic_1_4(REAL *pmass, double xm1, double xm2, double xcos1, d
   }
 
   shY=-Pcm/M2;            
-  chY=sqrt(1+shY*shY);  
+  chY=Sqrt(1+shY*shY);  
   for(i=3;i<5;i++)
   { double  p0=P[4*i];
     double  p3=P[4*i+3];
@@ -220,8 +219,8 @@ for(i=0;i<4;i++)
 */
   for(i=0;i<5;i++)
   { double m;
-    m=sqrt(fabs(P[4*i]*P[4*i]-P[4*i+1]*P[4*i+1]-P[4*i+2]*P[4*i+2]-P[4*i+3]*P[4*i+3]));
-    if(fabs(m-pmass[i])>pmass[0]*1.E-5) { printf("wrong mass %d (%E != %E) \n",i,m,pmass[i]); exit(33);}
+    m=Sqrt(Fabs(P[4*i]*P[4*i]-P[4*i+1]*P[4*i+1]-P[4*i+2]*P[4*i+2]-P[4*i+3]*P[4*i+3]));
+    if(Fabs(m-pmass[i])>pmass[0]*1.E-5) { printf("wrong mass %d (%E != %E) \n",i,m,(double)pmass[i]); exit(33);}
   }
   return factor;
 }
@@ -253,13 +252,13 @@ static double dWidthdCos(double xcos)
 
 }
 
-static double dWidthdM(double M)
-{ double r;
+static int simpsonNeed=1;
 
-  M_=M; r= simpson(dWidthdCos,-1.,1.,1.E-4,NULL);
-  
-//  printf("M=%e dWidthdM= %E\n", M_,r);
-  return r;
+static double dWidthdM(double M)
+{ 
+  M_=M; 
+  if(simpsonNeed) return simpson(dWidthdCos,-1.,1.,0.5E-2,NULL);
+  else          return peterson21(dWidthdCos,-1,1,NULL);
 }
 
 static double width13(numout * cc, int nsub, int * err) 
@@ -271,10 +270,42 @@ static double width13(numout * cc, int nsub, int * err)
   for(i=0;i<4;i++) cc->interface->pinf(nsub,1+i,Pmass+i,NULL);
   if(cc->SC ) GG=*(cc->SC); else  GG=sqrt(4*M_PI*alphaQCD(Pmass[0]));
   *err=0;  
- i3_=1; 
+
+  double mm=Pmass[1];  
+  i3_=1;  
+  for(int i=2;i<=3;i++) if(Pmass[i]>mm) { i3_=i; mm=Pmass[i];}
+  
+// printf(" mass_1=%E\n", mm);
+
+  double pp[3]={0,0,0};
+  
+  for(int n=1;;n++)  
+  {  int m,w,pnum;
+     char*s=cc->interface->den_info(nsub,n,&m,&w,&pnum);
+     if(!s) break;  
+     double mass=0;
+     if(m) mass=cc->interface->va[m];
+     if(mass>0)
+     {  double  mMax=Pmass[0]-Pmass[s[1]-1];
+        double  mMin=Pmass[1]+Pmass[2]+Pmass[3]-Pmass[s[1]-1]; 
+        if( mMin*0.9<mass && mass<mMax*1.1) pp[s[1]-2]=1;
+     }   
+  }
+   
+//  printf("=%E %E %E\n",pp[0],pp[1],pp[2]);            
+
+  simpsonNeed=0;
+  for(int i=1;i<=3;i++) if(i!=i3_ && pp[i-1]>0.7 ) simpsonNeed=1; 
+     
+  double ms=0;for(int i=1;i<=3;i++) if(i!=i3_) ms+=Pmass[i]; 
   sqme=cc->interface->sqme;
   nsub_stat=nsub; 
-  return simpson(dWidthdM,Pmass[2]+Pmass[3], Pmass[0]-Pmass[1],1.E-2,NULL);
+
+//  displayPlot("width", "M23",ms, Pmass[0]-mm, 0,1,"",0,dWidthdM,NULL);
+    
+  if(pp[i3_-1]<0.7 ) return peterson21(dWidthdM,ms, Pmass[0]-mm,NULL); 
+  else               return  simpson(dWidthdM,ms, Pmass[0]-mm,1.E-2,NULL);
+  
 }
 
 
@@ -404,6 +435,14 @@ void massFilter(double M, txtList * List)
           }
        }else if(abs(ModelPrtcls[abs(n)-1].NPDG)==6) dM=MtEff(0);
        else  dM = fabs(*(varAddress(nm))); 
+       switch(abs(ModelPrtcls[abs(n)-1].NPDG))
+       {
+          case 1: case 2: if(dM<0.07)  dM=0.07; break;
+          case 3:         if(dM<0.3)   dM=0.3;  break;
+          case 4:         if(dM<1.5)   dM=1.5;  break;
+          case 5:         if(dM<5)     dM=5. ; break;
+      }
+                                                                           
        Msum+=dM;
      } 
      lnext=lold->next;
@@ -498,7 +537,7 @@ double pWidth2(numout * cc, int nsub)
   REAL pvect[12];
   double width=0.;
   REAL m1,m2,m3; 
-  int i,ntot,nin,nout;
+  int ntot,nin,nout;
   double GG;
   procInfo1(cc,&ntot,&nin,&nout);
   if(nsub<1 ||  nsub>ntot|| nin!=1||nout !=2)  return 0;
@@ -514,15 +553,15 @@ double pWidth2(numout * cc, int nsub)
   {   int i,err_code=0; 
       double md=m2-m3;
       double ms=m2+m3;
-      double pRestOut=sqrt((m1*m1 - ms*ms)*(m1*m1-md*md))/(2*m1);
+      double pRestOut=Sqrt((m1*m1 - ms*ms)*(m1*m1-md*md))/(2*m1);
       double totcoef= pRestOut/(8. * M_PI * m1*m1);
            
       for(i=1;i<12;i++) pvect[i]=0;
       pvect[0]=m1;
       pvect[7]=pRestOut;
-      pvect[4]=sqrt(pRestOut*pRestOut+m2*m2);
+      pvect[4]=Sqrt(pRestOut*pRestOut+m2*m2);
       pvect[11]=-pRestOut;
-      pvect[8]=sqrt(pRestOut*pRestOut+m3*m3);
+      pvect[8]=Sqrt(pRestOut*pRestOut+m3*m3);
       width = totcoef * (cc->interface->sqme)(nsub,GG,pvect,NULL,&err_code);
   }
   return width;
@@ -533,7 +572,7 @@ double decay2Info(char * pname, FILE* f)
 { int i,j,ntot;
   numout * cc;
   double wtot;
-  char pname2[20],process[20],plib[20];
+  char pname2[30],process[30],plib[30];
   char * dname[8];
 
   for(i=0,j=0;pname[i];i++)
@@ -560,13 +599,13 @@ double decay2Info(char * pname, FILE* f)
 }
 
 static int chOpen(numout*cc, int k)
-{  double m[3],s; 
+{  double s; 
    int pdg[3],j;
    char*name[3]; 
    for(j=0;j<3;j++) name[j]=cc->interface->pinf(k,j+1,NULL,pdg+j);
    s=pMass(name[0]);
    for(j=1;j<3;j++) s-=pMass(name[j]);
-   if( pdg[0]!=23 &&  abs(pdg[0])!=24)
+   if( (pdg[0]!=23) &&  (abs(pdg[0])!=24))
    for(j=1;j<3;j++) if(pdg[j]==23 && VZdecay) s-=6; else if(abs(pdg[j])==24 && VWdecay) s-=5;
    if(s>0) return 1; else return 0;
 }   
@@ -574,7 +613,7 @@ static int chOpen(numout*cc, int k)
 
 numout* xVtoxll(int Nin,int Nout,char**name,int *pdg, int lV, double *wV,  double *br)
 {
-  int i,err;   
+  int i;   
   char* e_=NULL,*E_=NULL,*ne_=NULL,*Ne_=NULL,*m_=NULL,*M_=NULL,*nm_=NULL,*Nm_=NULL,*W_=NULL,*Z_=NULL;
   char processX3[50],plib13[50],exclude[20];
   int lV_=2*Nin+1-lV;
@@ -690,7 +729,7 @@ static double decay22List(char * pname, txtList *LL)
     int pdg[5]; 
     char*name[5];
     for(k=1;k<=ntot;k++) if(!chOpen(cc,k))
-    { double w1=0,w2=0;
+    { 
       int vd[3]={0,0,0};
       for(i=0;i<3;i++) name[i]=cc->interface->pinf(k,i+1,m+i,pdg+i);
       if(no22 && m[0]<= m[1]+m[2]) continue;
@@ -704,16 +743,14 @@ static double decay22List(char * pname, txtList *LL)
       if((vd[1]||vd[2]) && m[0]+VVmassGap > m[1]+m[2])
       for(l=1;l<3;l++) if(vd[l]) break;
       if(l>0 && l<3)      
-      {  int nW,iW;
-         numout * cc13;
-         int err;
+      {  numout * cc13;
          double wV,brV; 
          int l_=3-l; 
          if( vd[l_] && m[l]<m[l_]) {l=l_; l_=3-l;}
          if( (pdg[l_]==23 || abs(pdg[l_])==24) && m[l]<m[l_]) {l=l_; l_=3-l;}
          cc13=xVtoxll(1,2,name,pdg, l, &wV, &brV);
          if(cc13)         
-         { double Mmax,C;              
+         {               
            passParameters(cc13);
            *(cc13->interface->BWrange)=20;
            for(i3_=1;i3_<4;i3_++) if(strcmp(cc13->interface->pinf(1,i3_+1,NULL,NULL),name[l_])==0)break;
@@ -987,13 +1024,20 @@ static int pListEq(char * txt1, char * txt2)
    
    n1=sscanf(buff,"%s %s %s %s %s %s %s %s %s %s",
    rd1[0],rd1[1],rd1[2],rd1[3],rd1[4],rd1[5],rd1[6],rd1[7],rd1[8],rd1[9]); 
+   int star=0;
+   for(int i=0;i<n1;i++) 
+   { if(strcmp(rd1[i],"*")==0) star++; 
+     if(star && i+star<n1) strcpy(rd1[i],rd1[i+star]);
+   }  
+   n1-=star;
+   
    
    strcpy(buff,txt2); while((ch=strchr(buff,','))) ch[0]=' ';
    
    n2=sscanf(buff,"%s %s %s %s %s %s %s %s %s %s",
    rd2[0],rd2[1],rd2[2],rd2[3],rd2[4],rd2[5],rd2[6],rd2[7],rd2[8],rd2[9]); 
    
-   if(n1!=n2) return 0;
+   if(n1!=n2 && star==0) return 0;
    for(i1=0;i1<n1;i1++)
    { for(i2=0;i2<n2;i2++) if(strcmp(rd1[i1],rd2[i2])==0){rd2[i2][0]=0; break;}
      if(i2==n2) return 0;
@@ -1004,16 +1048,16 @@ static int pListEq(char * txt1, char * txt2)
 double findBr(txtList L, char * pattern)
 { char buff[100];
   char *ch;
-  double width;
+  double width,widthTot=0;
   
   for(;L;L=L->next)
   { 
      sscanf(L->txt,"%lf %[^\n]",&width,buff);
      ch=strstr(buff,"->");
      ch+=2;
-     if( pListEq(ch,pattern)) return width;
+     if( pListEq(pattern,ch)) widthTot+=width;
   }
-  return 0;   
+  return widthTot;   
 }
 
 /* =============  ProcInfo ================ */
@@ -1064,7 +1108,7 @@ int procInfo2(numout*cc,int nsub,char**name,REAL*mass)
 int passParameters(numout*cc)
 {
    int i;
-   for(i=1;i<=cc->interface->nvar;i++) if(cc->link[i] &&  ((REAL*)(cc->link[i])-varValues) < *currentVarPtr)  cc->interface->va[i]=*(cc->link[i]); else 
+   for(i=1;i<=cc->interface->nvar;i++) if(cc->link[i] &&  ((cc->link[i]-varValues)) < *currentVarPtr)  cc->interface->va[i]=*(cc->link[i]); else 
    { 
      printf("Value of variable  '%s' needed for calculation of '%s' is not known yet\n",
      cc->interface->varName[i], varNames[*currentVarPtr]);  
@@ -1083,10 +1127,9 @@ int passParameters(numout*cc)
 #define P_NAME_SIZE 11
 int slhaDecayPrint(char * name, int dVirt, FILE*f)
 {
-   double w;
    txtList all;
    int i,dim; 
-   long PDG;
+   int PDG;
    char N[5][P_NAME_SIZE];
    int id[5];
            
@@ -1156,4 +1199,5 @@ double pWidthCC(numout*cc,int*err)
     case 3: res=width13(cc,1,err); return res;
     case 4: res=width14(cc,err);   return res;          
   }
+  return 0; // to avoid warning 
 } 

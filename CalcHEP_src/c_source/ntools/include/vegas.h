@@ -14,8 +14,8 @@ typedef  struct vegasGrid
     double(*fxn)(double *,double);  // integrand
     int  ndmx;   
     double  x_grid[MAX_DIM][MAX_NDMX+1];
-    long intCubes;
-    long evnCubes;
+    int intCubes;
+    int evnCubes;
     int NgI[MAX_DIM];
     int NgE[MAX_DIM];
     double  * fMax;
@@ -28,6 +28,8 @@ extern vegasGrid *  vegas_init
    double(*fxn)(double *,double),  // integrand
    int ndmx                        // size of grid 
 );
+
+extern void setEventCubes(vegasGrid*vegPtr, int nCubes);
 
 extern void vegas_finish( vegasGrid * vegPtr);
 

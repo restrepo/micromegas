@@ -239,21 +239,20 @@ void muonupward_(double*nu, double*Nu, double*mu) { muonUpward(nu, Nu, mu);}
 void muoncontained_(double*nu,double*Nu,double *rho, double*mu) { muonContained(nu,Nu,*rho, mu);}
 
 
-double captureaux_(double(*fDv)(double*),int*forSun, double *Mass, double*csIp,double*csIn,double*csDp, double*csDn)
+double capturecs_(double(*fDv)(double*),int*forSun, double *Mass, double*csIp,double*csIn,double*csDp, double*csDn)
 {
   _fDv=fDv; 
-  return captureAux(fDv_, *forSun,*Mass, *csIp, *csIn,*csDp,*csDn);
+  return captureCS(fDv_, *forSun,*Mass, *csIp, *csIn,*csDp,*csDn);
 }
 
-double yf_(double*T)  { return YF(*T);} 
-double yeq_(double *T){return Yeq(*T);} 
+double yf_(double*T)   { return YF(*T);  } 
+double yeq_(double *T) { return Yeq(*T); } 
 
 double yeq1_(double*T) { return Yeq1(*T);}  
-double y1f_(double *T) { return Y1F(*T);}
-double dy1f_(double*T) { return dY1F(*T);}
+double y1f_(double *T) { return Y1F(*T); }
 
 double yeq2_(double*T) { return Yeq2(*T);}
-double y2f_(double *T) { return Y2F(*T);} 
-double dy2f_(double*T) { return dY2F(*T);}
+double y2f_(double *T) { return Y2F(*T); } 
+
 
 

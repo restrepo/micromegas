@@ -1,6 +1,7 @@
 : 
   CALCHEP=  
 #---------------
+LANG=
 #======================================
 bin=$CALCHEP/bin
 sbin=$CALCHEP/sbin 

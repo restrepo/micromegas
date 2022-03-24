@@ -31,8 +31,8 @@ static int mcmp(Term m1, Term m2)
 			AtomValue(CompoundArg1(ListFirst(m2))));
 		if(rs)
 			return rs;
-		rs=IntegerValue(CompoundArg2(ListFirst(m1))) -
-			IntegerValue(CompoundArg2(ListFirst(m2)));
+		rs=(int)IntegerValue(CompoundArg2(ListFirst(m1))) -
+			(int)IntegerValue(CompoundArg2(ListFirst(m2)));
 		if(rs)
 			return rs;
 		m1=ListTail(m1);
@@ -152,11 +152,11 @@ Term ProcSetAngle(Term t, Term ind)
                 puts("SetAngle: expression has to have no common numeric divider.");
                 return 0;
             }
-		ncf=IntegerValue(CompoundArg1(nn));
+		ncf=(int)IntegerValue(CompoundArg1(nn));
         for(ll=CompoundArgN(a2,5);ll;ll=ListTail(ll))
            {
            int n;
-           n=IntegerValue(CompoundArg1(ListFirst(ll)));
+           n=(int)IntegerValue(CompoundArg1(ListFirst(ll)));
            SetCompoundArg(ListFirst(ll),1,NewInteger(n*ncf));
            }
 		}
@@ -198,11 +198,11 @@ xyz:
                 puts("SetAngle: expression has to have no common numeric divider.");
                 return 0;
             }
-		ncf=IntegerValue(CompoundArg1(nn));
+		ncf=(int)IntegerValue(CompoundArg1(nn));
         for(ll=CompoundArgN(a2,5);ll;ll=ListTail(ll))
            {
            int n;
-           n=IntegerValue(CompoundArg1(ListFirst(ll)));
+           n=(int)IntegerValue(CompoundArg1(ListFirst(ll)));
            SetCompoundArg(ListFirst(ll),1,NewInteger(n*ncf));
            }
 		alg2_red_cos(a2);
@@ -283,7 +283,7 @@ void tri_wrt_sln(List mm, FILE *f)
 		List lp;
 		int ast=0;
 		m2=ListFirst(s);
-		cf=IntegerValue(CompoundArg1(m2));
+		cf=(int)IntegerValue(CompoundArg1(m2));
 		lp=CompoundArg2(m2);
 		if(cf<0)
 			{
@@ -302,7 +302,7 @@ void tri_wrt_sln(List mm, FILE *f)
 		while(!is_empty_list(lp))
 			{
 			int po;
-			po=IntegerValue(CompoundArg2(ListFirst(lp)));
+			po=(int)IntegerValue(CompoundArg2(ListFirst(lp)));
 			if(ast)
 				fprintf(f,"*");
 			else
@@ -392,6 +392,7 @@ static void hl2m2(List hhl)
 	Term sco,m2,tf,m22;
 	int cl,nco;
 	fflag=0;
+	
 	hh=ListFirst(hhl);
     if(is_compound(hh) && CompoundName(hh)==A_MTERM)
         return;
@@ -448,12 +449,12 @@ static void hl2m2(List hhl)
 			break;
 			}
 		}
-	if(nco==0)
+	/*if(nco==0)
 		{
 			fflag=1;
 		puts("Internal error (triheu failed)");
 		DumpList(ml);puts("");
-		}
+		}*/
 	}	
 		
     if(sco==OPR_USCORE || (nco==0 && opUndefAngleComb==0))
@@ -512,6 +513,7 @@ static void hl2m2(List hhl)
 	}
 	FreeAtomic(hh);
 	FreeAtomic(sco);
+	
 	return;
 		
     if(is_list(sco))
@@ -600,11 +602,11 @@ void alg2_red_sico(Term a2)
 
 	m2=ConsumeCompoundArg(a2,5);
 
-	u=IntegerValue(CompoundArg2(CompoundArg2(a2)));
+	u=(int)IntegerValue(CompoundArg2(CompoundArg2(a2)));
 	SetCompoundArg(CompoundArg2(a2),2,NewInteger(u*16384));
 	for(l1=m2;l1;l1=ListTail(l1))
 		{
-		u=IntegerValue(CompoundArg1(ListFirst(l1)));
+		u=(int)IntegerValue(CompoundArg1(ListFirst(l1)));
 		SetCompoundArg(ListFirst(l1),1,NewInteger(u*16384));
 		}
 
@@ -664,7 +666,7 @@ void alg2_red_sico(Term a2)
 			puts("");
 		}
 	}
-	
+
 	if(vrb)
 		DumpList(hl);
 
@@ -711,17 +713,17 @@ static int gcf_list(List l)
 	int ret;
 	List sv;
 	sv=l;
-	ret=IntegerValue(CompoundArg1(ListFirst(l)));
+	ret=(int)IntegerValue(CompoundArg1(ListFirst(l)));
 	l=ListTail(l);
 	while(!is_empty_list(l))
 		{
-		ret=gcf(ret,IntegerValue(CompoundArg1(ListFirst(l))));
+		ret=(int)gcf(ret,IntegerValue(CompoundArg1(ListFirst(l))));
 		l=ListTail(l);
 		}
 	for(l=sv;l;l=ListTail(l))
 		{
 		int i;
-		i=IntegerValue(CompoundArg1(ListFirst(l)));
+		i=(int)IntegerValue(CompoundArg1(ListFirst(l)));
 		SetCompoundArg(ListFirst(l),1,NewInteger(i/ret));
 		}
 	return ret;
@@ -781,15 +783,15 @@ static void l_set(List l, int *nco, Term *sco)
 static void l_fit(List l1, List l2, int *nco)
 	{
 	int ic;
-	ic=IntegerValue(CompoundArg1(ListFirst(l2)))
-		/ IntegerValue(CompoundArg1(ListFirst(l1)));
+	ic=(int)IntegerValue(CompoundArg1(ListFirst(l2)))
+		/ (int)IntegerValue(CompoundArg1(ListFirst(l1)));
 	if(ic==0)
 		return;
 	while(!is_empty_list(l1))
 		{
 		int i1,i2;
-		i1=IntegerValue(CompoundArg1(ListFirst(l1)));
-		i2=IntegerValue(CompoundArg1(ListFirst(l2)));
+		i1=(int)IntegerValue(CompoundArg1(ListFirst(l1)));
+		i2=(int)IntegerValue(CompoundArg1(ListFirst(l2)));
 		if(i2!=ic*i1)
 			return;
 		if(!EqualTerms(CompoundArg2(ListFirst(l1)),
@@ -840,9 +842,9 @@ static List tr_add(List l, Term a)
 	Term a2;
 	int n,d,f;
 	a2=CompoundArg1(a);
-	n=IntegerValue(CompoundArg1(a2));
-	d=IntegerValue(CompoundArg2(a2));
-	f=gcf(n,d);
+	n=(int)IntegerValue(CompoundArg1(a2));
+	d=(int)IntegerValue(CompoundArg2(a2));
+	f=(int)gcf(n,d);
 	if(f!=1)
 		{
 		SetCompoundArg(a2,1,NewInteger(n/f));
@@ -856,7 +858,7 @@ static List tr_add(List l, Term a)
 		a2=ListFirst(l1);
 		if(EqualTerms(CompoundArg2(a2),CompoundArg2(a)))
 			{
-			int n,d,n1,d1,n2,d2,f;
+			long int n,d,n1,d1,n2,d2,f;
 			n1=IntegerValue(CompoundArg1(CompoundArg1(a)));
 			d1=IntegerValue(CompoundArg2(CompoundArg1(a)));
 			n2=IntegerValue(CompoundArg1(CompoundArg1(a2)));
@@ -886,12 +888,12 @@ static List tr_add(List l, Term a)
 
 static List tr_mlt1(Term a1, Term a2)
 	{
-	int n,d;
+	long int n,d;
 	List l1,l2,ls,ld,ll;
 	char *f1, *f2;
 
 	{
-	int n1,n2,d1,d2;
+	long int n1,n2,d1,d2;
 	n1=IntegerValue(CompoundArg1(CompoundArg1(a1)));
 	d1=IntegerValue(CompoundArg2(CompoundArg1(a1)));
 	n2=IntegerValue(CompoundArg1(CompoundArg1(a2)));
@@ -928,7 +930,7 @@ static List tr_mlt1(Term a1, Term a2)
 			{
 			if(CompoundArg2(ListFirst(ll1))==aa)
 				{
-				int n;
+				long int n;
 				n=IntegerValue(CompoundArg1(ListFirst(ll1)))+
 					IntegerValue(CompoundArg1(
 						ListFirst(ll)));
@@ -947,7 +949,7 @@ static List tr_mlt1(Term a1, Term a2)
 			{
 			if(CompoundArg2(ListFirst(ll1))==aa)
 				{
-				int n;
+				long int n;
 				n=IntegerValue(CompoundArg1(ListFirst(ll1)))-
 					IntegerValue(CompoundArg1(ListFirst(ll)));
 				if(n==0)
@@ -1092,7 +1094,7 @@ static void to_sums(List l)
 			int pw;
 			cuf=GetAtomProperty(CompoundArg1(ListFirst(l2)),
 							A_TRIG_FU);
-			pw=IntegerValue(CompoundArg2(ListFirst(l2)));
+			pw=(int)IntegerValue(CompoundArg2(ListFirst(l2)));
 			cuf=CopyTerm(cuf);
 			cuf=MakeCompound2(OPR_MLT,
 				MakeCompound2(OPR_DIV,NewInteger(1),
@@ -1142,8 +1144,8 @@ static void to_sums(List l)
 		{
 		int n,d;
 		Term ff;
-		n=IntegerValue(CompoundArg1(CompoundArg1(ListFirst(l1))));
-		d=IntegerValue(CompoundArg2(CompoundArg1(ListFirst(l1))));
+		n=(int)IntegerValue(CompoundArg1(CompoundArg1(ListFirst(l1))));
+		d=(int)IntegerValue(CompoundArg2(CompoundArg1(ListFirst(l1))));
 		ff=CompoundArg2(ListFirst(l1));
 		printf("%+d",n);
 		if(d!=1)
@@ -1162,7 +1164,7 @@ static void to_sums(List l)
 				{
 				int n;
 				char *v;
-				n=IntegerValue(CompoundArg1(ListFirst(l2)));
+				n=(int)IntegerValue(CompoundArg1(ListFirst(l2)));
 				v=AtomValue(CompoundArg2(ListFirst(l2)));
 				if(first)
 					{

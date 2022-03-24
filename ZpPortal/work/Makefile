@@ -14,7 +14,7 @@ work_aux.a: work_aux.a($(workOBJ))
 	$(RANLIB) work_aux.a 
 	rm -f $(workOBJ)
 
-VandP.c: models/vars1.mdl models/func1.mdl models/prtcls1.mdl
+VandP.c: models/vars1.mdl models/func1.mdl models/prtcls1.mdl models/lgrng1.mdl
 	rm -f tmp/safe
 	../../CalcHEP_src/bin/s_calchep -blind "{[[{[[[[[[{}0"
 	../../CalcHEP_src/bin/make_VandP models 1

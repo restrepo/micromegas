@@ -4,6 +4,7 @@
 #include <time.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 
 extern FILE *log_file;
@@ -46,6 +47,11 @@ static void set_keys(Term k)
 	
 	k1=ConsumeCompoundArg(k,1);
 	FreeAtomic(k);
+	if(is_atom(k1) && AtomValue(k1)[0]=='?')
+	{
+	  DumpList(current_keys);
+	  return;
+	}
 	k=CommaToList(k1);
 	for(k1=k;k1;k1=ListTail(k1))
 	{
@@ -159,13 +165,21 @@ static Term read_to_else(void)
 	
 }
 
+static Term key_val(Term k)
+{
+	List l;
+	for(l=current_keys;l;l=ListTail(l))
+		if(CompoundArg1(ListFirst(l))==k)
+			return CompoundArg2(ListFirst(l));
+	return 0;
+}
+			
 static int read_eval(Term t)
 {
 	List l;
-	if(!is_compound(t) || CompoundArity(t)!=2 || 
-			(CompoundName(t)!=OPR_EQSIGN && CompoundName(t)!=OPR_EQEQSIGN) ||
-			 !is_atom(CompoundArg1(t)) || 
-			(!is_atom(CompoundArg2(t)) && !is_integer(CompoundArg2(t))))
+	
+	
+	if(!is_compound(t))
 	{
 		ErrorInfo(208);
 		printf("illegal condition '");
@@ -182,22 +196,66 @@ static int read_eval(Term t)
 		puts("' instead of '='.");
 	}
 	
-	for(l=current_keys;l;l=ListTail(l))
-		if(CompoundArg1(ListFirst(l))==CompoundArg1(t))
-			break;
+	if(CompoundName(t)==OPR_EQSIGN || CompoundName(t)==OPR_EQEQSIGN
+	  	|| CompoundName(t)==OPR_NOTEQ)
+	{
+		Term a1, a2, k1, k2;
+		a1=CompoundArg1(t);
+		a2=CompoundArg2(t);
+		int inv=(CompoundName(t)==OPR_NOTEQ);
+		k1=key_val(a1);
+		k2=key_val(a2);
+		
+		if(k1==0)
+		{
+			ErrorInfo(0);
+			printf("do_if: ");
+			WriteTerm(a1);
+			puts(" is not defined as key.");
+			return 0;
+		}
+		/*if(k2==0)*/
+			return inv?(k1!=a2):(k1==a2);
+		/*if(k1==0)
+			return inv?(k2!=a1):(k2==a1);
+		return inv?(k1!=k2):(k1==k2);*/
+	}
 	
-	if(is_empty_list(l))
+	if(CompoundName(t)==OPR_NOT)
+	{
+		int r=read_eval(CompoundArg1(t));
+		return !r;
+	}
+	
+	if(CompoundName(t)==OPR_OR)
+	{
+		int r1=read_eval(CompoundArg1(t)), r2=read_eval(CompoundArg2(t));
+		return r1||r2;
+	}
+	
+	if(CompoundName(t)==OPR_AND)
+	{
+		int r1=read_eval(CompoundArg1(t)), r2=read_eval(CompoundArg2(t));
+		return r1&&r2;
+	}
+	
+	if(CompoundName(t)==OPR_DEFINED)
+	{
+		Term r=key_val(CompoundArg1(t));
+		return r!=0;
+	}
+	
 	{
 		ErrorInfo(208);
-		printf("do_if/do_else_if: key '%s' was not defined.\n",
-				AtomValue(CompoundArg1(t)));
+		printf("illegal condition '");
+		WriteTerm(t);
+		printf("' in do_if/do_else_if statement.\n");
 		return 0;
 	}
 	
-	return CompoundArg2(ListFirst(l))==CompoundArg2(t);
 }
 
-static int read_to_endif(void)
+static Term read_to_endif(void)
 {
 	Term a;
 	
@@ -208,7 +266,7 @@ static int read_to_endif(void)
 	return a;
 }
 
-static int read_file(int rec, char *file)
+static Term read_file(int rec, char *file)
 {
 	
 	Term a;
@@ -263,13 +321,13 @@ static int read_file(int rec, char *file)
 		
 		if(is_compound(a) && CompoundName(a)==OPR_KEYS)
 		{
-			set_keys(a);
+		  	set_keys(a);
 			continue;
 		}
 		
 		if(is_compound(a) && CompoundName(a)==OPR_DOIF)
 		{
-			int cimp;
+			int cimp, resc;
 			cimp=CurrentInputLine();
 			
 			if(is_compound(CompoundArg1(a)) &&
@@ -290,9 +348,13 @@ static int read_file(int rec, char *file)
 				continue;
 			}
 			
-			if(read_eval(CompoundArg1(a)))
+			/*WarningInfo(0);printf("if "); WriteTerm(CompoundArg1(a));*/
+			resc=read_eval(CompoundArg1(a));
+			/*printf(" -> %d\n",resc);*/
+			
+			if(resc)
 			{
-				int a1;
+				Term a1;
 				a1=read_file(1,file);
 				if(a1==0)
 				{
@@ -447,15 +509,15 @@ prc:
 		
 	if(file!=NULL && strcmp(file,"lhep.rc") && !doinitfile)
 		{
-		int min,sec;
+		long int min,sec;
 		time_t ttt;
 		ttt=time(NULL)-start_time;
 		min=ttt/60;
 		sec=ttt-min*60;
 		printf("File %s processed, ",file);
 		if(min!=0)
-			printf("%d min ",min);
-		printf("%d sec.\n",sec);
+			printf("%ld min ",min);
+		printf("%ld sec.\n",sec);
 		}
 	CloseInputFile();
 	
@@ -502,7 +564,6 @@ Term ProcessRead(Term t, Term ind)
 
 
 
-
 Term ProcessModel(Term t, Term ind)
 	{
 	Term arg;
@@ -512,8 +573,8 @@ Term ProcessModel(Term t, Term ind)
 		{
 		ModelName=AtomValue(arg);
 		if(ModelNumber==0)
-			ModelNumber=5;
-		return 0;
+			ModelNumber=1;
+		goto outdir;
 		}
 	if(is_compound(arg) && FunctorName(CompoundFunctor(arg))==OPR_DIV
 		&& FunctorArity(CompoundFunctor(arg))==2
@@ -521,14 +582,38 @@ Term ProcessModel(Term t, Term ind)
 		&& is_integer(CompoundArg2(arg)))
 			{
 			ModelName=AtomValue(CompoundArg1(arg));
-			ModelNumber=IntegerValue(CompoundArg2(arg));
+			ModelNumber=(int)IntegerValue(CompoundArg2(arg));
 			FreeAtomic(arg);
-			return 0;
+			goto outdir;
 			}
+	
+    
 	ErrorInfo(207);
 	printf(" illegal arguments in 'model' statement.\n ");
 	FreeAtomic(arg);
 	return 0;
+	outdir:
+	if(UFOutput && OutputDirectory==0)
+        {
+            OutputDirectory=malloc(1000);
+            strcpy(OutputDirectory,ModelName);
+            for(int i=0;i<1000&&OutputDirectory[i];i++)
+            {
+                if(OutputDirectory[i]=='(' || OutputDirectory[i]==')' ||
+                    OutputDirectory[i]==' ' || OutputDirectory[i]==',')
+                    OutputDirectory[i]='_';
+            }
+            if(access(OutputDirectory,F_OK))
+            {
+                if(mkdir(OutputDirectory,0777))
+                {
+                    perror(OutputDirectory);
+                    OutputDirectory=0;
+                }
+                else printf("Folder %s is created.\n",OutputDirectory);
+            }
+        }
+    return 0;
 	}
 
 Term GetProp(Term t, Term ind)
@@ -782,7 +867,7 @@ extern int WriteColors, write_all_vertices;
 extern List opTexBOF, opTexEOF;
 extern List opFAGS, opFAGE;
 extern int opclsreal, oprcmatr, opclsred;
-extern List abbr_coeffs;
+extern List abbr_coeffs, no_abbr_coeffs;
 
 List UFOparah=0, UFOparth=0, UFOloreh=0, UFOverth=0, UFOcouph=0;
 
@@ -848,7 +933,7 @@ Term ProcOption(Term t, Term i)
 			 puts("wrong value for 'UndefAngleComb' option.");
 			 return 0;
 		 }
-		 opUndefAngleComb=IntegerValue(val);
+		 opUndefAngleComb=(int)IntegerValue(val);
 		 return 0;
 	 }
 	 
@@ -861,7 +946,7 @@ Term ProcOption(Term t, Term i)
 			 puts("wrong value for 'SmartAngleComb' option.");
 			 return 0;
 		 }
-		 opTriHeu=IntegerValue(val);
+		 opTriHeu=(int)IntegerValue(val);
 		 return 0;
 	 }
 	 
@@ -873,7 +958,7 @@ Term ProcOption(Term t, Term i)
 			 puts("value for 'LagrHashSize' option must be >0.");
 			 return 0;
 		 }
-		 LagrHashSize=IntegerValue(val);
+		 LagrHashSize=(int)IntegerValue(val);
 		 return 0;
 	 }
 	 
@@ -886,7 +971,7 @@ Term ProcOption(Term t, Term i)
 			 puts("wrong value for 'chepBreakLines' option.");
 			 return 0;
 		 }
-		 opBreakLines=IntegerValue(val);
+		 opBreakLines=(int)IntegerValue(val);
 		 return 0;
 	 }
 	 
@@ -899,7 +984,7 @@ Term ProcOption(Term t, Term i)
 			 puts("wrong value for 'SortLagr' option.");
 			 return 0;
 		 }
-		 opSortLagr=IntegerValue(val);
+		 opSortLagr=(int)IntegerValue(val);
 		 return 0;
 	 }
 	 
@@ -912,7 +997,7 @@ Term ProcOption(Term t, Term i)
 			 puts("wrong value for 'DoSymmetrize' option.");
 			 return 0;
 		 }
-		 opDoSymmetrize=IntegerValue(val);
+		 opDoSymmetrize=(int)IntegerValue(val);
 		 return 0;
 	 }
 	 
@@ -925,7 +1010,7 @@ Term ProcOption(Term t, Term i)
 			 puts("wrong value for 'AutoWidths' option.");
 			 return 0;
 		 }
-		 opAutoWidths=IntegerValue(val);
+		 opAutoWidths=(int)IntegerValue(val);
 		 return 0;
 	 }
 	 
@@ -938,7 +1023,7 @@ Term ProcOption(Term t, Term i)
 			 puts("wrong value for 'OnlyMassTerms' option.");
 			 return 0;
 		 }
-		 opOnlyMass=IntegerValue(val);
+		 opOnlyMass=(int)IntegerValue(val);
 		 return 0;
 	 }
 
@@ -951,7 +1036,7 @@ Term ProcOption(Term t, Term i)
 			 puts("wrong value for 'RemDotWithFerm' option.");
 			 return 0;
 		 }
-		 opRemDotWithFerm=IntegerValue(val);
+		 opRemDotWithFerm=(int)IntegerValue(val);
 		 return 0;
 	 }
 	 
@@ -964,7 +1049,7 @@ Term ProcOption(Term t, Term i)
 			 puts("wrong value for 'WriteAll' option.");
 			 return 0;
 		 }
-		 write_all_vertices=IntegerValue(val);
+		 write_all_vertices=(int)IntegerValue(val);
 		 return 0;
 	 }
 	 
@@ -976,7 +1061,7 @@ Term ProcOption(Term t, Term i)
 			 puts("wrong value for 'MaxiLegs' option.");
 			 return 0;
 		 }
-		 opMaxiLegs=IntegerValue(val);
+		 opMaxiLegs=(int)IntegerValue(val);
 		 return 0;
 	 }
 	 
@@ -989,7 +1074,7 @@ Term ProcOption(Term t, Term i)
 			 puts("wrong value for 'MultByI' option.");
 			 return 0;
 		 }
-		 MultByI=IntegerValue(val);
+		 MultByI=(int)IntegerValue(val);
 		 return 0;
 	 }
 	 
@@ -1002,7 +1087,7 @@ Term ProcOption(Term t, Term i)
 			 puts("wrong value for 'ReduceGamma5' option.");
 			 return 0;
 		 }
-		 opReduceG5=IntegerValue(val);
+		 opReduceG5=(int)IntegerValue(val);
 		 return 0;
 	 }
 	 
@@ -1015,7 +1100,7 @@ Term ProcOption(Term t, Term i)
 			 puts("wrong value for 'SetGammaPM' option.");
 			 return 0;
 		 }
-		 opSetGpm=IntegerValue(val);
+		 opSetGpm=(int)IntegerValue(val);
 		 return 0;
 	 }
 	 
@@ -1027,7 +1112,7 @@ Term ProcOption(Term t, Term i)
 			 puts("wrong value for 'chepCFWidth' option.");
 			 return 0;
 		 }
-		 C_F_WIDTH=IntegerValue(val);
+		 C_F_WIDTH=(int)IntegerValue(val);
 		 return 0;
 	 }
 	 
@@ -1039,7 +1124,7 @@ Term ProcOption(Term t, Term i)
 			 puts("wrong value for 'chepLPWidth' option.");
 			 return 0;
 		 }
-		 L_P_WIDTH=IntegerValue(val);
+		 L_P_WIDTH=(int)IntegerValue(val);
 		 return 0;
 	 }
 	 
@@ -1051,7 +1136,7 @@ Term ProcOption(Term t, Term i)
 			 puts("wrong value for 'chepPDWidth' option.");
 			 return 0;
 		 }
-		 P_D_WIDTH=IntegerValue(val);
+		 P_D_WIDTH=(int)IntegerValue(val);
 		 return 0;
 	 }
 	 
@@ -1111,7 +1196,7 @@ Term ProcOption(Term t, Term i)
 			 puts("wrong value for 'SplitCol1' option.");
 			 return 0;
 		 }
-		 opSplitCol1=IntegerValue(val);
+		 opSplitCol1=(int)IntegerValue(val);
 		 return 0;
 	 }
 	 
@@ -1123,7 +1208,7 @@ Term ProcOption(Term t, Term i)
 			 puts("wrong value for 'SplitCol2' option.");
 			 return 0;
 		 }
-		 opSplitCol2=IntegerValue(val);
+		 opSplitCol2=(int)IntegerValue(val);
 		 return 0;
 	 }
 	 
@@ -1135,7 +1220,7 @@ Term ProcOption(Term t, Term i)
 			 puts("wrong value for 'WriteColors' option.");
 			 return 0;
 		 }
-		 WriteColors=IntegerValue(val);
+		 WriteColors=(int)IntegerValue(val);
 		 return 0;
 	 }
 	 
@@ -1147,7 +1232,7 @@ Term ProcOption(Term t, Term i)
 			 puts("wrong value for 'InfiOrder' option.");
 			 return 0;
 	       }
-	     infi_order=IntegerValue(val);
+	     infi_order=(int)IntegerValue(val);
 	     return 0;
 	   }
 	   
@@ -1159,7 +1244,7 @@ Term ProcOption(Term t, Term i)
 			 puts("wrong value for 'BlockTransf' option.");
 			 return 0;
 	       }
-	     block_transf=IntegerValue(val);
+	     block_transf=(int)IntegerValue(val);
 	     return 0;
 	   }
 
@@ -1171,7 +1256,7 @@ Term ProcOption(Term t, Term i)
 			 puts("wrong value for 'NeutralC8' option.");
 			 return 0;
 		 }
-		 opNeutrC8=IntegerValue(val);
+		 opNeutrC8=(int)IntegerValue(val);
 		 return 0;
 	 } 
 	 if(strcmp(s,"clsRealMatr")==0)
@@ -1182,7 +1267,7 @@ Term ProcOption(Term t, Term i)
 			 puts("wrong value for 'clsRealMatr' option.");
 			 return 0;
 		 }
-		 opclsreal=IntegerValue(val);
+		 opclsreal=(int)IntegerValue(val);
 		 return 0;
 	 } 
 	 if(strcmp(s,"clsRedMatr")==0)
@@ -1193,7 +1278,7 @@ Term ProcOption(Term t, Term i)
 			 puts("wrong value for 'clsRedMatr' option.");
 			 return 0;
 		 }
-		 opclsred=IntegerValue(val);
+		 opclsred=(int)IntegerValue(val);
 		 return 0;
 	 } 
 	 if(strcmp(s,"clsRCMatr")==0)
@@ -1204,7 +1289,7 @@ Term ProcOption(Term t, Term i)
 			 puts("wrong value for 'clsRCMatr' option.");
 			 return 0;
 		 }
-		 oprcmatr=IntegerValue(val);
+		 oprcmatr=(int)IntegerValue(val);
 		 return 0;
 	 } 
 	 if(strcmp(s,"AbbrCoeff")==0)
@@ -1222,7 +1307,23 @@ Term ProcOption(Term t, Term i)
 		 ErrorInfo(415);
 		 puts("wrong value for 'AbbrCoeff' option.");
 		 return 0;
-	 } 
+	 }
+	if(strcmp(s,"NoAbbrCoeff")==0)
+	 {
+		 if(val==NewInteger(0))
+		 {
+			 no_abbr_coeffs=0;
+			 return 0;
+		 }
+		 if(is_list(val))
+		 {
+			 no_abbr_coeffs=val;
+			 return 0;
+		 }
+		 ErrorInfo(415);
+		 puts("wrong value for 'AbbrCoeff' option.");
+		 return 0;
+	 }  
 	 if(strcmp(s,"UFOParaHdr")==0)
 	 {
 		 if(is_list(val))

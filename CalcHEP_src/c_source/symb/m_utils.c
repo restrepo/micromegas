@@ -43,7 +43,7 @@ void fillModelMenu(void)
      fclose(txt);
      maxmodel++;
   }  
-  if ( maxmodel < MAX_MODEL_NUM ) strcat(modelmenu,newmodeltxt) ;
+  if ( maxmodel < MAX_MODEL_NUM ) strcat(modelmenu,newmodeltxt);
 }
 
 
@@ -154,7 +154,7 @@ int  makenewmodel(void)
       buff[22]=0;
       trim(buff);
       if(nmdl!=1){correctStr(5,16,"Correct name ",buff,22,1);trim(buff);}
-      if(1+xmdl+maxmodel > MAX_MODEL_NUM) { messanykey(10,10,"Too many models"); break;}
+      if(1+xmdl+maxmodel > MAX_MODEL_NUM) { messanykey(10,10,"Too many models"); nmdl=-1;  break;}
       for(i=0;i<5;i++)
       {  int s; char ch[1000];
          sprintf(fname,"%s/%s%d.mdl",dirName,mdFls[i],n);
@@ -175,8 +175,11 @@ int  makenewmodel(void)
       maxmodel++;
     }
     fillModelMenu();
-    if(nmdl==1) { messanykey(10,16,"All models are added");  put_text(&pscr);  return 0;}
-    messanykey(10,16,"The model is added"); 
+    if(nmdl>0)
+    {
+      if(nmdl==1) { messanykey(10,16,"All models are added");  put_text(&pscr);  return 0;}
+      messanykey(10,16,"The model is added");
+    }   
     put_text(&pscr);     
   }
   return 0;

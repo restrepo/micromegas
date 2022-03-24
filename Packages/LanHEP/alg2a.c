@@ -67,7 +67,7 @@ static List add_param(List l, Atom param, int p)
 		if(CompoundArg1(t)==param)
 			{
 			int pw;
-			pw=IntegerValue(CompoundArg2(t));
+			pw=(int)IntegerValue(CompoundArg2(t));
 			pw+=p;
 			if(pw==0)
 				return CutFromList(l,li);
@@ -182,7 +182,7 @@ static int proc_moment(List l, List prtcls)
 Term alg2_mterm_to_2(Term t)
 	{
 	List prt,params,spec,l,ls;
-	int num,den;
+	long int num,den;
 	Term a2, m2;
 
 /*WriteTerm(t);puts("");*/
@@ -410,7 +410,7 @@ aaa46:
 			{
 			return 0;
 			}
-		cf=gcf(num,den);
+		cf=(int)gcf(num,den);
 		num/=cf;
 		den/=cf;
 		prt=ConcatList(fr,prt);
@@ -542,7 +542,7 @@ lab12:
 int sp_cmp(Term t1, Term t2)
 	{
 	Term f1,f2;
-	int i1,i2;
+	long int i1,i2;
 	f1=CompoundName(t1);
 	f2=CompoundName(t2);
 	if(f1==A_MOMENT && f2==OPR_SPECIAL)
@@ -561,7 +561,7 @@ int sp_cmp(Term t1, Term t2)
 		}
 	i1=strcmp(AtomValue(CompoundArg1(t1)),AtomValue(CompoundArg1(t2)));
 	if(i1!=0)
-		return i1;
+		return (int)i1;
 cmpl:
 
 	f1=CompoundArg2(t1);
@@ -569,7 +569,7 @@ cmpl:
 	
 	i1=ListLength(f1)-ListLength(f2);
 	if(i1!=0)
-		return i1;
+		return (int)i1;
 	
 	while(!is_empty_list(f1))
 		{
@@ -712,7 +712,7 @@ static void a2_symm_1(Term a2, int ppos, int pno)
 			for(l3=CompoundArgN(ListFirst(l2),3);l3;l3=ListTail(l3))
 				if(CompoundArg1(ListFirst(l3))==A_DELTA)
 				{
-					int la1, la2;
+					long int la1, la2;
 					la1=IntegerValue(ListFirst(CompoundArg2(ListFirst(l3))));
 					la2=IntegerValue(ListFirst(ListTail(
 							CompoundArg2(ListFirst(l3)))));
@@ -807,8 +807,8 @@ static void fix_im_in(List l3, int inomin)
 	{
 		for(l2=CompoundArg2(ListFirst(l1));l2;l2=ListTail(l2))
 		{
-			int i;
-			i=IntegerValue(ListFirst(l2));
+			 int i;
+			i=(int)IntegerValue(ListFirst(l2));
 			if(i>=inomin && !ListMember(ii,NewInteger(i)))
 			{
 				ii=AppendLast(ii,NewInteger(i));
@@ -883,8 +883,8 @@ void alg2_symmetrize(Term a2)
 		ino+=ListLength(CompoundArg1(CompoundArg2(ListFirst(l))));
 	
 	for(l=epl;l;l=ListTail(l))
-		a2_symm_1(a2,IntegerValue(CompoundArg1(ListFirst(l))),
-					IntegerValue(CompoundArg2(ListFirst(l))));
+		a2_symm_1(a2,(int)IntegerValue(CompoundArg1(ListFirst(l))),
+					(int)IntegerValue(CompoundArg2(ListFirst(l))));
 
 	for(l=CompoundArgN(a2,5);l;l=ListTail(l))
 		fix_im_in(CompoundArgN(ListFirst(l),3),ino);

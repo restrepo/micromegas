@@ -215,10 +215,12 @@ static int enter_h(int * y,char* name,int num,int scat)
     }   
     if(name[strlen(name)-1]=='%')
     { 
-      if( !scat || nout||strcmp(prtclbase1[j].massidnt,"0") || 
-          (prtclbase1[j].spin!=1 && prtclbase1[j].spin!=2) || 
-          strchr("LR",prtclbase1[j].hlp)
-        ) 
+      if(   !scat || nout
+         ||   prtclbase1[j].spin==0 
+         || ( prtclbase1[j].spin==1 && strchr("LR",prtclbase1[j].hlp) )
+         || ( prtclbase1[j].spin==2 && strcmp(prtclbase1[j].massidnt,"0") ) 
+         ||   prtclbase1[j].spin==3
+        )
        { errTxt="This particle can not be polarized";   
          return -1;
        } else  hadrons[num].polarized[0]=1; 
@@ -443,7 +445,7 @@ label_1:
    {  char name[100];
 
       sscanf(items[i],"%[^, ]", name); 
-      if(strlen(name)>7) {errTxt="Too long name"; break;}
+      if(strlen(name)>P_NAME_SIZE-2) {errTxt="Too long name"; break;}
       if(strlen(name)==0){errTxt="Empty item"; break;}
       if(items[i]>arrpos && strlen(name) == 3 && name[1] == '*' &&
              (name[2] == 'X' || name[2] == 'x')  &&

@@ -44,6 +44,7 @@ int main(int argc, char** argv)
    char Format[100]={""};
    int  Particle=0;
    int  Adim=0;
+   int  AdimV=0;
    double *Al=NULL;
    double *Qs=NULL;
 //==============
@@ -63,7 +64,7 @@ int main(int argc, char** argv)
      else if(0==strcmp(key,"AlphaS_Qs")) 
      {  fscanf(Finf,"%*[^[][");
          Adim=0;
-        double al;       
+         double al;  
          while(1==fscanf(Finf,"%lf",&al))
          {  Qs=(double*) realloc(Qs, (Adim+1)*sizeof(double));
             Qs[Adim++]=al;
@@ -72,13 +73,13 @@ int main(int argc, char** argv)
      }
      else if(0==strcmp(key,"AlphaS_Vals")) 
      {  fscanf(Finf,"%*[^[][");
-        Adim=0;
+        AdimV=0;
         double al;       
          while(1==fscanf(Finf,"%lf",&al))
-         {  Al=(double*) realloc(Al, (Adim+1)*sizeof(double));
-            Al[Adim++]=al;
+         {  Al=(double*) realloc(Al, (AdimV+1)*sizeof(double));
+            Al[AdimV++]=al;
             fscanf(Finf," ,");
-         } 
+         }
      }
      else if(0==strcmp(key,"Particle")) fscanf(Finf," %d",&Particle);
      char c;
@@ -91,8 +92,13 @@ int main(int argc, char** argv)
    printf(" Particle=%d\n", Particle);
    printf(" Format=%s\n", Format);
    printf(" Reference=%s\n", Ref);
-   if(Particle!=2212){printf("Proton is expected\n"); exit(4);} 
+   if(Particle!=2212){ printf("Proton is expected\n"); exit(4);} 
+   if(Adim!=AdimV)   { printf("Error: different dimensions for 'AlphaS_Qs' and 'AlphaS_Vals'\n"); exit(5); }
    
+   for(int i=1;i<AdimV;i++)
+   {  if(Qs[i]==Qs[i-1]) { Adim--; continue;}
+      if(Adim!=AdimV) { Qs[i-AdimV+Adim]=Qs[i]; Al[i-AdimV+Adim]=Al[i];} 
+   }
 
 //  Read data file        
    for(;;)
@@ -108,65 +114,83 @@ int main(int argc, char** argv)
      }     
    }
 
-   long posB=ftell(Fdat);
-   fscanf(Fdat,"%*[^\n]");
-   long posE=ftell(Fdat);
+
+   int Xdim=0,Qdim=0,Pdim=0;
+   double *X=NULL,*Q=NULL,*Buff=NULL;
+   int    *P=NULL;
+   int ip,iq,ix;
+   long posB,posE;
    
-   fseek(Fdat,posB,SEEK_SET);
-   int Xdim=0;
-   double *X=NULL;
-
-   for(;ftell(Fdat)<posE;)
-   {
-     X=(double*)realloc(X,(Xdim+1)*sizeof(double));
-     fscanf(Fdat,"%lf ", X+Xdim);
-     Xdim++;
-   }  
-
-   posB=ftell(Fdat);
-   fscanf(Fdat,"%*[^\n]");
-   posE=ftell(Fdat);   
-
    
-   int Qdim=0;
-   double *Q=NULL;
-   for(fseek(Fdat,posB,SEEK_SET);ftell(Fdat)<posE;)
+   for(;;)
    { 
-     Q=(double*)realloc(Q,(Qdim+1)*sizeof(double));
-     fscanf(Fdat,"%lf ", Q+Qdim);
-     Qdim++;
-   }
-   
-   
-   int Pdim=0;
-   int  *P=NULL;
-   
-   posB=ftell(Fdat);
-   fscanf(Fdat,"%*[^\n]");
-   posE=ftell(Fdat);
-   
-   for(fseek(Fdat,posB,SEEK_SET);ftell(Fdat)<posE;)
-   { 
-       P=(int*)realloc(P,(Pdim+1)*sizeof(int));
-       fscanf(Fdat,"%d ", P+Pdim);
-       Pdim++;
-   }             
- 
-   double *buff=(double*)malloc(Xdim*Qdim*Pdim*sizeof(double));
+     double *dX=NULL,*dQ=NULL;
+     int *dP=NULL;
+     int dXdim=0,dQdim=0,dPdim=0;
+     
+     fscanf(Fdat,"%*[ \t\n]");  posB=ftell(Fdat); fscanf(Fdat,"%*[^\n]"); posE=ftell(Fdat); fseek(Fdat,posB,SEEK_SET);
+     if(posB==posE) break;  
+     for(;ftell(Fdat)<posE;)
+     {
+       dX=(double*)realloc(dX,(dXdim+1)*sizeof(double));
+       fscanf(Fdat,"%lf ", dX+dXdim);
+       dXdim++;
+     }  
 
-   for(i=0;i<Xdim*Qdim*Pdim;i++) if(1!=fscanf(Fdat," %lf ",buff+i))
-   {  
-      printf(" Unexpected end of file\n"); exit(5);     
+     fscanf(Fdat,"%*[ \t\n]"); posB=ftell(Fdat); fscanf(Fdat,"%*[^\n]"); posE=ftell(Fdat);  fseek(Fdat,posB,SEEK_SET);  
+     for(;ftell(Fdat)<posE;)
+     { 
+       dQ=(double*)realloc(dQ,(dQdim+1)*sizeof(double));
+       fscanf(Fdat,"%lf ", dQ+dQdim);
+       dQdim++;
+     }
+     
+     fscanf(Fdat,"%*[ \t\n]"); posB=ftell(Fdat);  fscanf(Fdat,"%*[^\n]"); posE=ftell(Fdat); fseek(Fdat,posB,SEEK_SET);
+     for(;ftell(Fdat)<posE;)
+     { 
+         dP=(int*)realloc(dP,(dPdim+1)*sizeof(int));
+         fscanf(Fdat,"%d ", dP+dPdim);   
+         dPdim++;
+     }
+     
+     double *dBuff=(double*)malloc(dXdim*dQdim*dPdim*sizeof(double));
+     double r;
+
+     for(int i=0;i<dXdim*dQdim*dPdim;i++) 
+     if(1!=fscanf(Fdat," %lf ",&r)) { printf(" Unexpected end of file\n"); exit(5); } else 
+     {  ip=i%dPdim; 
+        ix= i/(dPdim*dQdim); 
+        iq=(i%(dPdim*dQdim))/dPdim;  
+        dBuff[ ip+ ix*dPdim +iq*dPdim*dXdim] =r;  
+//               ip+ iq*Pdim +ix*Pdim*Qdim 
+     }                                                                                      
+
+     if(!Buff)
+     {  Buff=dBuff; X=dX; P=dP; Q=dQ;  
+        Xdim=dXdim; Pdim=dPdim; Qdim=dQdim;        
+     } else 
+     {  if(dXdim!=Xdim) { printf("Unsupported option:  X-grid dimension  is changed\n"); return 3;}
+        for(int i=0;i<Xdim;i++) if(X[i]!=dX[i]) { printf("Unsupported option:  X-grid is changed. position %d %E -> %E\n",i+1, X[i],dX[i]); return 3;}
+        if(dPdim!=Pdim) { printf("Unsupported option:  parton list  is changed\n"); return 3;}
+        for(int i=0;i<Pdim;i++) if(P[i]!=dP[i]) { printf("Unsupported option: parton list is changed\n"); return 3;}
+        if(Q[Qdim-1]!=dQ[0]) { printf("Unsupported option: no matching for Q sets\n"); return 3;}
+        Q=realloc(Q,(Qdim+dQdim-1)*sizeof(double)); 
+        for(int i=0; i<dQdim-1;i++) Q[i+Qdim]=dQ[i+1];
+        
+        Buff=realloc(Buff, Pdim*Xdim*(Qdim+dQdim-1)*sizeof(double)); 
+        for(int i=0;i<Pdim*Xdim*(dQdim-1);i++) Buff[Pdim*Xdim*Qdim+i]=dBuff[Pdim*Xdim+i];
+        Qdim+=dQdim-1;
+        free(dP),free(dQ); free(dX);free(dBuff);       
+     }    
+     fscanf(Fdat," %s ",key);
+//     printf("last key=%s ftell=%d\n",key,ftell(Fdat));
    }
-   
-   fscanf(Fdat," %s ",key);
-   printf("last key=%s\n",key);
    fclose(Fdat);
-
+   
 
 //  Output 
-   int ip,iq,ix;
 
+//#ifdef QQQ
    if(argc>2)
    { char*ch_=malloc(strlen(ch)+strlen(argv[2])+2);
      sprintf(ch_,"%s:%s",ch,argv[2]);
@@ -178,9 +202,9 @@ int main(int argc, char** argv)
    FILE*Fout=fopen(fout,"w");
 
    fprintf(Fout,"\n#distribution \"%s(proton)\"       2212 => ", ch);
-   posB=ftell(Fout); for(i=0;i<Pdim;i++)  fprintf(Fout,"    ");    
+   posB=ftell(Fout); for(int i=0;i<Pdim;i++)  fprintf(Fout,"    ");    
    fprintf(Fout,"\n#distribution \"%s(anti-proton)\" -2212 => ", ch);
-   posE=ftell(Fout); for(i=0;i<Pdim;i++)  fprintf(Fout,"    ");
+   posE=ftell(Fout); for(int i=0;i<Pdim;i++)  fprintf(Fout,"    ");
 
    fprintf(Fout,"\n#Index %d",Index);
    fprintf(Fout,"\n#Memb %d",memb);
@@ -231,7 +255,8 @@ int main(int argc, char** argv)
       fprintf(Fout,"\n#%d-parton\n",pk);
       for(iq=0;iq<Qdim;iq++)
       {  double d;
-         for(ix=0;ix<Xdim;ix++) { fprintf(Fout," %.4E",buff[ip+ iq*Pdim +ix*Pdim*Qdim] );} 
+//         for(ix=0;ix<Xdim;ix++) { fprintf(Fout," %.4E",buff[ip+ iq*Pdim +ix*Pdim*Qdim] );} 
+            for(ix=0;ix<Xdim;ix++) { fprintf(Fout," %.4E",Buff[ip+ ix*Pdim +iq*Pdim*Xdim] );} 
          fprintf(Fout,"\n");
       }    
    } 
@@ -239,5 +264,5 @@ int main(int argc, char** argv)
    fseek(Fout,posE,SEEK_SET); fprintf(Fout,"%s",aPstr); 
         
    fclose(Fout);
-   return 0;   
+   return 0;    
 }

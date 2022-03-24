@@ -39,7 +39,7 @@ static int fill_(char *lvar)
 	}
   }
   if(ncr == 0)
-  {   messanykey(10,10,"ERROR: 1st cluster is empty!");
+  {   messanykeyErr(10,10," ERROR(kinematic): 1st cluster is empty!");
         return 0;
   }
   return 1;
@@ -104,13 +104,13 @@ L5:
     
        if(nc != strlen( kinmtc_1[i].lvout[0]))     
        {
-          messanykey(10,10, "ERROR: particle(s) have to be from out state");
+          messanykeyErr(10,10, "ERROR(kinematic): particle(s) have to be from out state");
           goto L5;
        }
 
        if (!strlen(kinmtc_1[i].lvout[1])) 
        {
-          messanykey(10,20,"ERROR: 2-nd cluster is empty");
+          messanykeyErr(10,20,"ERROR(kinematic): 2-nd cluster is empty");
 	  goto L5;
        }
     }

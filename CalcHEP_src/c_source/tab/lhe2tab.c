@@ -10,7 +10,7 @@
 
 hepeup_str E_;
 heprup_str R_;
-int nout_int;
+//int nout_int;
 
 int useSLHAwidth=1;
 
@@ -37,7 +37,6 @@ static void wrongParam(int N)
 static long nEvents=0;
 static double totCS=0;
 
-static int skipHeadLine(FILE* flow) {fscanf(flow,"%*[^\n]\n"); return -1;}
 static int readCS(FILE* flow) {fscanf(flow,"%lf",&totCS); return 0;}
 static int readNEvents(FILE* flow) {fscanf(flow,"%ld",&nEvents); return 0;}
 

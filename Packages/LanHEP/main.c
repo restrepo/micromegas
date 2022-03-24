@@ -4,6 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <sys/stat.h>
 #include "lanhep.h"
 
 #ifdef MTHREAD
@@ -66,7 +67,7 @@ int UFOutput=0;
 
 int end_with_tty=0;
 
-extern int opSplitCol1, opSplitCol2, opEvalVrt;
+extern int opSplitCol1, opSplitCol2, opEvalVrt, opNo4Scal;
 extern int verb_herm, err_cnt;
 extern int write_all_vertices, opMaxiLegs;
 extern void SaveRules(char *);
@@ -75,6 +76,7 @@ extern int off_srefine, ch_sign, longest_lpline, longest_cfline, longest_pdline;
 extern int eval_vrt_len, eval_vrt_more, kill_gamma_pm, opNoDummies,opTriHeu;
 extern int SecondVaFu;
 extern int inf_removed[10];
+extern List ufo_params_nolha;
 
 extern int C_F_WIDTH, L_P_WIDTH, P_D_WIDTH, TEX_max_pno, doinitfile;
 
@@ -162,9 +164,9 @@ static void wrt_time(void)
 {
 	double d=1.0/CLOCKS_PER_SEC;
 	printf("Times: lterm %.2f (to1 %.2f (sl %.2f sw %.2f) to2 %.2f ha %.2f\n",
-		tm_lt*d, tm_12*d, tm_sl*d, tm_sw*d, tm_a2*d, tm_add*d);
+		(double)tm_lt*d, (double)tm_12*d, (double)tm_sl*d, (double)tm_sw*d, (double)tm_a2*d, (double)tm_add*d);
 	/*printf("       rsc= %.2f\n",tm_rsc*d);*/
-	printf("       RedL %.2f Wrt %.2f\n",tm_rl*d, tm_wr*d);
+	printf("       RedL %.2f Wrt %.2f\n",(double)tm_rl*d, (double)tm_wr*d);
 }
 
 
@@ -198,7 +200,7 @@ void ProcessTerm(Term t)
 /*	if(is_compound(t) && GetAtomProperty(CompoundName(t),OPR_ALIAS))
 	{*/
 	
-	if(!is_compound(t) || (CompoundName(t)!=OPR_ALIAS  && 
+	if(!is_compound(t) || (CompoundName(t)!=OPR_ALIAS  && CompoundName(t)!=OPR_UNALIAS &&
 			CompoundName(t)!=OPR_IN && CompoundName(t)!=OPR_WHERE  ) )
 		t=ProcessAlias(t);
 
@@ -269,7 +271,7 @@ void ProcessTerm(Term t)
     if(is_compound(t) && ((VerbMode && CompoundName(t)==OPR_LTERM) ||
 			VerbMode==3))
     	{
-    	char sment[1024];
+    	char sment[100024];
     	sWriteTerm(sment,t);
     	sment[55]='.';
     	sment[56]='.';
@@ -352,6 +354,7 @@ static void setoutput(int t)
 			eval_vrt_more=1;
 			opSplitCol1=2;
 			opSplitCol2=1;
+			opRemDotWithFerm=0;
 			break;
 		case 3:
 			FAOutput=1;
@@ -389,12 +392,35 @@ int main(int argc, char **argv, char **env)
 	pthread_setspecific(TermsKey,&mtermval);
 #endif
 	
-	if(sizeof(Term)!=4)
+	
+	if(sizeof(Term)!=8)
 		{
 		puts("Compilation error");
 		return -1;
 		}
 
+	/*{
+		Atom a=NewAtom("test",0), b=NewAtom("hoho",0), c=NewAtom("oooh",0);
+		printf("%lx\n",a);
+		Term t=MakeCompound1(a,NewInteger(1));
+		Term t2=MakeCompound2(b,CopyTerm(t),c);
+//		printf("%lx %lx\n",a,t);
+		WriteTerm(t2);puts("");
+		List l=MakeList2(t,t2);
+		DumpList(l);
+		l=AppendLast(l,a);
+		l=AppendLast(l,b);
+		DumpList(l);
+		SetAtomProperty(a,b,l);
+		
+		while(!is_empty_list(l))
+		{
+			printf("%lx %lx\n",l,ListTail(l));
+			l=ListTail(l);
+		}
+	//	return 0;
+	}*/
+		
 	if(argc>1 && strcmp(argv[1],"-exv")==0)
 		{
 		exv(argc-1,argv+1);
@@ -494,6 +520,15 @@ int main(int argc, char **argv, char **env)
 		if(strcmp(argv[i],"-OutDir")==0)
 			{
 			OutputDirectory=argv[++i];
+			if(access(OutputDirectory,F_OK))
+            {
+                if(mkdir(OutputDirectory,0777))
+                {
+                    perror(OutputDirectory);
+                    OutputDirectory=0;
+                }
+                else printf("Folder %s is created.\n",OutputDirectory);
+            }
 			continue;
 			}
 		if(strcmp(argv[i],"-InDir")==0)
@@ -578,6 +613,11 @@ int main(int argc, char **argv, char **env)
         if(strcmp(argv[i],"-no4color")==0)
 			{
             No4Color=1;
+			continue;
+            }
+		if(strcmp(argv[i],"-no4scal")==0)
+			{
+            opNo4Scal=1;
 			continue;
             }
 		if(strcmp(argv[i],"-nocdot")==0)
@@ -670,7 +710,7 @@ int main(int argc, char **argv, char **env)
 
 		if(strcmp(argv[i],"-sleep")==0)
 			{
-			int sec;
+			unsigned int sec;
 			sscanf(argv[++i],"%d",&sec);
 			sleep(sec*60);
 			continue;
@@ -706,8 +746,8 @@ int main(int argc, char **argv, char **env)
 
 	if(!write_all_vertices && !TexOutput)
 	{
-		if(FAOutput)
-			opMaxiLegs=4;
+		if(UFOutput)
+			opMaxiLegs=6;
 		else
 			opMaxiLegs=4;
 	}
@@ -761,13 +801,13 @@ int main(int argc, char **argv, char **env)
 			printf("Input directory is '%s'\n",InputDirectory);
 		}
 	doinitfile=1;	
-    ReadFile(InitFile);
+   ReadFile(InitFile);
 	doinitfile=0;
 	if(InputFile!=NULL)
 		ReadFile(InputFile);
 	else
 		{
-		printf("Welcome to LanHEP                                Version 3.1.9  (Nov 27 2013)\n");
+		printf("Welcome to LanHEP                                Version 4.0.0  (Jan 16 2020)\n");
 		/*
 		log_file=fopen("lhep.log","w");
 		if(log_file==NULL)
@@ -869,14 +909,23 @@ puts("");
 	else
 		puts("Model # is zero");
 */
+
+
+	if(UFOutput && ufo_params_nolha)
+	{
+	  printf("Warning: LHA block/index info is not provided for external parameters: ");
+	  WriteTerm(ufo_params_nolha);
+	  printf(".\nUse lha statements to set LHA data:\n\tlha parameter_name=block_name(index).\n\n");
+	}
 	if(VerbMode)
 		{
 		int i;
 		printf("%5.1fMB of memory used.\n",
-			(ListMemory()+TermMemory())*0.001);
+			(double)(ListMemory()+TermMemory())*0.001);
 		abbr_stat();
-		/*AtomStatistics();
+		AtomStatistics();
 		ListStatistics();
+	/*
 		for(i=0;i<10;i++)
 			if(inf_removed[i]) printf("%d pwr of inf: %d\n",i,inf_removed[i]);*/
 		}

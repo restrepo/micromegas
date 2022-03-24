@@ -156,6 +156,112 @@ double gauss_arg( double (*func)(double,void*),void*par,double a,double b,  int 
  }
 
 
+static double peterson21_stat(double *f, double a, double b, double *aerr)
+{
+// FormCalc/util/univariate/Patterson.F
+
+
+// weights of the 10-point formula
+  double  w10[]={
+  0.066671344308688137593568809893332,
+  0.149451349150580593145776339657697,
+  0.219086362515982043995534934228163,
+  0.269266719309996355091226921569469,
+  0.295524224714752870173892994651338
+                };
+
+// weights of the 21-point formula
+  double   w21[]={
+  0.149445554002916905664936468389821,
+  0.032558162307964727478818972459390,
+  0.075039674810919952767043140916190,
+  0.109387158802297641899210590325805,
+  0.134709217311473325928054001771707,
+  0.147739104901338491374841515972068,
+  0.011694638867371874278064396062192,
+  0.054755896574351996031381300244580,
+  0.093125454583697605535065465083366,
+  0.123491976262065851077958109831074,
+  0.142775938577060080797094273138717 
+                };
+
+/*
+  double f[21];
+  double mi=0.5*(a+b);
+  f[0]=F(mi);
+  for(int i=0;i<10;i++)
+  {  double d=0.5*(b-a)*x[i];
+     f[1+i]=F(mi+d);
+     f[11+i]=F(mi-d);
+  } 
+*/                                              
+  double sum10=0, sum21=f[0]*w21[0];
+ 
+  for(int i=1;i<=5; i++)  sum10+=w10[i-1]*(f[i]+f[i+10]);
+  for(int i=1;i<=10;i++)  sum21+=w21[i]*(f[i]+f[i+10]);
+
+  if(aerr)
+  { 
+     double h=sum21/2;
+     double fluct=w21[0]*fabs(f[0]-h);
+     for(int i=0;i<10;i++) fluct+=w21[i+1]*( fabs(f[i+1]-h) +fabs(f[i+11]-h));
+     fluct*=fabs(b-a)/2;
+     double err=fabs(sum21-sum10)*fabs(b-a)/2;
+     if(fluct>1E-13) *aerr=err; else 
+     {
+        double er=pow(200*err/fluct,1.5);
+        if(er>1) er=1;
+        *aerr=fluct*er;
+    }
+  }
+  
+  return (b-a)*sum21/2;
+
+} 
+
+static double xPeterson[]=
+{
+  0.973906528517171720077964012084452,
+  0.865063366688984510732096688423493,
+  0.679409568299024406234327365114874,
+  0.433395394129247190799265943165784,
+  0.148874338981631210884826001129720,
+  0.995657163025808080735527280689003,
+  0.930157491355708226001207180059508,
+  0.780817726586416897063717578345042,
+  0.562757134668604683339000099272694,
+  0.294392862701460198131126603103866
+             };
+
+
+double peterson21(double (*F)(double), double a, double b, double *aerr)
+{
+   double f[21];
+   double mi=0.5*(a+b);
+   f[0]=F(mi);
+   for(int i=0;i<10;i++)
+   {  double d=0.5*(b-a)*xPeterson[i];
+      f[1+i]=F(mi+d);
+      f[11+i]=F(mi-d);
+   }      
+   return  peterson21_stat(f, a, b, aerr);
+}
+
+double peterson21_arg(double (*F)(double,void*),void*par, double a, double b, double *aerr)
+{
+   double f[21];
+   double mi=0.5*(a+b);
+   f[0]=F(mi,par);
+   for(int i=0;i<10;i++)
+   {  double d=0.5*(b-a)*xPeterson[i];
+      f[1+i]=F(mi+d,par);
+      f[11+i]=F(mi-d,par);
+   }      
+   return  peterson21_stat(f, a, b, aerr);
+   
+}
+
+
 static void r_simpson( double(*func)(double),double * f,double a,double b, 
 double eps, double * aEps, double * ans, double * aAns, double _f_ , int depth, int depth1, int*nErr)
 {

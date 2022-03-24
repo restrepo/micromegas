@@ -18,6 +18,7 @@
 #include "pvars.h"
 #include "getmem.h"
 #include "read_func.h"
+#include "reader_c.h"
 
 #define minvarmem  ((unsigned)sizeof(struct varrec)  + 1 - STRSIZ)
 #define minlagrmem ((unsigned)sizeof(struct algvert) + 1 - STRSIZ)
@@ -51,12 +52,25 @@ static void errorMessage( char * fieldName, char * format, ...)
    vsprintf(dump,format,args);
    va_end(args);
 
+//printf("dump=|%s|\n",dump);
+
    if (strcmp(dump,"*") == 0)
-    sprintf(errorText,"Error in table '%s' line %d field '%s'\nposition %u: %s",
+   { if(rderrpos)
+          sprintf(errorText,"Error in table '%s' line %d field '%s'\nposition %u: %s",
 	  tabName,nLine,fieldName,rderrpos,errmesstxt(rderrcode) );
+     else sprintf(errorText,"Error in table '%s' line %d field '%s'\n %s",
+          tabName,nLine,fieldName,errmesstxt(rderrcode) );
+   }                   	  
    else
-    sprintf(errorText,"Error in table '%s' line %d field '%s'  position %u:\n  %s",
+   { 
+     if(rderrpos)
+           sprintf(errorText,"Error in table '%s' line %d field '%s'  position %u:\n  %s",
            tabName,nLine,fieldName, rderrpos, dump);
+     else 
+           sprintf(errorText,"Error in table '%s' line %d field '%s' \n  %s",
+           tabName,nLine,fieldName,  dump);
+   }
+                                
    if(blind==1) { printf("ERROR:%s\n",errorText); exit(125);} else messanykey(2,10,errorText);
 }
 
@@ -162,24 +176,13 @@ static int ExtFunc,aWidth,aWidth1, depQ;
 
 static int setPub=0;
 
-
+   
 static void*  act_33(char* ch,int n, void**args)
 {  int i,MathFunc=0;
-   char _ch_[100];
-   char math[]=" + - * / ^ if"
-   " sqrt pow  exp log log10 sin cos tan asin acos atan sinh cosh tanh asinh acosh atanh atan2"  
-   " conj cimag creal carg cabs"
-   " cacos casin catan ccos csin ctan cacosh casinh catanh ccosh csinh ctanh" 
-   " cexp clog clog10 cpow csqrt conj cproj ";
 
-   if(ch[0]=='.') rderrcode=typemismatch;
-   
-   sprintf(_ch_," %s ",ch);
-    
-   if(strstr(math,_ch_)) MathFunc=1; 
-  
+   if(ch[0]=='.') {rderrcode=typemismatch; return NULL;}
+   MathFunc= isCMathF(ch);
    if(MathFunc) for(i=0;i<n;i++) if(args[i]==&String) {rderrcode=typemismatch; return NULL;}
-     
    if(!MathFunc) { if(!strcmp(ch,"aWidth")) aWidth=1; else ExtFunc=1;}     
    return &Number;
 }
@@ -474,7 +477,7 @@ static void  clearLatexNames(void)
 }
 
 static int isPrtclName(char*p){ return strlen(p)<P_NAME_SIZE-2 
- && !strchr(p,' ')&& !strchr(p,')') && !strchr(p,')') && !strchr(p,'%');  }
+ && !strchr(p,' ')&& !strchr(p,'(') && !strchr(p,')') && !strchr(p,'%');  }
 
 static int q3SM(int N)
 {
@@ -538,7 +541,7 @@ static int  readparticles(int  check, int ugForce )
          for ( i=0;i<=1;i++)
          {
             if (check && (! isPrtclName(pName[i])))
-            {  errorMessage(fldName[i],"incorrect particle name '%s'",pName[i]);
+            {  errorMessage(fldName[i],"incorrect particle name '%s'.\n It can't be longer than %d or contain (/)/percent symbols",pName[i],P_NAME_SIZE-3);
                return 0;
             }
 
@@ -572,7 +575,7 @@ static int  readparticles(int  check, int ugForce )
 
       prtclbase[nparticles-1].spin=itmp;
       
-      if( 1!=sscanf(numtxt,"%ld",&prtclbase[nparticles-1].N)) prtclbase[nparticles-1].N=0;
+      if( 1!=sscanf(numtxt,"%d",&prtclbase[nparticles-1].N)) prtclbase[nparticles-1].N=0;
       
       if(strcmp(p1,p2)==0) prtclbase[nparticles-1].q3=0; else prtclbase[nparticles-1].q3=q3SM(prtclbase[nparticles-1].N);
 
@@ -1001,7 +1004,7 @@ static int  readlagrangian(int check, int ugForce)
          }
   }
 
-  if (check && lgrgn1)
+  if (check && lgrgn)
   {
     mLine=nLine;
     lgrgn1 = lgrgn;   /*    check1       */
@@ -1429,11 +1432,15 @@ int makeVandP(int rd ,char*path,int L, int mode,char*CalcHEP)
     if(i+1>anti)  continue;
     if(nLn)fprintf(f,","); else fprintf(f," "); nLn++; 
       fprintf(f," {\"%s\",",prtclbase[i].name);
-      if(i+1==anti)   fprintf(f,"\"%s\", ",prtclbase[i].name);
-           else       fprintf(f,"\"%s\", ",prtclbase[anti-1].name);
-     fprintf(f,"%d, \"%s\",\"%s\",%d,%d,%d}\n",
+      if(i+1==anti)   fprintf(f,"\"%s\",1, ",prtclbase[i].name);
+           else       fprintf(f,"\"%s\",0, ",prtclbase[anti-1].name);
+     int dim1=prtclbase[i].spin+1; 
+     if(prtclbase[i].spin==1 && strchr("LR",prtclbase[i].hlp)) dim1=1;
+     if(prtclbase[i].spin==2 && strcmp("0",prtclbase[i].massidnt)==0) dim1=2;
+     dim1*=prtclbase[i].cdim;         
+     fprintf(f,"%d, \"%s\",\"%s\",%d,%d,%d,%d}\n",
        prtclbase[i].N,  prtclbase[i].massidnt, prtclbase[i].imassidnt,  
-       prtclbase[i].spin, prtclbase[i].cdim,prtclbase[i].q3);
+       prtclbase[i].spin, prtclbase[i].cdim,dim1,  prtclbase[i].q3);
     
   }
   fprintf(f,"};\n");
@@ -1477,7 +1484,7 @@ int makeVandP(int rd ,char*path,int L, int mode,char*CalcHEP)
 
   fprintf(f,"int nModelVars=%d;\n",nVar);
   fprintf(f,"int nModelFunc=%d;\n",nFunc);
-  fprintf(f,"static int nCurrentVars=0;\n");
+  fprintf(f,"static int nCurrentVars=%d;\n",nVar-1);
   fprintf(f,"int*currentVarPtr=&nCurrentVars;\n");
   fprintf(f,"static char*varNames_[%d]={\n ", nVar+nFunc);
  

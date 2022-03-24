@@ -275,14 +275,12 @@ char* parseOneVertex(char*v, int * perm ,int * field)
 }
 
 
-
-
 char * fermPropagTxt(int v,int l,int forReduce)
-{  char * proptxt=(char*)malloc(30);
+{  char * proptxt=(char*)malloc(100);
    int P=vcs.vertlist[v][l].partcl;
    int aux=prtclbase1[P].hlp;
    char * mass=prtclbase1[P].massidnt;
-   char sgn[4]="";
+   char sgn[4]="+";
    int pa=vcs.vertlist[v][l].moment;
    char Ln[4]="";
    char G5[8]="G5";
@@ -291,16 +289,22 @@ char * fermPropagTxt(int v,int l,int forReduce)
    if(forReduce){strcpy(Ln,"ln,");strcpy(G5,"G(ln,A)");strcpy(dtwo,"/2");}
    
    if(pa<0){ pa=-pa; strcpy(sgn,"-");}
+   int pb =  (pa==1 ? 2 : 1);
    if(aux=='*') strcpy(proptxt,mass);
-   else if(strcmp(mass,"0")) sprintf(proptxt,"%sG(%sp%d)+%s",sgn,Ln,pa,mass);
+
+   else if(strcmp(mass,"0"))
+   {  sprintf(proptxt,"(%s%sG(%sp%d))",mass,sgn,Ln,pa);
+      if(PLR_PRTCL&vcs.vertlist[v][l].prop)
+      sprintf(proptxt+strlen(proptxt),"*(1-2*Helicity%d*%s*(N_pol_%d%d_*G(%sp%d)+N_pol_%d%d_*G(%sp%d)))",pa,G5,pa,pa,Ln,pa,pa,pb,Ln,pb);
+//                                                   pa,G5,        pa,pa, Ln,pa,       pa,pb,  Ln,pb 
+   }   
    else  if(!strchr("LR",aux) && !(PLR_PRTCL&vcs.vertlist[v][l].prop)  ) 
-              sprintf(proptxt,"%sG(%sp%d)",sgn,Ln,pa);   
+              sprintf(proptxt,"G(%s%sp%d)",Ln,sgn,pa);
    else if((fermionp(P)&&aux=='L')||(a_fermionp(P)&&aux=='R')) 
               sprintf(proptxt,"%sG(%sp%d)*(1-%s)%s",sgn,Ln,pa,G5,dtwo);
    else if((fermionp(P)&&aux=='R')||(a_fermionp(P)&&aux=='L'))                           
               sprintf(proptxt,"%sG(%sp%d)*(1+%s)%s",sgn,Ln,pa,G5,dtwo);
-   else if(sgn[0]==0) sprintf(proptxt,"%sG(%sp%d)*(1+2*Helicity%d*%s)",sgn,Ln,pa,pa,G5);
-   else sprintf(proptxt,"%sG(%sp%d)*(1-2*Helicity%d*%s)",sgn,Ln,pa,pa,G5);
+   else     sprintf(proptxt,"%sG(%sp%d)*(1%s2*Helicity%d*%s)",sgn,Ln,pa,sgn,pa,G5);
    return proptxt;
 }   
 

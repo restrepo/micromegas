@@ -22,10 +22,10 @@ all: $(bin)/event_mixer  $(nt_maker) $(bin)/event2lhe
 INC = -Iinclude -I../SLHAplus/include  -I../symb/include  -I../polynom/include 
 
 $(bin)/event_mixer:event_mixer.c event2pyth.c ch_events.c   $(lib)/libSLHAplus.a
-	$(CC) $(CFLAGS) $(INC) -o $@ $^ -lm 
+	$(CC) $(CFLAGS) $(INC)  -o $@ $^ -lm $(lQuad) 
 
 $(bin)/event2lhe:event2lhe.c   ch_events.c 
-	$(CC) $(CFLAGS) $(INC) -o $@ $^ -lm 
+	$(CC) $(CFLAGS) $(INC)   -o $@ $^ -lm  $(lQuad)
 
 
 $(bin)/nt_maker:nt_maker_02.F readLHE.c 

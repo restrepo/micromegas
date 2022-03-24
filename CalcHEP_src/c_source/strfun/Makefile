@@ -26,5 +26,5 @@ $(lib)/dummy.a:$(lib)/dummy.a(pdf_dummy.o)
 	@rm -f pdf_dummy.o 
 
 $(bin)/lhapdf2pdt: lhapdf2pdt.c 
-	$(CC) $(CFLAGS) -o $(bin)/lhapdf2pdt lhapdf2pdt.c $(lib)/ntools.a -lm
+	$(CC) $(CFLAGS)  -o $(bin)/lhapdf2pdt lhapdf2pdt.c $(lib)/ntools.a -lm
 

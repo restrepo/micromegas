@@ -22,7 +22,7 @@ static void set_ind(Term t, List *ii1, List *ni)
 				{
 				if(is_integer(CompoundArg2(ListFirst(l2))))
 					{
-					int iv;
+					long int iv;
 					Label lb;
 					iv=IntegerValue(CompoundArg2(ListFirst(l2)));
 					if(CompoundArity(ListFirst(l2))==2)

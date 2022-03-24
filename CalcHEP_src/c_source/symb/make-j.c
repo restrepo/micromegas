@@ -13,7 +13,7 @@ typedef struct fList { struct fList* next; char fName[30];} fList;
 static fList * list=NULL;
 
 
-static void * pCompile_cycle(int * input)
+static void * pCompile_cycle(void * input)
 {  
   char command[100];
   for(;;)
@@ -47,7 +47,7 @@ int main(int argc, char** argv)
    dirPtr=opendir("./");   
    while((dp=readdir(dirPtr)))
    { char *c=strstr(dp->d_name,".c");
-     if(c&&c[2]==0) { fList *tmp=malloc(sizeof(fList));
+     if((dp->d_name[0]!='.') && c&&c[2]==0) { fList *tmp=malloc(sizeof(fList));
                       tmp->next=list;
                       strcpy(tmp->fName,dp->d_name);
                       list=tmp; 

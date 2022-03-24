@@ -201,7 +201,7 @@ L10:{  char strmen[]="\030"
            if(correctDouble(3,15,"Enter new value ",&alphaMZ,1)) returnCode=1;
            if(alphaMZ>0 && alphaMZ<0.3) returnCode=1; else  
            { alphaMZ=alphaMZ_old;
-              messanykey(5,15,"Your input is out of alphaMZ range");
+              messanykeyErr(5,15,"Your input is out of alphaMZ range");
            }
          }
          break;
@@ -210,7 +210,7 @@ L10:{  char strmen[]="\030"
            if(correctInt(3,15,"Enter new value ",&alphaNF,1))
            {
               if(alphaNF<=6 && alphaNF>=3) returnCode=1;
-              else { messanykey(5,15,"NF out of range"); alphaNF=NF_old;}
+              else { messanykeyErr(5,15,"NF out of range"); alphaNF=NF_old;}
            }   
          }
          break;
@@ -283,9 +283,7 @@ L10:{  char strmen[]="\030"
             }
             int dim[3];
             for(i=0;i<N;i++) dim[i]=nPoints;
-//            printf("N=%d Y[0]=%s\n Y[1]=%s\n Y[2]=%s\n", N,Y[0],Y[1],Y[2]);                                                         
-//            plot_Nar(NULL, "Alpha(Q)",  log10(qMin), log10(qMax),"log10(Q/GeV)", nPoints, N, f,ff,Y);
-              plot_Nar(NULL, "Alpha(Q)",  qMin,qMax,"Q/GeV", xLog, N, dim,f,ff,Y);
+            plot_Nar(NULL, "Alpha(Q)", "Q[GeV]",  qMin,qMax, xLog, N, dim,f,ff,Y);
             for(k=0;k<N;k++) free(f[k]);
 	  } else  messanykey(40,18,
 	          " Correct input is \n"

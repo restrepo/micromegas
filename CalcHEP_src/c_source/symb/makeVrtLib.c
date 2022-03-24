@@ -21,13 +21,14 @@ int main(int argv, char**argc)
   char * CalcHEP=NULL;
   
 //  printf("argv=%d\n",  argv);
-  if(argv<7 || argv>8) { printf("6 or 7 arguments expected:  1) path To models 2) model number  3) label for library\n");
+  if(argv<7 || argv>8) { printf("makeVrtLib: 6 or 7 arguments expected:  1) path To models 2) model number  3) label for library\n");
                          printf("4-7[,7] - particle names.\n"); return 1;}
 
   L=strlen(argc[0]);
   CalcHEP=malloc(L+10);
   strcpy(CalcHEP,argc[0]);
   CalcHEP[L-16]=0;  
+
   if(sscanf(argc[2],"%d",&M)!=1) { printf("Second argument should be a number\n"); return 1;}
   N=argv-4;
   char *field[4];
@@ -37,7 +38,7 @@ int main(int argv, char**argc)
 
    
 //   if(argv>=4)sscanf(argc[3],"%d",&mode); else mode=0;
-   err= writeVertexCode("models",M,N,field,argc[3]);  
+   err= writeVertexCode(argc[1],M,N,field,argc[3]);  
    return err;
 }
 

@@ -90,7 +90,7 @@ void pvFill(REAL mass, REAL * mom4, int pos,REAL*V)
   mass=mass*mass;
 
   for(i=1;i<4;i++) {V[i0+i]=mom4[i]; V[i0]+=V[i0+i]*V[i0+i];}
-  V[i0]=sqrt(V[i0]);  
+  V[i0]=Sqrt(V[i0]);  
 }
 
 
@@ -99,16 +99,16 @@ void incomkin(REAL m1, REAL m2, REAL p1, REAL p2,
            REAL *sqrt_S_, REAL *Pcm_, REAL * rapidity_)
 {
   REAL sqrt_S, Pcm,rapidity;
-  REAL e1=sqrt(m1*m1+p1*p1);
-  REAL e2=sqrt(m2*m2+p2*p2);
+  REAL e1=Sqrt(m1*m1+p1*p1);
+  REAL e2=Sqrt(m2*m2+p2*p2);
  
   sqrt_S=(e1+e2-p1+p2)*(e1+e2+p1-p2);
    
-  rapidity= atanh((p1-p2)/(e1+e2));
+  rapidity= Atanh((p1-p2)/(e1+e2));
 
-  Pcm=p1*cosh(rapidity)-e1*sinh(rapidity);
+  Pcm=p1*Cosh(rapidity)-e1*Sinh(rapidity);
 
-  if(sqrt_S_) *sqrt_S_=sqrt(sqrt_S);  
+  if(sqrt_S_) *sqrt_S_=Sqrt(sqrt_S);  
   if(Pcm_) *Pcm_=Pcm; 
   if(rapidity_) *rapidity_=rapidity;
 }

@@ -58,7 +58,7 @@ Compound GetOperator(Atom name, Atom type, Atom *assoc, int *prior)
     if(assoc!=NULL)
 			*assoc=CompoundArg2(c);
     if(prior!=NULL)
-			*prior=IntegerValue(CompoundArgN(c,3));
+			*prior=(int)IntegerValue(CompoundArgN(c,3));
     /*printf("/// %s: %s %ld\n",AtomValue(name),AtomValue(CompoundArg2(c)),
                 IntegerValue(CompoundArgN(c,3)));*/
 	return c;

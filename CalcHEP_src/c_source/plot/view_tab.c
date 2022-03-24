@@ -9,7 +9,7 @@
 #include "../../include/version.h"
 
 /*
-void  plot_Nar( char*  title, double xMin, double xMax, char*xName,  int dim, 
+void  plot_Nar( char*  title, char*xName, double xMin, double xMax,  int dim, 
                int N, double **f,double**ff,char**Y)
 */
 
@@ -126,17 +126,13 @@ int main(int argc,char** argv)
        }
        for(i=0;i<xDimMax;i++) for(n=0;n<N;n++)
        { fscanf(F,"%lf",fn[n]+i); 
-         if( !isfinite(fn[n][i]) ){ printf(" NAN in table \n"); return 2;}
-         if(dn[n]) 
-         { fscanf(F,"%lf",dn[n]+i); 
-           if( !isfinite(dn[n][i]) ){ printf(" NAN in table \n"); return 2;}
-         }
+         if(dn[n]) fscanf(F,"%lf",dn[n]+i); 
        }
        fclose(F);     
        sprintf(icon_name,"%s/include/icon",pathtocalchep);
        start1(VERSION_ ,icon_name,"calchep.ini;../calchep.ini",NULL);
        clearTypeAhead();
-       plot_Nar(argv[1],procName,xMin,xMax,xName,xScale,N,xDim,fn,dn,Y);
+       plot_Nar(argv[1],procName,xName,xMin,xMax,xScale,N,xDim,fn,dn,Y);
        finish();
        return 0; 
     }
@@ -149,14 +145,11 @@ int main(int argc,char** argv)
     df=(double*)malloc(xDim[0]*yDim*sizeof(double)); 
     sscanf(buff,"%lf  %lf",f,df);  
     for(i=1;i<xDim[0]*yDim;i++) fscanf(F,"%lf  %lf",f+i,df+i);
-    for(i=1;i<xDim[0]*yDim;i++) if( !isfinite(f[i])|| !isfinite(df[i]) )
-       { printf(" NAN in table %s\n",procName); return 0;}
   }
   else 
   { 
     sscanf(buff,"%lf",f);
     for(i=1;i<xDim[0]*yDim;i++) fscanf(F,"%lf",f+i);
-    for(i=1;i<xDim[0]*yDim;i++) if( !isfinite(f[i])){ printf(" NAN in table %s\n",procName); return 0;} 
   }             
   sprintf(icon_name,"%s/include/icon",pathtocalchep);
   start1(VERSION_ ,icon_name,"calchep.ini;../calchep.ini",NULL);  

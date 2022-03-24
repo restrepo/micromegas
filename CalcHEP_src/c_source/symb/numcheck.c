@@ -157,7 +157,7 @@ static void show_dependence(int X, int Y)
                varValues[ni]=mem;
                calcMainFunc();
 
-               if(!(NaN||Esc)) plot_1(xMin,xMax,nPoints,f,NULL,"Plot",
+               if(!(NaN||Esc)) plot_1(xMin,xMax,nPoints,f,NULL,"Parameter dependence",
                               varNames[ni], varNames[nc]);
                                
             } else messanykey(16,5," Correct input is \n"
@@ -227,18 +227,18 @@ static void  writeSLHA(void)
 
 static void show_spectrum(int X, int Y)
 { int i;
-  char *menuP=malloc(2+22*(nModelParticles+2));
+  char *menuP=malloc(2+(P_NAME_SIZE+10)*(nModelParticles+2));
   int mode=1;  
-  menuP[0]=22;
+  menuP[0]=P_NAME_SIZE+10;
   menuP[1]=0;
 
-  strcpy(menuP+1,              " All Particles -> SLHA");
+  sprintf(menuP+1, " All Particles->SLHA%-*.*s",P_NAME_SIZE-10,P_NAME_SIZE-10,"");
 //  sprintf(menuP++strlen(menuP)," Select.Particl-> SLHA");       
   for(i=0;i<nModelParticles;i++)
   { char *mass=ModelPrtcls[i].mass;
     char *name=ModelPrtcls[i].name;
-    if(!strcmp(mass,"0")) sprintf(menuP+strlen(menuP)," %-6.6s      Zero     ",name);
-    else sprintf(menuP+strlen(menuP)," %-6.6s  %12.4E ",name,pMass(name));
+    if(!strcmp(mass,"0")) sprintf(menuP+strlen(menuP)," %-*.*s     Zero   ",P_NAME_SIZE-3,P_NAME_SIZE-3,name);
+    else sprintf(menuP+strlen(menuP)," %-*.*s %10.2E ",P_NAME_SIZE-3,P_NAME_SIZE-3,name,pMass(name));
   }
   
   while(mode)
@@ -304,26 +304,35 @@ int numcheck(void)
    cleanDecayTable();
    ForceUG=forceUG;
    {
-     char  mmenu[]="\026" 
-                   " Parameters           "
-                   " All Constraints      "
-                   " Masses,Widths,Branch.";
      int m0=1,err;
      void (*F10)(int);
      void (*F6)(int);
      F10=f3_key[7];    F6=f3_key[3];
      f3_key[3]=localF6;
+                
 chdir("results");
 outputDir="./"; 
      err=calcMainFunc();
      if(Warnings) messanykey(5,10,Warnings);
      for(;m0;)
-     {  menu1(56,7,"",mmenu,"s_num_*",NULL,&m0);
-       if(err && (m0==2||m0==3)) 
+     { 
+     
+     char  mmenu[]="\026" 
+                   " Parameters           "
+                   " All Constraints      "
+                   " SLHA widths      ON1 "
+                   " Masses,Widths,Branch.";
+
+     if(useSLHAwidth) improveStr(mmenu,"ON1","ON ");
+                else  improveStr(mmenu,"ON1","OFF");
+          
+       if(err /*&& (m0==2||m0==4)*/) 
        { char txt[100];
          sprintf(txt," Can not calculate %s ",varNames[err]);
          messanykey(12,15,txt);
-       }   
+       }
+        menu1(56,7,"",mmenu,"s_num_*",NULL,&m0);
+          
        switch(m0)
        {                
          case 1: if(changeParam(56,8))
@@ -333,10 +342,11 @@ outputDir="./";
                    if(Warnings) messanykey(5,10,Warnings);        
                  }
                  break;
-         case 2: if(nModelFunc) {if(!err ) show_dependence(56,8);} 
+         case 2: if(nModelFunc) { if(!err ) show_dependence(56,8);} 
                  else messanykey(5,10,"There are no public constraints in this model.");  
-                 break;           
-         case 3: if(!err) show_spectrum(56,8); break;
+                 break;
+         case 3: useSLHAwidth=!useSLHAwidth; cleanDecayTable();break;             
+         case 4: if(!err) show_spectrum(56,8); break;
        }
      }
 chdir("..");

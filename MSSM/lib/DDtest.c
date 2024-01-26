@@ -144,11 +144,11 @@ int MSSMDDtest(int loop, double*pA0,double*pA5,double*nA0,double*nA5)
         switch(IQ)
         { case 4: alphaMq=0.39;break;
           case 5: alphaMq=0.22;break;
-          default:alphaMq=parton_alpha(mqSM[IQ]);
+          default:alphaMq=alphaQCD(mqSM[IQ]);
         } 
         qcdNLO=1+(11./4.-16./9.)*alphaMq/M_PI;
       } 
-      qcdNLOs=1+(25./6.-16./9.)*parton_alpha(msq[II][IQ])/M_PI;
+      qcdNLOs=1+(25./6.-16./9.)*alphaQCD(msq[II][IQ])/M_PI;
     }
 /* q,~o1 reaction */
     D=SQ(msq[II][IQ])-SQ(mne)-SQ(mqSM[IQ]);
@@ -195,7 +195,7 @@ int MSSMDDtest(int loop, double*pA0,double*pA5,double*nA0,double*nA5)
        switch(IQ)
        { case 4: alphaMq=0.39;break;
          case 5: alphaMq=0.22;break;
-         default:alphaMq=parton_alpha(mqSM[IQ]);
+         default:alphaMq=alphaQCD(mqSM[IQ]);
        }
        qcdNLO=1+(11./4.-16./9.)*alphaMq/M_PI;
      }  
@@ -212,7 +212,7 @@ int MSSMDDtest(int loop, double*pA0,double*pA5,double*nA0,double*nA5)
 
      if(Twist2On) 
      { double Ampl2;
-       Ampl2=parton_alpha(mqSM[IQ])/(12*M_PI)*(b2s+mne*(b1s+b1d)/2)*parton_x(21,MqPole[IQ]);   
+       Ampl2=alphaQCD(mqSM[IQ])/(12*M_PI)*(b2s+mne*(b1s+b1d)/2)*parton_x(21,MqPole[IQ]);   
       *pA0+=1.5*Ampl2*mne*MN;
       *nA0+=1.5*Ampl2*mne*MN;             
      }     
@@ -226,7 +226,7 @@ int MSSMDDtest(int loop, double*pA0,double*pA5,double*nA0,double*nA5)
       switch(IQ)
       { case 4: alphaMq=0.39;break;
         case 5: alphaMq=0.22;break;
-        default:alphaMq=parton_alpha(mqSM[IQ]);
+        default:alphaMq=alphaQCD(mqSM[IQ]);
       } 
       qcdNLO=1+(11/4.-16./9.)*alphaMq/M_PI;
     }
@@ -278,7 +278,7 @@ int MSSMDDtest(int loop, double*pA0,double*pA5,double*nA0,double*nA5)
   { double fh,fH;
     int i,j;
 
-    if(QCDcorrections)qcdNLOs=1+(25./6.-16./9.)*parton_alpha(msq[II][IQ])/M_PI;
+    if(QCDcorrections)qcdNLOs=1+(25./6.-16./9.)*alphaQCD(msq[II][IQ])/M_PI;
     else qcdNLOs=1;
 
     for(fh=0,fH=0,i=0;i<2;i++)for(j=0;j<2;j++)

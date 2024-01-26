@@ -263,7 +263,6 @@ int buildInterpolation(double (*Fun)(double), double x1,double x2, double eps,do
         del(i,&N,xa,ya);
         yy=polint3(x, N, xa, ya);
         ins(i, x, y, &N,xa, ya);
-//printf("yy=%E y=%e  (eps<0 && fabs(yy-y)> -eps*fabs(y))=%d  fabs(yy-y)=%E -eps*fabs(y)=%E eps=%E   \n", yy,y,(eps<0 && fabs(yy-y)> -eps*fabs(y)),  fabs(yy-y), -eps*fabs(y),eps );        
         if( (eps>0 && fabs(yy-y) > eps) || (eps<0 && fabs(yy-y)> -eps*fabs(y)))  
         {
            cnt=1;
@@ -288,6 +287,64 @@ int buildInterpolation(double (*Fun)(double), double x1,double x2, double eps,do
    *ya_=ya;
    return 0;  
 }
+
+int buildInterpolation_arg(double (*Fun)(double,void*), void*arg, double x1,double x2, double eps,double delt, int*N_, double**xa_, double**ya_)
+{  int i,cnt,N,k;
+   double *xa,*ya,dx0;
+   dx0=fabs(x2-x1)*delt;   
+   N=5;
+   xa=malloc(N*sizeof(double));
+   ya=malloc(N*sizeof(double));
+
+//printf("======  x1=%E ==== x2=%E ========================\n",x1,x2);
+   
+   for(i=0;i<5;i++) {xa[i]=x1+ (x2-x1)/4*i; ya[i]=Fun(xa[i],arg); /*printf("x=%E y=%E\n",xa[i],ya[i]);*/ }  
+
+
+   for(cnt=1;cnt;)
+   { cnt=0; 
+//for(int i=0;i<N;i++) printf(" %.2E",xa[i]);
+//printf("\n");   
+     for(i=0; i<N; i++)
+     {  double x=xa[i], y=ya[i], yy;  
+        if(i<N-1 && fabs(xa[i+1]-xa[i]) < dx0) continue; else
+        if(i>0   && fabs(xa[i]-xa[i-1]) < dx0) continue;
+         
+        del(i,&N,xa,ya);
+        yy=polint3(x, N, xa, ya);
+        ins(i, x, y, &N,xa, ya);
+
+//printf("N=%d x=%e y=%E yy=%E dy=%E\n",N, x,y,yy, fabs(y-yy));        
+
+        if( (eps>0 && fabs(yy-y) > eps) || (eps<0 && fabs(yy-y)> -eps*fabs(y)))  
+        {
+           cnt=1;
+           xa=realloc(xa,sizeof(double)*(N+1));
+           ya=realloc(ya,sizeof(double)*(N+1));
+                if(i==0)   k=1;  
+           else if(i==N-1) k=N-1;  
+           else if(fabs(xa[i-1]-xa[i])< fabs(xa[i]-xa[i+1])) k=i+1;
+           else { k=i;  }
+           
+           x=(xa[k-1]+xa[k])/2;
+           y=Fun(x,arg); 
+//           printf("x=%E y=%E\n",x,y);
+
+//printf("add x=%E\n",x);
+           
+           ins(k,x,y,&N,xa,ya);
+           i++;     
+        }  
+     }
+//printf("end of cycle\n");     
+   }   
+   *N_=N;
+   *xa_=xa;
+   *ya_=ya;
+   
+   return 0;  
+}
+
 
 
 
@@ -596,7 +653,8 @@ double pval2plr(double p)
    
 }
 
-void  addErrorMess( char** All, char * one)
+
+void addErrorMess( char** All, char * one)
 {
    if(*All==NULL || strstr(*All,one)==NULL)
    { int len; 

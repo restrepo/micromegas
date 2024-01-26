@@ -800,6 +800,7 @@ static double calcSpectrum0(char *name1, char*name2, int forSun, double *Spectra
     if(cc23)
     { int i3W;  
       double  r,m1,v0=0.001;
+      passParameters(cc23);
       for(i3W=2;i3W<5;i3W++) if(strcmp(cc23->interface->pinf(1,i3W+1,NULL,NULL),N[l_])==0) break;
       r=v0*cs23(cc23,1,v0*M1*M2/(M1+M2),i3W,NULL)/br;
        
@@ -884,6 +885,7 @@ int neutrinoFlux(double (* fvf)(double), int forSun, double* nu, double * Nu)
   for(i=1;i<NZ;i++) nu[i]=Nu[i]=0;
   
   if(CDM1&&CDM2) { printf(" The 'neutrinoFlux' code is still not upgrated for 2DM case\n");  return 1;}
+
   if(CDM1) CDM=CDM1; else CDM=CDM2;
 
   double M_cdm=pMass(CDM);
@@ -891,11 +893,12 @@ int neutrinoFlux(double (* fvf)(double), int forSun, double* nu, double * Nu)
   if(nu)nu[0]=M_cdm;
   if(Nu)Nu[0]=M_cdm;
 
+
   err=basicNuSpectra(forSun,M_cdm,5,0,NULL,NULL);
   if(err) return err;
+
   
   err=nucleonAmplitudes(CDM,pA0,pA5,nA0,nA5);
-
   if(err) return err;
   
   Cr0=forSun? captureSun(fvf,M_cdm,pA0[0],nA0[0],pA5[0],nA5[0]):captureEarth(fvf,M_cdm, pA0[0],nA0[0],pA5[0],nA5[0]); 

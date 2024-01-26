@@ -317,11 +317,10 @@ cat >test.c<<EOF
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
-int  main(void)
+void main(void)
 {
   static Display *display;
   display = XOpenDisplay (NULL);
-  return 0;
 }
 EOF
 
@@ -440,7 +439,7 @@ EOF
     echo Fatal problem in  fortran compiler:
      $FC  -o a.out test.f
      FC=
-    return 1
+    return 0
   else 
     echo $FC OK
   fi 
@@ -497,7 +496,7 @@ fi
 
 
 if(test $SNUM = "-DNUM_LONG_LONG" -o $SNUM = "OFF"  ) then
-  echo "int  main(void){return (sizeof(long long ));}" >test.c
+  echo "void main(void){exit(sizeof(long long ));}" >test.c
   $CC -o a.out test.c 1>/dev/null 2>/dev/null
   if(test $? -ne 0) then
      echo -DNUM_LONG_LONG option is refused
@@ -516,7 +515,7 @@ fi
 if(test "$SNUM" = "OFF") then
 # selection of integer type for symbolic calculation 
  
-  echo "int  main(void){ return (sizeof(long ));}" >test.c
+  echo "void main(void){exit(sizeof(long ));}" >test.c
 
   $CC -o a.out test.c 1>/dev/null 2>/dev/null
   ./a.out
@@ -661,13 +660,13 @@ testFC;
   if(test $? -eq 0 ) 
      then checklFort; 
   else 
-   if(test -n "$MICROMEGAS") then exit 1 ; fi 
+    if(test -n "$MICROMEGAS") then FC="" ; fi 
   fi
-
 
 writeFlags
 cd ..
 rm -fr fTest
+
 
 writeFlagsForMake
 exit 0

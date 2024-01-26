@@ -1,4 +1,4 @@
-//#define _LONG_          to use long double type in numerical calculations
+#define _LONG_          to use long double type in numerical calculations
 //#define _QUADICC_     quadrouple precision for icc compiler. It has to be accompany with compiler option '-Qoption,cpp,--extended_float_type'  
 //#define _QUADGCC_     quadrouple precision for gcc   https://gcc.gnu.org/onlinedocs/gcc-4.7.2/libquadmath.pdf
 

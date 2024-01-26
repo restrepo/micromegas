@@ -3,7 +3,7 @@
 all:lGamma.exe
 
 CHEP   =  ../../../CalcHEP_src
-LOOPTOOLS = ../../../Packages/LoopTools-2.12-v0/
+LOOPTOOLS = ../../../Packages/LoopTools/
 
 include   $(LOOPTOOLS)FlagsForMake
 
@@ -13,7 +13,7 @@ export VPATH := $(CURDIR):$(CURDIR)/renconst
 
 INCLUDE := $(patsubst %,-I%,$(subst :, ,$(VPATH)))
 
-FFLAGS += $(INCLUDE)
+FFLAGS += $(INCLUDE) -I$(LOOPTOOLS)/src/include
 
 ifdef DEBUG
 FFLAGS +=  -DDEBUG

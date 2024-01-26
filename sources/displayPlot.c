@@ -110,7 +110,7 @@ int displayPlot(char * title, char*xName, double xMin, double xMax ,  int lScale
     }     
   }   
   va_end(ap);
-  
+
   displayPlotN(title, xName,xMin,xMax,lScale,N,Y,Dim,f,ff);
   for(i=0;i<N;i++) if(delMark[i]) free(f[i]);
   free(Dim); free(f); free(ff); free(Y); free(delMark);

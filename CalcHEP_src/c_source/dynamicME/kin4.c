@@ -12,6 +12,9 @@
 
 #define VVmassGap  70
 
+
+//extern int displayPlot(char * title, char*xName, double xMin, double xMax ,  int lScale, int N, ...);
+
 extern  char * trim(char *);
 
 int ForceUG=0;
@@ -29,19 +32,34 @@ REAL  decayPcm(REAL am0,  REAL  am1,  REAL am2)
   return Sqrt((am0-summ)*(am0+ summ)*(am0-diffm)*(am0+diffm))/(am0*2);
 }
 
-
-
-static double w1_,w2_,m0_,m1_,m2_,m1_p,m2_p;
-static int nGauss=0;
-
 static double ME(double m0,double m1,double m2)
 { 
   return  m2*m2*m1*m1 +(m0*m0 -m2*m2 -m1*m1)*(m0*m0 -m2*m2 -m1*m1)/8;
 }
 
-static double y11,y12,y21,y22;
 
-static double intDecay2(double y2)
+typedef struct{  double w1,w2,m0,m1,m2,m1p,m2p, y11,y12,y21,y22;  int nGauss;} sVarW;
+
+
+#define w1_      sVar->w1 
+#define w2_      sVar->w2
+#define m0_      sVar->m0
+#define m1_      sVar->m1
+#define m2_      sVar->m2
+#define m1_p     sVar->m1p
+#define m2_p     sVar->m2p
+#define y_11      sVar->y11
+#define y_12      sVar->y12
+#define y_21      sVar->y21
+#define y_22      sVar->y22
+#define n_Gauss  sVar->nGauss
+
+
+//static double w1_,w2_,m0_,m1_,m2_,m1_p,m2_p;
+//static int n_Gauss=0;
+//static double y_11,y_12,y_21,y_22;
+
+static double intDecay2(double y2,sVarW*sVar)
 { double m2;
   m2= m2_p*m2_p + w2_*m2_p*tan(y2);
   if(m2<=0) return 0;
@@ -49,33 +67,37 @@ static double intDecay2(double y2)
   return  ME(m0_,m1_,m2)*decayPcm(m0_,m1_,m2);
 }   
 
-static double intDecay2_(double x)
+static double intDecay2_(double x,sVarW*sVar)
 { if(x<=0 || x>=1) return 0;
-  return intDecay2(y21+x*x*x*(4-3*x)*(y22-y21))*12*x*x*(1-x)*(y22-y21);
+  return intDecay2(y_21+x*x*x*(4-3*x)*(y_22-y_21),sVar)*12*x*x*(1-x)*(y_22-y_21);
 }
 
-static double  intDecay1(double y1)
+static double  intDecay1(double y1,sVarW*sVar)
 { 
    m1_=m1_p*m1_p + w1_*m1_p*tan(y1);
    if(m1_<0) return 0;
    m1_=sqrt(m1_);
    
-   y21=atan(-m2_p/w2_);
-   y22=atan( ((m0_-m1_)*(m0_-m1_)-m2_p*m2_p)/(m2_p*w2_));
-   if(nGauss) return  gauss(intDecay2_,0,1,nGauss);
-   else       return  simpson(intDecay2_,0,1,1.E-3,NULL);
+   y_21=atan(-m2_p/w2_);
+   y_22=atan( ((m0_-m1_)*(m0_-m1_)-m2_p*m2_p)/(m2_p*w2_));
+   if(n_Gauss) return  gauss_arg(intDecay2_,sVar,0,1,n_Gauss);
+   else       return  simpson_arg(intDecay2_,sVar,0,1,1.E-3,NULL);
 //   return  simpson(intDecay2, atan(-m2_p/w2_), atan( ((m0_-m1_)*(m0_-m1_)-m2_p*m2_p)/(m2_p*w2_)), 1.E-3);
 }
 
-static double intDecay1_(double x)
+static double intDecay1_(double x,sVarW*sVar)
 { if(x<=0 || x>=1) return 0;
-   return intDecay1(y11+x*x*x*(4-3*x)*(y12-y11))*12*x*x*(1-x)*(y12-y11);
+   return intDecay1(y_11+x*x*x*(4-3*x)*(y_12-y_11),sVar)*12*x*x*(1-x)*(y_12-y_11);
 }
   
 
 double decayPcmW(double m0,double m1,double m2,double w1,double w2, int N)
 {  
-  nGauss=N;
+
+  sVarW sVarStr;
+  sVarW*sVar=&sVarStr;
+
+  n_Gauss=N;
   m0_=m0;
   if(w1==0 && w2==0) return decayPcm(m0,m1,m2);
   else if(w1==0)
@@ -83,32 +105,114 @@ double decayPcmW(double m0,double m1,double m2,double w1,double w2, int N)
     m1_=m1;
     m2_p=m2;
     w2_=w2;
-    y21=atan(-m2/w2);
-    y22=atan( ((m0-m1)*(m0-m1)  -m2*m2)/(m2*w2));
-    if(nGauss) return gauss( intDecay2_,0,1,nGauss)/M_PI/ME(m0,m1,m2);
-     else      return simpson( intDecay2_,0,1,1.E-3,NULL)/M_PI/ME(m0,m1,m2); 
+    y_21=atan(-m2/w2);
+    y_22=atan( ((m0-m1)*(m0-m1)  -m2*m2)/(m2*w2));
+    if(n_Gauss) return gauss_arg( intDecay2_,sVar,0,1,n_Gauss)/M_PI/ME(m0,m1,m2);
+     else      return simpson_arg( intDecay2_,sVar,0,1,1.E-3,NULL)/M_PI/ME(m0,m1,m2); 
   }
   else if(w2==0)
   { if(m2>m0) return 0;
     m1_=m2;
     m2_p=m1;
     w2_=w1;
-    y21=atan(-m1/w1);
-    y22=atan( ((m0-m2)*(m0-m2)-m1*m1)/(m1*w1));
-    if(nGauss) return gauss( intDecay2_,0,1,nGauss)/M_PI/ME(m0,m1,m2);  
-    else       return simpson(intDecay2_,0,1,1.E-3,NULL)/M_PI/ME(m0,m1,m2);
+    y_21=atan(-m1/w1);
+    y_22=atan( ((m0-m2)*(m0-m2)-m1*m1)/(m1*w1));
+    if(n_Gauss) return gauss_arg( intDecay2_,sVar,0,1,n_Gauss)/M_PI/ME(m0,m1,m2);  
+    else       return simpson_arg(intDecay2_,sVar,0,1,1.E-3,NULL)/M_PI/ME(m0,m1,m2);
   }
   else 
-  { w1_=w1;
-    w2_=w2; 
-    m1_p=m1;
-    m2_p=m2; 
-   y11=atan(-m1/w1); y12=atan( (m0*m0-m1*m1)/(m1*w1));
-
-   if(nGauss) return gauss(intDecay1_,0,1,nGauss)/(M_PI*M_PI)/ME(m0,m1,m2);
-   else       return simpson(intDecay1_,0,1,1E-3,NULL)/(M_PI*M_PI)/ME(m0,m1,m2);
+  {
+    if(w1<=w2)  { w1_=w1; w2_=w2;  m1_p=m1;  m2_p=m2; }
+     else       { w1_=w2; w2_=w1;  m1_p=m2;  m2_p=m1; }
+   y_11=atan(-m1/w1); y_12=atan( (m0*m0-m1*m1)/(m1*w1));
+//displayPlot("intDecay1_","x",0,1,0,1,"",0,intDecay1_,NULL);
+   if(n_Gauss) return gauss_arg(intDecay1_,sVar,0,1,n_Gauss)/(M_PI*M_PI)/ME(m0,m1,m2);
+   else       return simpson_arg(intDecay1_,sVar,0,1,1E-3,NULL)/(M_PI*M_PI)/ME(m0,m1,m2);
 
   }
+}
+
+#undef w1_    
+#undef w2_    
+#undef m0_    
+#undef m1_    
+#undef m2_    
+#undef m1_p   
+#undef m2_p   
+#undef y11    
+#undef y12    
+#undef y21    
+#undef y22    
+#undef n_Gauss
+
+
+numout* xVtoxll(int Nin,int Nout,char**name,int *pdg, int lV, double *wV,  double *br)
+{
+  int i;   
+  char* e_=NULL,*E_=NULL,*ne_=NULL,*Ne_=NULL,*m_=NULL,*M_=NULL,*nm_=NULL,*Nm_=NULL,*W_=NULL,*Z_=NULL;
+  char processX3[50],plib13[50],exclude[20];
+  int lV_=2*Nin+1-lV;
+  char *c;
+  numout*ccx3;
+  
+  double ww,wz,wBrE,wBrM,zBrEn,zBrMn;
+   
+  if(pdg[lV]!=23 &&  abs(pdg[lV])!=24) return NULL;
+  
+//if(Nin==2)printf("%s %s -> %s %s\n", name[0], name[1],name[2],name[3]);  
+
+  for(i=0;i<nModelParticles &&!(e_&&ne_&&m_&&nm_&&e_&&Ne_&&M_&&Nm_&&W_&&Z_ )   ;i++) 
+  switch(ModelPrtcls[i].NPDG)
+  {  
+       case  11: e_ =ModelPrtcls[i].name;  E_=ModelPrtcls[i].aname; break;
+       case -11: e_ =ModelPrtcls[i].aname; E_=ModelPrtcls[i].name;  break;
+       case  12: ne_=ModelPrtcls[i].name; Ne_=ModelPrtcls[i].aname; break;
+       case -12: ne_=ModelPrtcls[i].aname;Ne_=ModelPrtcls[i].name;  break;
+       case  13: m_ =ModelPrtcls[i].name;  M_=ModelPrtcls[i].aname; break;
+       case -13: m_ =ModelPrtcls[i].aname; M_=ModelPrtcls[i].name;  break;
+       case  14: nm_=ModelPrtcls[i].name; Nm_=ModelPrtcls[i].aname; break;
+       case -14: nm_=ModelPrtcls[i].aname;Nm_=ModelPrtcls[i].name;  break;
+       case  24: W_=ModelPrtcls[i].name;                            break;
+       case -24:                           W_=ModelPrtcls[i].aname; break;
+       case  23: Z_=ModelPrtcls[i].name;                            break;       
+  }
+    
+  if(!(e_&&ne_&&m_&&nm_&&e_&&Ne_&&M_&&Nm_&&W_&&Z_)) return NULL;
+   
+  {  txtList wDlist,zDlist;
+       char txt[20]; 
+       ww=pWidth(W_,&wDlist); 
+       wz=pWidth(Z_,&zDlist);       
+       sprintf(txt,"%s,%s",E_,ne_); wBrE=findBr(wDlist,txt);
+       sprintf(txt,"%s,%s",M_,nm_); wBrM=findBr(wDlist,txt);
+       sprintf(txt,"%s,%s",ne_,Ne_);  zBrEn=findBr(zDlist,txt);         
+       sprintf(txt,"%s,%s",nm_,Nm_);  zBrMn=findBr(zDlist,txt);
+  } 
+       
+  sprintf(processX3,"%s",name[0]); 
+  if(Nin>1) sprintf(processX3+strlen(processX3),",%s",name[1]);
+  sprintf(processX3+strlen(processX3),"->%s,",name[lV_]);
+  c=processX3+strlen(processX3);
+             
+  if(abs(pdg[lV_])==11 || abs(pdg[lV_])==12) switch(pdg[lV])
+  {   case -24: sprintf(c,"%s,%s",m_,Nm_); *wV=ww; *br=wBrM; break;
+      case  24: sprintf(c,"%s,%s",M_,nm_); *wV=ww; *br=wBrM; break;
+      case  23: sprintf(c,"%s,%s",nm_,Nm_);  *wV=wz; *br=zBrMn; break;
+  } else 
+  {  
+      switch(pdg[lV])
+      { case -24: sprintf(c,"%s,%s",e_,Ne_); *wV=ww; *br=wBrE; break;
+        case  24: sprintf(c,"%s,%s",E_,ne_); *wV=ww; *br=wBrE; break;
+        case  23: sprintf(c,"%s,%s",ne_,Ne_);  *wV=wz; *br=zBrEn; break; 
+       }
+  }
+  process2Lib(processX3,plib13); 
+  if(Nin==2) sprintf(exclude,"%s","%Z+W<1"); else
+  { if(pdg[lV]==23) sprintf(exclude,"%s<1",Z_); else sprintf(exclude,"%s<1",W_);}
+  strcat(plib13,"V");    
+  ccx3=getMEcode(0,ForceUG,processX3,exclude,"",plib13);
+  if(ccx3)passParameters(ccx3);
+  return ccx3;
 }
 
 
@@ -266,8 +370,8 @@ static double width13(numout * cc, int nsub, int * err)
   int i;
 
   if(passParameters(cc)){ *err=4; return 0;}
-
-  for(i=0;i<4;i++) cc->interface->pinf(nsub,1+i,Pmass+i,NULL);
+  int pdg[4];
+  for(i=0;i<4;i++) cc->interface->pinf(nsub,1+i,Pmass+i,pdg+i);
   if(cc->SC ) GG=*(cc->SC); else  GG=sqrt(4*M_PI*alphaQCD(Pmass[0]));
   *err=0;  
 
@@ -282,9 +386,9 @@ static double width13(numout * cc, int nsub, int * err)
   for(int n=1;;n++)  
   {  int m,w,pnum;
      char*s=cc->interface->den_info(nsub,n,&m,&w,&pnum);
-     if(!s) break;  
+     if(!s) break; 
      double mass=0;
-     if(m) mass=cc->interface->va[m];
+     if(m) mass=fabs(cc->interface->va[m]);
      if(mass>0)
      {  double  mMax=Pmass[0]-Pmass[s[1]-1];
         double  mMin=Pmass[1]+Pmass[2]+Pmass[3]-Pmass[s[1]-1]; 
@@ -302,6 +406,10 @@ static double width13(numout * cc, int nsub, int * err)
   nsub_stat=nsub; 
 
 //  displayPlot("width", "M23",ms, Pmass[0]-mm, 0,1,"",0,dWidthdM,NULL);
+
+  for(int i=1;i<=3;i++)  if(i!=i3_&& (abs(pdg[i])==1 || abs(pdg[i])==2) && Pmass[i] < 0.25 ) ms+=0.25-Pmass[i]; 
+  if(ms>=Pmass[0]-mm) return 0;
+  
     
   if(pp[i3_-1]<0.7 ) return peterson21(dWidthdM,ms, Pmass[0]-mm,NULL); 
   else               return  simpson(dWidthdM,ms, Pmass[0]-mm,1.E-2,NULL);
@@ -442,7 +550,7 @@ void massFilter(double M, txtList * List)
           case 4:         if(dM<1.5)   dM=1.5;  break;
           case 5:         if(dM<5)     dM=5. ; break;
       }
-                                                                           
+      
        Msum+=dM;
      } 
      lnext=lold->next;
@@ -477,55 +585,59 @@ void gammaGluFilter(txtList * List)
  *List=lnew;
 }
 
-
 int process2Lib(char * process,char * lib)
 { 
-  char * ch, *ch1;
+  char * ch, *ch1,*c;
   char bufflib[20];
   char *process_;
-  int err=0,nX=0,pos=1;
+  int err=0,nX=0;
   process_=malloc(strlen(process)+1);
   strcpy(process_,process);
+  int nIn=1;
+  char * chAr= strstr(process_,"->");
+  chAr[0]=' '; chAr[1]=' ';
 
-  ch= strstr(process_,"->");
-  ch[0]=' '; ch[1]=','; ch=ch+2; for(;*ch==' ';ch++);
+  for(;;)
+  { c=strchr(process_,','); 
+    if(!c) break; else
+    { c[0]=' ';
+      if(c< chAr) nIn++;
+    }
+  } 
 
+  char p[7][30];
+  int n=sscanf(process_,"%s %s %s %s %s %s %s", p[0],p[1],p[2],p[3],p[4],p[5],p[6]);
   lib[0]=0;
-  ch1=strtok(process_," ,"); 
-  for(;ch1 && err==0; pos++)
-  { if(ch1==ch) strcat(lib,"_");
-    if( strcmp(ch1+1,"*x") &&  strcmp(ch1+1,"*X"))   
-    { 
-      err=pname2lib(ch1,bufflib);
-      if(err) return pos;
-      strcat(lib,bufflib);
-    }  
-    else if(1!=sscanf(ch1,"%d",&nX)) return pos;
-    ch1=strtok(NULL," ,");
-  }
+  for(int i=0;i<n;i++) 
+  {  if(strstr(p[i],"*x") || strstr(p[i],"*X")) { sscanf(p[i],"%d",&nX); continue;}
+     err=pname2lib(p[i],bufflib);
+     if(err) return i+1;
+     strcat(lib,bufflib);
+     if(i==nIn-1) strcat(lib,"_");
+  }   
   if(nX) sprintf(lib+strlen(lib),"x%d",nX);
   free(process_);
   return 0;
-}
+}            
+    
 
 
 void process2Mass(char * process,double * mass)
 { 
-  char * ch, *ch1;
+  char * ch;
   char *process_;
-  int i;  
 
   process_=malloc(strlen(process)+1);
   strcpy(process_,process);
     
   ch= strstr(process_,"->");
-  ch[0]=' '; ch[1]=','; ch=ch+2; for(;*ch==' ';ch++);
-
-  ch1=strtok(process_," ,"); 
-  for(i=0;ch1;i++,ch1=strtok(NULL," ,"))
-  { /*if(ch1==ch) strcat(lib,"_");*/
-    mass[i]=pMass(ch1);
-  }
+  ch[0]=' '; ch[1]=' ';
+  for(ch=process_; ch[0]; ch++) if(ch[0]==',') ch[0]=' ';
+  
+  char p[7][30];
+  int n=sscanf(process_,"%s %s %s %s %s %s %s", p[0],p[1],p[2],p[3],p[4],p[5],p[6]);
+  for(int i=0;i<n;i++) mass[i]=pMass(p[i]);
+     
   free(process_);
 }
 
@@ -609,77 +721,8 @@ static int chOpen(numout*cc, int k)
    for(j=1;j<3;j++) if(pdg[j]==23 && VZdecay) s-=6; else if(abs(pdg[j])==24 && VWdecay) s-=5;
    if(s>0) return 1; else return 0;
 }   
+//=========================================================
 
-
-numout* xVtoxll(int Nin,int Nout,char**name,int *pdg, int lV, double *wV,  double *br)
-{
-  int i;   
-  char* e_=NULL,*E_=NULL,*ne_=NULL,*Ne_=NULL,*m_=NULL,*M_=NULL,*nm_=NULL,*Nm_=NULL,*W_=NULL,*Z_=NULL;
-  char processX3[50],plib13[50],exclude[20];
-  int lV_=2*Nin+1-lV;
-  char *c;
-  numout*ccx3;
-  
-  double ww,wz,wBrE,wBrM,zBrEn,zBrMn;
-   
-  
-  if(pdg[lV]!=23 &&  abs(pdg[lV])!=24) return NULL;
-  
-//if(Nin==2)printf("%s %s -> %s %s\n", name[0], name[1],name[2],name[3]);  
-
-  for(i=0;i<nModelParticles &&!(e_&&ne_&&m_&&nm_&&e_&&Ne_&&M_&&Nm_&&W_&&Z_ )   ;i++) 
-  switch(ModelPrtcls[i].NPDG)
-  {  
-       case  11: e_ =ModelPrtcls[i].name;  E_=ModelPrtcls[i].aname; break;
-       case -11: e_ =ModelPrtcls[i].aname; E_=ModelPrtcls[i].name;  break;
-       case  12: ne_=ModelPrtcls[i].name; Ne_=ModelPrtcls[i].aname; break;
-       case -12: ne_=ModelPrtcls[i].aname;Ne_=ModelPrtcls[i].name;  break;
-       case  13: m_ =ModelPrtcls[i].name;  M_=ModelPrtcls[i].aname; break;
-       case -13: m_ =ModelPrtcls[i].aname; M_=ModelPrtcls[i].name;  break;
-       case  14: nm_=ModelPrtcls[i].name; Nm_=ModelPrtcls[i].aname; break;
-       case -14: nm_=ModelPrtcls[i].aname;Nm_=ModelPrtcls[i].name;  break;
-       case  24: W_=ModelPrtcls[i].name;                            break;
-       case -24:                           W_=ModelPrtcls[i].aname; break;
-       case  23: Z_=ModelPrtcls[i].name;                            break;       
-  }
-    
-  if(!(e_&&ne_&&m_&&nm_&&e_&&Ne_&&M_&&Nm_&&W_&&Z_)) return NULL;
-   
-  {  txtList wDlist,zDlist;
-       char txt[20];
-       ww=pWidth(W_,&wDlist);  
-       wz=pWidth(Z_,&zDlist);
-       sprintf(txt,"%s,%s",E_,ne_); wBrE=findBr(wDlist,txt);
-       sprintf(txt,"%s,%s",M_,nm_); wBrM=findBr(wDlist,txt);
-       sprintf(txt,"%s,%s",ne_,Ne_);  zBrEn=findBr(zDlist,txt);         
-       sprintf(txt,"%s,%s",nm_,Nm_);  zBrMn=findBr(zDlist,txt);
-  } 
-       
-  sprintf(processX3,"%s",name[0]); 
-  if(Nin>1) sprintf(processX3+strlen(processX3),",%s",name[1]);
-  sprintf(processX3+strlen(processX3),"->%s,",name[lV_]);
-  c=processX3+strlen(processX3);
-             
-  if(abs(pdg[lV_])==11 || abs(pdg[lV_])==12) switch(pdg[lV])
-  {   case -24: sprintf(c,"%s,%s",m_,Nm_); *wV=ww; *br=wBrM; break;
-      case  24: sprintf(c,"%s,%s",M_,nm_); *wV=ww; *br=wBrM; break;
-      case  23: sprintf(c,"%s,%s",nm_,Nm_);  *wV=wz; *br=zBrMn; break;
-  } else 
-  {  
-      switch(pdg[lV])
-      { case -24: sprintf(c,"%s,%s",e_,Ne_); *wV=ww; *br=wBrE; break;
-        case  24: sprintf(c,"%s,%s",E_,ne_); *wV=ww; *br=wBrE; break;
-        case  23: sprintf(c,"%s,%s",ne_,Ne_);  *wV=wz; *br=zBrEn; break; 
-       }
-  }
-  process2Lib(processX3,plib13); 
-  if(Nin==2) sprintf(exclude,"%s","%Z+W<1"); else
-  { if(pdg[lV]==23) sprintf(exclude,"%s<1",Z_); else sprintf(exclude,"%s<1",W_);}
-  strcat(plib13,"V");    
-  ccx3=getMEcode(0,ForceUG,processX3,exclude,"",plib13);
-  if(ccx3)passParameters(ccx3);
-  return ccx3;
-}
 
 
 static double decay22List(char * pname, txtList *LL)
@@ -738,57 +781,61 @@ static double decay22List(char * pname, txtList *LL)
 
       for(i=1;i<3;i++) vd[i]= (abs(pdg[i])==24 && VWdecay) || (pdg[i]==23 && VZdecay);
 
-      l=0;
-      
-      if((vd[1]||vd[2]) && m[0]+VVmassGap > m[1]+m[2])
-      for(l=1;l<3;l++) if(vd[l]) break;
-      if(l>0 && l<3)      
-      {  numout * cc13;
-         double wV,brV; 
-         int l_=3-l; 
-         if( vd[l_] && m[l]<m[l_]) {l=l_; l_=3-l;}
-         if( (pdg[l_]==23 || abs(pdg[l_])==24) && m[l]<m[l_]) {l=l_; l_=3-l;}
-         cc13=xVtoxll(1,2,name,pdg, l, &wV, &brV);
-         if(cc13)         
-         {               
-           passParameters(cc13);
-           *(cc13->interface->BWrange)=20;
-           for(i3_=1;i3_<4;i3_++) if(strcmp(cc13->interface->pinf(1,i3_+1,NULL,NULL),name[l_])==0)break;
-           for(i=0;i<4;i++) cc13->interface->pinf(1,1+i,Pmass+i,NULL);
-           sqme=cc13->interface->sqme;
-           nsub_stat=1;         
-           {  double Mmin,Mmax;
-              Mmax=Pmass[0]-Pmass[i3_];
-              for(Mmin=0,j=1;j<4;j++) if(j!=i3_) Mmin+=Pmass[j]; 
-              w=simpson(dWidthdM, Mmin*1.00001 , Mmax*0.9999,1.E-3,NULL);
-                  
+      if(vd[1]||vd[2])
+      {
+         if(vd[1] && vd[2]) { if(m[1]>m[2]) vd[2]=0; else vd[1]=0;} 
+         if(vd[1])  l=1; else l=2;
+         int l_=3-l;
+         if(m[0]>m[l_] + 5)    
+         {  numout * cc13;
+            double wV,brV; 
+          
+            if( vd[l_] && m[l]<m[l_]) {l=l_; l_=3-l;}
+            if( (pdg[l_]==23 || abs(pdg[l_])==24) && m[l]<m[l_]) {l=l_; l_=3-l;}
+            cc13=xVtoxll(1,2,name,pdg, l, &wV, &brV);
+            if(cc13)         
+            {               
+              passParameters(cc13);
+              *(cc13->interface->BWrange)=20;
+              for(i3_=1;i3_<4;i3_++) if(strcmp(cc13->interface->pinf(1,i3_+1,NULL,NULL),name[l_])==0)break;
+              for(i=0;i<4;i++) cc13->interface->pinf(1,1+i,Pmass+i,NULL);
+              sqme=cc13->interface->sqme;
+              nsub_stat=1;         
+              {  double Mmin,Mmax;
+                 Mmax=Pmass[0]-Pmass[i3_];
+                 for(Mmin=0,j=1;j<4;j++) if(j!=i3_) Mmin+=Pmass[j]; 
+                 w=simpson(dWidthdM, Mmin*1.00001 , Mmax*0.9999,1.E-3,NULL);
+//printf("w=%E  %s -> %s %s %s\n", w, cc13->interface->pinf(1,1,NULL,NULL), cc13->interface->pinf(1,2,NULL,NULL),cc13->interface->pinf(1,3,NULL,NULL), cc13->interface->pinf(1,4,NULL,NULL));                 
 //             if(findVal(ModelPrtcls[abs(pTabPos(name[l]))-1].width,&wVt)) K=1;else K=wVt/wV; 
-              w/=brV;
-           }
+                 w/=brV;
+              }
            
-           if( vd[l_] )   
-           {  double w2= pWidth(name[l_], NULL);
-              w*=decayPcmW(m[0],m[l],m[l_],wV,w2,0)/decayPcmW(m[0],m[l],m[l_],wV,0,0);
-              if(pdg[l_]==pdg[l])  w/=2;
-           }
+              if( vd[l_] )   
+              {  double w2= pWidth(name[l_], NULL);
+                 w*=decayPcmW(m[0],m[l],m[l_],wV,w2,0)/decayPcmW(m[0],m[l],m[l_],wV,0,0);
+                 if(pdg[l_]==pdg[l])  w/=2;
+              }
                                                                 
            
-           if(w!=0)
-           {  if(LL)
-              { L_=malloc(sizeof(txtListStr));
-                L_->next=L;
-                L=L_;
-                sprintf(buff,"%E  %s -> %s,%s",w,name[0],name[1],name[2]);
-                L_->txt=malloc(20+strlen(buff));
-                strcpy(L_->txt,buff);
-              }           
-              wtot+=w; 
-           }
-         }    
+              if(w!=0)
+              {  if(LL)
+                 { L_=malloc(sizeof(txtListStr));
+                   L_->next=L;
+                   L=L_;
+                   sprintf(buff,"%E  %s -> %s,%s",w,name[0],name[1],name[2]);
+                   L_->txt=malloc(20+strlen(buff));
+                   strcpy(L_->txt,buff);
+                 }           
+                 wtot+=w; 
+              }
+            }    
+         }
+         
       }
     }       
   }
-  if(LL)
+  if(LL) *LL=L;
+/*  
   {  for(L_=L;L_;L_=L_->next)
      { 
        sscanf(L_->txt,"%lf %[^\n]",&w,buff);
@@ -796,6 +843,7 @@ static double decay22List(char * pname, txtList *LL)
      }   
     *LL=L;
   }
+*/  
   return  wtot;
 }
 
@@ -873,145 +921,324 @@ static void sortWidthTxtList(txtList L)
 }
 
 
+static double pWidthSTD(char * name, txtList * LL)
+{  
+
+  double width=0;
+  txtList Lout=NULL,L;
+  
+  for(int nout=2; nout<5 && width==0; nout++)
+  {  
+    if(nout==2)  width=decay22List(name,&Lout); else 
+    {  char libName[100];
+       L=makeDecayList(name,nout);
+       massFilter(pMass(name),&L);
+       gammaGluFilter(&L);
+       if(L==NULL) continue;
+     
+       for(txtList l=L;l;l=l->next)                                                    
+       { numout* cc;
+         double dwidth;                                                                 
+         int err=0;                                                                  
+         txtList newr; 
+         process2Lib(l->txt ,libName);                                               
+         cc=getMEcode(0,ForceUG,l->txt,NULL,"",libName);                             
+         if(!cc) continue;                                                           
+         dwidth=pWidthCC(cc,&err);       
+         if(dwidth >0)                                                                
+         {                                                                           
+           width+=dwidth;                                                               
+           newr=malloc(sizeof(txtListStr));                                          
+           newr->next=Lout;                                                          
+           Lout=newr;                                                                
+           newr->txt=malloc(strlen(l->txt)+20);                                      
+           sprintf(newr->txt,"%E  %s",dwidth,l->txt);                                 
+         }
+       } 
+       cleanTxtList(L); 
+    }
+  }                                                                    
+    
+  if(Lout)
+  for(L=Lout;L;L=L->next)
+  { char buff[100];
+    double dwidth;
+    sscanf(L->txt,"%lf %[^\n]",&dwidth,buff);
+    sprintf(L->txt,"%E %s",dwidth/width,buff);  
+  }   
+ 
+  *LL=Lout;
+  return width;
+}
+
+
+static double pWidthPlus(char *name, txtList * LL)
+{
+  txtList L,l,Lout;
+  char libName[100];
+  double width;
+  int i0,j0,nout;
+  REAL Qstat;
+  REAL*Q=NULL;
+
+  i0=pTabPos(name);
+  if(!i0)  { printf("%s out of model particles\n",name); if(LL) *LL=NULL; return 0; }  
+  if(i0>0) { i0--; j0=0;} else { i0=-i0-1; j0=1;} 
+  
+  if(pMass(name)==0) { if(LL) *LL=NULL; return 0;}
+  
+  for(int i=0;i<nModelVars;i++) if(strcmp(varNames[i],"Q")==0){ Q= varValues+i; break;}
+  if(Q) { Qstat=*Q; setQforParticle(Q,name);}  //ok 
+    
+  width=0;
+  Lout=NULL;
+  for(nout=2; nout<5 && width==0; nout++)
+  {  
+    if(nout==2)  width=decay22List(name,&Lout); else 
+    { 
+       L=makeDecayList(name,nout);
+       massFilter(pMass(name),&L);
+       gammaGluFilter(&L);
+       if(L==NULL) continue;
+     
+       for(l=L;l;l=l->next)                                                    
+       { numout* cc;
+         double dwidth;                                                                 
+         int err=0;                                                                  
+         txtList newr;                                                               
+         process2Lib(l->txt ,libName);                                               
+         cc=getMEcode(0,ForceUG,l->txt,NULL,"",libName);                             
+         if(!cc) continue;                                                           
+         dwidth=pWidthCC(cc,&err);       
+         if(dwidth >0)                                                                
+         {                                                                           
+           width+=dwidth;                                                               
+           newr=malloc(sizeof(txtListStr));                                          
+           newr->next=Lout;                                                          
+           Lout=newr;                                                                
+           newr->txt=malloc(strlen(l->txt)+20);                                      
+           sprintf(newr->txt,"%E  %s",dwidth,l->txt);                                 
+         }
+       } 
+       cleanTxtList(L); 
+    }
+
+  }                                                                    
+
+
+  if(nout<5) 
+  { 
+       L= makeDecayList(name,nout);
+       massFilter(pMass(name),&L);
+       
+       gammaGluFilter(&L);
+       for(l=L;l;l=l->next)                                                    
+       { numout* cc;
+         double dwidth;                                                                 
+         int err=0;                                                                  
+         txtList newr;                                                               
+         process2Lib(l->txt ,libName);                                               
+         cc=getMEcode(0,ForceUG,l->txt,NULL,"",libName);
+           
+         if(!cc) continue;  
+         passParameters(cc);
+         { int n,m,w;
+           char*s;
+           REAL pmass[6];
+           int pdg[6];
+//           for(int i=0;i<nout+1;i++) printf("%s ",  cc->interface->pinf(1,i+1,pmass+i,pdg+i)); printf("\n");
+           int onSh=0,pnum;
+           for(n=1;(s=cc->interface->den_info(1,n,&m,&w,&pnum));n++)  if(m!=0)
+           { double m0=pmass[0], mu=fabs(cc->interface->va[m]),mx1=0,mx2=0;   // mx1 -sum  mass of decay product, mx2 - mass of rest 
+             if(strchr(s,1)) { for(int i=1; i<1+nout; i++) if(strchr(s,i+1)) mx2+=pmass[i]; else mx1+=pmass[i];}
+             else            { for(int i=1; i<1+nout; i++) if(strchr(s,i+1)) mx1+=pmass[i]; else mx2+=pmass[i];} 
+             if(m0>mu+mx2 && mu>mx1) {onSh=1;break;}
+             if(nout==3)
+             { 
+//               printf(" mass=%E pnum=%d %d\n", (double)cc->interface->va[m], pnum, ModelPrtcls[pnum].NPDG );
+               if(VWdecay && abs(ModelPrtcls[pnum].NPDG)==24) { onSh=1;break;}
+               if(VZdecay &&  ModelPrtcls[pnum].NPDG==23 )    { onSh=1;break;}
+             }  
+           } // else  printf("s[0]=%d s[1]=%d s[2]=%d m=%E\n", s[0],s[1],s[2],(double)cc->interface->va[m] );
+          // printf("onSh=%d\n", onSh);
+           if(onSh) continue;   
+         }                                                        
+         dwidth=pWidthCC(cc,&err);       
+         if(dwidth >0)                                                                
+         {                                                                           
+           width+=dwidth;                                                               
+           newr=malloc(sizeof(txtListStr));                                          
+           newr->next=Lout;                                                          
+           Lout=newr;                                                                
+           newr->txt=malloc(strlen(l->txt)+20);                                      
+           sprintf(newr->txt,"%E  %s",dwidth,l->txt);                                 
+         }   
+       }
+       cleanTxtList(L);
+  }
+         
+  if(Lout)
+  {
+     for(L=Lout;L;L=L->next)
+     { char buff[100];
+       double pwidth; 
+       sscanf(L->txt,"%lf %[^\n]",&pwidth,buff);
+       sprintf(L->txt,"%E %s",pwidth/width,buff);  
+     }   
+     sortWidthTxtList(Lout);
+     if(LL) *LL=Lout;
+  }
+  if(Q) { *Q=Qstat; calcMainFunc();}
+  return width;
+}
+
+
+static double  pWidthSLHA(int i0, int j0,txtList *LL, int *err)                                                                                    
+{  int pdg,pdg0,Len,decay[10];                                                                                                                     
+   int i,j;                                                                                                                                        
+   double br;                                                                                                                                      
+   double width;                                                                                                                                   
+                                                                                                                                                   
+   pdg0=ModelPrtcls[i0].NPDG;  
+   if(j0) pdg0*=-1;
+   for(i=1; allDecays(i,0,&pdg,&Len,decay,&width,&br) ;i++)                                                                       
+   {                                                                                                                                               
+      if(abs(pdg)==abs(pdg0))                                                                                                                      
+      {  txtListStr*l,*L=NULL;                                                                                                                     
+         l=malloc(sizeof(txtListStr));                                                                                                             
+         decayTable[i0].width=width;                                                                                                               
+         decayTable[i0].status=1;                                                                                                                  
+         for(j=1; allDecays(i,j,&pdg,&Len,decay,&width,&br) ;j++) if(br>0)                                                                         
+         { int k;                                                                                                                                  
+           char*ch;                                                                                                                                
+           l=malloc(sizeof(txtListStr));                                                                                                           
+           l->txt=malloc(100);                                                                                                                     
+           l->next=L;                                                                                                                              
+           ch=pdg2name(pdg);   if(ch) sprintf(l->txt,"%E  %s -> ",br,ch); else sprintf(l->txt,"%E  #%d -> ",br,pdg);                               
+           ch=pdg2name(decay[0]); if(ch)  sprintf(l->txt+strlen(l->txt),"%s",ch); else  sprintf(l->txt+strlen(l->txt),"#%d",decay[0]);             
+           for(k=1;k<Len;k++)                                                                                                                      
+           { ch=pdg2name(decay[k]);                                                                                                                
+             if(ch)sprintf(l->txt+strlen(l->txt),", %s",ch); else sprintf(l->txt+strlen(l->txt),", #%d",decay[k]);                                 
+           }                                                                                                                                       
+           L=l;                                                                                                                                    
+         }                     
+         sortWidthTxtList(L);
+         if(strcmp(ModelPrtcls[i0].name,ModelPrtcls[i0].aname)==0)  decayTable[i0].pdList[0]=L;
+         else 
+         {
+            if(pdg0==pdg)                                                                                                                             
+            {  decayTable[i0].pdList[j0]=L;                                                                                                                                                                                            
+               decayTable[i0].pdList[1-j0]=conBrList(L); 
+            } else                                                                                                                                    
+            {  decayTable[i0].pdList[1-j0]=L;                                                                                                                                                                                            
+               decayTable[i0].pdList[j0]=conBrList(L);                                                                                   
+            }
+         }                                                                                                                                            
+         if(LL) *LL=decayTable[i0].pdList[j0];                                                                                                     
+         *err=0;                                                                                                                                   
+         return width;                                                                                                                             
+      }                                                                                                                                            
+   }                                                                                                                                               
+   *err=1;                                                                                                                                         
+   return 0;                                                                                                                                       
+}                                                                                                                                                  
+
+
 double pWidth(char *name, txtList * LL)
 {
   txtList L,l,Lout;
   char libName[100];
-  double sum=0,width;
-  int i,i0,j,j0,nout;
+  double width;
+  int i0,j0,nout;
   REAL Qstat;
   REAL*Q=NULL;
-
+//  Check decay Table 
+  i0=pTabPos(name);
+  if(i0==0)  { printf("%s out of model particles\n",name); if(LL) *LL=NULL; return 0; }  
+  if(i0>0)   { i0--; j0=0;} else { i0=-i0-1; j0=1;}
+  
   if(pMass(name)==0) { if(LL) *LL=NULL; return 0;}
-  for(i=0;i<nModelParticles;i++)
-  { char *pnames[2]={ModelPrtcls[i].name,ModelPrtcls[i].aname};
-    for(j=0;j<2;j++) if(strcmp(name,pnames[j])==0) 
-    { 
-      if(decayTable[i].status==1)
-      {        
-        if(LL) *LL=decayTable[i].pdList[j];
-        return decayTable[i].width;
-      } else if(decayTable[i].status==-1)
-      { if(LL) *LL=NULL;
-        return 0;
-      }break;
-    } if(j!=2) break;    
-  }    
 
-  i0=i,j0=j;
-  if(i0==nModelParticles)
-  { printf("%s out of model particles\n",name);
-    if(LL) *LL=NULL;
-    return 0;
+  if(decayTable[i0].status==1)
+  {     if(LL) *LL=decayTable[i0].pdList[j0];
+        return decayTable[i0].width;
+  } else if(decayTable[i0].status==-1)
+  {     if(LL) *LL=NULL;
+        return 0;
+  } 
+
+  int pref=decayTable[i0].pref;
+
+  int err=1;
+  if(pref==2 || pref==3 || (pref==4 && useSLHAwidth)) width=pWidthSLHA(i0, j0,&L,&err);
+  if(err==0)
+  { if(LL) *LL=L;
+    return width;
   }  
 
-  {  int pdg,pdg0,Len,decay[10];
-     double br;
-     pdg0=ModelPrtcls[i0].NPDG;
-     if(j0) pdg0=-pdg0;
-     if(useSLHAwidth) for(i=1; allDecays(i,0,&pdg,&Len,decay,&width,&br) ;i++)
-     {
-        if(abs(pdg)==abs(pdg0))
-        {  txtListStr*l,*L=NULL;
-           l=malloc(sizeof(txtListStr));
-           decayTable[i0].width=width;
-           decayTable[i0].status=1;  
-           for(j=1; allDecays(i,j,&pdg,&Len,decay,&width,&br) ;j++) if(br>0)
-           { int k;
-             char*ch;  
-             l=malloc(sizeof(txtListStr));
-             l->txt=malloc(100); 
-             l->next=L;
-             ch=pdg2name(pdg);   if(ch) sprintf(l->txt,"%E  %s -> ",br,ch); else sprintf(l->txt,"%E  #%d -> ",br,pdg);
-             ch=pdg2name(decay[0]); if(ch)  sprintf(l->txt+strlen(l->txt),"%s",ch); else  sprintf(l->txt+strlen(l->txt),"#%d",decay[0]);
-             for(k=1;k<Len;k++)
-             { ch=pdg2name(decay[k]);
-               if(ch)sprintf(l->txt+strlen(l->txt),", %s",ch); else sprintf(l->txt+strlen(l->txt),", #%d",decay[k]);
-             }    
-             L=l;
-           }
-           sortWidthTxtList(L);
-           if(pdg0==pdg) 
-           {  decayTable[i0].pdList[j0]=L; 
-              if(strcmp(ModelPrtcls[i0].name,ModelPrtcls[i0].aname))
-                           decayTable[i0].pdList[1-j0]=conBrList(L);
-           } else 
-           { decayTable[i0].pdList[1-j0]=L;
-             if(strcmp(ModelPrtcls[i0].name,ModelPrtcls[i0].aname))
-                           decayTable[i0].pdList[j0]=conBrList(L);
-           }                
-           if(LL) *LL=decayTable[i0].pdList[j0];
-           return width;
-        }
-     }          
+  if(dynamic_cs_mutex) 
+  {   pthread_mutex_lock(dynamic_cs_mutex); 
+      if(decayTable[i0].status==1)   // calculated while was locked 
+      {        
+        if(LL) *LL=decayTable[i0].pdList[j0];
+        pthread_mutex_unlock(dynamic_cs_mutex);
+        return decayTable[i0].width;
+      }   
   }
   decayTable[i0].status=-1;
-  if(Q==NULL) for(i=0;i<nModelVars;i++) if(strcmp(varNames[i],"Q")==0){ Q= varValues+i; break;}
-  if(Q) { Qstat=*Q; setQforParticle(Q,name);}
+  for(int i=0;i<nModelVars;i++) if(strcmp(varNames[i],"Q")==0){ Q= varValues+i; break;}
+  if(Q) { Qstat=*Q; setQforParticle(Q,name);}  //ok 
+  
+  if(pref==0 || pref==2 || pref==4) width=pWidthSTD(name,&L); else width=pWidthPlus(name,&L);
     
-  width=decay22List(name,&L);
-
-  if(L) 
-  { 
-    sortWidthTxtList(L);
-    if(LL) *LL=L;
-    decayTable[i0].pdList[j0]=L;
-    if(strcmp(ModelPrtcls[i0].name,ModelPrtcls[i0].aname)) 
-                 decayTable[i0].pdList[1-j0]=conBrList(L); 
-    decayTable[i0].width=width;
-    decayTable[i0].status=1;
-    if(Q) {*Q=Qstat; calcMainFunc();}
-    return width;
-  }
-
-  Lout=NULL;
-  L= makeDecayList(name,3);
-  massFilter(pMass(name),&L);
-  gammaGluFilter(&L);
-  if(L==NULL) 
-  { L= makeDecayList(name,4);  
-    massFilter(pMass(name),&L);
-    gammaGluFilter(&L);
-    nout=4;
-  }  else nout=3;
-      
-  for(sum=0,l=L;l;l=l->next)  
-  { numout* cc;
-    int err=0;
-    txtList newr;
-    process2Lib(l->txt ,libName);
-    cc=getMEcode(0,ForceUG,l->txt,NULL,"",libName);
-    if(!cc) continue;
-    if(nout==3) width=width13(cc, 1, &err); else width=width14(cc, &err);
-    if(width >0)
-    {
-      sum+=width;
-      newr=malloc(sizeof(txtListStr));
-      newr->next=Lout;
-      Lout=newr;
-      newr->txt=malloc(strlen(l->txt)+20);
-      sprintf(newr->txt,"%E  %s",width,l->txt);
-    }
-  }
-  cleanTxtList(L); 
-  if(Lout)
-  for(L=Lout;L;L=L->next)
-  { char buff[100];
-    sscanf(L->txt,"%lf %[^\n]",&width,buff);
-    sprintf(L->txt,"%E %s",width/sum,buff);  
-  }   
-  sortWidthTxtList(Lout);
-  if(LL) *LL=Lout;
-  decayTable[i0].pdList[j0]=Lout;
-  if(strcmp(ModelPrtcls[i0].name,ModelPrtcls[i0].aname)) 
-               decayTable[i0].pdList[1-j0]=conBrList(Lout);
-  decayTable[i0].width=sum;
+  decayTable[i0].width=width;
   decayTable[i0].status=1;
-  if(Q) { *Q=Qstat; calcMainFunc();}
-  return sum;
+  decayTable[i0].pdList[j0]=L;
+
+  if(strcmp(ModelPrtcls[i0].name,ModelPrtcls[i0].aname)) decayTable[i0].pdList[1-j0]=conBrList(L);
+  
+  
+  if(dynamic_cs_mutex) 
+  {   pthread_mutex_lock(dynamic_cs_mutex); 
+      if(decayTable[i0].status==1)   // calculated while was locked 
+      {        
+        if(LL) *LL=decayTable[i0].pdList[j0];
+        pthread_mutex_unlock(dynamic_cs_mutex);
+        return decayTable[i0].width;
+      }   
+  }
+
+  if(Q) { *Q=Qstat; calcMainFunc();} 
+  
+  decayTable[i0].status=1;
+  
+  if(LL) *LL=L;
+   if(dynamic_cs_mutex){ pthread_mutex_unlock(dynamic_cs_mutex);  /* printf("pWidth(%s) unlock =%e\n",name,sum);*/ }
+
+  return width;
 }
 
-double aWidth(char *name) { return pWidth(name,NULL);}
+
+
+
+int  pWidthPref(char *name, int pref)
+{  if(pref<0 || pref>4) { printf("Unlegal second argument of pWidthPref. It has to be a number betweem 0 and 4\n"); return 2;}
+   int i0=pTabPos(name);
+   if(i0==0)  { printf("%s out of model particles\n",name); return 1;} 
+   i0=abs(i0)-1;
+   if(!decayTable) cleanDecayTable();
+   if(decayTable[i0].pref==pref) return 0;
+   for(int j=0;j<2;j++) if(decayTable[i0].pdList[j])  cleanTxtList(decayTable[i0].pdList[j]); 
+   decayTable[i0].width=0;
+   decayTable[i0].status=0;
+   decayTable[i0].pref=pref;  
+   return 0;     
+}
+
+
+
+
+double aWidth(char *name) {   return pWidth(name,NULL);}
 
 static int pListEq(char * txt1, char * txt2)  
 {  char buff[100];
@@ -1030,8 +1257,7 @@ static int pListEq(char * txt1, char * txt2)
      if(star && i+star<n1) strcpy(rd1[i],rd1[i+star]);
    }  
    n1-=star;
-   
-   
+      
    strcpy(buff,txt2); while((ch=strchr(buff,','))) ch[0]=' ';
    
    n2=sscanf(buff,"%s %s %s %s %s %s %s %s %s %s",
@@ -1092,15 +1318,18 @@ int procInfo2(numout*cc,int nsub,char**name,REAL*mass)
  static int nPrtcls_old=0; 
  void cleanDecayTable(void)
  { int i,j;
+ 
    if(decayTable) for(i=0;i<nPrtcls_old;i++) for(j=0;j<2;j++) if(decayTable[i].pdList[j]) 
       cleanTxtList(decayTable[i].pdList[j]);    
    decayTable=realloc(decayTable, nModelParticles*sizeof(decayTableStr));
-   nPrtcls_old=nModelParticles;
    for(i=0;i<nModelParticles;i++)
    { for(j=0;j<2;j++) decayTable[i].pdList[j]=NULL;
      decayTable[i].width=0;
      decayTable[i].status=0;
+     if( nPrtcls_old!=nModelParticles)  decayTable[i].pref=4;
    }
+   
+   nPrtcls_old=nModelParticles;
    cleanHiggs_AA_GG();
  }
 
@@ -1108,15 +1337,22 @@ int procInfo2(numout*cc,int nsub,char**name,REAL*mass)
 int passParameters(numout*cc)
 {
    int i;
+   if(dynamic_cs_mutex) pthread_mutex_lock(dynamic_cs_mutex); 
+// if(*currentVarPtr!=53)  printf("currentVarPtr=%d\n", *currentVarPtr);      
    for(i=1;i<=cc->interface->nvar;i++) if(cc->link[i] &&  ((cc->link[i]-varValues)) < *currentVarPtr)  cc->interface->va[i]=*(cc->link[i]); else 
    { 
      printf("Value of variable  '%s' needed for calculation of '%s' is not known yet\n",
      cc->interface->varName[i], varNames[*currentVarPtr]);  
-     cc->interface->va[i]=0; FError=1;
+     cc->interface->va[i]=*(cc->link[i]); FError=1;
    }
    
    int err=cc->interface->calcFunc();
+
+// if(*currentVarPtr!=53)  printf("  currentVarPtr=%d\n", *currentVarPtr);      
+
+   if(dynamic_cs_mutex) pthread_mutex_unlock(dynamic_cs_mutex);    
    if(err>0) { printf("cannot calculate constraint %s\n",cc->interface->varName[err]); return 1;}
+   
    return 0;
 }
 

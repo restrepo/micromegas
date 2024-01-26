@@ -2,6 +2,7 @@
 #define __DYNAMIC_ME__
 
 #include<stdio.h>
+#include <pthread.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,6 +10,11 @@ extern "C" {
 
 #include "../../../include/num_out.h"
 #include "../../../include/nType.h"
+
+extern pthread_mutex_t* dynamic_cs_mutex;
+extern int destroy_dynamic_cs_mutex(void);
+extern int init_dynamic_cs_mutex(void);
+
 
 typedef struct numout
 {
@@ -67,7 +73,7 @@ extern void printTxtList(txtList L, FILE *f);
 extern lVert* getVertex(char*n1,char*n2,char*n3,char*n4);
 int  getNumCoeff(lVert*vv, double * coeff);
 /*===========================================================*/
-typedef struct{ double width; txtList pdList[2]; int status;}  decayTableStr;
+typedef struct{ double width; txtList pdList[2]; int status; int pref;}  decayTableStr;
 
 extern double   (*sqme)(int nsub,double GG,REAL *pvect,REAL*cb_coeff, int * err_code);
 extern REAL   decayPcm(REAL am0,  REAL  am1,  REAL  am2);
@@ -84,6 +90,7 @@ extern int      pname2lib(char*pname, char * libname);
 extern double   decay2Info(char * pname, FILE* f);
 extern int      useSLHAwidth;
 extern double   pWidth(char *name, txtList * LL);
+extern int      pWidthPref(char *name, int pref);
 extern double   pWidthCC(numout*cc,int*err);
 extern double   aWidth(char *name);
 extern double   findBr(txtList L, char * pattern);

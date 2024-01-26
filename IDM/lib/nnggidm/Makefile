@@ -1,6 +1,6 @@
 .PHONY: clean all
 
-LOOPTOOLS = ../../../Packages/LoopTools-2.12-v0/
+LOOPTOOLS = ../../../Packages/LoopTools
 
 all: $(LOOPTOOLS)/FlagsForMake $(LOOPTOOLS)/build/libooptools.a 
 	$(MAKE)  -f makeCompile

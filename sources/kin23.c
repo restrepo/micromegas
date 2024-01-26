@@ -5,16 +5,6 @@
 //#include"../CalcHEP_src/c_source/ntools/include/simpson.h"
 
 //#include<math.h>
-
-static REAL pmass[6]={10,20,30,40,50};
-static int i3=2,i4=3,i5=4,i6=5;
-static numout* cc23_=NULL,*cc24_=NULL;
-static double eps=1.E-2;
-static int nsub_;
-
-static double MZ=91.1884 ,wZ=2.4944,K=1;
-static double GG=1.23;
-
 double  kinematic_23(double Pcm,int i3, double M45, double cs1, double cs2,  double fi,REAL*pmass, REAL*pvect)
 {
   int i;
@@ -86,47 +76,75 @@ double  kinematic_23(double Pcm,int i3, double M45, double cs1, double cs2,  dou
 }  
 
 int NCALL;
+static int Np=7;
+static double eps=1.E-2;
 
-static double Pcm_, Mmax, Mmin, cs1_, cs2_, fi_,M_;
-static int Np=5;
+typedef  struct { numout* cc; int nsub;  double Pcm; REAL pmass[6]; // input
+                 int i3,i4,i5;                                      // reordering of particles
+                 double M45, cs1,cs2;                               // integration parameters
+                 double M45max,M45min;
+                 double Ymin,Ymax;
+                 double m0,w0;                                      // M45 pole
+                 double GG;                                         // strong constant
+                 int simpsonErr;
+                 } arg23str; 
 
-static double Idfi(double cs2) 
-{ int i,err;
+
+static double Idfi(double cs2, arg23str* arg) 
+{ 
+  double Pcm=arg->Pcm;
+  int i,err;
   double s,factor;
+  
   REAL pvect[20];
   for(s=0,i=0;i<Np;i++)
   {  double fi=M_PI*(0.5+i)/Np,ds;
-     factor=kinematic_23(Pcm_,i3, M_, cs1_, cs2,fi,pmass,pvect)/Pcm_;
+     factor=kinematic_23(Pcm,arg->i3, arg->M45, arg->cs1, cs2,fi,arg->pmass,pvect)/Pcm;
+//     printf("Pcm=%E M45=%E cs1=%e cs2=%e  i3=%d\n", Pcm,arg->M45, arg->cs1, cs2,arg->i3);
      if(factor==0.) return 0;   
-     ds=factor*(cc23_->interface->sqme)(nsub_,GG, pvect,NULL,&err);
+     ds=factor*(arg->cc->interface->sqme)(arg->nsub,arg->GG, pvect,NULL,&err);
      s+=ds;
   } 
   return 2*M_PI*s/Np;  
 }
 
-static double dIdcs2(double cs1) { cs1_=cs1; return gauss( Idfi ,-1.,1.,Np); }
-static double dIdM(double M) { NCALL++; M_=M; return gauss( dIdcs2 ,-1.,1.,Np); }
 
-static double q=1./2.;
-static double  m0,w0;
-static double yMin,yMax;
+static double dIdcs2(double cs1,arg23str*arg) { arg->cs1=cs1; int err; double res=simpson_arg(Idfi,  arg, -1,1, 1E-3,&err); arg->simpsonErr|=err; return res; }
+static double dIdM(double M, arg23str*arg)    { arg->M45=M;   int err; double res=simpson_arg(dIdcs2,arg, -1,1, 1E-3,&err); arg->simpsonErr|=err; return res; }
 
-static double q2=1./2.;
-static double zMin,zMax,uMax;
-
-
-
-static double dIdM_mu(double mu)
-{  if(mu==0) return 0;
-   return 1./q *dIdM(Mmax - pow(mu,1/q))*pow(mu,(1-q)/q); 
-}
-
-static double dIdM_w(double y)
-{ double m=sqrt(m0*(m0+w0*tan(y)));
-  return dIdM(m)* m0*w0*(1+tan(y)*tan(y))/2/m;
+static double dIdM_x(double x, arg23str*arg)
+{ 
+   if(x==0 || x==1) return 0;
+   double dM=arg->M45max-arg->M45min;
+   return  6*x*(1-x)*dM*dIdM(arg->M45min+x*x*(3-2*x)*dM,arg); 
 }
 
 
+
+static double dIdM_wx(double x,arg23str*arg)
+{ 
+ if(x==1 || x==0) return 0;
+ 
+ double m0=arg->m0;
+ double w0=arg->w0;
+ double dY=arg->Ymax-arg->Ymin;
+ double J;
+ 
+ double y=arg->Ymin+ x*x*(3-2*x)*dY;    J=6*x*(1-x)*dY;
+ double m=sqrt(m0*(m0+w0*tan(y)));      J*=m0*w0*(1+tan(y)*tan(y))/2/m;  
+
+ return dIdM(m,arg)*J;
+}
+
+/*
+static double dIdM_w_Y(double x,arg23str*arg)
+{
+  if(x==1 || x==0) return 0;
+  return 6*x*(1-x)*arg->dY*dIdM_w(arg->Ymax-  x*x*(3-2*x)*arg->dY,arg);
+
+}
+*/
+/*
 static double dIdM_w_mu(double mu)
 {  return 1./q *dIdM_w(yMax - pow(mu,1/q))*pow(mu,(1-q)/q); }
 
@@ -135,33 +153,35 @@ static double dIdM_w_mu_mu(double mu)
    return 1./q2 *dIdM_w_mu(zMax - pow(mu,1/q2))*pow(mu,(1-q2)/q2); 
 }
 
-static double dIdM_mu_mu(double mu)
-{  return 1./q2 *dIdM_w_mu(zMax - pow(mu,1/q2))*pow(mu,(1-q2)/q2); }
+
+*/
 
 
-double cs23(numout*cc, int nsub, double Pcm, int ii3,int*err) 
-{ int i,n;
+double cs23(numout*cc, int nsub, double Pcm, int i3,int*err) 
+{ 
+  arg23str arg23;
+  arg23.Pcm=Pcm;
+  arg23.nsub=nsub;
+  arg23.cc=cc;
+  arg23.i3=i3;
+  arg23.simpsonErr=0;
+  double m0,w0; 
+//  passParameters(cc);
+  for(int i=0;i<5;i++)  cc->interface->pinf(nsub,1+i,arg23.pmass+i,NULL);
+  double sqrtS=Sqrt(Pcm*Pcm+arg23.pmass[0]*arg23.pmass[0])+Sqrt(Pcm*Pcm+arg23.pmass[1]*arg23.pmass[1]);
+  arg23.GG=sqrt(4*M_PI*alphaQCD(sqrtS));  
+
+  int i,n;
   char*s,s0[3];
   int m,w;
-  double muMax;
 
-  if(err) *err=0;
-
-  passParameters(cc);
-  GG=sqrt(4*M_PI*alphaQCD(GGscale));
-  Pcm_=Pcm;
-  nsub_=nsub;
-  cc23_=cc;
-
-  switch(ii3)
+  int i4,i5;
+  switch(i3)
   {  
-    case 3: i3=3; i4=2;i5=4; break;
-    case 4: i3=4; i4=2;i5=3; break;
-    default:i3=2; i4=3;i5=4; 
+    case 3:  i4=2;i5=4; break;
+    case 4:  i4=2;i5=3; break;
+    default: i4=3;i5=4; 
   } 
-                       
-  for(i=0;i<5;i++) cc->interface->pinf(nsub,1+i,pmass+i,NULL);
-
   s0[0]=i4+1;
   s0[1]=i5+1;
   s0[2]=0;
@@ -171,44 +191,50 @@ double cs23(numout*cc, int nsub, double Pcm, int ii3,int*err)
      if(s==NULL) break;
      if(strcmp(s,s0)==0) 
      { 
-//       printf("%E %E \n", cc->interface->va[m], cc->interface->va[w]); 
-       
-      if(m) m0=cc->interface->va[m]; else m0=0;
-      if(w) w0=cc->interface->va[w]; else w0=0;
-       break; 
+//        printf("%E %E \n", (double)cc->interface->va[m], (double)cc->interface->va[w]); 
+        if(m) m0=cc->interface->va[m]; else m0=0;
+        if(w) w0=cc->interface->va[w]; else w0=0;
+        break; 
      } 
   }
      
-  Mmax=Sqrt(Pcm*Pcm+pmass[0]*pmass[0])+Sqrt(Pcm*Pcm+pmass[1]*pmass[1])-pmass[i3];
-  Mmin=pmass[i4]+pmass[i5];
+  double Mmax=sqrtS-arg23.pmass[i3];
+  double Mmin=0; for(int i=2;i<5;i++) if(i!=i3) Mmin+= arg23.pmass[i];
+  
+  arg23.M45max=Mmax;// +(Mmax-Mmin)*1E-4 ;
+  arg23.M45min=Mmin;// -(Mmax-Mmin)*1E-4;
 
-  if(Mmin>=Mmax) { return 0;}
-  muMax=pow(Mmax-Mmin,q);
+//printf("Mmin=%E Mmax=%E\n", Mmin,arg23.M45max);
+
+  if(Mmin>=arg23.M45max) { return 0;}
+  double  muMax=pow(arg23.M45max-Mmin,0.5);
+   
   
   if(s==NULL)
-  { int err_;
-    double r= simpson(dIdM_mu, 0., muMax*0.99999, 0.01,&err_);
-    if(err_) { if(err) *err=err_;  printf("error in simpson kin23.c line 189\n");}
+  { int err_;  
+    double r= simpson_arg(dIdM_x,&arg23,   0.,1, 0.001,&err_);
+    arg23.simpsonErr|=err_;
+    if(err) *err=arg23.simpsonErr;
     return  r;
   }
 
-  yMin=atan((Mmin*Mmin-m0*m0)/(m0*w0));
-  yMax=atan((Mmax*Mmax-m0*m0)/(m0*w0)); 
-  
-//  displayFunc(dIdM_w,yMin+0.001, yMax-0.001,"dIdM_mu");
-
-  zMax=pow(yMax-yMin,q);
-  
-  uMax=pow(zMax,q2);
-  
-//  displayFunc(dIdM_w_mu_mu, 0., uMax,"dIdM_w_mu_mu");
+  double yMin=atan((Mmin*Mmin-m0*m0)/(m0*w0));
+  double yMax=atan((Mmax*Mmax-m0*m0)/(m0*w0)); 
+  double dY=yMax-yMin;
+  arg23.m0=m0;
+  arg23.w0=w0;
+  arg23.Ymax=yMax;
+  arg23.Ymin=yMin;
   { int err_; 
-    double r=simpson(dIdM_w_mu_mu,0, uMax, 0.01,&err_);
-    if(err_){ if(err) *err=err_; printf("error in simpson cs23.c line 206\n");}
+    double r=simpson_arg(dIdM_wx, &arg23, 0, 1, 0.01,&err_);
+    arg23.simpsonErr|=err_;
+    if(err) *err=arg23.simpsonErr;
     return r;
   }
+
 }
 
+#ifdef LATER
 
 static double func_23(double *x, double wgt)
 { int err; 
@@ -429,3 +455,4 @@ double cs24Vegas(numout * cc, int nsub, double Pcm, int ii3, int ii4,
   rVal*=C;
   return rVal;
 }
+#endif 

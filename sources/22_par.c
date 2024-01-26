@@ -34,7 +34,6 @@ void mass22_par(par_22*arg,double T)
    numout*cc=arg->cc; 
    int nsub=arg->nsub;
    char * p[5];
-passParameters(cc);   
    for(i=0;i<4;i++) p[i]=cc->interface->pinf(nsub,1+i,arg->pmass+i,NULL);
      
    
@@ -348,8 +347,6 @@ void mass22_parDel(par_22*arg,double T)
 }
 
 
-
-
 double sqmeIntDel(par_22*arg, double eps)
 {  
   double delta=0.05;
@@ -365,15 +362,9 @@ double sqmeIntDel(par_22*arg, double eps)
 
   double t14min =mass[0]*mass[0]+mass[3]*mass[3]-2*E[0]*E[3], t14max =t14min;;
   t14min-=pp; t14max+=pp;
-  
-  double T=arg->T;
-  
-  double cos0=1-T*T*tTcut*tTcut/pp;
-  if(cos0<=0) return 0;
-
         
   double*intervals=malloc(2*sizeof(double));
-  intervals[0]=-cos0;intervals[1]=cos0;
+  intervals[0]=-1;intervals[1]=1;
   int nIn=1;
   for(int n=1;;n++)
   {  
@@ -383,21 +374,19 @@ double sqmeIntDel(par_22*arg, double eps)
      if(s[0]==1 && s[1]==3) 
      { double mt=0;
        if(m) mt=fabs(arg->cc->interface->va[m]);
-double k=1E-5;
-       if((mass[0]>mt+mass[2] && mass[3]>mt+mass[1])  || (mass[1]>mt+mass[3] && mass[2]>mt+mass[0])) k=0.5;
+       if((mass[0]>mt+mass[2] && mass[3]>mt+mass[1])  || (mass[1]>mt+mass[3] && mass[2]>mt+mass[0]))
        {
          double co= -1 +2*(t13min - mt*mt )/(t13min-t13max);  
-         if(delta>0 && co<1+k*delta && co>-1-k*delta) delInterval(co-k*delta,co+k*delta,&intervals, &nIn);
+         if(delta>0 && co<1+delta && co>-1-delta) delInterval(co-delta,co+delta,&intervals, &nIn);
        }   
      } else if(s[0]==1 && s[1]==4)
      { 
        double mu=0;
        if(m) mu=fabs(arg->cc->interface->va[m]);
-double k=1E-5;
-       if((mass[0]>mu+mass[3] && mass[2]>mu+mass[1])  || (mass[1]>mu+mass[2] && mass[3]>mu+mass[0])) k=0.5;
+       if((mass[0]>mu+mass[3] && mass[2]>mu+mass[1])  || (mass[1]>mu+mass[2] && mass[3]>mu+mass[0]))
        {
           double co= 1 -2*(t14min - mu*mu)/(t14min-t14max);     
-          if(delta>0 && co<1+k*delta && co>-1-k*delta) delInterval(co-k*delta,co+k*delta,&intervals, &nIn); 
+          if(delta>0 && co<1+delta && co>-1-delta) delInterval(co-delta,co+delta,&intervals, &nIn); 
        }  
      }           
   }
@@ -407,20 +396,9 @@ double k=1E-5;
   int err;
   for(int i=0;i<nIn;i++)
   { double dI;
-
-//    double dSum=peterson21_arg(dSqme_dCos_arg,arg, intervals[2*i], intervals[2*i+1],&dI);
+    double dSum=peterson21_arg(dSqme_dCos_arg,arg, intervals[2*i], intervals[2*i+1],&dI);
         
-//    if(fabs(dI)> 1E-1*fabs(dSum)) 
-
-    double dSum=simpson_arg(dSqme_dCos_arg,arg, intervals[2*i], intervals[2*i+1],1E-2, &err );
-
-    if(err)    
-    {
-    
-//    displayPlot("angle integrand", "cos", intervals[2*i], intervals[2*i+1], 0,1,"",0, dSqme_dCos_arg,arg);
-    
-      arg->err=arg->err|8;
-                                  }  
+    if(fabs(dI)> 1E-1*fabs(dSum))  arg->err=arg->err|8;
     sum+=dSum; 
   }      
   free(intervals);

@@ -37,7 +37,7 @@
 	                            
       Nch= ModelConstIni(mode,Wh,err)
       if(err.ne.0) goto 3
-      v=0.0
+      v=1E-3
       vcsgg=vcsnngg(v)
       if(Nch.gt.1) then  
         vcsgz=vcsnngz(v)      

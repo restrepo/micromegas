@@ -404,22 +404,24 @@ static double veg3_intergrand(double *x, double w)
       } else 
       {  int i;
          double pr34=0,pr35=0;
+         M34=M34_min+2*x[3]*(M34_max-M34_min);
+         M35=M35_min+(2*x[3]-1)*(M35_max-M35_min);
+         S34=M34*M34;  
+         S35=M35*M35;  
+
          if(x[3]<0.5)
-         {   M34=M34_min+2*x[3]*(M34_max-M34_min);
-             S34=M34*M34;  
+         { 
              cs45=(S34 -pmass[i4]*pmass[i4]-pmass[i3]*pmass[i3]-2*E3*E4)/(2*p*pcm2);
              S35=pmass[i5]*pmass[i5]+pmass[i3]*pmass[i3]+2*E3*E5 -2*p*pcm2*cs45;
              J45=2*M34*(M34_max-M34_min)/(p*pcm2);
          } else 
-         {   M35=M35_min+(2*x[3]-1)*(M35_max-M35_min);
-             S35=M35*M35;  
-             cs45=-(S35 -pmass[i5]*pmass[i5]-pmass[i3]*pmass[i3]-2*E3*E5)/(2*p*pcm2);
+         {   cs45=-(S35 -pmass[i5]*pmass[i5]-pmass[i3]*pmass[i3]-2*E3*E5)/(2*p*pcm2);
              S34=pmass[i4]*pmass[i4]+pmass[i3]*pmass[i3]+2*E3*E4 +2*p*pcm2*cs45; 
              J45=2*M35*(M35_max-M35_min)/(p*pcm2);
          } 
          for(i=0;i<npole34;i++)
          { double m=pole34[2*i],w=pole34[2*i+1];
-           pr34+=  M35*m*w/( (m*m-S34)*(m*m-S34) +m*m*w*w);
+           pr34+=  M34*m*w/( (m*m-S34)*(m*m-S34) +m*m*w*w);
          }
          pr34+=1/(M34_max-M34_min); 
            

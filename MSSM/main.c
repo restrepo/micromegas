@@ -4,7 +4,7 @@
    to the corresponding package in lib/Makefile
 =====================================*/ 
 
-#define RGE  spheno
+#define RGE  suspect
 
      /* choose 'suspect','softSusy','spheno', 'tree' */
 
@@ -30,13 +30,13 @@
       /* Display  deltarho, B_>sgamma, Bs->mumu, gmuon and
          check LEP mass limits 
       */ 
-//#define CheckMassMatrix      
 //#define HIGGSBOUNDS 
 //#define HIGGSSIGNALS
 //#define SUPERISO
 //#define LILITH
 //#define SMODELS
 //#define MONOJET       
+
 
 #define OMEGA            
       /* Calculate relic density and display contribution of
@@ -59,7 +59,7 @@
          DM velocity distribution,
          A-dependence of Fermi-dencity
       */     
-#define CDM_NUCLEON 
+//#define CDM_NUCLEON 
       /* Calculate amplitudes and cross-sections for 
          CDM-mucleon collisions 
       */  
@@ -71,10 +71,10 @@
 #define CDM_NUCLEUS
      // Calculate  exclusion rate for direct detection experiments Xenon1T and DarkSide50
 
-#define NEUTRINO 
+//#define NEUTRINO 
  /*  Neutrino signal of DM annihilation in Sun and Earth */
  
-#define DECAYS 
+//#define DECAYS 
       /* Calculate decay widths and branchings  */      
 //#define CROSS_SECTIONS 
       /* Calculate cross sections of reactions specified by the user */
@@ -119,7 +119,7 @@ int main(int argc,char** argv)
    ForceUG=0;   /* to Force Unitary Gauge assign 1 */
    //useSLHAwidth=0;
 //  nPROCSS=0; /* to switch off multiprocessor calculations */
-//   useSLHAwidth=1;
+
 
 /*
    if you would like to work with superIso
@@ -309,6 +309,9 @@ int main(int argc,char** argv)
 //  err=treeMSSM();  
 
 
+  VWdecay=1; VZdecay=1;
+
+
   qNumbers(cdmName,&spin2, &charge3, &cdim);
   printf("\nDark matter candidate is '%s' with spin=%d/2  mass=%.2E\n",
   cdmName,       spin2, Mcdm); 
@@ -455,8 +458,12 @@ int main(int argc,char** argv)
 #ifdef SMODELS
 { int status=0, smodelsOK=0; 
   double Rvalue, Rexpected, SmoLsig, SmoLmax, SmoLSM;
+  double CombRvalue, CombRexpected, CombSmoLsig, CombSmoLmax, CombSmoLSM;
+
   char analysis[50]={},topology[100]={},smodelsInfo[100];
-  int LHCrun=LHC8|LHC13;  //  LHC8  - 8TeV; LHC13  - 13TeV;   
+  char CombAnalyses[200]={};
+  int LHCrun=LHC8|LHC13;  //  LHC8 - 8TeV; LHC13 - 13TeV;   
+//  int LHCrun=LHC13;  //  LHC13 - 13TeV only;   
 
   printf("\n\n=====  LHC constraints with SModelS  =====\n\n");
 
@@ -464,20 +471,32 @@ int main(int argc,char** argv)
 
   printf("SModelS %s \n",smodelsInfo);
   if(smodelsOK) 
-  { printf(" highest r-value = %.2E",Rvalue); 
+  { printf("\n highest r-value = %.2E",Rvalue); 
+
     if(Rvalue>0) 
     { printf(" from %s, topology: %s ",analysis,topology);
       if(Rexpected>0) 
       { printf("\n expected r = %.2E ",Rexpected);
-        if(SmoLsig>0) 
-        { printf("\n -2log (L_signal, L_max, L_SM) = %.2E %.2E %.2E", 
-                  -2*log(SmoLsig),-2*log(SmoLmax),-2*log(SmoLSM)); }
+        if(SmoLsig>=0 && SmoLsig!=INFINITY) 
+        { printf("\n -2log (L_signal/L_max, L_SM/L_max) = %.2E %.2E", 
+                  -2*log(SmoLsig/SmoLmax),-2*log(SmoLSM/SmoLmax)); }
       }
     }  
     if(status==1) { printf("\n excluded by SMS results"); }
     else if(status==0) printf("\n not excluded"); 
     else if(status==-1) printf("\n not not tested by results in SModelS database"); 
     printf("\n");
+
+    // r-value and likelihoods from analysis cvombination
+    if(CombRvalue>0) 
+    { printf("\n Combination of %s",CombAnalyses);
+      printf("\n r-value = %.2E (expected r = %.2E)",CombRvalue, CombRexpected); 
+      if(CombRvalue>=1) printf("  --> excluded"); 
+      else printf("  --> not excluded"); 
+      printf("\n -2log (L_signal/L_max, L_SM/L_max) = %.2E %.2E \n\n", 
+                    -2*log(CombSmoLsig/CombSmoLmax),-2*log(CombSmoLSM/CombSmoLmax)); 
+    }
+
   } else system("cat smodels.err"); // problem: see smodels.err
 }   
 
@@ -493,43 +512,21 @@ int main(int argc,char** argv)
 
 
 #ifdef OMEGA
-{ int fast=1;
+{ int fast=-1;
   double Beps=1.E-5, cut=0.01;
   double Omega,Xf=25; 
   
 // to exclude processes with virtual W/Z in DM   annihilation      
-    VZdecay=0; VWdecay=0; cleanDecayTable(); 
+    VZdecay=1; VWdecay=1; cleanDecayTable(); 
     
 // to include processes with virtual W/Z  also  in co-annihilation 
 //   VZdecay=2; VWdecay=2; cleanDecayTable(); 
     
   printf("\n==== Calculation of relic density =====\n");  
-
-//  sortOddParticles(cdmName);
-
-   Omega=darkOmega(&Xf,fast,Beps,&err);
-   printf("Xf=%.2e Omega=%.2e\n",Xf,Omega);
-
+     Omega=darkOmega(&Xf,fast,Beps,&err);
+     
+     printf("Xf=%.2e Omega=%.2e\n",Xf,Omega);
    if(Omega>0)printChannels(Xf,cut,Beps,1,stdout);
-/*   
-   Omega=darkOmega2(fast,Beps);
-   displayPlot("Y","T",Tend,Tstart, 0,2,"Y",0,YF,NULL,"Y1",0,Y1F,NULL);
-   printf("Omega2=%e\n",Omega);
-*/
-
-// direct access for annihilation channels 
-
-/*
-if(omegaCh){
-  int i; 
-  for(i=0; omegaCh[i].weight>0  ;i++)
-  printf(" %.2E %s %s -> %s %s\n", omegaCh[i].weight, omegaCh[i].prtcl[0],
-  omegaCh[i].prtcl[1],omegaCh[i].prtcl[2],omegaCh[i].prtcl[3]); 
-}  
-*/
-
-// to restore default switches  
-
 
     VZdecay=1; VWdecay=1; cleanDecayTable();
 
@@ -570,7 +567,6 @@ printf("\n==== Indirect detection =======\n");
                        2-includes gammas for 2->2+gamma
                        4-print cross sections             
     */
-
 
   { 
      double fi=0.1,dfi=M_PI/180.; /* angle of sight and 1/2 of cone angle in [rad] */ 
@@ -666,6 +662,7 @@ printf("\n==== Indirect detection =======\n");
   double csSIp,csSIn,csSDp,csSDn;
   int sI,sD; 
 printf("\n==== Calculation of CDM-nucleons amplitudes  =====\n");   
+#define TEST_Direct_Detection
 #ifdef TEST_Direct_Detection
 printf("         TREE LEVEL\n");
 
@@ -673,10 +670,6 @@ printf("         TREE LEVEL\n");
     printf("Analitic formulae\n");
     printf(" proton:  SI %.3E  SD  %.3E\n",pA0[0],pA5[0]);
     printf(" neutron: SI %.3E  SD  %.3E\n",nA0[0],nA5[0]); 
-    nucleonAmplitudes(CDM1, pA0,pA5,nA0,nA5);
-    printf("%s-nucleon micrOMEGAs amplitudes:\n",CDM1);
-    printf("proton:  SI  %.3E  SD  %.3E\n",pA0[0],pA5[0]);
-    printf("neutron: SI  %.3E  SD  %.3E\n",nA0[0],nA5[0]); 
 
 printf("         BOX DIAGRAMS\n");  
 
@@ -826,7 +819,7 @@ if(forSun)printf("IceCube22 exclusion confidence level = %.2E%%\n", 100*exLevIC2
   system("rm -f suspect2_lha.in suspect2_lha.out suspect2.out");
   system("rm -f LesHouches.in Messages.out SPheno.spc");
   system("rm -f LesHin LesHout");
-  system("rm -f  nngg.*  output.flha ");
+//  system("rm -f  nngg.*  output.flha ");
 //  system("rm -f HB.* HS.* hb.* hs.*  debug_channels.txt debug_predratio.txt  Key.dat");
   system("rm -f Lilith_*   particles.py*");
 //  system("rm -f  smodels.*");  

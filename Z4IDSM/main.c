@@ -6,17 +6,17 @@
 #define MASSES_INFO      
   /* Display information about mass spectrum  */
 
-#define CONSTRAINTS
+//#define CONSTRAINTS
 //#define HIGGSBOUNDS
 //#define HIGGSSIGNALS
-#define LILITH
+//#define LILITH
 //#define SMODELS
 
 #define OMEGA     /* Calculate relic density and display contribution of  individual channels */
 //#define FREEZEIN  /*  Calculate relic density in Freeze-in scenario  */
 
 
-#define INDIRECT_DETECTION  
+//#define INDIRECT_DETECTION  
   /* Compute spectra of gamma/positron/antiprotons/neutrinos for DM annihilation; 
      Calculate <sigma*v>;
      Integrate gamma signal over DM galactic squared density for given line 
@@ -27,13 +27,16 @@
 /*#define RESET_FORMFACTORS*/
   /* Modify default nucleus form factors, 
     DM velocity distribution,
-    A-dependence of Fermi-dencity
+    A-dependence of Fermi-density
   */     
-#define CDM_NUCLEON     
+//#define CDM_NUCLEON     
   /* Calculate amplitudes and cross-sections for  CDM-mucleon collisions */  
 
-#define CDM_NUCLEUS 
+//#define CDM_NUCLEUS 
    //Calculate  exclusion rate for direct detection experiments Xenon1T and DarkSide50
+
+//#define DECAYS 
+      /* Calculate decay widths and branchings  */ 
         
 //#define CROSS_SECTIONS   
 /*===== end of Modules  ======*/
@@ -59,7 +62,7 @@ int main(int argc,char** argv)
    
   ForceUG=0;  /* to Force Unitary Gauge assign 1 */
   //useSLHAwidth=0;
-  VZdecay=0; VWdecay=0;  
+  VZdecay=1; VWdecay=1;  
 
   if(argc==1)
   { 
@@ -67,15 +70,13 @@ int main(int argc,char** argv)
       printf("Example: ./main data1.par\n");
       exit(1);
   }
-                               
+                              
   err=readVar(argv[1]);
-//  toFeebleList("~sc");
   if(err==-1)     {printf("Can not open the file\n"); exit(1);}
   else if(err>0)  { printf("Wrong file contents at line %d\n",err);exit(1);}
-           
-//  ExcludedFor2DM="1122 2211"; 
 
   err=sortOddParticles(cdmName);
+  
   if(err) { printf("Can't calculate %s\n",cdmName); return 1;}
   
   if(CDM1) 
@@ -99,6 +100,7 @@ int main(int argc,char** argv)
   printf("\n=== MASSES OF HIGGS AND ODD PARTICLES: ===\n");
   printHiggs(stdout);
   printMasses(stdout,1);
+  
 }
 #endif
 
@@ -152,8 +154,12 @@ int main(int argc,char** argv)
 #ifdef SMODELS
 { int status=0, smodelsOK=0; 
   double Rvalue, Rexpected, SmoLsig, SmoLmax, SmoLSM;
+  double CombRvalue, CombRexpected, CombSmoLsig, CombSmoLmax, CombSmoLSM;
+
   char analysis[50]={},topology[100]={},smodelsInfo[100];
-  int LHCrun=LHC8|LHC13;  //  LHC8  - 8TeV; LHC13  - 13TeV;   
+  char CombAnalyses[200]={};
+  int LHCrun=LHC8|LHC13;  //  LHC8 - 8TeV; LHC13 - 13TeV;   
+//  int LHCrun=LHC13;  //  LHC13 - 13TeV only;   
 
   printf("\n\n=====  LHC constraints with SModelS  =====\n\n");
 
@@ -161,78 +167,122 @@ int main(int argc,char** argv)
 
   printf("SModelS %s \n",smodelsInfo);
   if(smodelsOK) 
-  { printf(" highest r-value = %.2E",Rvalue); 
+  { printf("\n highest r-value = %.2E",Rvalue); 
+
     if(Rvalue>0) 
     { printf(" from %s, topology: %s ",analysis,topology);
       if(Rexpected>0) 
       { printf("\n expected r = %.2E ",Rexpected);
-        if(SmoLsig>0) 
-        { printf("\n -2log (L_signal, L_max, L_SM) = %.2E %.2E %.2E", 
-                  -2*log(SmoLsig),-2*log(SmoLmax),-2*log(SmoLSM)); }
+        if(SmoLsig>=0 && SmoLsig!=INFINITY) 
+        { printf("\n -2log (L_signal/L_max, L_SM/L_max) = %.2E %.2E", 
+                  -2*log(SmoLsig/SmoLmax),-2*log(SmoLSM/SmoLmax)); }
       }
     }  
     if(status==1) { printf("\n excluded by SMS results"); }
     else if(status==0) printf("\n not excluded"); 
     else if(status==-1) printf("\n not not tested by results in SModelS database"); 
     printf("\n");
+
+    // r-value and likelihoods from analysis cvombination
+    if(CombRvalue>0) 
+    { printf("\n Combination of %s",CombAnalyses);
+      printf("\n r-value = %.2E (expected r = %.2E)",CombRvalue, CombRexpected); 
+      if(CombRvalue>=1) printf("  --> excluded"); 
+      else printf("  --> not excluded"); 
+      printf("\n -2log (L_signal/L_max, L_SM/L_max) = %.2E %.2E \n\n", 
+                    -2*log(CombSmoLsig/CombSmoLmax),-2*log(CombSmoLSM/CombSmoLmax)); 
+    }
+
   } else system("cat smodels.err"); // problem: see smodels.err
 }   
+
 #endif 
+
+#ifdef FREEZEIN
+{
+  double TR=1E10;
+  double omegaFi;
+  toFeebleList("~sc");
+  pWidthPref("~~H3",1);
+  sortOddParticles(NULL);  
+  omegaFi=darkOmegaFi(TR,&err);
+  printf("omega freeze-in=%.3E\n", omegaFi);
+  printf("   omega1=%.3E omega2= %.3E fracCDM2=%.3E\n",omegaFi*(1-fracCDM2), omegaFi*fracCDM2,fracCDM2); //The output is: fracCDM2=0, i.e omegaFi=Omega(~sc).
+  printChannelsFi(0,0,stdout);
+
+}
+#endif
 
 
 #ifdef OMEGA
-{ int fast=1;
+{ int fast=-1;
   double Beps=1.E-4, cut=0.01;
   double Omega,Xf;  
   int i,err; 
-  double Lmin,Lmax;
   printf("\n==== Calculation of relic density =====\n");   
 
-//ExcludedFor2DM="1110 2220 1120  1210 1220 2210  1122 1112 1222";
+//ExcludedFor2DM="2010";
 
   Omega= darkOmega2(fast,Beps);
 
-/*
-  displayPlot("vsXX00","T",Tend,Tstart,0,2
-      ,"vs1100",0,vs1100F,NULL
-      ,"vs2200",0,vs2200F,NULL
-      );
-      
-  displayPlot("vsXXYY","T",Tend,Tstart,0,2
-      ,"vs1122",0,vs1122F,NULL
-      ,"vs2211",0,vs2211F,NULL
-      );
-      
-  displayPlot("vsXY","T",Tend,Tstart,0,2
-             ,"vs1210",0,vs1210F,NULL
-             ,"vs1120",0,vs1120F,NULL
-             );
-
-  displayPlot("Y","T",   Tend,Tstart,0,2,"Y1" ,0,Y1F,NULL,"Y2",0,Y2F,NULL);
-*/
-                                
-      
-
+  printf("Tstart=%E\n", Tstart);
   printf("omega1=%.2E\n", Omega*(1-fracCDM2));
   printf("omega2=%.2E\n", Omega*fracCDM2);
-  printf("fracCDM2=%E\n", fracCDM2);
-  
+
+
+#ifdef omegaN
+//  sortOddParticles(NULL);
+  double Y[2];
+  Omega=darkOmegaN(Y,Beps,&err);
+  printf("darkOmegaN Tstart=%.2E  Omega=%.2E  err=%d  \n", Tstart,Omega,err); 
+  printf("omega1=%.2E\n", Y[0]*McdmN[1]*2.742E8);
+  printf("omega2=%.2E\n", Y[1]*McdmN[2]*2.742E8);
+
 /*
-  Omega=darkOmega(&Xf,fast,Beps,&err);
-  printf("Omega1=%E\n", Omega);
-*/
+  displayPlot("Y1","T",   Tend,Tstart,0,3
+     ,"Y1F",0,Y1F,NULL
+     , "YdmN",0,YdmN ,"1"
+     , "Y1eq",0,Yeq1,NULL
+     );
+  displayPlot("Y2","T",   Tend,Tstart,0,3
+   , "Y2F",0,Y2F,NULL
+   , "YdmN",0,YdmN ,"2"
+   , "Y2eq",0,Yeq2,NULL
+   );  
+*/  
+  displayPlot("vs1100","T", Tend,Tstart,0,2,"dO2",0,vs1100F,NULL,"doN",0, vSigmaN,"1100");
+  displayPlot("vs2200","T", Tend,Tstart,0,2,"dO2",0,vs2200F,NULL,"doN",0, vSigmaN,"2200");
+  displayPlot("vs1122","T", Tend,Tstart,0,2,"dO2",0,vs1122F,NULL,"doN",0, vSigmaN,"1122");
+  displayPlot("vs2110","T", Tend,Tstart,0,3,"dO2",0,vs1210F,NULL,"doN",0, vSigmaN,"2110","doN!",0, vSigmaN,"!2110" );
+  displayPlot("vs1120","T", Tend,Tstart,0,2,"dO2",0,vs1120F,NULL,"doN",0, vSigmaN,"1120");     
+
+
+//  displayPlot("vs1120","T", Tend,Tstart,0,1,"doN",0, vSigmaN,"1120", "doN!",0, vSigmaN,"!1120"); 
+     for(int i=0;;i++)
+     { char process[100];
+       double r=vSigmaNCh(3.4,  "1120",i, process);
+       if(process[0]==0) break;
+       printf("r=%E %s\n",r,process);
+     }
+/*     
+     for(int i=0;;i++)
+     { char process[100];
+       double r=vSigmaNCh(3.55,  "2110",i, process);
+       if(process[0]==0) break;
+       printf("r=%E %s\n",r,process);
+     }
+*/                                         
+#endif            
 }
 
 #endif
 
-
-#ifdef FREEZEIN
+/*#ifdef FREEZEIN
 {
   double TR=1E10;
   double omegaFi;  
   toFeebleList(CDM1);
   VWdecay=0; VZdecay=0;
-  
   
   omegaFi=darkOmegaFi(TR,&err);
   printf("omega freeze-in=%.3E\n", omegaFi);
@@ -240,7 +290,7 @@ int main(int argc,char** argv)
   printChannelsFi(0,0,stdout);
 }
 #endif
-
+*/
 
 
 #ifdef INDIRECT_DETECTION
@@ -256,7 +306,7 @@ int main(int argc,char** argv)
   
 printf("\n==== Indirect detection =======\n");  
 
-  sigmaV=calcSpectrum(1+2+4,SpA,SpE,SpP,SpNe,SpNm,SpNl ,&err);
+  sigmaV=calcSpectrum(4,SpA,SpE,SpP,SpNe,SpNm,SpNl ,&err);
     /* Returns sigma*v in cm^3/sec.     SpX - calculated spectra of annihilation.
        Use SpectdNdE(E, SpX) to calculate energy distribution in  1/GeV units.
        
@@ -265,6 +315,7 @@ printf("\n==== Indirect detection =======\n");
                        4-print cross sections             
     */
   printf("sigmav=%.2E[cm^3/s]\n",sigmaV);  
+
 
   { 
      double fi=0.1,dfi=0.05; /* angle of sight and 1/2 of cone angle in [rad] */ 
@@ -412,6 +463,22 @@ printf("\n==== Calculation of CDM-nucleons amplitudes  =====\n");
 }
 #endif 
 
+#ifdef DECAYS
+{  
+  txtList L;
+   double width,br;
+   char * pname;
+   printf("\n================= Decays ==============\n");
+
+   pname = "h";
+   width=pWidth(pname,&L);
+   printf("\n%s :   total width=%.2E \n",pname,width);
+   
+   numout* cc13=newProcess("Z->~~H3,~sc,~sc");
+   width=pWidthCC(cc13,&err);
+   printf(" partial width of Z->~~H3,~sc,~sc is %.2E\n");
+}
+#endif
          
 #ifdef CLEAN
   system("rm -f HB.* HS.* hb.* hs.*  debug_channels.txt debug_predratio.txt  Key.dat");

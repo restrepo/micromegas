@@ -15,7 +15,7 @@
       call ModelVarIni(77)
       close(77)
       Nch= ModelConstIni(fail)
-      v=0D0
+      v=1E-3
       vcsgg=vcsnngg(v)
       if(Nch.gt.1 ) then 
          vcsgz=vcsnngz(v)

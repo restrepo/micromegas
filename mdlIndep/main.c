@@ -25,14 +25,10 @@
 #include"../include/micromegas.h"
 #include"../include/micromegas_aux.h"
 
+
 int main(int argc,char** argv)
-{  int err,n,i;
+{ int err,n,i;
 
-   printf("%e %e \n", FeldmanCousins(0,0, 0.9), FeldmanCousins(0,0.35, 0.9));
-
-   printf("uConversion(_s_1_,_GeV_)=%E\n",uConversion(_s_1_,_GeV_));
-   exit(0);
-   
 // data corresponding to MSSM/mssmh.dat     
 // cross sections of DM-nucleon interaction 
    double csSIp=5.489E-09,  csSIn=5.758E-09, csSDp=5.807E-05, csSDn=-4.503E-05;  //[pb] 
@@ -45,20 +41,20 @@ int main(int argc,char** argv)
    sortOddParticles(NULL);
 // ======= millicharge   
 
-/*   
+/*
 {     
-double Z=10, A=20, alpha=1/137., RA=40, RN=pow(20,1./3.)*1E-3, rho=2.6,NAv=6E23,
-cmGeVsq=3.86E8*1E-36;
-   //  dE^2/dl[cm]= q^2*Mdm/MA*
-   
-double F= 2*M_PI*pow(Z*alpha,2)*log(RA/RN)*(NAv*rho/A);// *cmGeVsq;
-
-printf("F=%.2E [1/cm^3]\n",F);
-  
+ double  M=300, m1=150,m2=150, w1=1,w2=1;
  
-    exit(0);
+w1=0;
+w2=20;
+for(w2=0.0001,w1=w2;w2<1;w2+=0.001) printf("w2=%E  decayPcmW=%E  decayPcm'=%E \n",w2,(double)decayPcmW(M,m1,m2,w1,w2,0)/sqrt(w2), (double)decayPcm(M,m1-w2/5,m2-w2/5)/sqrt(w2) );
+ 
+
+// printf(" decayPcm=%E, decayPcmW=%E, decayPcm'=%E\n",(double)decayPcm(M,m1,m2), (double)decayPcmW(M,m1,m2,w1,w2,0), (double)decayPcm(M,m1-w1/20,m2-w2/20));
+ exit(0);  
+
 } 
-*/  
+*/
 // ===   
 
 // Mass of Dark Matter    

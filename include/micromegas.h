@@ -12,6 +12,7 @@ extern "C" {
 #include<unistd.h>
 
 #include"../CalcHEP_src/include/num_out.h"
+#include"../CalcHEP_src/include/VandP_size.h"
 #include"../CalcHEP_src/c_source/dynamicME/include/dynamic_cs.h"
 #include"../CalcHEP_src/c_source/plot/include/plot.h"
 #include"../CalcHEP_src/c_source/ntools/include/n_proc.h"
@@ -107,6 +108,7 @@ extern int ForceUG;
 extern int  pNum(char * name);  /* returns PDG code */
 extern double pMass(char * name); /* returns particle mass */
 extern char *   pdg2name(int pdg); 
+extern int    isSMP(int pdg);
 /*======= Subprocesses ===========*/
 /*  typedef struct txtListStr
   {  struct txtListStr * next;
@@ -143,8 +145,7 @@ extern void  setLHAPDF(int nset, char *name);
 extern int restorePDF(char*oldPDF);
 extern double hCollider(double Pcm, int pp, int nf, double Qren,double Qfact, char * name1,char *name2,double pTmin,int wrt);
 extern double monoJet(void);
-double pWidth(char *name, txtList *L);
-
+extern double pWidth(char *name, txtList *L);
 
 extern double convStrFun3(double x, double q, int pc1, int pc2, int pp);
 
@@ -176,7 +177,7 @@ extern int Zprimelimits(void);
     Relic density evaluation 
   =====================================*/
   
-typedef struct {int err; double weight; char*prtcl[10];} aChannel;
+typedef struct {int err; double weight; int nin; char*prtcl[10];} aChannel;
 extern aChannel*omegaCh;  
 extern aChannel* vSigmaTCh;
 extern aChannel*omegaFiCh;
@@ -204,7 +205,7 @@ extern double darkOmega2(double fast, double Beps);
 extern double darkOmegaExt(double *Xf, double (*f0)(double), double (*f1)(double));
 extern double darkOmegaTR(double TR, double YR, int Fast, double Beps,int *err);
 extern double darkOmega2TR(double TR, double Y1R, double Y2R,double fast, double Beps);
-extern double checkFO(double Besp,double T);
+extern double checkTE(int  n, double T, int mode, double Besp);
 extern double collisionWidth(numout*cc, double Beps,double T);
 
 extern double vs1120F(double T);       
@@ -237,17 +238,31 @@ extern double Yeq(double T);
 extern double Yeq1(double T);
 extern double Yeq2(double T);
 
-extern double Beps;
+//extern double Beps;
 extern int Fast_;
 
+// ======= darkOmegaNext
+//                     parameters defined by sordOddParticles
+extern int defThermalSet(int n, char*set);
+extern void printThermalSets(void);
+extern  int     Ncdm;         // number of DM sectors
+extern  double *McdmN;   // array if minimal masses in each sector
+
+extern  double  YdmNEq(double T, char *ch); // equilibrium abundance : YdmEq(T,"1");
+extern  int deltaYN(double T, double *dY);  // estimates small deviation of solution from equilibrium 
+//                     to solve evolution equation
+extern  double     darkOmegaNTR(double TR, double *Y, double Beps, int * err);  // solves evolution equation in [TR,Tend]. Y- array for initial and final abumdancies. 
+extern  double     darkOmegaN(double *Y, double Beps, int*err);                 // finds starting point and calls darkOmegaNTR
+//                     to check solution 
+extern  double  YdmN(double T,char* ch);                              // solution of DM evolution equation
+extern  double  vSigmaN(double T,char*code);                         // vSigma for process defined by the code: vSigmaN(T,"1122");
+//extern  double  vSigmaNCh(double T, char*code, int i, char*process); // contribution of i^{th} channel to vSigmaN  
+
+extern aChannel*vSigmaNCh(double T, char*code, double Beps, double * vsPb); 
+
 // Freeze-in
-
-typedef struct{ numout*cc; REAL m[4]; double sqrtSmin; double C; double T; int Ton;}  frin22Par;
-
-extern double tTcut;
-extern    double dYfreezeIn(double T, frin22Par*arg);
-int initFrinArg(char * process,  frin22Par*arg);
-extern double YfreezeIn22(char*process, double T0, double TR,  int plot);
+extern double  tTcut;
+extern double  YfreezeIn22(numout*cc, double T0, double TR, double width, int plot_dYdT);
 extern double  darkOmegaFi22(double TR, char *Proc, int vegas, int plot, int *err);
 extern double  decayAbundance(double TR, double M, double w, int Ndf,double  eta, int plot);
 extern double  darkOmegaFiDecay(double TR, char * pname, int KE, int plot);
@@ -272,7 +287,7 @@ extern double calcSpectrum(int key, double *Sg, double *Se, double *Sp, double *
 */ 
 
 extern void  decaySpectrum(char*pName,int outP, double*tabD);
-extern void getSpectrum2(int wPol, double M, char*n1,char*n2,int outP, double *tab);
+extern  void getSpectrum2(int wPol, double M, char*n1,char*n2,int outP, double *tab);
 
 extern aChannel* vSigmaCh;
 extern double zInterp(double z, double * tab);
@@ -453,6 +468,7 @@ extern double  PICO60_90(double M);
 extern double  PICO60_SDp_90(double M);
 extern double  XENON1T_SDp_90(double M);
 extern double  XENON1T_SDn_90(double M);
+extern double  PandaX4T(double M);
 
 extern int Xe1TnEvents;
 extern double Xe1TpEff0(double E);
@@ -471,7 +487,7 @@ extern double MaxGapLim(double x, double mu);
 extern double widthSMh(double Mh);
 extern double brSMhGG(double Mh);
 extern double brSMhAA(double Mh);
-extern int    isSMP(int pdg);
+
 
 
 extern double cutRecoilResult(double *tab, double E1, double E2);
@@ -480,7 +496,6 @@ extern double dNdERecoil(double E,double *tab);
 extern void killPlots(void);
 
 extern int smodels(int Run, int nf,double csMinFb, char*fileName, char*version, int wrt);
-
 
 typedef void (SxxType)(double,double*,double*,double*);
 

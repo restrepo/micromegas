@@ -33,6 +33,15 @@ double  XENON1T_90_old(double M)
 } 
 //#endif
 
+double PandaX4T(double M) // 2107.13438
+{
+  double dataX[160]={5.090E+00,5.143E+00,5.222E+00,5.284E+00,5.369E+00,5.476E+00,5.541E+00,5.628E+00,5.728E+00,5.792E+00,5.888E+00,5.989E+00,6.118E+00,6.234E+00,6.347E+00,6.449E+00,6.560E+00,6.672E+00,6.786E+00,6.902E+00,7.020E+00,7.122E+00,7.311E+00,7.464E+00,7.635E+00,7.773E+00,7.911E+00,8.071E+00,8.198E+00,8.373E+00,8.589E+00,8.736E+00,8.962E+00,9.141E+00,9.350E+00,9.576E+00,9.748E+00,9.989E+00,1.035E+01,1.065E+01,1.095E+01,1.127E+01,1.159E+01,1.192E+01,1.224E+01,1.261E+01,1.298E+01,1.335E+01,1.374E+01,1.413E+01,1.453E+01,1.495E+01,1.542E+01,1.597E+01,1.660E+01,1.738E+01,1.803E+01,1.871E+01,1.945E+01,2.029E+01,2.159E+01,2.298E+01,2.446E+01,2.603E+01,2.770E+01,2.947E+01,3.137E+01,3.338E+01,3.552E+01,3.780E+01,4.023E+01,4.281E+01,4.556E+01,4.848E+01,5.160E+01,5.491E+01,5.843E+01,6.218E+01,6.618E+01,7.042E+01,7.494E+01,7.976E+01,8.487E+01,9.032E+01,9.612E+01,1.023E+02,1.089E+02,1.158E+02,1.233E+02,1.312E+02,1.396E+02,1.486E+02,1.581E+02,1.683E+02,1.791E+02,1.906E+02,2.028E+02,2.158E+02,2.297E+02,2.444E+02,2.601E+02,2.768E+02,2.946E+02,3.135E+02,3.336E+02,3.550E+02,3.778E+02,4.020E+02,4.279E+02,4.553E+02,4.845E+02,5.156E+02,5.487E+02,5.840E+02,6.215E+02,6.614E+02,7.038E+02,7.490E+02,7.971E+02,8.482E+02,9.027E+02,9.606E+02,1.022E+03,1.088E+03,1.158E+03,1.232E+03,1.311E+03,1.395E+03,1.485E+03,1.580E+03,1.682E+03,1.790E+03,1.904E+03,2.027E+03,2.157E+03,2.295E+03,2.443E+03,2.599E+03,2.766E+03,2.944E+03,3.133E+03,3.334E+03,3.548E+03,3.776E+03,4.018E+03,4.276E+03,4.550E+03,4.842E+03,5.153E+03,5.484E+03,5.836E+03,6.211E+03,6.609E+03,7.034E+03,7.485E+03,7.966E+03,8.477E+03,9.021E+03,9.600E+03,1.002E+04};
+  double dataY[160]={2.250E-44,2.031E-44,1.841E-44,1.642E-44,1.458E-44,1.275E-44,1.148E-44,1.024E-44,9.041E-45,8.119E-45,7.259E-45,6.375E-45,5.668E-45,5.024E-45,4.579E-45,4.169E-45,3.796E-45,3.454E-45,3.142E-45,2.855E-45,2.578E-45,2.316E-45,2.083E-45,1.840E-45,1.630E-45,1.463E-45,1.327E-45,1.221E-45,1.102E-45,1.005E-45,9.065E-46,8.280E-46,7.460E-46,6.743E-46,6.127E-46,5.387E-46,4.961E-46,4.463E-46,3.972E-46,3.592E-46,3.266E-46,2.974E-46,2.698E-46,2.447E-46,2.234E-46,2.021E-46,1.844E-46,1.678E-46,1.527E-46,1.392E-46,1.265E-46,1.151E-46,1.050E-46,9.605E-47,8.722E-47,7.824E-47,7.086E-47,6.467E-47,5.881E-47,5.441E-47,5.195E-47,4.944E-47,4.712E-47,4.482E-47,4.267E-47,4.065E-47,3.966E-47,3.942E-47,3.914E-47,3.887E-47,3.862E-47,3.882E-47,3.902E-47,3.922E-47,3.942E-47,3.967E-47,3.982E-47,4.109E-47,4.358E-47,4.620E-47,4.898E-47,5.192E-47,5.507E-47,5.838E-47,6.191E-47,6.533E-47,6.836E-47,7.148E-47,7.474E-47,7.818E-47,8.171E-47,8.554E-47,9.023E-47,9.562E-47,1.014E-46,1.074E-46,1.138E-46,1.206E-46,1.278E-46,1.354E-46,1.426E-46,1.494E-46,1.565E-46,1.641E-46,1.721E-46,1.807E-46,1.893E-46,1.987E-46,2.111E-46,2.249E-46,2.396E-46,2.555E-46,2.721E-46,2.900E-46,3.089E-46,3.293E-46,3.508E-46,3.732E-46,3.983E-46,4.244E-46,4.522E-46,4.819E-46,5.131E-46,5.451E-46,5.799E-46,6.171E-46,6.557E-46,6.962E-46,7.409E-46,7.885E-46,8.375E-46,8.895E-46,9.466E-46,1.007E-45,1.070E-45,1.137E-45,1.209E-45,1.287E-45,1.367E-45,1.452E-45,1.545E-45,1.643E-45,1.737E-45,1.855E-45,1.974E-45,2.098E-45,2.231E-45,2.370E-45,2.521E-45,2.680E-45,2.850E-45,3.028E-45,3.220E-45,3.424E-45,3.641E-45,3.869E-45,4.111E-45,4.375E-45,4.652E-45,4.794E-45};
+  if(M<dataX[0])   return NAN;
+  if(M>dataX[159]) return NAN;
+  return polint3(M,160,dataX,dataY);
+}
+
 
 
 double DS50_90(double M)
@@ -949,7 +958,7 @@ static double DD_factor_(double pval,char**expName)
 { 
   double ff=0,ff_;
   double *dNdE;
-  *expName="";
+  if(expName)*expName="";
   
   dNdE=dNdE_XENON1T_2018;
   if(dNdE)
@@ -977,7 +986,7 @@ static double DD_factor_(double pval,char**expName)
        }  
        else ff_= -log(pval)/N; 
         
-       if( isfinite(ff_) &&  (ff==0 ||  ff_<ff) ) { ff=ff_;  *expName="XENON1T_2018";}
+       if( isfinite(ff_) &&  (ff==0 ||  ff_<ff) ) { ff=ff_; if(expName) *expName="XENON1T_2018";}
      }   
   } 
 
@@ -986,7 +995,7 @@ static double DD_factor_(double pval,char**expName)
   if(dNdE)
   { 
      ff_=CRESST_III_UpperLim(pval,dNdE);
-     if( isfinite(ff_) &&  (ff==0 ||  ff_<ff) ) { ff=ff_;  *expName="CRESST_2019"; } 
+     if( isfinite(ff_) &&  (ff==0 ||  ff_<ff) ) { ff=ff_;   if(expName)  *expName="CRESST_2019"; } 
   }   
    
   dNdE=dNdE_DarkSide_2018;
@@ -997,7 +1006,7 @@ static double DD_factor_(double pval,char**expName)
      neSignal(neFluct, dNdE, binSignal);    
      if(binSignal[DS_neStart]==0) ff_=NAN;
      else  ff_=DSllExclude(pval, binSignal);        
-     if( isfinite(ff_) &&  (ff==0 ||  ff_<ff) ) { ff=ff_;  *expName="DarkSide_2018";}
+     if( isfinite(ff_) &&  (ff==0 ||  ff_<ff) ) { ff=ff_;  if(expName) *expName="DarkSide_2018";}
   }
   
   if(dNdE_PICO_2019)
@@ -1042,9 +1051,9 @@ static double DD_factor_(double pval,char**expName)
        break;                                                                                                                                                                                                     
     }                                                                 
     
-    if( isfinite(ff_) &&  (ff==0 ||  ff_<ff) ) { ff=ff_;  *expName="PICO_2019";} 
+    if( isfinite(ff_) &&  (ff==0 ||  ff_<ff) ) { ff=ff_;  if(expName) *expName="PICO_2019";} 
   } 
-  if(*expName=="") return NAN;
+  if(ff==0) return NAN;
   return ff;
 }
 
@@ -1053,6 +1062,7 @@ static double DD_pval_(double s, char**expName)
 {
   double pval=1,pval_;
   double *dNdE;
+  if(expName) *expName="";
   
   dNdE=dNdE_XENON1T_2018;
   if(dNdE)
@@ -1088,7 +1098,7 @@ static double DD_pval_(double s, char**expName)
           pval_=exp(-s*nEv)*(1+s*C*nEv/(C+nEv));  
        }   
        
-       if(isfinite(pval_) && pval_<pval) { pval=pval_; if(expName) *expName="XENON1T_2018";}
+       if(isfinite(pval_) && pval_<pval) { pval=pval_; if(expName) *expName="XENON1T_2018"; }
      }       
   } 
 
@@ -1105,7 +1115,8 @@ static double DD_pval_(double s, char**expName)
      {
        pval_=(s*(pval1-pval2)+s1*pval2-s2*pval1)/(s1-s2);       
        double s_=CRESST_III_UpperLim(pval_,dNdE);
-       if(fabs(s-s_)<0.01*ds) break; 
+       if(fabs(s-s_)<0.01*ds) break;
+       if( fabs(pval1-pval2) < 0.01*(pval1+pval2)) break; 
        if(s_<s) {s1=s_;pval1=pval_;} else { s2=s_; pval2=pval_;} 
      } else
      {

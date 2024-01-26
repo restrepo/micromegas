@@ -5,6 +5,6 @@ extern float upperlim_(float *CL,int *If,int *N,float*FC,float *muB,float*FB,int
 
 float upperlim_(float *CL,int *If,int *N,float*FC,float *muB,float*FB,int*Iflag)
 {
-   printf("code for Optimal Interval  Method needs Fortran.\n");    
+   printf("The CRESST_III exclusion cannot be determined because the Optimal Interval  Method needs Fortran.\n");
    return NAN;
 }

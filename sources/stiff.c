@@ -1,4 +1,3 @@
-
 /* (C) Copr. 1986-92 Numerical Recipes Software ?421.1-9. */
 
 #include <math.h>
@@ -13,7 +12,7 @@ static double*vv=NULL;
 
 static int ludcmp(double*a, int n, int* indx, double* d)
 {
-   int i,imax,j,k;
+   int i,imax=0,j,k;
    double big,dum,sum,temp;
 
    *d=1.0;
@@ -39,10 +38,11 @@ static int ludcmp(double*a, int n, int* indx, double* d)
         for(k=0;k<j;k++)sum -= a[i*n+k]*a[k*n+j];
 	a[i*n+j]=sum;
         if( (dum=vv[i]*fabs(sum)) >= big) {big=dum; imax=i;}
-     }
+     }     
      if(j != imax) 
      {   for (k=0;k<n;k++) 
          {   
+//printf("imax=%d n=%d k=%d\n", imax,n,k);
 	     dum=a[imax*n+k];
 	     a[imax*n+k]=a[j*n+k];
 	     a[j*n+k]=dum;

@@ -9,7 +9,7 @@
 #define FIN  "LesHin"
 #define FOUT "LesHout"
 
-#define VERSION "4.1.7"
+#define VERSION "4.1.12"
 
 static int SystemCall(int mode)
 { 

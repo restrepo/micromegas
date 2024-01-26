@@ -1,5 +1,5 @@
 {
-   char *VERSION="2.1.1";
+   char *VERSION="2.2.0.post1";
    char smodels_database[100];
    char smodels_version[100];
    system("rm -f smodels.*");
@@ -13,6 +13,13 @@
    SmoLsig=INFINITY;
    SmoLmax=INFINITY;
    SmoLSM=INFINITY;
+
+   CombRvalue=0;
+   CombRexpected=0.;
+   CombSmoLsig=INFINITY;
+   CombSmoLmax=INFINITY;
+   CombSmoLSM=INFINITY;
+   CombAnalyses[0]=0;
 
    if(VERSION[0]<'2' || VERSION[0]>'9')
    {
@@ -58,6 +65,17 @@
                  SmoLSM=slhaVal("SModelS_Exclusion",0.,2,1,8);
                }  
                slhaSTRFormat("SModelS_Exclusion"," 1 4 %s",analysis);
+
+               if (slhaValExists("SModelS_CombinedAnas",2,1,1)==1) 
+               {
+                 CombRvalue=slhaVal("SModelS_CombinedAnas",0.,2,1,1);
+                 CombRexpected=slhaVal("SModelS_CombinedAnas",0.,2,1,2);
+                 CombSmoLsig=slhaVal("SModelS_CombinedAnas",0.,2,1,3);
+                 CombSmoLmax=slhaVal("SModelS_CombinedAnas",0.,2,1,4);
+                 CombSmoLSM=slhaVal("SModelS_CombinedAnas",0.,2,1,5);
+                 slhaSTRFormat("SModelS_CombinedAnas"," 1 6  %[^#]",CombAnalyses);
+               }  
+
             }
          }
       }

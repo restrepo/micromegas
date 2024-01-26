@@ -2,7 +2,7 @@
 
 NMSSMTools = $(CURDIR)/../../Packages/NMSSMTools_5.6.0
 CALCHEP =    ../../CalcHEP_src
-all:  aLib.a $(NMSSMTools)/sources/sources.a  $(NMSSMTools)/main/nmhdecay  $(NMSSMTools)/main/nmspec
+all:  aLib.a $(NMSSMTools)/sources/sources.a  $(NMSSMTools)/main/nmhdecay  $(NMSSMTools)/main/nmspec 
 
 ifneq ($(MAKECMDGOALS),clean)
 include $(CALCHEP)/FlagsForMake

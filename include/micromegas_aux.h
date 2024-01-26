@@ -99,6 +99,8 @@ extern int stifbs(int first,double xstart, double xend, int nv, double*y, double
 /*==== Tool  for interpolation  ====*/
 extern int buildInterpolation( double (*Fun)(double), double x1,double x2, 
             double eps, double delt, int * N, double ** xa, double **ya);
+
+extern int buildInterpolation_arg(double (*Fun)(double,void*), void*arg, double x1,double x2, double eps,double delt, int*N_, double**xa_, double**ya_);
             
 extern void spline(double*x,double*y,int n,double*y2);            
 extern void splint(double*xa, double*ya, double*y2a, int n, double x, double *y);

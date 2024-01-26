@@ -13,14 +13,15 @@ VPATH = SuSpect:../../sources
 
 SuSpectSRC = $(wildcard SuSpect/*.f)
 
-special = isajetLesH.c
 
 aLibOBJ = $(subst .c,.o,$(filter-out $(special),$(wildcard *.c))) 
 
 ifneq ($(FC),)
    all:  suspect.exe  aLib.a 
+   special = isajetLesH.c
 else
    all: aLib.a
+   special = isajetLesH.c suspect_call.c
 endif
 
 suspect.exe: $(SuSpectSRC) 

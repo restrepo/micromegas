@@ -26,7 +26,7 @@
 /*#define RESET_FORMFACTORS*/
   /* Modify default nucleus form factors, 
     DM velocity distribution,
-    A-dependence of Fermi-dencity
+    A-dependence of Fermi-density
   */     
 #define CDM_NUCLEON     
   /* Calculate amplitudes and cross-sections for  CDM-mucleon collisions */  
@@ -143,8 +143,12 @@ int main(int argc,char** argv)
 #ifdef SMODELS
 { int status=0, smodelsOK=0; 
   double Rvalue, Rexpected, SmoLsig, SmoLmax, SmoLSM;
+  double CombRvalue, CombRexpected, CombSmoLsig, CombSmoLmax, CombSmoLSM;
+
   char analysis[50]={},topology[100]={},smodelsInfo[100];
-  int LHCrun=LHC8|LHC13;  //  LHC8  - 8TeV; LHC13  - 13TeV;   
+  char CombAnalyses[200]={};
+  int LHCrun=LHC8|LHC13;  //  LHC8 - 8TeV; LHC13 - 13TeV;   
+//  int LHCrun=LHC13;  //  LHC13 - 13TeV only;   
 
   printf("\n\n=====  LHC constraints with SModelS  =====\n\n");
 
@@ -152,22 +156,35 @@ int main(int argc,char** argv)
 
   printf("SModelS %s \n",smodelsInfo);
   if(smodelsOK) 
-  { printf(" highest r-value = %.2E",Rvalue); 
+  { printf("\n highest r-value = %.2E",Rvalue); 
+
     if(Rvalue>0) 
     { printf(" from %s, topology: %s ",analysis,topology);
       if(Rexpected>0) 
       { printf("\n expected r = %.2E ",Rexpected);
-        if(SmoLsig>0) 
-        { printf("\n -2log (L_signal, L_max, L_SM) = %.2E %.2E %.2E", 
-                  -2*log(SmoLsig),-2*log(SmoLmax),-2*log(SmoLSM)); }
+        if(SmoLsig>=0 && SmoLsig!=INFINITY) 
+        { printf("\n -2log (L_signal/L_max, L_SM/L_max) = %.2E %.2E", 
+                  -2*log(SmoLsig/SmoLmax),-2*log(SmoLSM/SmoLmax)); }
       }
     }  
     if(status==1) { printf("\n excluded by SMS results"); }
     else if(status==0) printf("\n not excluded"); 
     else if(status==-1) printf("\n not not tested by results in SModelS database"); 
     printf("\n");
+
+    // r-value and likelihoods from analysis cvombination
+    if(CombRvalue>0) 
+    { printf("\n Combination of %s",CombAnalyses);
+      printf("\n r-value = %.2E (expected r = %.2E)",CombRvalue, CombRexpected); 
+      if(CombRvalue>=1) printf("  --> excluded"); 
+      else printf("  --> not excluded"); 
+      printf("\n -2log (L_signal/L_max, L_SM/L_max) = %.2E %.2E \n\n", 
+                    -2*log(CombSmoLsig/CombSmoLmax),-2*log(CombSmoLSM/CombSmoLmax)); 
+    }
+
   } else system("cat smodels.err"); // problem: see smodels.err
 }   
+
 #endif 
 
 

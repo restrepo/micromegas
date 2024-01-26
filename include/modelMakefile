@@ -14,7 +14,7 @@ cLib = $(CALCHEP)/lib
 # files to compile
 SSS = $(wildcard lib/*.a) ../lib/micromegas.a  $(cLib)/dynamic_me.a ../lib/micromegas.a \
  work/work_aux.a  $(wildcard lib/*.a)   $(cLib)/sqme_aux.$(SO) $(cLib)/libSLHAplus.a   \
- $(cLib)/num_c.a   $(cLib)/serv.a $(cLib)/ntools.a  $(CURDIR)/../lib/maxGap.so  ../lib/dummy.a   $(LX11)
+ $(cLib)/num_c.a  $(cLib)/serv.a  $(cLib)/ntools.a  $(cLib)/serv.a $(cLib)/ntools.a      $(CURDIR)/../lib/maxGap.so  ../lib/dummy.a   $(LX11)
 
 
 ifneq ($(LHAPDFPATH),)

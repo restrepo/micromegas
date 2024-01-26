@@ -6,9 +6,9 @@ Z boson         |Z  |Z  |23        |2    |MZ  |!wZ  |1    |G  |Z               |
 W boson         |W+ |W- |24        |2    |MW  |!wW  |1    |G  |W+              |W-
 gluon           |G  |G  |21        |2    |0   |0    |8    |G  |G               |G
 neutrino        |ne |Ne |12        |1    |0   |0    |1    |L  |ne              |Ne
-electron        |e  |E  |11        |1    |Me  |0    |1    |   |e               |E
+electron        |e  |E  |11        |1    |0   |0    |1    |   |e               |E
 mu-neutrino     |nm |Nm |14        |1    |0   |0    |1    |L  |nm              |Nm
-muon            |m  |M  |13        |1    |Mm  |0    |1    |   |m               |M
+muon            |m  |M  |13        |1    |0   |0    |1    |   |m               |M
 tau-neutrino    |nl |Nl |16        |1    |0   |0    |1    |L  |nl              |Nl
 tau-lepton      |l  |L  |15        |1    |Ml  |0    |1    |   |l               |L
 u-quark         |u  |U  |2         |1    |Mq  |0    |3    |   |u               |U

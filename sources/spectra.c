@@ -743,25 +743,22 @@ void  decaySpectrum(char*pName,int outP, double*tabD)
 { 
   double M=pMass(pName); 
   double mx=outMass[outP];
-//printf("pMame=%s\n", pName);
   
   tabD[0]=M/2;
   for(int i=1;i<NZ;i++)tabD[i]=0;
-
 /*          
   if( (CDM1 &&(strcmp(CDM1,pName)==0 ||strcmp(aCDM1,pName)==0))
     ||(CDM2 &&(strcmp(CDM2,pName)==0 ||strcmp(aCDM2,pName)==0))) return; 
 */    
   txtList L;   
   double w=pWidth(pName,&L);
-//printf(" %s w=%E\n",pName,w);  
   if(w==0) 
   { char  mess[100]; sprintf(mess," Can not decay '%s'; ",pName);
     addErrorMess(&errMess,mess);
     return;    
   }     
   
-double E,Es=0;
+//double E,Es=0;
   double brs=0;          
   for(;L;L=L->next)
   { char p[5][20];
@@ -772,16 +769,15 @@ double E,Es=0;
 //printf("%s %E\n",L->txt,br);    
     if(n==4) continue;
     else if(n==2) 
-    { getSpectrum2(0,M,p[1],p[2],outP, tab_p);
-
-      spectrInfo(1E-10,tab_p,&E);
-      Es+=E*br;
-//      printf("E=%e \n", E);
+    { getSpectrum2(0,M,p[1],p[2],outP, tab_p);    
+//      spectrInfo(1E-10,tab_p,&E);
+//      Es+=E*br;
+//      printf("E=%e Es=%E\n", E,Es);
     }  
     else if(n==3) 
     {  char process[50];
        sprintf(process,"%s->%s,%s,%s",p[0],p[1],p[2],p[3]); 
-//printf("process=%s\n",process);       
+// printf("process=%s\n",process);       
        numout*cc13=newProcess(process);
        if(!cc13) { printf("Wrong decay channel passed via SLHA: %s\n", process); continue;}
        passParameters(cc13);
@@ -1057,7 +1053,6 @@ for(int K=0;K<K_max;K++)
     for(i=0;i<4;i++) N[i]=libPtr->interface->pinf(k+1,i+1,m+i,pdg+i);
     cc23=NULL;
     v_cs[k]=0;
-//printf("%s %s -> %s %s\n", N[0],N[1],N[2],N[3]);    
     if(VZdecay||VWdecay)
     {  int nVV;
        int vd[4]={0,0,0,0};
@@ -1078,6 +1073,7 @@ for(int K=0;K<K_max;K++)
     if(cc23)
     { int i3W;  
       double  r,m1,v0=0.001;
+      passParameters(cc23);
       for(i3W=2;i3W<5;i3W++) if(strcmp(cc23->interface->pinf(1,i3W+1,NULL,NULL),N[l_])==0) break;
       { int err;
         r=v0*cs23(cc23,1,v0*Mcdm0/2,i3W,&err)/br;
@@ -1100,7 +1096,6 @@ for(int K=0;K<K_max;K++)
 #else 
       v_cs[k]= vcs22(libPtr,k+1,&err);
 #endif 
-//printf("v_cs=%E\n", v_cs[k]*2.9979E-26);
      if(v_cs[k]<0) v_cs[k]=0; 
       vcsSum+=v_cs[k];
     } else v_cs[k]=-1;

@@ -20,8 +20,34 @@
 #include "vp.h"
 #include "n_proc.h"
 #include "dynamic_cs.h"
+#include <pthread.h>
 
 #include"SLHAplus.h"
+
+static pthread_mutex_t keyN; //=PTHREAD_MUTEX_INITIALIZER;
+
+pthread_mutex_t* dynamic_cs_mutex=NULL;
+
+int destroy_dynamic_cs_mutex(void)
+{ if(dynamic_cs_mutex) 
+  { pthread_mutex_destroy(&keyN); 
+    dynamic_cs_mutex=NULL; 
+    return 0;
+  }
+  else return 1;
+}
+
+int init_dynamic_cs_mutex(void)
+{ 
+  pthread_mutexattr_t rectype;
+  int err=pthread_mutexattr_init(&rectype);
+  if(!err) err=pthread_mutexattr_settype(&rectype,PTHREAD_MUTEX_RECURSIVE);  
+  if(!err) err=pthread_mutex_init(&keyN,&rectype);
+  pthread_mutexattr_destroy(&rectype);
+  if(!err) dynamic_cs_mutex=&keyN; else dynamic_cs_mutex=NULL;
+  return err;
+} 
+
 
 extern  char * trim(char *);
   
@@ -36,6 +62,8 @@ int  prepareWorkPlace(void)
 {  char * command;
    struct stat buf;
    int err,len,mknew;
+
+   if(dynamic_cs_mutex)   pthread_mutex_lock(dynamic_cs_mutex);
 
    if(!compDir) return  -1;   
    mknew=stat(compDir,&buf);
@@ -86,6 +114,7 @@ int cleanWorkPlace(void)
    system(command);
    free(command);
 #endif    
+if(dynamic_cs_mutex)   pthread_mutex_unlock(dynamic_cs_mutex);
    return 0; 
 }
 
@@ -306,11 +335,13 @@ numout*getMEcode(int twidth,int Gauge, char*Process, char*excludeVirtual,
    cc=loadLib(handle,lib_);
    if(!cc && new) dClose(handle);
    if(cc)
-   {  test=(procRec*)malloc(sizeof(procRec));
+   { if(dynamic_cs_mutex) pthread_mutex_lock(dynamic_cs_mutex);
+      test=(procRec*)malloc(sizeof(procRec));
       test->next=allProc; allProc=test;
       test->libname=(char*) malloc(strlen(lib_)+1);
       strcpy(test->libname,lib_);
       test->cc=cc;
+      if(dynamic_cs_mutex)pthread_mutex_unlock(dynamic_cs_mutex);
    } else if(new) dClose(handle);  
     free(command); free(proclibf); free(lib_);
     if(cc) *(cc->interface->twidth) =twidth;
@@ -490,17 +521,21 @@ txtList  makeProcList(char ** InNames, char** OutNames, int nx)
      for(int j=0;j<=i;j++) if(allNames[i]==allNames[j] || strcmp(allNames[i],allNames[j])==0)
      { sprintf(process+strlen(process),"%s", alias[j]); break;}
   }
+  if(nout==0) strcat(process,"->");
 
-  if(nx){ if(nout) strcat(process,",");  sprintf(process+strlen(process),"%d*x{",nx); } 
-  for(int i=0;i<nin+nout;i++) if(alias[i][0]) sprintf(process+strlen(process),"{%s",allNames[i]);
+  if(nx){ if(nout) strcat(process,",");  sprintf(process+strlen(process),"%d*x",nx); } 
+  strcat(process,"{");
+  for(int i=0;i<nin+nout;i++) if(alias[i][0]) sprintf(process+strlen(process),"%s{",allNames[i]);
 
-//printf("command:\n%s\n",command);      
 
   char * command=malloc(strlen(compDir) + strlen(calchepDir) + strlen(process) + 100);
   int delWorkDir=prepareWorkPlace();
-  sprintf(command,"cd %s; %s/bin/s_calchep -blind \"{{%s{{[[{0\" >/dev/null",
-                  compDir,calchepDir,                process);   
-//printf("command=%s\n", command);                  
+  sprintf(command,"cd %s; %s/bin/s_calchep -blind \"{{%s",
+                  compDir,calchepDir,                process); 
+  if(nx) strcat(command,"{{[[{0\" >/dev/null"); else strcat(command,"{[[{0\" >/dev/null"); 
+
+//printf("command:%s\n",command);      
+                                    
   system(command);
   free(command); free(process);     
   fnameG=malloc(strlen(compDir)+50);
@@ -636,12 +671,15 @@ int HiggsLambdas(double Q, char * Higgs, double complex*lAA,double complex *lGG,
      if(strcmp(Xp,antiParticle(Xm))==0)
      {  
         int pdg,spin2,charge3,cdim;
-        double mX=pMass(Xp);
         double dffE=0,dfaE=0,dffC=0,dfaC=0;
-        pdg=qNumbers(Xp, &spin2, &charge3, &cdim);
-
-        if((charge3 !=0 || cdim!=1) && mX>0)
-        {  
+        pdg=qNumbers(Xp, &spin2, &charge3, &cdim);     
+        if((charge3 !=0 || cdim!=1))
+        {  int j;
+           for(j=0;j<nModelParticles;j++) if(strcmp(ModelPrtcls[j].name,Xp)==0 
+                                          || strcmp(ModelPrtcls[j].aname,Xp)==0) break;
+           if(strcmp("0",ModelPrtcls[j].mass)==0) continue;
+           double  mX=findValW(ModelPrtcls[j].mass);
+           if(mX==0.) continue;         
            double coeff[10]; 
            int k;
            double mXp; // pole mass
@@ -649,12 +687,12 @@ int HiggsLambdas(double Q, char * Higgs, double complex*lAA,double complex *lGG,
            { case 4: mXp=1.48;         break;
              case 5: mXp=bPoleMass();  break;
              case 6: mXp=tPoleMass();  break;
-             default:mXp=mX;
+             default:mXp=fabs(mX);
            }             
            double mN= (spin2&1)?  mX : mX*mX;   
            lVert *xxh=getVertex(Xm,Xp,Higgs,NULL);
            if(!xxh) continue;
-           getNumCoeff(xxh,coeff);
+           getNumCoeff(xxh,coeff); 
            for(k=0;k<xxh->nTerms;k++)  
            { int addFF=0,addFA=0;
              switch(spin2)
@@ -665,7 +703,11 @@ int HiggsLambdas(double Q, char * Higgs, double complex*lAA,double complex *lGG,
                case 2:  if(strcmp(xxh->SymbVert[k],"m2.m1")==0) addFF=1;break; 
              }
                if(addFF)
-               { if(lGG && cdim!=1)  *lGG+=hGGeven(Q,a,1,spin2,cdim,(REAL)mXp,(REAL)(coeff[k]/mN)); 
+               { if(lGG && cdim!=1) 
+                 { double complex dlGG=hGGeven(Q,a,1,spin2,cdim,(REAL)mXp,(REAL)(coeff[k]/mN)); 
+                 *lGG+=dlGG;                 
+//                  if(strcmp("h1", ModelPrtcls[i].name)==0) printf("%10.10s mN=%10.3E  lGG+=%10.3E  lGGsum=%10.3E \n",mN, pdg2name(pdg),  creal(dlGG), creal(*lGG));       
+                 }
                  if(lAA && charge3 ) *lAA+=hAAeven(Q,a,1,spin2,cdim,(REAL)mXp,(REAL)(coeff[k]/mN))*charge3*charge3/9.;
                }
                if(addFA) 

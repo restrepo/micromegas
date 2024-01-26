@@ -42,7 +42,7 @@ C      write(*,*) nArgs
       err=slharead(fInput,1)
       if(err.ne.0)  stop 'Problem in reading  input file'
       Nch=ModelConstIni(MW,SW,EE,Mb)
-      v=0D0   
+      v=1E-3   
       vcsgg=vcsnngg(v)
       if(Nch.gt.1) then    
         vcsgz=vcsnngz(v)

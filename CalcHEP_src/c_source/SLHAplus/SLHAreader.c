@@ -764,11 +764,12 @@ int   slhaSTRFormat(char * Block, char * format, char *txt)
   if(strcmp(BLOCK,blck->name)==0)
   {  char format_[BlckLn +4];
 
+
      dr=blck->dataList;
      strcpy(format_,format); strcat(format_," %s");
      for(;dr;dr=dr->next)
      { int err;
-       int i1=0,i2=0,eq;    
+       int i1=0,i2=0,eq;      
        for(;;)
        {  
           for(; dr->body[i1]==' ';i1++) continue;
@@ -787,7 +788,7 @@ int   slhaSTRFormat(char * Block, char * format, char *txt)
        char body_[StrLn+3];
        char buff[StrLn];
        strcpy(body_,dr->body);  strcat(body_," #");
-       
+//printf("body_=%s\n", body_);       
        err=sscanf(body_+i1,format_+i2,txt,buff);
        if(err==2 && strcmp(buff,"#")==0) {return 0; }
      }  

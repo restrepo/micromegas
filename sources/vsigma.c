@@ -226,7 +226,7 @@ double vSigmaCC(double T,numout* cc, int mode)
 
   n0=0; 
   if(CI->nout>2) for(n=1;(s=CI->den_info(1,n,&m,&w,NULL));n++)
-  { double mm=0, ww=0;
+  { double mm=0,ww=0;
     if(m) mm=fabs(CI->va[m]); if(w) ww=CI->va[w];
     double d=sing2(s,CI->nout,mm,ww); 
     if(!isfinite(d)) { printf("non-integrable pole\n"); return 0;}

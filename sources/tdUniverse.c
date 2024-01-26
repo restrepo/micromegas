@@ -90,7 +90,7 @@ int loadHeffGeff(char*fname)
 }
 
 double gEff(double T) 
-{
+{ 
   if(Tdim==0) loadHeffGeff(NULL);    
   if(T< t_[0]) T=t_[0];
   if(T> t_[Tdim-1]) T=t_[Tdim-1];
@@ -107,7 +107,7 @@ double hEffLnDiff(double T)
          
 
 double hEff(double T) 
-{
+{ 
   if(Tdim==0) loadHeffGeff(NULL); 
   if(T< t_[0]) T=t_[0];
   if(T> t_[Tdim-1]) T=t_[Tdim-1];

@@ -1,5 +1,5 @@
-#define HBversion  "5.5.0" 
-#define HSversion  "2.3.0"  
+#define HBversion  "5.10.0" 
+#define HSversion  "2.6.2"  
 {
    system("rm -f HB.out HS.out");
    system("cp HB.in HS.in");
@@ -25,16 +25,18 @@
      system(HB);
 
      slhaRead("HB.out",1+4);
-     slhaSTRFormat("HiggsBoundsResults","0 %s %*s",HB_version);
+     slhaSTRFormat("HiggsBoundsResults","0 %s ||%*s",HB_version);
+//printf("HB_version %s \n", HB_version);     
      for(int i=0;i<3;i++) 
      {  char fmt[20];
-        sprintf(fmt,"%d 1 %%lf",i+1);
+        sprintf(fmt,"%d 1 %%lf",i);
         HB_id[i]=slhaValFormat("HiggsBoundsResults",0., fmt)+0.001; 
-        sprintf(fmt,"%d 2 %%lf",i+1); 
+        sprintf(fmt,"%d 2 %%lf",i); 
         HB_result[i]=slhaValFormat("HiggsBoundsResults",0., fmt)+0.001;
-        sprintf(fmt,"%d 3 %%lf",i+1);
+        sprintf(fmt,"%d 3 %%lf",i);
         HB_obsratio[i]=slhaValFormat("HiggsBoundsResults",0.,fmt );
-        sprintf(fmt,"%d 5 ||%%[^|]||",i+1);
+//printf("i=%d HB_obsratio[i]=%E\n", i, HB_obsratio[i]);
+        sprintf(fmt,"%d 5 ||%%[^|]||",i);
         slhaSTRFormat("HiggsBoundsResults",fmt,HB_chan[i]);
      }
    }  
@@ -58,7 +60,8 @@
 //#define PDF " 1 "  // box 
 //#define PDF " 3 "  // box+Gaussia
 
-     sprintf(HS+strlen(HS)," " DataSet Method  PDF  " SLHA %d %d HS.in > hs.stdout",NH0,NHch); 
+     sprintf(HS+strlen(HS)," " DataSet  PDF  " SLHA %d %d HS.in > hs.stdout",NH0,NHch); 
+printf("HS=%s\n",HS);     
      system(HS);
 
      system("grep -A 10000  HiggsSignalsResults HS.in > HS.out");
@@ -72,6 +75,7 @@
 #undef DataSet
    }
 #endif
+
 free(HB); free(HS);
 
 }

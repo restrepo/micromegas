@@ -9,7 +9,7 @@
 #define FIN  "LesHouches.in"
 #define FOUT "SPheno.spc"
 
-#define VERSION "4.0.3" 
+#define VERSION "4.0.4" 
 
 static int SystemCall(int mode)
 { 

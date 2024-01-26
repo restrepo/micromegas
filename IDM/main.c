@@ -10,7 +10,7 @@
 
 //#define HIGGSBOUNDS
 //#define HIGGSSIGNALS 
-#define LILITH  
+//#define LILITH  
 //#define SMODELS 
 
 
@@ -36,7 +36,7 @@
 #define CDM_NUCLEON     
   /* Calculate amplitudes and cross-sections for  CDM-mucleon collisions */  
 
-//#define CDM_NUCLEUS
+#define CDM_NUCLEUS
    // Calculate  exclusion rate for direct detection experiments Xenon1T and DarkSide50
             
             
@@ -51,7 +51,7 @@
 //#define SHOWPLOTS
      /* Display  graphical plots on the screen */ 
 
-//#define CLEAN   to clean intermediate files
+#define CLEAN   to clean intermediate files
 /*===== End of DEFINE  settings ===== */
 
 
@@ -80,7 +80,6 @@ int main(int argc,char** argv)
              
   err=sortOddParticles(cdmName);
   if(err) { printf("Can't calculate %s\n",cdmName); return 1;}
-     
    qNumbers(cdmName, &spin2, &charge3, &cdim);
    printf("\nDark matter candidate is '%s' with spin=%d/2\n",
     cdmName,       spin2); 
@@ -149,8 +148,12 @@ int main(int argc,char** argv)
 #ifdef SMODELS
 { int status=0, smodelsOK=0; 
   double Rvalue, Rexpected, SmoLsig, SmoLmax, SmoLSM;
+  double CombRvalue, CombRexpected, CombSmoLsig, CombSmoLmax, CombSmoLSM;
+
   char analysis[50]={},topology[100]={},smodelsInfo[100];
-  int LHCrun=LHC8|LHC13;  //  LHC8  - 8TeV; LHC13  - 13TeV;   
+  char CombAnalyses[200]={};
+  int LHCrun=LHC8|LHC13;  //  LHC8 - 8TeV; LHC13 - 13TeV;   
+//  int LHCrun=LHC13;  //  LHC13 - 13TeV only;   
 
   printf("\n\n=====  LHC constraints with SModelS  =====\n\n");
 
@@ -158,20 +161,32 @@ int main(int argc,char** argv)
 
   printf("SModelS %s \n",smodelsInfo);
   if(smodelsOK) 
-  { printf(" highest r-value = %.2E",Rvalue); 
+  { printf("\n highest r-value = %.2E",Rvalue); 
+
     if(Rvalue>0) 
     { printf(" from %s, topology: %s ",analysis,topology);
       if(Rexpected>0) 
       { printf("\n expected r = %.2E ",Rexpected);
-        if(SmoLsig>0) 
-        { printf("\n -2log (L_signal, L_max, L_SM) = %.2E %.2E %.2E", 
-                  -2*log(SmoLsig),-2*log(SmoLmax),-2*log(SmoLSM)); }
+        if(SmoLsig>=0 && SmoLsig!=INFINITY) 
+        { printf("\n -2log (L_signal/L_max, L_SM/L_max) = %.2E %.2E", 
+                  -2*log(SmoLsig/SmoLmax),-2*log(SmoLSM/SmoLmax)); }
       }
     }  
     if(status==1) { printf("\n excluded by SMS results"); }
     else if(status==0) printf("\n not excluded"); 
     else if(status==-1) printf("\n not not tested by results in SModelS database"); 
     printf("\n");
+
+    // r-value and likelihoods from analysis cvombination
+    if(CombRvalue>0) 
+    { printf("\n Combination of %s",CombAnalyses);
+      printf("\n r-value = %.2E (expected r = %.2E)",CombRvalue, CombRexpected); 
+      if(CombRvalue>=1) printf("  --> excluded"); 
+      else printf("  --> not excluded"); 
+      printf("\n -2log (L_signal/L_max, L_SM/L_max) = %.2E %.2E \n\n", 
+                    -2*log(CombSmoLsig/CombSmoLmax),-2*log(CombSmoLSM/CombSmoLmax)); 
+    }
+
   } else system("cat smodels.err"); // problem: see smodels.err
 }   
 #endif 
@@ -184,25 +199,26 @@ int main(int argc,char** argv)
 
 // to exclude processes with virtual W/Z in DM   annihilation      
    VZdecay=1; VWdecay=1; cleanDecayTable();
-       
+     
 
 //   to include processes with virtual W/Z  also  in co-annihilation 
 //   VZdecay=2; VWdecay=2; cleanDecayTable(); 
        
   printf("\n==== Calculation of relic density =====\n");  
- 
   Omega=darkOmega(&Xf,fast,Beps,&err);
   
   printf("Xf=%.2e Omega=%.2e\n",Xf,Omega);  
-
 /*  
   Omega=darkOmega2(fast,Beps);
-  displayPlot("Abundances","T",1,Tstart,0,3, "Y",0,YF,NULL,  "Y1F",0,Y1F,NULL, "Yeq",0,Yeq,NULL);
   printf(" Omega2=%.2e\n",Omega); 
 */  
   if(Omega>0)printChannels(Xf,cut,Beps,1,stdout);   
 //   VZdecay=1; VWdecay=1; cleanDecayTable();  // restore default
 
+//  double Y;
+//  darkOmegaN(&Y,Beps);   
+//   Omega=Y*McdmN[1]*2.742E8;
+//   printf("OmegaN=%E\n", Omega);
 }
 #endif
 
@@ -234,10 +250,10 @@ printf("\n==== Indirect detection =======\n");
   { 
      double fi=0.1,dfi=0.05; /* angle of sight and 1/2 of cone angle in [rad] */ 
 
-     gammaFluxTab(fi,dfi, sigmaV, SpA,  FluxA);  
-#ifdef SHOWPLOTS
+     gammaFluxTab(fi,dfi, sigmaV, SpA,  FluxA);     
      printf("Photon flux  for angle of sight f=%.2f[rad]\n"
      "and spherical region described by cone with angle %.2f[rad]\n",fi,2*dfi);
+#ifdef SHOWPLOTS
      sprintf(txt,"Photon flux[cm^2 s GeV]^{1} at f=%.2f[rad], cone angle %.2f[rad]",fi,2*dfi);
      displayPlot(txt,"E[GeV]",Emin,Mcdm,0,1,"flux",0,SpectdNdE,FluxA);
 #endif

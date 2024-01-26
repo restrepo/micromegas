@@ -67,31 +67,31 @@ extern COMPLEX cMixMatrix(int id,int i,int j);
 extern COMPLEX cMixMatrixU(int id,int i,int j);
 #endif
 
-extern int rDiagonal2(aList3(double));
-extern int rDiagonal3(aList6(double));
-extern int rDiagonal4(aList10(double));
-extern int rDiagonal5(aList15(double));
+extern int rDiagonal2(aList3(REAL));
+extern int rDiagonal3(aList6(REAL));
+extern int rDiagonal4(aList10(REAL));
+extern int rDiagonal5(aList15(REAL));
 
-extern int rDiagonalA2(aList4(double));
-extern int rDiagonalA3(aList9(double));
-extern int rDiagonalA4(aList16(double));
-extern int rDiagonalA5(aList25(double));
+extern int rDiagonalA2(aList4(REAL));
+extern int rDiagonalA3(aList9(REAL));
+extern int rDiagonalA4(aList16(REAL));
+extern int rDiagonalA5(aList25(REAL));
 
 #ifndef __cplusplus
-extern int  cDiagonalH2(aList3(double complex));
-extern int  cDiagonalH3(aList6(double complex)); 
-extern int  cDiagonalH4(aList10(double complex));
-extern int  cDiagonalH5(aList15(double complex));
+extern int  cDiagonalH2(aList3(COMPLEX));
+extern int  cDiagonalH3(aList6(COMPLEX)); 
+extern int  cDiagonalH4(aList10(COMPLEX));
+extern int  cDiagonalH5(aList15(COMPLEX));
 
-extern int  cDiagonalS2(aList3(double complex));
-extern int  cDiagonalS3(aList6(double complex)); 
-extern int  cDiagonalS4(aList10(double complex));
-extern int  cDiagonalS5(aList15(double complex));
+extern int  cDiagonalS2(aList3(COMPLEX));
+extern int  cDiagonalS3(aList6(COMPLEX)); 
+extern int  cDiagonalS4(aList10(COMPLEX));
+extern int  cDiagonalS5(aList15(COMPLEX));
 
-extern int  cDiagonalA2(aList4(double complex)); 
-extern int  cDiagonalA3(aList9(double complex));
-extern int  cDiagonalA4(aList16(double complex));
-extern int  cDiagonalA5(aList25(double complex));
+extern int  cDiagonalA2(aList4(COMPLEX)); 
+extern int  cDiagonalA3(aList9(COMPLEX));
+extern int  cDiagonalA4(aList16(COMPLEX));
+extern int  cDiagonalA5(aList25(COMPLEX));
 
 #endif
 

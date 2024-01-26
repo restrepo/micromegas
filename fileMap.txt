@@ -1,4 +1,4 @@
-		Files in micromegas_5.0.9
+		Files in micromegas_5.3.35
 
 Makefile 	to compile the kernel of the package
 newProject	to create a new model directory substructure
@@ -14,18 +14,21 @@ IDM/              Inert Doublet Model
 LHM/              Little Higgs Model
 Z3IDM/            Inert doublet model with Z3 symmetry
 Z4IDSM/           Inert doublet + singlet model with Z4 symmetry
+Z5M/              Two singlets model with Z5 symmetry
 SingletDM/        Real singlet DM model
 ZpPortal/         Z' portal model with fermion DM
 LLL_scalar        Scalar DM and long-lived singlet lepton
+RDM/              Scalar Leptoquark and two singlet fermions
+STFM/             Singlet-triplet fermionic model
 mdlIndep/         contain files to compute DM direct and indirect detection observables in a model independent way
 
 
 		Files in sub-directory IDM (these files are available for all model directories listed above)
 
 Makefile 	compiles main.c or main.F
-main.c(main.F)  sample main file to compute DM observables
+main.c      sample main file to compute DM observables
 dataX.par	sample files with input parameters
-lanhep/ 		contains the source code to generate  the model in lanhep format
+lanhep/ 	contains the source code to generate  the model in lanhep format ???
 lib/		auxiliary files to compute additional observables in a given model
 work/
 	Makefile  to compile the library work/work_aux.a
@@ -38,17 +41,17 @@ work/
 		Files in directory Packages
 
 CPsuperH2.3      	Code used for computing the spectrum and some constraints in the CPVMSSM
-LanHEP			To generate model files for new models in CalcHEP format
-Lilith			To check the properties of the Higgs
-LoopTools-2.12-v0        To compute loop-induced processes
-NMSSMTools_5.1.1		Code used for computing the spectrum and some constraints in the NMSSM
+LanHEP			    To generate model files for new models in CalcHEP format
+Lilith-2-2.1db19.09patch1			To check the properties of the Higgs
+LoopTools-2.12-v0   To compute loop-induced processes
+NMSSMTools_5.6.0	Code used for computing the spectrum and some constraints in the NMSSM
 SuSpect_2.41		Code used for computing spectrum in the MSSM
-SMODELS.makef		executable to download the code SMODELS to check LHC constraints on new particles
-SPHENO.makef   executable to download the code SPHENO to compute the spectrum and some constraints in the MSSM
-SSUSY.makef  executable to download the code SoftSUSY to compute the spectrum and some constraints in the MSSM
-SUPERISO.make  executable to download the code superISO to compute flavour observables
+SMODELS.makef   executable to download the code SMODELS to check LHC constraints on new       particles
+SPHENO.makef    executable to download the code SPHENO to compute the spectrum and some constraints in the MSSM
+SSUSY.makef     executable to download the code SoftSUSY to compute the spectrum and some constraints in the MSSM
+SUPERISO.makef  executable to download the code superISO to compute flavour observables
 HBOUNDS.makef   executable to download the code HiggsBounds to check collider constraints on new Higgs particles
-HSIGNALS.makef executable to download the code HiggsSignals to check collider constraints on the Higgs
+HSIGNALS.makef  executable to download the code HiggsSignals to check collider constraints on the Higgs
 
 
 
@@ -64,10 +67,11 @@ Header files for routines of   micrOMEGAs
    ic22.h              special header for routines of  Ice Cube analysis
    micromegas_f.h      C-headers for Fortran version of micrOMEGAs routines
    micromegas.fh       declaration of Fortran functions
-	 micromegasInterfaceParams.ini Parameters needed for SModels
-
+   smodels_parameters.ini Parameters needed for SModels
+   microPath.h   ???
+   
 Files  included in main.c/main.f to realize interface with external packages. C and Fortran versions
-  hBandS.inc  / hBandS.inc_f   for HiggsBounds
+  hBandS.inc  / hBandS.inc_f   for HiggsBounds and HiggsSignals
   Lilith.inc  / Lilith.inc_f   for Lilith
   SMODELS.inc / SMODELS.inc_f   for SMODELS
 
@@ -95,8 +99,7 @@ Interface to external packages to obtain collider limits
 Calculation of collider signals
    cs22.c    	cross sections for 2->2 processes in pp, ppbar and e+e-
    lhapdf.c  	interface with LHAPDF routines.
-   dummy.c      empty code which is linked by default unless the user writes improved cross sections
-	        for DM annihilation for example to take into account higher order corrections
+   improveCS.c     code which is linked by default unless the user writes improved cross sections for DM annihilation for example to take into account higher order corrections
    pdt2.c       interface with CalcHEP routines for structure functions.
 
 Parameters of micromegas
@@ -104,9 +107,12 @@ Parameters of micromegas
    var_service.c functions to define and access numerical values of free parameters
 
 Direct detection
-   directDet.c  computes the direct detection rate for DM scattering on nucleons and nuclei
+   directDet.c   computes the direct detection rate for DM scattering on nucleons and nuclei
    DDvelocity.c  contains DM velocity distributions (Maxwell and SHM++)
-
+   DDexclusion.c to determine the 90%CL exclusion from recent experiments
+   DDspinDep.c    ???
+   maxGap.c       ???
+   
 Indirect detection
    spectra.c    calculation of spectra of SM stable particles from annihilation of a pair of
                 DM  particles. When DM annihilates into BSM particles the resulting spectra are
@@ -134,7 +140,8 @@ Calculation of relic density
    vsigma.c       calculation of annihilation rate of pairs of DM particles
    22_par.c       cross sections for 2->2 annihilation of SM particles into DM relevant for freeze-in
    freezein.c     calculation of relic density in freeze-in scenario
-	 all_22_ploc.c  defines the list of all 2->2 processes  involving two  DM and two SM particles
+   freezein_new.c  ???
+   all_22_ploc.c  defines the list of all 2->2 processes  involving two  DM and two SM particles
 
 Numerical tools
    tools.c        Bessel functions, Runge-Kutta, Interpolation of functions.
@@ -159,3 +166,6 @@ Other routines
    dynamic_cs.c   information about matrix element code stored in dynamic library
    higgsmass.c    printing  masses and widths of Higgs particles
    kin23.c        calculation of 2->3 and 2->4 cross sections
+
+
+

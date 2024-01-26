@@ -7,30 +7,30 @@
    fixArg.c uses substitutions  defined in aList.h 
 */                  
 
-int rDiagonal2(aList3(double))   {return rDiagonal(2,aList3());}
-int rDiagonal3(aList6(double))   {return rDiagonal(3,aList6());}
-int rDiagonal4(aList10(double))  {return rDiagonal(4,aList10());}
-int rDiagonal5(aList15(double))  {return rDiagonal(5,aList15());}
+int rDiagonal2(aList3(REAL))   {return rDiagonal(2,aList3());}
+int rDiagonal3(aList6(REAL))   {return rDiagonal(3,aList6());}
+int rDiagonal4(aList10(REAL))  {return rDiagonal(4,aList10());}
+int rDiagonal5(aList15(REAL))  {return rDiagonal(5,aList15());}
 
-int rDiagonalA2(aList4(double))  {return rDiagonalA(2,aList4());}
-int rDiagonalA3(aList9(double))  {return rDiagonalA(3,aList9());}
-int rDiagonalA4(aList16(double)) {return rDiagonalA(4,aList16());}
-int rDiagonalA5(aList25(double)) {return rDiagonalA(5,aList25());}
+int rDiagonalA2(aList4(REAL))  {return rDiagonalA(2,aList4());}
+int rDiagonalA3(aList9(REAL))  {return rDiagonalA(3,aList9());}
+int rDiagonalA4(aList16(REAL)) {return rDiagonalA(4,aList16());}
+int rDiagonalA5(aList25(REAL)) {return rDiagonalA(5,aList25());}
 
-int cDiagonalH2(aList3(double complex)) {return cDiagonalH(2,aList3());}
-int cDiagonalH3(aList6(double complex)) {return cDiagonalH(3,aList6());}
-int cDiagonalH4(aList10(double complex)){return cDiagonalH(4,aList10());}
-int cDiagonalH5(aList15(double complex)){return cDiagonalH(5,aList15());}
+int cDiagonalH2(aList3(COMPLEX)) {return cDiagonalH(2,aList3());}
+int cDiagonalH3(aList6(COMPLEX)) {return cDiagonalH(3,aList6());}
+int cDiagonalH4(aList10(COMPLEX)){return cDiagonalH(4,aList10());}
+int cDiagonalH5(aList15(COMPLEX)){return cDiagonalH(5,aList15());}
 
-int cDiagonalS2(aList3(double complex)) {return cDiagonalS(2,aList3());}
-int cDiagonalS3(aList6(double complex)) {return cDiagonalS(3,aList6());}
-int cDiagonalS4(aList10(double complex)){return cDiagonalS(4,aList10());}
-int cDiagonalS5(aList15(double complex)){return cDiagonalS(5,aList15());}
+int cDiagonalS2(aList3(COMPLEX)) {return cDiagonalS(2,aList3());}
+int cDiagonalS3(aList6(COMPLEX)) {return cDiagonalS(3,aList6());}
+int cDiagonalS4(aList10(COMPLEX)){return cDiagonalS(4,aList10());}
+int cDiagonalS5(aList15(COMPLEX)){return cDiagonalS(5,aList15());}
 
-int cDiagonalA2(aList4(double complex)) {return cDiagonalA(2,aList4());}
-int cDiagonalA3(aList9(double complex)) {return cDiagonalA(3,aList9());}
-int cDiagonalA4(aList16(double complex)){return cDiagonalA(4,aList16());}
-int cDiagonalA5(aList25(double complex)){return cDiagonalA(5,aList25());}
+int cDiagonalA2(aList4(COMPLEX)) {return cDiagonalA(2,aList4());}
+int cDiagonalA3(aList9(COMPLEX)) {return cDiagonalA(3,aList9());}
+int cDiagonalA4(aList16(COMPLEX)){return cDiagonalA(4,aList16());}
+int cDiagonalA5(aList25(COMPLEX)){return cDiagonalA(5,aList25());}
 
 int System1(char*format){ return System(format);}
 int System2(char*format,char*path){ return System(format,path);}

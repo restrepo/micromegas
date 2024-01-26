@@ -302,6 +302,9 @@ int main(int argc,char** argv)
 #ifdef XENON1T
 {
 
+displayPlot("Xenon/Panda","M", 6,1000, 1,2,"Xenon",0, XENON1T_90, NULL, "PandaX", 0, PandaX4T,NULL);
+exit(0); 
+
 displayPlot("XENON", "E", 1,20,0,4,"Detection",0, pXe1T_D,NULL,"Selection",0, pXe1T,NULL,"down",0,XenonEff1,NULL,"up",0, XenonEff2,NULL); 
 
 displayPlot("XENON", "E", 1,20,0,5, "up",0,XenonEff2,NULL,"down",0, XenonEff1,NULL,
@@ -918,7 +921,6 @@ double vSurface(double vD, double l)
    rhoDM=0.3; vRot=220; vEsc=544;  vEarth=232;  //  default
       
 // DarkSide   
-
    for(Mcdm=1.8;Mcdm<6;Mcdm+=0.1,N++)
    {
       double Emax=maxRecoil(Mcdm);
@@ -931,7 +933,7 @@ double vSurface(double vD, double l)
         vEarth=232*(1-n2/(dim-1.)) +252*n2/(dim-1.);  // vEarth=232;
         vEsc  =498*(1-n3/(dim-1.)) +608*n3/(dim-1.);  // vEsc=544;
  
-        f=DD_factorCS(DarkSide_2018,0.1,Maxwell, csTest,csTest,0,0,NULL); 
+        f=DD_factorCS(DarkSide_2018,0.1,Maxwell, csTest,csTest,0,0,&expName); 
         double cs=csTest*f*1E-36;
         if(n1==0 && n2==0 && n3==0) { cs_min[N]=cs; cs_max[N]=cs;}
         else 
@@ -952,8 +954,9 @@ double vSurface(double vD, double l)
    displayPlot("velocity distribution uncertainty for DarkSide", "Mcdm",1.8-0.1/2, Mcdm-0.1/2,0,4
                                                                                          ,"std",   N,cs_std,NULL
                                                                                           ,"min",  N,cs_min,NULL
-                                                                                          ,"max",  N,cs_max,NULL                                                                                          ,"SHM++",N,cs_pp,NULL
-                                                                                          ); 
+                                                                                          ,"max",  N,cs_max,NULL,
+                                                                                           "SHM++",N,cs_pp,NULL
+                                                                                          );
 //  XENON                                                                                          
    N=0;
    for(Mcdm=6;Mcdm<1000;Mcdm*=1.2,N++)
@@ -963,11 +966,11 @@ double vSurface(double vD, double l)
       double nEvents,cs_;
       rhoDM=0.3; 
       for(int n1=0;n1<dim;n1++) for(int n2=0;n2<dim;n2++) for(int n3=0;n3<dim;n3++)
-      { vRot  =220*(1-n1/(dim-1.)) +248*n1/(dim-1.);  // vRot= 220;
+      { vRot  =202*(1-n1/(dim-1.)) +238*n1/(dim-1.);  // vRot= 220;
         vEarth=232*(1-n2/(dim-1.)) +252*n2/(dim-1.);  // vEarth=234;
-        vEsc  =498*(1-n3/(dim-1.)) +608*n3/(dim-1.);  // vEsc=544;
+        vEsc  =517*(1-n3/(dim-1.)) +643*n3/(dim-1.);  // vEsc=544;
  
-        f=DD_factorCS(XENON1T_2018,0.1,Maxwell, csTest,csTest,0,0,NULL);
+        f=DD_factorCS(XENON1T_2018,0.1,Maxwell, csTest,csTest,0,0,&expName);
         double cs=csTest*f*1E-36;
         if(n1==0 && n2==0 && n3==0) { cs_min[N]=cs; cs_max[N]=cs;}
         else 
@@ -977,12 +980,13 @@ double vSurface(double vD, double l)
       }
        
       rhoDM=0.55;  vRot=233; vEsc=580;            // SHMpp parameters
-      f=DD_factorCS(XENON1T_2018,0.1,SHMpp, csTest,csTest,0,0,NULL);
+      f=DD_factorCS(XENON1T_2018,0.1,SHMpp, csTest,csTest,0,0,&expName);
       cs_pp[N]=1E-36*csTest*f;
       
       rhoDM=0.3; vRot=220; vEsc=544;  vEarth=232;  // return to default
-      f=DD_factorCS(XENON1T_2018,0.1,Maxwell, csTest,csTest,0,0,NULL);  
-      cs_std[N]=1E-36*csTest*f;    
+      f=DD_factorCS(XENON1T_2018,0.1,Maxwell, csTest,csTest,0,0,&expName);  
+      cs_std[N]=1E-36*csTest*f; 
+         
    }
       
    displayPlot("velocity distribution uncertainty for Xenon", "Mcdm",6/sqrt(1.2), Mcdm/sqrt(1.2),1,4

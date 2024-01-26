@@ -18,7 +18,10 @@
       OPEN(UNIT=78,FILE='nngg.out',STATUS='UNKNOWN')
       write(78,fmt='("BLOCK lGamma  # AZ and AA cross sections")')
               
-      if(slharead('spectr',0).ne.0.or.slharead('decay',1).ne.0) goto 3
+      if(slharead('spectr',0).ne.0) goto 3
+      err=slharead('decay',1)
+      if((err.ne.0).and.(err.ne.-1)) goto 3    
+      
       nArgs=iargc()
       if(nArgs.eq.0) then
            mode=0
@@ -37,17 +40,14 @@
 	                            
       Nch= ModelConstIni(mode,Wh,err)
       if(err.ne.0) goto 3
-      v=1E-3
+      v=0
       vcsgg=vcsnngg(v)
       if(Nch.gt.1) then  
         vcsgz=vcsnngz(v)      
       else
         vcsgz=0
       endif    
-      write(78,fmt='(A6, 1PE10.4,A20)') '  1   ', vcsgz,'# ~o1,~o1->A,Z [pb]'
-      write(78,fmt='(A6, 1PE10.4,A20)') '  2   ', vcsgg,'# ~o1,~o1->A,A [pb]'
-      close(78)
-      return 
-3     close(78)
-      return   
+      write(78,fmt='(A6, 1PE11.4,A20)') '  1   ', vcsgz,'# ~o1,~o1->A,Z [pb]'
+      write(78,fmt='(A6, 1PE11.4,A20)') '  2   ', vcsgg,'# ~o1,~o1->A,A [pb]'
+3     close(78) 
       end 

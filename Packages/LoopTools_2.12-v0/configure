@@ -170,7 +170,7 @@ CONF_CC=`findprog gcc $CC clang gcc` || exit 1
 
 CONF_CXX=`findprog g++ $CXX clang++ g++` || exit 1
 
-CONF_FC=`findprog fortran $FC ifort pgf90 xlf gfortran g95 f90` || exit 1
+CONF_FC=`findprog fortran $FC gfortran ifort pgf90 xlf  g95 f90` || exit 1
 
 CONF_AR=`findprog ar $AR ar`
 

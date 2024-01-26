@@ -67,7 +67,7 @@ C Fortran routines  with complex return value.
       real*8  re,im,reMixMatrix,imMixMatrix
             re=reMixMatrix(id,i,j)
             im=imMixMatrix(id,i,j)
-            cMixMatrix=COMPLEX(re,im)
+            cMixMatrix=CMPLX(re,im)
       end      
 
       Complex*16 function cMixMatrixU(id,i,j)
@@ -75,6 +75,6 @@ C Fortran routines  with complex return value.
       real*8  re,im,reMixMatrixU,imMixMatrixU
             re=reMixMatrixU(id,i,j)
             im=imMixMatrixU(id,i,j)
-            cMixMatrixU=COMPLEX(re,im)
+            cMixMatrixU=CMPLX(re,im)
       end
 

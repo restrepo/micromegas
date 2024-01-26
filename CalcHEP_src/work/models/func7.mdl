@@ -1,0 +1,208 @@
+FPVDM-tf_DM
+ Constraints 
+ Name     |> Expression                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     <|
+LamQCD    |initQCD5(alphaSMZ, McMc, MbMb, Mt)
+aEW       |1/aEWM1 % EM alpha(MZ)
+EE        |2*sqrt(PI*aEW) % Electromagnetic coupling constant (<->1/128)
+SW        |sqrt(SW2) % cosine of Weinberg angle
+CW        |sqrt(1-SW^2) % sin of Weiberg angle
+gW        |EE/SW
+gY        |EE/CW
+v         |2*MW*SW/EE % mass of W boson
+c12       |sqrt(1-s12^2) % parameter  of C-K-M matrix
+c23       |sqrt(1-s23^2) % parameter  of C-K-M matrix
+c13       |sqrt(1-s13^2) % parameter  of C-K-M matrix
+Mtp       |MtD*(1+epsMF)
+vd        |2*MV/gd % vev of HD
+DMV       |sDM*gd^2*Mtp^2/32/PI^2/MV*((Mtp^2-MtD^2)/Mtp^2)^2
+sinT      |sin(thetaS)
+cosT      |sqrt(1-sinT^2)
+Rh11      |cosT
+Rh12      |sinT
+Rh21      |-sinT
+Rh22      |cosT
+lambH     |EE^2*(Mh1^2*cosT^2+Mh2^2*sinT^2)/(8*SW^2*MW^2)
+lambHD    |gd^2*(Mh1^2*sinT^2+Mh2^2*cosT^2)/(8*MV^2)
+lambHHD   |EE*gd*(Mh2^2-Mh1^2)*2*sinT*cosT/(8*SW*MW*MV)
+Yta       |gW*Mta/(Sqrt2*MW)
+Ymu       |gW*Mmu/(Sqrt2*MW)
+Ye        |gW*Me/(Sqrt2*MW)
+Yt        |gW*Mt*Mtp/(Sqrt2*MtD*MW)
+Ytp       |gd*sqrt((MtD^2-Mt^2)*(Mtp^2-MtD^2))/(Sqrt2*MtD*MV)
+Yb        |gW*Mb/(Sqrt2*MW)
+Yc        |gW*Mc/(Sqrt2*MW)
+Ys        |gW*Ms/(Sqrt2*MW)
+Yu        |gW*Mu/(Sqrt2*MW)
+Yd        |gW*Md/(Sqrt2*MW)
+SintL     |sqrt(Mt^2/MtD^2*(Mtp^2-MtD^2)/(Mtp^2-Mt^2))
+SintR     |sqrt((Mtp^2-MtD^2)/(Mtp^2-Mt^2))
+CostR     |sqrt(1-SintR^2)
+CostL     |sqrt(1-SintL^2)
+rt        |Mt/MtD
+rtD       |MtD/Mtp
+rtmo      |-1+rt^2
+rtDmo     |-1+rtD^2
+rtmf      |-4+rt^2
+logr      |log(rt*rtD)
+FAV       |(rtD^2-rt^2)/(1-rt^2*rtD^2)*log(rt^2*rtD^2)+log(rtD^2/rt^2)
+FZVqT1    |((-1+rt^2)*(-1+rtD^2)*(-3+rt^2*(10+6*(4-9*rt^2)*rtD^2+54*rt^4*rtD^4-2*rt^4*(12+5*rt^2)*rtD^6+3*rt^6*rtD^8))+24*(rt^4*rtD^2+rt^8*rtD^6)*log(1/(rt*rtD))+12*rt^2*(1-rtD^2+rt^2*(-1+3*rt^2*rtD^2+3*(3-4*rt^2+rt^4)*rtD^4-(6-9*rt^2+rt^6)*rtD^6+rt^4*(-1+rt^2)*rtD^8))*log(rt*rtD))/(3*(-1+rt^2*rtD^2)^5)
+FZVqL     |(-1+rt^2)*(-1+rtD^2)*(-1+8*rt^2*rtD^2-8*rt^6*rtD^6+rt^8*rtD^8+24*rt^4*rtD^4*log(rt*rtD))/(-1+rt^2*rtD^2)^5
+FZVqT2    |8*(log(rt/rtD)+(rt^2*(1+rtD^4*(4+rt^4*(6+(4+rt^4)*rtD^4)))*log(1/(rt*rtD))+rtD^2*(1+rt^4*(4+rtD^4*(6+rt^4*(4+rtD^4))))*log(rt*rtD))/(-1+rt^2*rtD^2)^5)
+FZVm      |(-1+rt^2)*(-1+rtD^2)*(-1+4*rtD^2+rt^2*(-4+rt^2)*rtD^4+4*rtD^2*(1+rt^2*(-1+rtD^2))*log(rt*rtD))/(rtD^2*(-1+rt^2*rtD^2)^3)
+epsZV     |sKM*(gW*gd)/(64*PI^2*CW)*(FZVqT1+FZVqL+2/3*SW^2*FZVqT2)
+delmZV2   |3*gW*gd/(32*PI^2*CW)*Mt^2*FZVm
+epsZVm    |sKM*delmZV2/Mt^2
+epsAV     |sKM*gd*EE*(2/3)/(16*PI^2)*FAV
+deno      |sqrt(1-epsAV^2-epsZV^2)
+M2ZV11    |1/4*(gW^2+gY^2)*v^2
+M2ZV12    |-1/4*((gW^2+gY^2)*v^2*epsZV-2*Mt^2*epsZVm)/deno
+M2ZV21    |M2ZV12
+M2ZV22    |1/4*(gd^2*vd^2+(gW^2+gY^2)*v^2*epsZV^2-4*Mt^2*epsZV*epsZVm)/deno^2
+Tan2ZV    |2*M2ZV12/(M2ZV11-M2ZV22)
+DeltaM2ZV |M2ZV11-M2ZV22
+SIGN      |DeltaM2ZV/sqrt(DeltaM2ZV^2)
+thetaZV   |atan(Tan2ZV)/2
+SinZV     |sin(thetaZV)
+CosZV     |sqrt(1-SinZV^2)
+M2ZV      |rDiagonal(2, M2ZV11, M2ZV12, M2ZV22)
+MZ2       |1/4*(gW^2+gY^2)*v^2*(1+thetaZV^2*(1-gd^2*vd^2/((gY^2+gW^2)*v^2)))
+MV0KM2    |1/4*gd^2*vd^2*(1+epsAV^2+(thetaZV-epsZV)^2*(1-(gY^2+gW^2)*v^2/gd^2/vd^2))
+PIV0      |sPI*piv0(gd, MV, Mt, MtD, Mtp, Mh2, MV)
+MZ        |sqrt(MZ2)
+MV0       |sqrt(MV0KM2)+PIV0/(2*MV)
+MVP       |MV0+DMV
+muH       |sqrt(2*v^2*lambH+1/2*vd/v*(Mh2^2-Mh1^2)*2*sinT*cosT)/Sqrt2
+muHD      |sqrt(2*vd^2*lambHD+1/2*v/vd*(Mh2^2-Mh1^2)*2*sinT*cosT)/Sqrt2
+H11       |3*lambH*v^2-muH^2+lambHHD*vd^2/2
+H12       |lambHHD*v*vd
+H21       |H12
+H22       |3*lambHD*vd^2-muHD^2+lambHHD*v^2/2
+Hessian   |rDiagonal(2, H11, H12, H22)
+EiHess1   |MassArray(Hessian, 1)
+EiHess2   |MassArray(Hessian, 2)
+v_gtt     |2/3*EE
+v_gdd     |2/3*EE
+v_gTT     |2/3*EE
+v_ztt     |EE/(12*SW*CW)*(3*CostL^2-8*SW^2)
+a_ztt     |EE/(12*SW*CW)*(3*CostL^2)
+v_zdd     |-2*EE*SW/(3*CW)
+v_zTT     |EE/(12*SW*CW)*(3*SintL^2-8*SW^2)
+a_zTT     |EE/(12*SW*CW)*(3*SintL^2)
+v_ztT     |EE*SintL*CostL/(4*SW*CW)
+a_ztT     |EE*SintL*CostL/(4*SW*CW)
+v_vtd     |-Sqrt2*gd*(SintL+SintR)/4
+a_vtd     |-Sqrt2*gd*(SintL-SintR)/4
+v_vTd     |Sqrt2*gd*(CostL+CostR)/4
+a_vTd     |Sqrt2*gd*(CostL-CostR)/4
+F1Attd    |FF(1, v_gtt, 0, v_vtd, a_vtd, v_vtd, a_vtd, MVP, MtD, Mt, Mt, MVP)
+F1ATTd    |FF(1, v_gTT, 0, v_vTd, a_vTd, v_vTd, a_vTd, MVP, MtD, Mtp, Mtp, MVP)
+F1Addt    |FF(1, v_gdd, 0, v_vtd, a_vtd, v_vtd, a_vtd, MVP, Mt, MtD, MtD, MVP)
+F1AddT    |FF(1, v_gdd, 0, v_vTd, a_vTd, v_vTd, a_vTd, MVP, Mtp, MtD, MtD, MVP)
+F1Zttd    |FF(1, v_ztt, a_ztt, v_vtd, a_vtd, v_vtd, a_vtd, MVP, MtD, Mt, Mt, MVP)
+F1ZTTd    |FF(1, v_zTT, a_zTT, v_vTd, a_vTd, v_vTd, a_vTd, MVP, MtD, Mtp, Mtp, MVP)
+F1ZtTd    |FF(1, v_ztT, a_ztT, v_vtd, a_vtd, v_vTd, a_vTd, MVP, MtD, Mt, Mtp, MVP)
+F1Zddt    |FF(1, v_zdd, 0, v_vtd, a_vtd, v_vtd, a_vtd, MVP, Mt, MtD, MtD, MVP)
+F1ZddT    |FF(1, v_zdd, 0, v_vTd, a_vTd, v_vTd, a_vTd, MVP, Mtp, MtD, MtD, MVP)
+F2Attd    |FF(2, v_gtt, 0, v_vtd, a_vtd, v_vtd, a_vtd, MVP, MtD, Mt, Mt, MVP)
+F2ATTd    |FF(2, v_gTT, 0, v_vTd, a_vTd, v_vTd, a_vTd, MVP, MtD, Mtp, Mtp, MVP)
+F2Addt    |FF(2, v_gdd, 0, v_vtd, a_vtd, v_vtd, a_vtd, MVP, Mt, MtD, MtD, MVP)
+F2AddT    |FF(2, v_gdd, 0, v_vTd, a_vTd, v_vTd, a_vTd, MVP, Mtp, MtD, MtD, MVP)
+F2Zttd    |FF(2, v_ztt, a_ztt, v_vtd, a_vtd, v_vtd, a_vtd, MVP, MtD, Mt, Mt, MVP)
+F2ZTTd    |FF(2, v_zTT, a_zTT, v_vTd, a_vTd, v_vTd, a_vTd, MVP, MtD, Mtp, Mtp, MVP)
+F2ZtTd    |FF(2, v_ztT, a_ztT, v_vtd, a_vtd, v_vTd, a_vTd, MVP, MtD, Mt, Mtp, MVP)
+F2Zddt    |FF(2, v_zdd, 0, v_vtd, a_vtd, v_vtd, a_vtd, MVP, Mt, MtD, MtD, MVP)
+F2ZddT    |FF(2, v_zdd, 0, v_vTd, a_vTd, v_vTd, a_vTd, MVP, Mtp, MtD, MtD, MVP)
+F3Attd    |FF(3, v_gtt, 0, v_vtd, a_vtd, v_vtd, a_vtd, MVP, MtD, Mt, Mt, MVP)
+F3ATTd    |FF(3, v_gTT, 0, v_vTd, a_vTd, v_vTd, a_vTd, MVP, MtD, Mtp, Mtp, MVP)
+F3Addt    |FF(3, v_gdd, 0, v_vtd, a_vtd, v_vtd, a_vtd, MVP, Mt, MtD, MtD, MVP)
+F3AddT    |FF(3, v_gdd, 0, v_vTd, a_vTd, v_vTd, a_vTd, MVP, Mtp, MtD, MtD, MVP)
+F3Zttd    |FF(3, v_ztt, a_ztt, v_vtd, a_vtd, v_vtd, a_vtd, MVP, MtD, Mt, Mt, MVP)
+F3ZTTd    |FF(3, v_zTT, a_zTT, v_vTd, a_vTd, v_vTd, a_vTd, MVP, MtD, Mtp, Mtp, MVP)
+F3ZtTd    |FF(3, v_ztT, a_ztT, v_vtd, a_vtd, v_vTd, a_vTd, MVP, MtD, Mt, Mtp, MVP)
+F3Zddt    |FF(3, v_zdd, 0, v_vtd, a_vtd, v_vtd, a_vtd, MVP, Mt, MtD, MtD, MVP)
+F3ZddT    |FF(3, v_zdd, 0, v_vTd, a_vTd, v_vTd, a_vTd, MVP, Mtp, MtD, MtD, MVP)
+F5Attd    |FF(5, v_gtt, 0, v_vtd, a_vtd, v_vtd, a_vtd, MVP, MtD, Mt, Mt, MVP)
+F5ATTd    |FF(5, v_gTT, 0, v_vTd, a_vTd, v_vTd, a_vTd, MVP, MtD, Mtp, Mtp, MVP)
+F5Addt    |FF(5, v_gdd, 0, v_vtd, a_vtd, v_vtd, a_vtd, MVP, Mt, MtD, MtD, MVP)
+F5AddT    |FF(5, v_gdd, 0, v_vTd, a_vTd, v_vTd, a_vTd, MVP, Mtp, MtD, MtD, MVP)
+F5Zttd    |FF(5, v_ztt, a_ztt, v_vtd, a_vtd, v_vtd, a_vtd, MVP, MtD, Mt, Mt, MVP)
+F5ZTTd    |FF(5, v_zTT, a_zTT, v_vTd, a_vTd, v_vTd, a_vTd, MVP, MtD, Mtp, Mtp, MVP)
+F5ZtTd    |FF(5, v_ztT, a_ztT, v_vtd, a_vtd, v_vTd, a_vTd, MVP, MtD, Mt, Mtp, MVP)
+F5Zddt    |FF(5, v_zdd, 0, v_vtd, a_vtd, v_vtd, a_vtd, MVP, Mt, MtD, MtD, MVP)
+F5ZddT    |FF(5, v_zdd, 0, v_vTd, a_vTd, v_vTd, a_vTd, MVP, Mtp, MtD, MtD, MVP)
+F8Attd    |FF(8, v_gtt, 0, v_vtd, a_vtd, v_vtd, a_vtd, MVP, MtD, Mt, Mt, MVP)
+F8ATTd    |FF(8, v_gTT, 0, v_vTd, a_vTd, v_vTd, a_vTd, MVP, MtD, Mtp, Mtp, MVP)
+F8Addt    |FF(8, v_gdd, 0, v_vtd, a_vtd, v_vtd, a_vtd, MVP, Mt, MtD, MtD, MVP)
+F8AddT    |FF(8, v_gdd, 0, v_vTd, a_vTd, v_vTd, a_vTd, MVP, Mtp, MtD, MtD, MVP)
+F8Zttd    |FF(8, v_ztt, a_ztt, v_vtd, a_vtd, v_vtd, a_vtd, MVP, MtD, Mt, Mt, MVP)
+F8ZTTd    |FF(8, v_zTT, a_zTT, v_vTd, a_vTd, v_vTd, a_vTd, MVP, MtD, Mtp, Mtp, MVP)
+F8ZtTd    |FF(8, v_ztT, a_ztT, v_vtd, a_vtd, v_vTd, a_vTd, MVP, MtD, Mt, Mtp, MVP)
+F8Zddt    |FF(8, v_zdd, 0, v_vtd, a_vtd, v_vtd, a_vtd, MVP, Mt, MtD, MtD, MVP)
+F8ZddT    |FF(8, v_zdd, 0, v_vTd, a_vTd, v_vTd, a_vTd, MVP, Mtp, MtD, MtD, MVP)
+F1A       |F1Attd/2+F1ATTd/2-F1Addt/2-F1AddT/2
+F1Z       |F1Zttd/2+F1ZTTd/2-F1Zddt/2-F1ZddT/2+F1ZtTd
+F2A       |F2Attd/2+F2ATTd/2-F2Addt/2-F2AddT/2
+F2Z       |F2Zttd/2+F2ZTTd/2-F2Zddt/2-F2ZddT/2+F2ZtTd
+F3A       |F3Attd/2+F3ATTd/2-F3Addt/2-F3AddT/2
+F3Z       |F3Zttd/2+F3ZTTd/2-F3Zddt/2-F3ZddT/2+F3ZtTd
+F5A       |F5Attd/2+F5ATTd/2+F5Addt/2+F5AddT/2
+F5Z       |F5Zttd/2+F5ZTTd/2+F5Zddt/2+F5ZddT/2+F5ZtTd
+F8A       |F8Attd/2+F8ATTd/2+F8Addt/2+F8AddT/2
+F8Z       |F8Zttd/2+F8ZTTd/2+F8Zddt/2+F8ZddT/2+F8ZtTd
+aQCDh1    |alphaQCD(Mh1)/PI
+RQCDh1    |sqrt(1+149/12*aQCDh1+68.6482*aQCDh1^2-212.447*aQCDh1^3)
+aQCDh2    |alphaQCD(Mh2)/PI
+RQCDh2    |sqrt(1+149/12*aQCDh2+68.6482*aQCDh2^2-212.447*aQCDh2^3)
+LAAh1_auto|-cabs(lAAhiggs(Mh1, "h1"))
+LAAh2_auto|-cabs(lAAhiggs(Mh2, "h2"))
+LGGh1_auto|-cabs(lGGhiggs(Mh1, "h1"))
+LGGh2_auto|-cabs(lGGhiggs(Mh2, "h2"))
+B00000    |4*SW^2*epsZV-4*SW^2*thetaZV-4*CW*SW*epsAV
+B00001    |3*epsZV-3*thetaZV
+B00002    |8*SW^2*epsZV-8*SW^2*thetaZV-8*CW*SW*epsAV
+B00003    |epsZV-thetaZV
+B00004    |8*EE*SW^2*epsZV-8*EE*SW^2*thetaZV-8*CW*EE*SW*epsAV
+B00005    |3*EE*epsZV-3*EE*thetaZV-3*EE*SintL^2*epsZV+3*EE*SintL^2*thetaZV+3*CW*SW*SintL^2*gd
+B00006    |3*EE-3*EE*SintL^2+3*CW*SW*SintL^2*gd*thetaZV
+B00007    |CostL*Yt*cosT+SintL*Ytp*sinT
+B00008    |CostL*Yt*sinT-SintL*Ytp*cosT
+B00009    |CostL*EE*SintL*epsZV-CostL*EE*SintL*thetaZV-CW*CostL*SW*SintL*gd
+B00010    |CostL*EE*SintL-CW*CostL*SW*SintL*gd*thetaZV
+B00011    |CostL*SintR*Yt*cosT+SintL*SintR*Ytp*sinT
+B00012    |CostL*CostR*Ytp*sinT-CostR*SintL*Yt*cosT
+B00013    |CostL*SintR*Yt*sinT-SintL*SintR*Ytp*cosT
+B00014    |CostL*CostR*Ytp*cosT+CostR*SintL*Yt*sinT
+B00015    |3*EE*SintL^2*epsZV-3*EE*SintL^2*thetaZV+3*CW*CostL^2*SW*gd
+B00016    |3*EE*SintL^2+3*CW*CostL^2*SW*gd*thetaZV
+B00017    |CostL*Ytp*sinT-SintL*Yt*cosT
+B00018    |CostL*Ytp*cosT+SintL*Yt*sinT
+B00019    |EE^2*cosT*epsZV^2*v+EE^2*cosT*thetaZV^2*v-CW^2*SW^2*gd^2*sinT*vd-2*EE^2*cosT*epsZV*thetaZV*v
+B00020    |EE^2*epsZV^2*sinT*v+EE^2*sinT*thetaZV^2*v+CW^2*SW^2*cosT*gd^2*vd-2*EE^2*epsZV*sinT*thetaZV*v
+B00021    |EE^2*cosT*epsZV*v-EE^2*cosT*thetaZV*v-CW^2*SW^2*gd^2*sinT*thetaZV*vd
+B00022    |EE^2*epsZV*sinT*v-EE^2*sinT*thetaZV*v+CW^2*SW^2*cosT*gd^2*thetaZV*vd
+B00023    |EE^2*cosT*v-CW^2*SW^2*gd^2*sinT*thetaZV^2*vd
+B00024    |EE^2*sinT*v+CW^2*SW^2*cosT*gd^2*thetaZV^2*vd
+B00025    |2*cosT^3*lambH*v-2*lambHD*sinT^3*vd+cosT*lambHHD*sinT^2*v-cosT^2*lambHHD*sinT*vd
+B00026    |cosT*lambHHD*vd-2*lambHHD*sinT*v+3*lambHHD*sinT^3*v+6*cosT*lambHD*sinT^2*vd-3*cosT*lambHHD*sinT^2*vd
+B00027    |B00026+6*cosT^2*lambH*sinT*v
+B00028    |cosT*lambHHD*v+2*lambHHD*sinT*vd-3*lambHHD*sinT^3*vd+6*cosT*lambH*sinT^2*v-3*cosT*lambHHD*sinT^2*v
+B00029    |B00028-6*cosT^2*lambHD*sinT*vd
+B00030    |2*cosT^3*lambHD*vd+2*lambH*sinT^3*v+cosT*lambHHD*sinT^2*vd+cosT^2*lambHHD*sinT*v
+B00031    |3*CW*gd-4*CW*EE*epsAV+4*EE*SW*epsZV-4*EE*SW*thetaZV
+B00032    |4*EE*SW+3*CW*gd*thetaZV
+B00033    |EE^2*cosT^2*epsZV^2+EE^2*cosT^2*thetaZV^2+CW^2*SW^2*gd^2*sinT^2-2*EE^2*cosT^2*epsZV*thetaZV
+B00034    |EE^2*epsZV^2+EE^2*thetaZV^2-CW^2*SW^2*gd^2-2*EE^2*epsZV*thetaZV
+B00035    |EE^2*epsZV^2*sinT^2+EE^2*sinT^2*thetaZV^2+CW^2*SW^2*cosT^2*gd^2-2*EE^2*epsZV*sinT^2*thetaZV
+B00036    |EE^2*cosT^2*epsZV-EE^2*cosT^2*thetaZV+CW^2*SW^2*gd^2*sinT^2*thetaZV
+B00037    |EE^2*epsZV-EE^2*thetaZV-CW^2*SW^2*gd^2*thetaZV
+B00038    |EE^2*epsZV*sinT^2-EE^2*sinT^2*thetaZV+CW^2*SW^2*cosT^2*gd^2*thetaZV
+B00039    |76*MVP*lSN+54*MVP*lSP
+B00040    |38*lAN+27*lAP
+B00041    |EE^2*cosT^2+CW^2*SW^2*gd^2*sinT^2*thetaZV^2
+B00042    |EE^2-CW^2*SW^2*gd^2*thetaZV^2
+B00043    |EE^2*sinT^2+CW^2*SW^2*cosT^2*gd^2*thetaZV^2
+B00044    |cosT^4*lambH+lambHD*sinT^4+cosT^2*lambHHD*sinT^2
+B00045    |lambHHD-2*cosT^2*lambH+2*lambHD*sinT^2-2*lambHHD*sinT^2
+B00046    |lambHHD+6*cosT^2*lambH*sinT^2+6*cosT^2*lambHD*sinT^2-6*cosT^2*lambHHD*sinT^2
+B00047    |lambHHD-2*cosT^2*lambHD+2*lambH*sinT^2-2*lambHHD*sinT^2
+B00048    |cosT^4*lambHD+lambH*sinT^4+cosT^2*lambHHD*sinT^2

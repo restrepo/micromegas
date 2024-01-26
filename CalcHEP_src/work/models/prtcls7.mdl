@@ -1,0 +1,26 @@
+FPVDM-tf_DM
+ Particles 
+Full   Name   |  P   |    aP    |  number  |spin2|mass|width|color|aux|  LaTeX(A)  |   LateX(A+)    |
+Charged V     |~V+   |~V-       |200000    |2    |MVP |!wCV |1    |0  |V_{D+}^{0}  |V_{D-}^{0}      |
+neutral V     |V0    |V0        |32        |2    |MV0 |!wZp |1    |   |V_{D0}^{0}  |V_{D0}^{0}      |
+SM-Higgs      |h1    |h1        |25        |0    |Mh1 |!wh1 |1    |   |h           |h               |
+second-Higgs  |h2    |h2        |35        |0    |Mh2 |!wh2 |1    |   |H_D         |H_D             |
+photon        |A     |A         |22        |2    |0   |0    |1    |G  |A           |A               |
+Z boson       |Z     |Z         |23        |2    |MZ  |!wZ  |1    |   |Z           |Z               |
+gluon         |G     |G         |21        |2    |0   |0    |8    |G  |g           |g               |
+W boson       |W+    |W-        |24        |2    |MW  |!wW  |1    |   |W^{+}       |W^{-}           |
+electron      |e     |E         |11        |1    |Me  |0    |1    |   |e           |\bar{e}         |
+muon          |m     |M         |13        |1    |Mmu |0    |1    |   |\mu         |\bar{\mu}       |
+tau lepton    |ta    |Ta        |15        |1    |Mta |0    |1    |   |\tau        |\bar{\tau}      |
+e-neutrino    |ne    |Ne        |12        |1    |0   |0    |1    |   |\nu_{e}     |\bar{\nu_{e}}   |
+mu-neutrino   |nmu   |Nmu       |14        |1    |0   |0    |1    |   |\nu_{\mu}   |\bar{\nu_{\mu}} |
+tau-neutrino  |nta   |Nta       |16        |1    |0   |0    |1    |   |\nu_{\tau}  |\bar{\nu_{\tau}}|
+u-quark       |u     |U         |2         |1    |Mu  |0    |3    |   |u           |\bar{u}         |
+d-quark       |d     |D         |1         |1    |Md  |0    |3    |   |d           |\bar{d}         |
+c-quark       |c     |C         |4         |1    |Mc  |0    |3    |   |c           |\bar{c}         |
+s-quark       |s     |S         |3         |1    |Ms  |0    |3    |   |s           |\bar{s}         |
+t-quark       |t     |T         |6         |1    |Mt  |!wtop|3    |   |t           |\bar{t}         |
+b-quark       |b     |B         |5         |1    |Mb  |0    |3    |   |b           |\bar{b}         |
+D-top         |~tD   |~TD       |10024     |1    |MtD |!wpTD|3    |   |t_{D}       |\bar{t}_{D}     |
+psi-top       |tp    |Tp        |10025     |1    |Mtp |!wpT |3    |   |T           |\bar{T}         |
+Xenon nucleus |Xe+   |Xe-       |10000     |1    |MXe |0    |1    |162|Xe+         |Xe-             |

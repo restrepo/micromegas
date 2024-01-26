@@ -36,7 +36,7 @@
          density for given line of sight.  
       */
 
-//#define LoopGAMMA
+#define LoopGAMMA
       
 /*#define RESET_FORMFACTORS  */
       /* Modify default nucleus form factors, 
@@ -47,16 +47,16 @@
       /* Calculate amplitudes and cross-sections for 
          CDM-mucleon collisions 
       */  
-#define CDM_NUCLEUS 
+//#define CDM_NUCLEUS 
      // Calculate  exclusion rate for direct detection experiments Xenon1T, DarkSide50, CRESST-III, and PICO-60 
                    
-#define NEUTRINO
+//#define NEUTRINO
  /*  Neutrino signal of DM annihilation in Sun and Earth */
              
-#define DECAYS
+//#define DECAYS
     /* Calculate decay widths and branchings  */
 
-#define CROSS_SECTIONS */
+//#define CROSS_SECTIONS */
       /* Calculate cross sections and widths for 
          reactions specified by the user
       */
@@ -173,9 +173,11 @@ int main(int argc,char** argv)
   m16 0 read QNUMBERS   1: don't read   QNUMBERS 
 */
      mode=0;
-   err=readSLHA(argv[1],mode);
-     
+   err=readSLHA(argv[1],mode);     
    if(err) exit(2);
+   char buff[100];
+   sprintf(buff,"cp %s spectr\n",argv[1]);
+   system(buff);
 }
 
 #endif
@@ -354,17 +356,13 @@ int main(int argc,char** argv)
   double Beps=1.E-4, cut=0.01;
   double Omega,Xf;   
   printf("\n==== Calculation of relic density =====\n");
-// to exclude processes with virtual W/Z in DM   annihilation
+
   VWdecay=1; VZdecay=0; cleanDecayTable();  
   
   Omega=darkOmega(&Xf,fast,Beps,&err);
-// Omega=darkOmega2(fast,Beps,&err);
-  
   printf("Xf=%.2e Omega=%.2e\n",Xf,Omega);
-  if(Omega>0)printChannels(Xf,cut,Beps,1,stdout);
   
-// to restore default switches  
-  VZdecay=0; VWdecay=0; cleanDecayTable();  
+  if(isfinite(Omega))printChannels(Xf,cut,Beps,1,stdout);
 }
 #endif
 
@@ -486,7 +484,7 @@ printf("\n==== Indirect detection =======\n");
   int sI,sD;    
 printf("\n==== Calculation of CDM-nucleons amplitudes  =====\n");   
 
-    nucleonAmplitudes(CDM1, pA0,pA5,nA0,nA5);
+    nucleonAmplitudes(CDM[1], pA0,pA5,nA0,nA5);
     printf("CDM-nucleon micrOMEGAs amplitudes:\n");
     printf("proton:  SI  %.3E  SD  %.3E\n",pA0[0],pA5[0]);
     printf("neutron: SI  %.3E  SD  %.3E\n",nA0[0],nA5[0]); 

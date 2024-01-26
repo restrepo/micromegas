@@ -1,0 +1,56 @@
+// Running masses in   4-loop QCD  based on https://arxiv.org/pdf/2110.11776.pdf
+
+
+#include<math.h>
+#include<stdio.h>
+
+
+int nf=3;
+
+#define z3  1.202056903
+#define z4 pow(M_PI,4)/90. 
+#define z5  1.036927755
+
+
+
+ void calc_g(int nf)
+{
+ double    b0=  (11-(2./3.)*nf)/4,
+           b1=  (102-(38./3.)*nf)/16,
+           b2=  (2857./2. -5033./18.*nf +325./54.*nf*nf)/64,
+           b3=   114.23-27.1339*nf+1.58238*nf*nf+0.0058567*nf*nf*nf,
+           b4=  524.56 -181.8*nf+17.16*nf*nf -  0.22586*nf*nf*nf-0.0017993*nf*nf*nf*nf; // 1606.08659
+
+
+double   g0=1,
+         g1=101./24. - 5./36.*nf,
+         g2=1249./64.-(5./6.*z3+277./216.)*nf-35./1296.*nf*nf,
+         g3=4603055./41472 +530/27.*z3  - 275./8.*z5
+           -(91723/6912. + 2137./144.*z3 - 575./72.*z5 -11./288.*pow(M_PI,4))*nf
+           +(2621/31104. +25./72.*z3-pow(M_PI,4)/432.)*nf*nf
+           +(z3/108. -83./15552.)*nf*nf*nf;   // https://arxiv.org/pdf/2110.11776.pdf Eq.41
+
+double   ga0=g1/b0-g0*b1/b0/b0, 
+         ga1=g2/b0-(b1*g1+b2*g0)/b0/b0 + b1*b1*g0/pow(b0,3),
+         ga2=g3/b0-(b1*g2+b2*g1+b3*g0)/b0/b0
+            + b1*(b1*g1+2*b2*g0)/pow(b0,3) - pow(b1,3)*g0/pow(b0,4);   //  Eq 70
+           
+double  g_0=1, 
+        g_1=ga0,
+        g_2=(ga0*ga0+ga1)/2,
+        g_3=ga0*ga0*ga0/6.+ga0*ga1/2.+ga2/3.;  // Eq 76
+                   
+printf("nf=%d g_1=%E  g_2=%E g_3=%E\n",nf, g_1,g_2,g_3);
+
+
+}
+
+int main(void) 
+{
+  calc_g(3);
+  calc_g(4);
+  calc_g(5);
+  calc_g(6);
+  
+}                         
+

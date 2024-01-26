@@ -1253,7 +1253,7 @@ static void  readEXTLIB(void)
   if(EXTLIB) free(EXTLIB);
   EXTLIB=malloc(2); EXTLIB[0]=0;
   for(ln=modelTab[4].strings ; ln; ln=ln->next)
-  { char buff[100];
+  { char buff[1000];
     if(sscanf(ln->line,"%[^%\n|]", buff)!=1) continue;
     trim(buff);
     if(strstr(buff,"extern ")==buff) continue;

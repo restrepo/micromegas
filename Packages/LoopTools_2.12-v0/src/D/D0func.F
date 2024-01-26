@@ -1209,10 +1209,10 @@
      &             Li2omrat2(q4, s, m3, m4) +
      &             Li2omrat2(q4, s, -1D0, -1D0)
 	else if( case .eq. 2 ) then
-	  dilogs = Li2omrat2(q3, t, x43(4), x43(2)) +
-     &             Li2omrat2(q3, t, x43(3), x43(1)) +
-     &             Li2omrat2(q4, s, x43(1), x43(3)) +
-     &             Li2omrat2(q4, s, x43(2), x43(4))
+	  dilogs = Li2omrat2(q3, t, Re(x43(4)), Re(x43(2))) +
+     &             Li2omrat2(q3, t, Re(x43(3)), Re(x43(1))) +
+     &             Li2omrat2(q4, s, Re(x43(1)), Re(x43(3))) +
+     &             Li2omrat2(q4, s, Re(x43(2)), Re(x43(4)))
 	else
 	  r3t = q3/t
 	  s3t = sign(.5D0, q3) - sign(.5D0, t)
@@ -1244,8 +1244,8 @@
 	  dilogs = Li2omrat2(q4, s, m3, m4) +
      &             Li2omrat2(q4, s, -1D0, -1D0)
 	else if( case .eq. 2 ) then
-	  dilogs = Li2omrat2(q4, s, x43(1), x43(3)) +
-     &             Li2omrat2(q4, s, x43(2), x43(4))
+	  dilogs = Li2omrat2(q4, s, Re(x43(1)), Re(x43(3))) +
+     &             Li2omrat2(q4, s, Re(x43(2)), Re(x43(4)))
 	else
 	  r4s = q4/s
 	  s4s = sign(.5D0, q4) - sign(.5D0, s)

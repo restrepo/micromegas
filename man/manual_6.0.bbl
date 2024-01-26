@@ -1,0 +1,943 @@
+\providecommand{\href}[2]{#2}\begingroup\raggedright\begin{thebibliography}{100}
+
+\bibitem{Pukhov:2004ca}
+A.~Pukhov, ``{CalcHEP 2.3: MSSM, structure functions, event generation, batchs,
+  and generation of matrix elements for other packages},''
+\href{http://arxiv.org/abs/hep-ph/0412191}{{\ttfamily arXiv:hep-ph/0412191
+  [hep-ph]}}.
+%%CITATION = HEP-PH/0412191;%%.
+
+\bibitem{Belanger:2001fz}
+G.~Belanger, F.~Boudjema, A.~Pukhov, and A.~Semenov, ``{MicrOMEGAs: A Program
+  for calculating the relic density in the MSSM},''
+  \href{http://dx.doi.org/10.1016/S0010-4655(02)00596-9}{{\em Comput. Phys.
+  Commun.} {\bfseries 149} (2002) 103--120},
+\href{http://arxiv.org/abs/hep-ph/0112278}{{\ttfamily arXiv:hep-ph/0112278
+  [hep-ph]}}.
+%%CITATION = HEP-PH/0112278;%%.
+
+\bibitem{Belanger:2004yn}
+G.~Belanger, F.~Boudjema, A.~Pukhov, and A.~Semenov, ``{micrOMEGAs: Version
+  1.3}'' \href{http://dx.doi.org/10.1016/j.cpc.2005.12.005}{{\em Comput. Phys.
+  Commun.} {\bfseries 174} (2006) 577--604},
+\href{http://arxiv.org/abs/hep-ph/0405253}{{\ttfamily arXiv:hep-ph/0405253
+  [hep-ph]}}.
+%%CITATION = HEP-PH/0405253;%%.
+
+\bibitem{Belanger:2006is}
+G.~Belanger, F.~Boudjema, A.~Pukhov, and A.~Semenov, ``{MicrOMEGAs 2.0: A
+  Program to calculate the relic density of dark matter in a generic model},''
+  \href{http://dx.doi.org/10.1016/j.cpc.2006.11.008}{{\em Comput. Phys.
+  Commun.} {\bfseries 176} (2007) 367--382},
+\href{http://arxiv.org/abs/hep-ph/0607059}{{\ttfamily arXiv:hep-ph/0607059
+  [hep-ph]}}.
+%%CITATION = HEP-PH/0607059;%%.
+
+\bibitem{Belanger:2008sj}
+G.~Belanger, F.~Boudjema, A.~Pukhov, and A.~Semenov, ``{Dark matter direct
+  detection rate in a generic model with micrOMEGAs 2.2}''
+  \href{http://dx.doi.org/10.1016/j.cpc.2008.11.019}{{\em Comput. Phys.
+  Commun.} {\bfseries 180} (2009) 747--767},
+\href{http://arxiv.org/abs/0803.2360}{{\ttfamily arXiv:0803.2360 [hep-ph]}}.
+%%CITATION = ARXIV:0803.2360;%%.
+
+\bibitem{Belanger:2010gh}
+G.~Belanger, F.~Boudjema, P.~Brun, A.~Pukhov, S.~Rosier-Lees, P.~Salati, and
+  A.~Semenov, ``{Indirect search for dark matter with micrOMEGAs2.4}''
+  \href{http://dx.doi.org/10.1016/j.cpc.2010.11.033}{{\em Comput. Phys.
+  Commun.} {\bfseries 182} (2011) 842--856},
+\href{http://arxiv.org/abs/1004.1092}{{\ttfamily arXiv:1004.1092 [hep-ph]}}.
+%%CITATION = ARXIV:1004.1092;%%.
+
+\bibitem{Belanger:2013oya}
+G.~Belanger, F.~Boudjema, A.~Pukhov, and A.~Semenov, ``{micrOMEGAs$\_3$: A
+  program for calculating dark matter observables},''
+  \href{http://dx.doi.org/10.1016/j.cpc.2013.10.016}{{\em Comput. Phys.
+  Commun.} {\bfseries 185} (2014) 960--985},
+\href{http://arxiv.org/abs/1305.0237}{{\ttfamily arXiv:1305.0237 [hep-ph]}}.
+%%CITATION = ARXIV:1305.0237;%%.
+
+\bibitem{Belanger:2014vza}
+G.~B\'elanger, F.~Boudjema, A.~Pukhov, and A.~Semenov, ``{micrOMEGAs4.1: two
+  dark matter candidates},''
+  \href{http://dx.doi.org/10.1016/j.cpc.2015.03.003}{{\em Comput. Phys.
+  Commun.} {\bfseries 192} (2015) 322--329},
+\href{http://arxiv.org/abs/1407.6129}{{\ttfamily arXiv:1407.6129 [hep-ph]}}.
+%%CITATION = ARXIV:1407.6129;%%.
+
+\bibitem{Barducci:2016pcb}
+D.~Barducci, G.~Belanger, J.~Bernon, F.~Boudjema, J.~Da~Silva, S.~Kraml,
+  U.~Laa, and A.~Pukhov, ``{Collider limits on new physics within
+  micrOMEGAs4.3}'' \href{http://dx.doi.org/10.1016/j.cpc.2017.08.028}{{\em
+  Comput. Phys. Commun.} {\bfseries 222} (2018) 327--338},
+\href{http://arxiv.org/abs/1606.03834}{{\ttfamily arXiv:1606.03834 [hep-ph]}}.
+%%CITATION = ARXIV:1606.03834;%%.
+
+\bibitem{Belanger:2018ccd}
+G.~B\'elanger, F.~Boudjema, A.~Goudelis, A.~Pukhov, and B.~Zaldivar,
+  ``{micrOMEGAs5.0 : Freeze-in},''
+  \href{http://dx.doi.org/10.1016/j.cpc.2018.04.027}{{\em Comput. Phys.
+  Commun.} {\bfseries 231} (2018) 173--186},
+\href{http://arxiv.org/abs/1801.03509}{{\ttfamily arXiv:1801.03509 [hep-ph]}}.
+%%CITATION = ARXIV:1801.03509;%%.
+
+\bibitem{Ellwanger:2006rn}
+U.~Ellwanger and C.~Hugonie, ``{NMSPEC: A Fortran code for the sparticle and
+  Higgs masses in the NMSSM with GUT scale boundary conditions},''
+  \href{http://dx.doi.org/10.1016/j.cpc.2007.05.001}{{\em Comput. Phys.
+  Commun.} {\bfseries 177} (2007) 399--407},
+\href{http://arxiv.org/abs/hep-ph/0612134}{{\ttfamily arXiv:hep-ph/0612134
+  [hep-ph]}}.
+%%CITATION = HEP-PH/0612134;%%.
+
+\bibitem{Belanger:2005kh}
+G.~Belanger, F.~Boudjema, C.~Hugonie, A.~Pukhov, and A.~Semenov, ``{Relic
+  density of dark matter in the NMSSM},''
+  \href{http://dx.doi.org/10.1088/1475-7516/2005/09/001}{{\em JCAP} {\bfseries
+  0509} (2005) 001},
+\href{http://arxiv.org/abs/hep-ph/0505142}{{\ttfamily arXiv:hep-ph/0505142
+  [hep-ph]}}.
+%%CITATION = HEP-PH/0505142;%%.
+
+\bibitem{Lee:2003nta}
+J.~S. Lee, A.~Pilaftsis, M.~Carena, S.~Y. Choi, M.~Drees, J.~R. Ellis, and
+  C.~E.~M. Wagner, ``{CPsuperH: A Computational tool for Higgs phenomenology in
+  the minimal supersymmetric standard model with explicit CP violation},''
+  \href{http://dx.doi.org/10.1016/S0010-4655(03)00463-6}{{\em Comput. Phys.
+  Commun.} {\bfseries 156} (2004) 283--317},
+\href{http://arxiv.org/abs/hep-ph/0307377}{{\ttfamily arXiv:hep-ph/0307377
+  [hep-ph]}}.
+%%CITATION = HEP-PH/0307377;%%.
+
+\bibitem{Belanger:2006qa}
+G.~Belanger, F.~Boudjema, S.~Kraml, A.~Pukhov, and A.~Semenov, ``{Relic density
+  of neutralino dark matter in the MSSM with CP violation},''
+  \href{http://dx.doi.org/10.1103/PhysRevD.73.115007}{{\em Phys. Rev.}
+  {\bfseries D73} (2006) 115007},
+\href{http://arxiv.org/abs/hep-ph/0604150}{{\ttfamily arXiv:hep-ph/0604150
+  [hep-ph]}}.
+%%CITATION = HEP-PH/0604150;%%.
+
+\bibitem{Barbieri:2006dq}
+R.~Barbieri, L.~J. Hall, and V.~S. Rychkov, ``{Improved naturalness with a
+  heavy Higgs: An Alternative road to LHC physics},''
+  \href{http://dx.doi.org/10.1103/PhysRevD.74.015007}{{\em Phys. Rev.}
+  {\bfseries D74} (2006) 015007},
+\href{http://arxiv.org/abs/hep-ph/0603188}{{\ttfamily arXiv:hep-ph/0603188
+  [hep-ph]}}.
+%%CITATION = HEP-PH/0603188;%%.
+
+\bibitem{Belyaev:2006jh}
+A.~Belyaev, C.-R. Chen, K.~Tobe, and C.~P. Yuan, ``{Phenomenology of littlest
+  Higgs model with $T^-$ parity: including effects of $T^-$ odd fermions},''
+  \href{http://dx.doi.org/10.1103/PhysRevD.74.115020}{{\em Phys. Rev.}
+  {\bfseries D74} (2006) 115020},
+\href{http://arxiv.org/abs/hep-ph/0609179}{{\ttfamily arXiv:hep-ph/0609179
+  [hep-ph]}}.
+%%CITATION = HEP-PH/0609179;%%.
+
+\bibitem{Belanger:2021smw}
+G.~Belanger {\em et~al.}, ``{Leptoquark manoeuvres in the dark: a simultaneous
+  solution of the dark matter problem and the $ {R}_{D^{\left(\ast \right)}} $
+  anomalies},'' \href{http://dx.doi.org/10.1007/JHEP02(2022)042}{{\em JHEP}
+  {\bfseries 02} (2022) 042}, \href{http://arxiv.org/abs/2111.08027}{{\ttfamily
+  arXiv:2111.08027 [hep-ph]}}.
+
+\bibitem{McDonald:2001vt}
+J.~McDonald, ``{Thermally generated gauge singlet scalars as selfinteracting
+  dark matter},'' \href{http://dx.doi.org/10.1103/PhysRevLett.88.091304}{{\em
+  Phys. Rev. Lett.} {\bfseries 88} (2002) 091304},
+\href{http://arxiv.org/abs/hep-ph/0106249}{{\ttfamily arXiv:hep-ph/0106249
+  [hep-ph]}}.
+%%CITATION = HEP-PH/0106249;%%.
+
+\bibitem{Alguero:2022inz}
+G.~Alguero, G.~Belanger, S.~Kraml, and A.~Pukhov, ``{Co-scattering in
+  micrOMEGAs: A case study for the singlet-triplet dark matter model},''
+  \href{http://dx.doi.org/10.21468/SciPostPhys.13.6.124}{{\em SciPost Phys.}
+  {\bfseries 13} (2022) 124}, \href{http://arxiv.org/abs/2207.10536}{{\ttfamily
+  arXiv:2207.10536 [hep-ph]}}.
+
+\bibitem{Belanger:2012vp}
+G.~Belanger, K.~Kannike, A.~Pukhov, and M.~Raidal, ``{Impact of
+  semi-annihilations on dark matter phenomenology - an example of $Z_N$
+  symmetric scalar dark matter},''
+  \href{http://dx.doi.org/10.1088/1475-7516/2012/04/010}{{\em JCAP} {\bfseries
+  1204} (2012) 010},
+\href{http://arxiv.org/abs/1202.2962}{{\ttfamily arXiv:1202.2962 [hep-ph]}}.
+%%CITATION = ARXIV:1202.2962;%%.
+
+\bibitem{Belanger:2014bga}
+G.~B\'elanger, K.~Kannike, A.~Pukhov, and M.~Raidal, ``{Minimal
+  semi-annihilating ${Z}_N$ scalar dark matter},''
+  \href{http://dx.doi.org/10.1088/1475-7516/2014/06/021}{{\em JCAP} {\bfseries
+  1406} (2014) 021},
+\href{http://arxiv.org/abs/1403.4960}{{\ttfamily arXiv:1403.4960 [hep-ph]}}.
+%%CITATION = ARXIV:1403.4960;%%.
+
+\bibitem{Belanger:2020hyh}
+G.~B\'elanger, A.~Pukhov, C.~E. Yaguna, and O.~Zapata, ``{The Z$_{5}$ model of
+  two-component dark matter},''
+  \href{http://dx.doi.org/10.1007/JHEP09(2020)030}{{\em JHEP} {\bfseries 09}
+  (2020) 030}, \href{http://arxiv.org/abs/2006.14922}{{\ttfamily
+  arXiv:2006.14922 [hep-ph]}}.
+
+\bibitem{Belanger:2007dx}
+G.~Belanger, A.~Pukhov, and G.~Servant, ``{Dirac Neutrino Dark Matter},''
+  \href{http://dx.doi.org/10.1088/1475-7516/2008/01/009}{{\em JCAP} {\bfseries
+  0801} (2008) 009},
+\href{http://arxiv.org/abs/0706.0526}{{\ttfamily arXiv:0706.0526 [hep-ph]}}.
+%%CITATION = ARXIV:0706.0526;%%.
+
+\bibitem{DaSilva:2013jga}
+J.~Da~Silva, {\em {Supersymmetric Dark Matter candidates in light of
+  constraints from collider and astroparticle observables}}.
+\newblock PhD thesis, Annecy, LAPTH, 2013.
+\newblock \href{http://arxiv.org/abs/1312.0257}{{\ttfamily arXiv:1312.0257
+  [hep-ph]}}.
+\newblock
+\url{https://inspirehep.net/record/1266989/files/arXiv:1312.0257.pdf}.
+\newblock
+%%CITATION = ARXIV:1312.0257;%%.
+
+\bibitem{Belanger:2015cra}
+G.~Belanger, J.~Da~Silva, U.~Laa, and A.~Pukhov, ``{Probing U(1) extensions of
+  the MSSM at the LHC Run I and in dark matter searches},''
+  \href{http://dx.doi.org/10.1007/JHEP09(2015)151}{{\em JHEP} {\bfseries 09}
+  (2015) 151},
+\href{http://arxiv.org/abs/1505.06243}{{\ttfamily arXiv:1505.06243 [hep-ph]}}.
+%%CITATION = ARXIV:1505.06243;%%.
+
+\bibitem{Djouadi:2002ze}
+A.~Djouadi, J.-L. Kneur, and G.~Moultaka, ``{SuSpect: A Fortran code for the
+  supersymmetric and Higgs particle spectrum in the MSSM},''
+  \href{http://dx.doi.org/10.1016/j.cpc.2006.11.009}{{\em Comput. Phys.
+  Commun.} {\bfseries 176} (2007) 426--455},
+  \href{http://arxiv.org/abs/hep-ph/0211331}{{\ttfamily arXiv:hep-ph/0211331}}.
+
+\bibitem{nmssmtools}
+\url{http://www.th.u-psud.fr/NMHDECAY/nmssmtools.html}.
+
+\bibitem{Ellwanger:2005dv}
+U.~Ellwanger and C.~Hugonie, ``{NMHDECAY 2.0: An Updated program for sparticle
+  masses, Higgs masses, couplings and decay widths in the NMSSM},''
+  \href{http://dx.doi.org/10.1016/j.cpc.2006.04.004}{{\em Comput. Phys.
+  Commun.} {\bfseries 175} (2006) 290--303},
+\href{http://arxiv.org/abs/hep-ph/0508022}{{\ttfamily arXiv:hep-ph/0508022
+  [hep-ph]}}.
+%%CITATION = HEP-PH/0508022;%%.
+
+\bibitem{CPSUPERH}
+\url{http://www.hep.man.ac.uk/u/jslee/CPsuperH.html}.
+
+\bibitem{Hahn:1998yk}
+T.~Hahn and M.~Perez-Victoria, ``{Automatized one loop calculations in
+  four-dimensions and D-dimensions},''
+  \href{http://dx.doi.org/10.1016/S0010-4655(98)00173-8}{{\em Comput. Phys.
+  Commun.} {\bfseries 118} (1999) 153--165},
+  \href{http://arxiv.org/abs/hep-ph/9807565}{{\ttfamily arXiv:hep-ph/9807565}}.
+
+\bibitem{Semenov:2014rea}
+A.~Semenov, ``{LanHEP \textemdash{} A package for automatic generation of
+  Feynman rules from the Lagrangian. Version 3.2},''
+  \href{http://dx.doi.org/10.1016/j.cpc.2016.01.003}{{\em Comput. Phys.
+  Commun.} {\bfseries 201} (2016) 167--170},
+  \href{http://arxiv.org/abs/1412.5016}{{\ttfamily arXiv:1412.5016
+  [physics.comp-ph]}}.
+
+\bibitem{Allanach:2001kg}
+B.~C. Allanach, ``{SOFTSUSY: a program for calculating supersymmetric
+  spectra},'' \href{http://dx.doi.org/10.1016/S0010-4655(01)00460-X}{{\em
+  Comput. Phys. Commun.} {\bfseries 143} (2002) 305--331},
+\href{http://arxiv.org/abs/hep-ph/0104145}{{\ttfamily arXiv:hep-ph/0104145
+  [hep-ph]}}.
+%%CITATION = HEP-PH/0104145;%%.
+
+\bibitem{Porod:2011nf}
+W.~Porod and F.~Staub, ``{SPheno 3.1: Extensions including flavour, CP-phases
+  and models beyond the MSSM},''
+  \href{http://dx.doi.org/10.1016/j.cpc.2012.05.021}{{\em Comput. Phys.
+  Commun.} {\bfseries 183} (2012) 2458--2469},
+\href{http://arxiv.org/abs/1104.1573}{{\ttfamily arXiv:1104.1573 [hep-ph]}}.
+%%CITATION = ARXIV:1104.1573;%%.
+
+\bibitem{Mahmoudi:2008tp}
+F.~Mahmoudi, ``{SuperIso v2.3: A Program for calculating flavor physics
+  observables in Supersymmetry},''
+  \href{http://dx.doi.org/10.1016/j.cpc.2009.02.017}{{\em Comput. Phys.
+  Commun.} {\bfseries 180} (2009) 1579--1613},
+  \href{http://arxiv.org/abs/0808.3144}{{\ttfamily arXiv:0808.3144 [hep-ph]}}.
+
+\bibitem{Bechtle:2013wla}
+P.~Bechtle, O.~Brein, S.~Heinemeyer, O.~St{\aa}l, T.~Stefaniak, {\em et~al.},
+  ``{$\mathsf{HiggsBounds}-4$: Improved Tests of Extended Higgs Sectors against
+  Exclusion Bounds from LEP, the Tevatron and the LHC},''
+  \href{http://dx.doi.org/10.1140/epjc/s10052-013-2693-2}{{\em Eur. Phys. J.}
+  {\bfseries C74} (2014) 2693},
+\href{http://arxiv.org/abs/1311.0055}{{\ttfamily arXiv:1311.0055 [hep-ph]}}.
+%%CITATION = ARXIV:1311.0055;%%.
+
+\bibitem{Bechtle:2020pkv}
+P.~Bechtle, D.~Dercks, S.~Heinemeyer, T.~Klingl, T.~Stefaniak, G.~Weiglein, and
+  J.~Wittbrodt, ``{HiggsBounds-5: Testing Higgs Sectors in the LHC 13 TeV
+  Era},'' \href{http://arxiv.org/abs/2006.06007}{{\ttfamily arXiv:2006.06007
+  [hep-ph]}}.
+
+\bibitem{Bechtle:2013xfa}
+P.~Bechtle, S.~Heinemeyer, O.~St{\aa}l, T.~Stefaniak, and G.~Weiglein,
+  ``{$HiggsSignals$: Confronting arbitrary Higgs sectors with measurements at
+  the Tevatron and the LHC},''
+  \href{http://dx.doi.org/10.1140/epjc/s10052-013-2711-4}{{\em Eur. Phys. J.}
+  {\bfseries C74} no.~2, (2014) 2711},
+\href{http://arxiv.org/abs/1305.1933}{{\ttfamily arXiv:1305.1933 [hep-ph]}}.
+%%CITATION = ARXIV:1305.1933;%%.
+
+\bibitem{Bechtle:2020uwn}
+P.~Bechtle, S.~Heinemeyer, T.~Klingl, T.~Stefaniak, G.~Weiglein, and
+  J.~Wittbrodt, ``{HiggsSignals-2: Probing new physics with precision Higgs
+  measurements in the LHC 13 TeV era},''
+  \href{http://dx.doi.org/10.1140/epjc/s10052-021-08942-y}{{\em Eur. Phys. J.
+  C} {\bfseries 81} no.~2, (2021) 145},
+  \href{http://arxiv.org/abs/2012.09197}{{\ttfamily arXiv:2012.09197
+  [hep-ph]}}.
+
+\bibitem{Bernon:2015hsa}
+J.~Bernon and B.~Dumont, ``{Lilith: a tool for constraining new physics from
+  Higgs measurements},''
+  \href{http://dx.doi.org/10.1140/epjc/s10052-015-3645-9}{{\em Eur. Phys. J.}
+  {\bfseries C75} no.~9, (2015) 440},
+\href{http://arxiv.org/abs/1502.04138}{{\ttfamily arXiv:1502.04138 [hep-ph]}}.
+%%CITATION = ARXIV:1502.04138;%%.
+
+\bibitem{Kraml:2019sis}
+S.~Kraml, T.~Q. Loc, D.~T. Nhung, and L.~D. Ninh, ``{Constraining new physics
+  from Higgs measurements with Lilith: update to LHC Run 2 results},''
+  \href{http://dx.doi.org/10.21468/SciPostPhys.7.4.052}{{\em SciPost Phys.}
+  {\bfseries 7} no.~4, (2019) 052},
+  \href{http://arxiv.org/abs/1908.03952}{{\ttfamily arXiv:1908.03952
+  [hep-ph]}}.
+
+\bibitem{Bertrand:2020lyb}
+M.~Bertrand, S.~Kraml, T.~Q. Loc, D.~T. Nhung, and L.~D. Ninh, ``{Constraining
+  new physics from Higgs measurements with Lilith-2},'' in {\em {Tools for High
+  Energy Physics and Cosmology}}.
+\newblock 12, 2020.
+\newblock \href{http://arxiv.org/abs/2012.11408}{{\ttfamily arXiv:2012.11408
+  [hep-ph]}}.
+
+\bibitem{Kraml:2013mwa}
+S.~Kraml, S.~Kulkarni, U.~Laa, A.~Lessa, W.~Magerl, D.~Proschofsky, and
+  W.~Waltenberger, ``{SModelS: a tool for interpreting simplified-model results
+  from the LHC and its application to supersymmetry},''
+  \href{http://dx.doi.org/10.1140/epjc/s10052-014-2868-5}{{\em Eur.Phys.J.}
+  {\bfseries C74} (2014) 2868},
+\href{http://arxiv.org/abs/1312.4175}{{\ttfamily arXiv:1312.4175 [hep-ph]}}.
+%%CITATION = ARXIV:1312.4175;%%.
+
+\bibitem{Ambrogi:2017neo}
+F.~Ambrogi, S.~Kraml, S.~Kulkarni, U.~Laa, A.~Lessa, V.~Magerl, J.~Sonneveld,
+  M.~Traub, and W.~Waltenberger, ``{SModelS v1.1 user manual: Improving
+  simplified model constraints with efficiency maps},''
+  \href{http://dx.doi.org/10.1016/j.cpc.2018.02.007}{{\em Comput. Phys.
+  Commun.} {\bfseries 227} (2018) 72--98},
+  \href{http://arxiv.org/abs/1701.06586}{{\ttfamily arXiv:1701.06586
+  [hep-ph]}}.
+
+\bibitem{Ambrogi:2018ujg}
+F.~Ambrogi {\em et~al.}, ``{SModelS v1.2: long-lived particles, combination of
+  signal regions, and other novelties},''
+  \href{http://dx.doi.org/10.1016/j.cpc.2019.07.013}{{\em Comput. Phys.
+  Commun.} {\bfseries 251} (2020) 106848},
+  \href{http://arxiv.org/abs/1811.10624}{{\ttfamily arXiv:1811.10624
+  [hep-ph]}}.
+
+\bibitem{smodels20}
+A.~Lessa, ``{SModelS v2.0: new features and developments}.''. {Talk at 6th
+  workshop of the LHC Reinterpretation Forum, 15--19 Feb 2021 (online)},
+  \url{https://indico.cern.ch/event/982553/contributions/4206953/}.
+
+\bibitem{Skands:2003cj}
+P.~Z. Skands, B.~Allanach, H.~Baer, C.~Balazs, G.~Belanger, {\em et~al.},
+  ``{SUSY Les Houches accord: Interfacing SUSY spectrum calculators, decay
+  packages, and event generators},''
+  \href{http://dx.doi.org/10.1088/1126-6708/2004/07/036}{{\em JHEP} {\bfseries
+  0407} (2004) 036},
+\href{http://arxiv.org/abs/hep-ph/0311123}{{\ttfamily arXiv:hep-ph/0311123
+  [hep-ph]}}.
+%%CITATION = HEP-PH/0311123;%%.
+
+\bibitem{Drees:2015exa}
+M.~Drees, F.~Hajkarim, and E.~R. Schmitz, ``{The Effects of QCD Equation of
+  State on the Relic Density of WIMP Dark Matter},''
+  \href{http://dx.doi.org/10.1088/1475-7516/2015/06/025}{{\em JCAP} {\bfseries
+  06} (2015) 025}, \href{http://arxiv.org/abs/1503.03513}{{\ttfamily
+  arXiv:1503.03513 [hep-ph]}}.
+
+\bibitem{Laine:2015kra}
+M.~Laine and M.~Meyer, ``{Standard Model thermodynamics across the electroweak
+  crossover},'' \href{http://dx.doi.org/10.1088/1475-7516/2015/07/035}{{\em
+  JCAP} {\bfseries 07} (2015) 035},
+  \href{http://arxiv.org/abs/1503.04935}{{\ttfamily arXiv:1503.04935
+  [hep-ph]}}.
+
+\bibitem{Hindmarsh:2005ix}
+M.~Hindmarsh and O.~Philipsen, ``{WIMP dark matter and the QCD equation of
+  state},'' \href{http://dx.doi.org/10.1103/PhysRevD.71.087302}{{\em Phys.
+  Rev.} {\bfseries D71} (2005) 087302},
+\href{http://arxiv.org/abs/hep-ph/0501232}{{\ttfamily arXiv:hep-ph/0501232
+  [hep-ph]}}.
+%%CITATION = HEP-PH/0501232;%%.
+
+\bibitem{Nakamura:2010zzi}
+{\bfseries Particle Data Group} Collaboration, K.~Nakamura {\em et~al.},
+  ``{Review of particle physics},''
+\href{http://dx.doi.org/10.1088/0954-3899/37/7A/075021}{{\em J. Phys.}
+  {\bfseries G37} (2010) 075021}.
+%%CITATION = JPAGA,G37,075021;%%.
+
+\bibitem{Agrawal:2020lea}
+P.~Agrawal, A.~Parikh, and M.~Reece, ``{Systematizing the Effective Theory of
+  Self-Interacting Dark Matter},''
+  \href{http://dx.doi.org/10.1007/JHEP10(2020)191}{{\em JHEP} {\bfseries 10}
+  (2020) 191}, \href{http://arxiv.org/abs/2003.00021}{{\ttfamily
+  arXiv:2003.00021 [hep-ph]}}.
+
+\bibitem{Iengo_2009}
+R.~Iengo, ``Sommerfeld enhancement: general results from field theory
+  diagrams,'' \href{http://dx.doi.org/10.1088/1126-6708/2009/05/024}{{\em
+  Journal of High Energy Physics} {\bfseries 2009} no.~05, (May, 2009)
+  024--024}. \url{https://doi.org/10.1088%2F1126-6708%2F2009%2F05%2F024}.
+
+\bibitem{Drees:1993bu}
+M.~Drees and M.~Nojiri, ``{Neutralino - nucleon scattering revisited},''
+  \href{http://dx.doi.org/10.1103/PhysRevD.48.3483}{{\em Phys. Rev.} {\bfseries
+  D48} (1993) 3483--3501},
+\href{http://arxiv.org/abs/hep-ph/9307208}{{\ttfamily arXiv:hep-ph/9307208
+  [hep-ph]}}.
+%%CITATION = HEP-PH/9307208;%%.
+
+\bibitem{Hisano:2015bma}
+J.~Hisano, R.~Nagai, and N.~Nagata, ``{Effective Theories for Dark Matter
+  Nucleon Scattering},'' \href{http://dx.doi.org/10.1007/JHEP05(2015)037}{{\em
+  JHEP} {\bfseries 05} (2015) 037},
+\href{http://arxiv.org/abs/1502.02244}{{\ttfamily arXiv:1502.02244 [hep-ph]}}.
+%%CITATION = ARXIV:1502.02244;%%.
+
+\bibitem{Beringer:1900zz}
+{\bfseries Particle Data Group} Collaboration, J.~Beringer {\em et~al.},
+  ``{Review of Particle Physics (RPP)},''
+\href{http://dx.doi.org/10.1103/PhysRevD.86.010001}{{\em Phys. Rev.} {\bfseries
+  D86} (2012) 010001}.
+%%CITATION = PHRVA,D86,010001;%%.
+
+\bibitem{Bednyakov:2006ux}
+V.~A. Bednyakov and F.~Simkovic, ``{Nuclear spin structure in dark matter
+  search: The Finit momentum transfer limit},''
+  \href{http://dx.doi.org/10.1134/S1063779606070057}{{\em Phys. Part. Nucl.}
+  {\bfseries 37} (2006) S106--S128},
+\href{http://arxiv.org/abs/hep-ph/0608097}{{\ttfamily arXiv:hep-ph/0608097
+  [hep-ph]}}.
+%%CITATION = HEP-PH/0608097;%%.
+
+\bibitem{Fitzpatrick:2012ix}
+A.~L. Fitzpatrick, W.~Haxton, E.~Katz, N.~Lubbers, and Y.~Xu, ``{The Effective
+  Field Theory of Dark Matter Direct Detection},''
+  \href{http://dx.doi.org/10.1088/1475-7516/2013/02/004}{{\em JCAP} {\bfseries
+  1302} (2013) 004},
+\href{http://arxiv.org/abs/1203.3542}{{\ttfamily arXiv:1203.3542 [hep-ph]}}.
+%%CITATION = ARXIV:1203.3542;%%.
+
+\bibitem{Klos:2013rwa}
+P.~Klos, J.~Men\'endez, D.~Gazit, and A.~Schwenk, ``{Large-scale nuclear
+  structure calculations for spin-dependent WIMP scattering with chiral
+  effective field theory currents},''
+  \href{http://dx.doi.org/10.1103/PhysRevD.89.029901,
+  10.1103/PhysRevD.88.083516}{{\em Phys. Rev.} {\bfseries D88} no.~8, (2013)
+  083516}, \href{http://arxiv.org/abs/1304.7684}{{\ttfamily arXiv:1304.7684
+  [nucl-th]}}.
+[Erratum: Phys. Rev.D89,no.2,029901(2014)].
+%%CITATION = ARXIV:1304.7684;%%.
+
+\bibitem{Evans:2018bqy}
+N.~W. Evans, C.~A.~J. O'Hare, and C.~McCabe, ``{SHM$^{++}$: A Refinement of the
+  Standard Halo Model for Dark Matter Searches in Light of the Gaia Sausage},''
+\href{http://arxiv.org/abs/1810.11468}{{\ttfamily arXiv:1810.11468
+  [astro-ph.GA]}}.
+%%CITATION = ARXIV:1810.11468;%%.
+
+\bibitem{Belokurov_2018}
+V.~Belokurov, D.~Erkal, N.~W. Evans, S.~E. Koposov, and A.~J. Deason,
+  ``Co-formation of the disc and the stellar halo,''
+  \href{http://dx.doi.org/10.1093/mnras/sty982}{{\em Monthly Notices of the
+  Royal Astronomical Society} {\bfseries 478} no.~1, (Jun, 2018) 611}.
+  \url{http://dx.doi.org/10.1093/mnras/sty982}.
+
+\bibitem{Myeong:2018kfh}
+G.~Myeong, N.~Evans, V.~Belokurov, J.~Sanders, and S.~Koposov, ``{The Sausage
+  Globular Clusters},'' \href{http://dx.doi.org/10.3847/2041-8213/aad7f7}{{\em
+  Astrophys. J. Lett.} {\bfseries 863} no.~2, (2018) L28},
+  \href{http://arxiv.org/abs/1805.00453}{{\ttfamily arXiv:1805.00453
+  [astro-ph.GA]}}.
+
+\bibitem{LZ:2022lsv}
+{\bfseries LZ} Collaboration, J.~Aalbers {\em et~al.}, ``{First Dark Matter
+  Search Results from the LUX-ZEPLIN (LZ) Experiment},''
+  \href{http://dx.doi.org/10.1103/PhysRevLett.131.041002}{{\em Phys. Rev.
+  Lett.} {\bfseries 131} no.~4, (2023) 041002},
+  \href{http://arxiv.org/abs/2207.03764}{{\ttfamily arXiv:2207.03764
+  [hep-ex]}}.
+
+\bibitem{Aprile:2018dbl}
+{\bfseries XENON} Collaboration, E.~Aprile {\em et~al.}, ``{Dark Matter Search
+  Results from a One Tonne$\times$Year Exposure of XENON1T},''
+\href{http://arxiv.org/abs/1805.12562}{{\ttfamily arXiv:1805.12562
+  [astro-ph.CO]}}.
+%%CITATION = ARXIV:1805.12562;%%.
+
+\bibitem{Agnes:2018ves}
+{\bfseries DarkSide} Collaboration, P.~Agnes {\em et~al.}, ``{Low-Mass Dark
+  Matter Search with the DarkSide-50 Experiment},''
+  \href{http://dx.doi.org/10.1103/PhysRevLett.121.081307}{{\em Phys. Rev.
+  Lett.} {\bfseries 121} no.~8, (2018) 081307},
+\href{http://arxiv.org/abs/1802.06994}{{\ttfamily arXiv:1802.06994
+  [astro-ph.HE]}}.
+%%CITATION = ARXIV:1802.06994;%%.
+
+\bibitem{Amole:2019fdf}
+{\bfseries PICO} Collaboration, C.~Amole {\em et~al.}, ``{Dark Matter Search
+  Results from the Complete Exposure of the PICO-60 C$_3$F$_8$ Bubble
+  Chamber},'' \href{http://dx.doi.org/10.1103/PhysRevD.100.022001}{{\em Phys.
+  Rev.} {\bfseries D100} no.~2, (2019) 022001},
+\href{http://arxiv.org/abs/1902.04031}{{\ttfamily arXiv:1902.04031
+  [astro-ph.CO]}}.
+%%CITATION = ARXIV:1902.04031;%%.
+
+\bibitem{Abdelhameed:2019hmk}
+{\bfseries CRESST} Collaboration, A.~H. Abdelhameed {\em et~al.}, ``{First
+  results from the CRESST-III low-mass dark matter program},''
+\href{http://arxiv.org/abs/1904.00498}{{\ttfamily arXiv:1904.00498
+  [astro-ph.CO]}}.
+%%CITATION = ARXIV:1904.00498;%%.
+
+\bibitem{PandaX-4T:2021bab}
+{\bfseries PandaX-4T} Collaboration, Y.~Meng {\em et~al.}, ``{Dark Matter
+  Search Results from the PandaX-4T Commissioning Run},''
+  \href{http://dx.doi.org/10.1103/PhysRevLett.127.261802}{{\em Phys. Rev.
+  Lett.} {\bfseries 127} no.~26, (2021) 261802},
+  \href{http://arxiv.org/abs/2107.13438}{{\ttfamily arXiv:2107.13438
+  [hep-ex]}}.
+
+\bibitem{Aprile:2019dbj}
+{\bfseries XENON} Collaboration, E.~Aprile {\em et~al.}, ``{Constraining the
+  spin-dependent WIMP-nucleon cross sections with XENON1T},''
+  \href{http://dx.doi.org/10.1103/PhysRevLett.122.141301}{{\em Phys. Rev.
+  Lett.} {\bfseries 122} no.~14, (2019) 141301},
+\href{http://arxiv.org/abs/1902.03234}{{\ttfamily arXiv:1902.03234
+  [astro-ph.CO]}}.
+%%CITATION = ARXIV:1902.03234;%%.
+
+\bibitem{Belanger:2020gnr}
+G.~Belanger, A.~Mjallal, and A.~Pukhov, ``{Recasting direct detection limits
+  within micrOMEGAs and implication for non-standard Dark Matter scenarios},''
+  \href{http://arxiv.org/abs/2003.08621}{{\ttfamily arXiv:2003.08621
+  [hep-ph]}}.
+
+\bibitem{Amoroso:2018qga}
+S.~Amoroso, S.~Caron, A.~Jueid, R.~Ruiz~de Austri, and P.~Skands, ``{Estimating
+  QCD uncertainties in Monte Carlo event generators for gamma-ray dark matter
+  searches},'' \href{http://dx.doi.org/10.1088/1475-7516/2019/05/007}{{\em
+  JCAP} {\bfseries 05} (2019) 007},
+  \href{http://arxiv.org/abs/1812.07424}{{\ttfamily arXiv:1812.07424
+  [hep-ph]}}.
+
+\bibitem{Jueid:2022qjg}
+A.~Jueid, J.~Kip, R.~R. de~Austri, and P.~Skands, ``{Impact of QCD
+  uncertainties on antiproton spectra from dark-matter annihilation},''
+  \href{http://dx.doi.org/10.1088/1475-7516/2023/04/068}{{\em JCAP} {\bfseries
+  04} (2023) 068}, \href{http://arxiv.org/abs/2202.11546}{{\ttfamily
+  arXiv:2202.11546 [hep-ph]}}.
+
+\bibitem{Ciafaloni_2011}
+P.~Ciafaloni, D.~Comelli, A.~Riotto, F.~Sala, A.~Strumia, and A.~Urbano, ``Weak
+  corrections are relevant for dark matter indirect detection,''
+  \href{http://dx.doi.org/10.1088/1475-7516/2011/03/019}{{\em Journal of
+  Cosmology and Astroparticle Physics} {\bfseries 2011} no.~03, (Mar., 2011)
+  019–019}, \href{http://arxiv.org/abs/1009.0224}{{\ttfamily
+  arXiv:1009.0224}}. \url{http://dx.doi.org/10.1088/1475-7516/2011/03/019}.
+
+\bibitem{Marco_Cirelli_2011}
+M.~Cirelli, G.~Corcella, A.~Hektor, G.~Hütsi, M.~Kadastik, P.~Panci,
+  M.~Raidal, F.~Sala, and A.~Strumia, ``Pppc 4 dm id: a poor particle physicist
+  cookbook for dark matter indirect detection,''
+  \href{http://dx.doi.org/10.1088/1475-7516/2011/03/051}{{\em Journal of
+  Cosmology and Astroparticle Physics} {\bfseries 2011} no.~03, (Mar., 2011)
+  051–051}, \href{http://arxiv.org/abs/1012.4515}{{\ttfamily
+  arXiv:1012.4515}}. \url{http://dx.doi.org/10.1088/1475-7516/2011/03/051}.
+
+\bibitem{Zhao:1995cp}
+H.~Zhao, ``{Analytical models for galactic nuclei},''
+  \href{http://dx.doi.org/10.1093/mnras/278.2.488}{{\em Mon. Not. Roy. Astron.
+  Soc.} {\bfseries 278} (1996) 488--496},
+\href{http://arxiv.org/abs/astro-ph/9509122}{{\ttfamily arXiv:astro-ph/9509122
+  [astro-ph]}}.
+%%CITATION = ASTRO-PH/9509122;%%.
+
+\bibitem{Lavalle:2006vb}
+J.~Lavalle, J.~Pochon, P.~Salati, and R.~Taillet, ``{Clumpiness of dark matter
+  and positron annihilation signal: computing the odds of the galactic
+  lottery},'' \href{http://dx.doi.org/10.1051/0004-6361:20065312}{{\em Astron.
+  Astrophys.} {\bfseries 462} (2007) 827--848},
+\href{http://arxiv.org/abs/astro-ph/0603796}{{\ttfamily arXiv:astro-ph/0603796
+  [astro-ph]}}.
+%%CITATION = ASTRO-PH/0603796;%%.
+
+\bibitem{Boudjema:2005hb}
+F.~Boudjema, A.~Semenov, and D.~Temes, ``{Self-annihilation of the neutralino
+  dark matter into two photons or a Z and a photon in the MSSM},''
+  \href{http://dx.doi.org/10.1103/PhysRevD.72.055024}{{\em Phys. Rev.}
+  {\bfseries D72} (2005) 055024},
+\href{http://arxiv.org/abs/hep-ph/0507127}{{\ttfamily arXiv:hep-ph/0507127
+  [hep-ph]}}.
+%%CITATION = HEP-PH/0507127;%%.
+
+\bibitem{Chalons:2011ia}
+G.~Chalons and A.~Semenov, ``{Loop-induced photon spectral lines from
+  neutralino annihilation in the NMSSM},''
+  \href{http://dx.doi.org/10.1007/JHEP12(2011)055}{{\em JHEP} {\bfseries 12}
+  (2011) 055},
+\href{http://arxiv.org/abs/1110.2064}{{\ttfamily arXiv:1110.2064 [hep-ph]}}.
+%%CITATION = ARXIV:1110.2064;%%.
+
+\bibitem{Hisano:2004ds}
+J.~Hisano, S.~Matsumoto, M.~M. Nojiri, and O.~Saito, ``{Non-perturbative effect
+  on dark matter annihilation and gamma ray signature from galactic center},''
+  \href{http://dx.doi.org/10.1103/PhysRevD.71.063528}{{\em Phys. Rev.}
+  {\bfseries D71} (2005) 063528},
+\href{http://arxiv.org/abs/hep-ph/0412403}{{\ttfamily arXiv:hep-ph/0412403
+  [hep-ph]}}.
+%%CITATION = HEP-PH/0412403;%%.
+
+\bibitem{Hryczuk:2011vi}
+A.~Hryczuk and R.~Iengo, ``{The one-loop and Sommerfeld electroweak corrections
+  to the Wino dark matter annihilation},''
+  \href{http://dx.doi.org/10.1007/JHEP01(2012)163,
+  10.1007/JHEP06(2012)137}{{\em JHEP} {\bfseries 01} (2012) 163},
+  \href{http://arxiv.org/abs/1111.2916}{{\ttfamily arXiv:1111.2916 [hep-ph]}}.
+[Erratum: JHEP06,137(2012)].
+%%CITATION = ARXIV:1111.2916;%%.
+
+\bibitem{Blennow:2007tw}
+M.~Blennow, J.~Edsjo, and T.~Ohlsson, ``{Neutrinos from WIMP annihilations
+  using a full three-flavor Monte Carlo},''
+  \href{http://dx.doi.org/10.1088/1475-7516/2008/01/021}{{\em JCAP} {\bfseries
+  0801} (2008) 021},
+\href{http://arxiv.org/abs/0709.3898}{{\ttfamily arXiv:0709.3898 [hep-ph]}}.
+%%CITATION = ARXIV:0709.3898;%%.
+
+\bibitem{Baratella:2013fya}
+P.~Baratella, M.~Cirelli, A.~Hektor, J.~Pata, M.~Piibeleht, and A.~Strumia,
+  ``{PPPC 4 DM$\nu$: a Poor Particle Physicist Cookbook for Neutrinos from Dark
+  Matter annihilations in the Sun},''
+  \href{http://dx.doi.org/10.1088/1475-7516/2014/03/053}{{\em JCAP} {\bfseries
+  1403} (2014) 053},
+\href{http://arxiv.org/abs/1312.6408}{{\ttfamily arXiv:1312.6408 [hep-ph]}}.
+%%CITATION = ARXIV:1312.6408;%%.
+
+\bibitem{Cirelli:2005gh}
+M.~Cirelli, N.~Fornengo, T.~Montaruli, I.~A. Sokalski, A.~Strumia, and
+  F.~Vissani, ``{Spectra of neutrinos from dark matter annihilations},''
+  \href{http://dx.doi.org/10.1016/j.nuclphysb.2005.08.017,
+  10.1016/j.nuclphysb.2007.10.001}{{\em Nucl. Phys.} {\bfseries B727} (2005)
+  99--138}, \href{http://arxiv.org/abs/hep-ph/0506298}{{\ttfamily
+  arXiv:hep-ph/0506298 [hep-ph]}}.
+[Erratum: Nucl. Phys.B790,338(2008)].
+%%CITATION = HEP-PH/0506298;%%.
+
+\bibitem{Erkoca:2009by}
+A.~E. Erkoca, M.~H. Reno, and I.~Sarcevic, ``{Muon Fluxes From Dark Matter
+  Annihilation},'' \href{http://dx.doi.org/10.1103/PhysRevD.80.043514}{{\em
+  Phys. Rev.} {\bfseries D80} (2009) 043514},
+\href{http://arxiv.org/abs/0906.4364}{{\ttfamily arXiv:0906.4364 [hep-ph]}}.
+%%CITATION = ARXIV:0906.4364;%%.
+
+\bibitem{Chirkin:2004hz}
+D.~Chirkin and W.~Rhode, ``{Muon Monte Carlo: A High-precision tool for muon
+  propagation through matter},''
+\href{http://arxiv.org/abs/hep-ph/0407075}{{\ttfamily arXiv:hep-ph/0407075
+  [hep-ph]}}.
+%%CITATION = HEP-PH/0407075;%%.
+
+\bibitem{Honda:2006qj}
+M.~Honda, T.~Kajita, K.~Kasahara, S.~Midorikawa, and T.~Sanuki, ``{Calculation
+  of atmospheric neutrino flux using the interaction model calibrated with
+  atmospheric muon data},''
+  \href{http://dx.doi.org/10.1103/PhysRevD.75.043006}{{\em Phys. Rev.}
+  {\bfseries D75} (2007) 043006},
+\href{http://arxiv.org/abs/astro-ph/0611418}{{\ttfamily arXiv:astro-ph/0611418
+  [astro-ph]}}.
+%%CITATION = ASTRO-PH/0611418;%%.
+
+\bibitem{Belanger:2015hra}
+G.~B\'elanger, J.~Da~Silva, T.~Perrillat-Bottonet, and A.~Pukhov, ``{Limits on
+  dark matter proton scattering from neutrino telescopes using micrOMEGAs},''
+  \href{http://dx.doi.org/10.1088/1475-7516/2015/12/036}{{\em JCAP} {\bfseries
+  1512} no.~12, (2015) 036},
+\href{http://arxiv.org/abs/1507.07987}{{\ttfamily arXiv:1507.07987 [hep-ph]}}.
+%%CITATION = ARXIV:1507.07987;%%.
+
+\bibitem{Ball:2017nwa}
+{\bfseries NNPDF} Collaboration, R.~D. Ball {\em et~al.}, ``{Parton
+  distributions from high-precision collider data},''
+  \href{http://dx.doi.org/10.1140/epjc/s10052-017-5199-5}{{\em Eur. Phys. J. C}
+  {\bfseries 77} no.~10, (2017) 663},
+  \href{http://arxiv.org/abs/1706.00428}{{\ttfamily arXiv:1706.00428
+  [hep-ph]}}.
+
+\bibitem{Bechtle:2011sb}
+P.~Bechtle, O.~Brein, S.~Heinemeyer, G.~Weiglein, and K.~E. Williams,
+  ``{HiggsBounds 2.0.0: Confronting Neutral and Charged Higgs Sector
+  Predictions with Exclusion Bounds from LEP and the Tevatron},''
+  \href{http://dx.doi.org/10.1016/j.cpc.2011.07.015}{{\em Comput. Phys.
+  Commun.} {\bfseries 182} (2011) 2605--2631},
+\href{http://arxiv.org/abs/1102.1898}{{\ttfamily arXiv:1102.1898 [hep-ph]}}.
+%%CITATION = ARXIV:1102.1898;%%.
+
+\bibitem{Belanger:2014hqa}
+G.~Belanger, F.~Boudjema, and A.~Pukhov,
+  \href{http://dx.doi.org/10.1142/9789814390163_0012}{``{micrOMEGAs : a code
+  for the calculation of Dark Matter properties in generic models of particle
+  interaction},''} in {\em {The Dark Secrets of the Terascale}}, pp.~739--790.
+\newblock 2013.
+\newblock
+\href{http://arxiv.org/abs/1402.0787}{{\ttfamily arXiv:1402.0787 [hep-ph]}}.
+\newblock
+%%CITATION = ARXIV:1402.0787;%%.
+
+\bibitem{Djouadi:1997yw}
+A.~Djouadi, J.~Kalinowski, and M.~Spira, ``{HDECAY: A Program for Higgs boson
+  decays in the standard model and its supersymmetric extension},''
+  \href{http://dx.doi.org/10.1016/S0010-4655(97)00123-9}{{\em Comput. Phys.
+  Commun.} {\bfseries 108} (1998) 56--74},
+\href{http://arxiv.org/abs/hep-ph/9704448}{{\ttfamily arXiv:hep-ph/9704448
+  [hep-ph]}}.
+%%CITATION = HEP-PH/9704448;%%.
+
+\bibitem{Heisig:2018kfq}
+J.~Heisig, S.~Kraml, and A.~Lessa, ``{Constraining new physics with searches
+  for long-lived particles: Implementation into SModelS},''
+\href{http://arxiv.org/abs/1808.05229}{{\ttfamily arXiv:1808.05229 [hep-ph]}}.
+%%CITATION = ARXIV:1808.05229;%%.
+
+\bibitem{Alguero:2020grj}
+G.~Alguero, S.~Kraml, and W.~Waltenberger, ``{A SModelS interface for pyhf
+  likelihoods},'' {\em Comput. Phys. Commun.} (2020) ,
+  \href{http://arxiv.org/abs/2009.01809}{{\ttfamily arXiv:2009.01809
+  [hep-ph]}}.
+
+\bibitem{Freitas:2014hra}
+A.~Freitas, ``{Higher-order electroweak corrections to the partial widths and
+  branching ratios of the Z boson},''
+  \href{http://dx.doi.org/10.1007/JHEP04(2014)070}{{\em JHEP} {\bfseries 04}
+  (2014) 070},
+\href{http://arxiv.org/abs/1401.2447}{{\ttfamily arXiv:1401.2447 [hep-ph]}}.
+%%CITATION = ARXIV:1401.2447;%%.
+
+\bibitem{Aaboud:2016cth}
+{\bfseries ATLAS} Collaboration, M.~Aaboud {\em et~al.}, ``{Search for
+  high-mass new phenomena in the dilepton final state using proton--proton
+  collisions at $\sqrt{s}=13$ TeV with the ATLAS detector},''
+\href{http://arxiv.org/abs/1607.03669}{{\ttfamily arXiv:1607.03669 [hep-ex]}}.
+%%CITATION = ARXIV:1607.03669;%%.
+
+\bibitem{Aad:2014aqa}
+{\bfseries ATLAS} Collaboration, G.~Aad {\em et~al.}, ``{Search for new
+  phenomena in the dijet mass distribution using $p-p$ collision data at
+  $\sqrt{s}=8$ TeV with the ATLAS detector},''
+  \href{http://dx.doi.org/10.1103/PhysRevD.91.052007}{{\em Phys. Rev.}
+  {\bfseries D91} no.~5, (2015) 052007},
+\href{http://arxiv.org/abs/1407.1376}{{\ttfamily arXiv:1407.1376 [hep-ex]}}.
+%%CITATION = ARXIV:1407.1376;%%.
+
+\bibitem{Khachatryan:2015sja}
+{\bfseries CMS} Collaboration, V.~Khachatryan {\em et~al.}, ``{Search for
+  resonances and quantum black holes using dijet mass spectra in proton-proton
+  collisions at $\sqrt{s} =$ 8 TeV},''
+  \href{http://dx.doi.org/10.1103/PhysRevD.91.052009}{{\em Phys. Rev.}
+  {\bfseries D91} no.~5, (2015) 052009},
+\href{http://arxiv.org/abs/1501.04198}{{\ttfamily arXiv:1501.04198 [hep-ex]}}.
+%%CITATION = ARXIV:1501.04198;%%.
+
+\bibitem{Khachatryan:2016ecr}
+{\bfseries CMS} Collaboration, V.~Khachatryan {\em et~al.}, ``{Search for
+  narrow resonances in dijet final states at $\sqrt(s)=$ 8 TeV with the novel
+  CMS technique of data scouting},''
+  \href{http://dx.doi.org/10.1103/PhysRevLett.117.031802}{{\em Phys. Rev.
+  Lett.} {\bfseries 117} no.~3, (2016) 031802},
+\href{http://arxiv.org/abs/1604.08907}{{\ttfamily arXiv:1604.08907 [hep-ex]}}.
+%%CITATION = ARXIV:1604.08907;%%.
+
+\bibitem{ATLAS:2015nsi}
+{\bfseries ATLAS} Collaboration, G.~Aad {\em et~al.}, ``{Search for new
+  phenomena in dijet mass and angular distributions from $pp$ collisions at
+  $\sqrt{s}=$ 13 TeV with the ATLAS detector},''
+  \href{http://dx.doi.org/10.1016/j.physletb.2016.01.032}{{\em Phys. Lett.}
+  {\bfseries B754} (2016) 302--322},
+\href{http://arxiv.org/abs/1512.01530}{{\ttfamily arXiv:1512.01530 [hep-ex]}}.
+%%CITATION = ARXIV:1512.01530;%%.
+
+\bibitem{Khachatryan:2015dcf}
+{\bfseries CMS} Collaboration, V.~Khachatryan {\em et~al.}, ``{Search for
+  narrow resonances decaying to dijets in proton-proton collisions at $\sqrt(s)
+  =$ 13 TeV},'' \href{http://dx.doi.org/10.1103/PhysRevLett.116.071801}{{\em
+  Phys. Rev. Lett.} {\bfseries 116} no.~7, (2016) 071801},
+\href{http://arxiv.org/abs/1512.01224}{{\ttfamily arXiv:1512.01224 [hep-ex]}}.
+%%CITATION = ARXIV:1512.01224;%%.
+
+\bibitem{Fairbairn:2016iuf}
+M.~Fairbairn, J.~Heal, F.~Kahlhoefer, and P.~Tunney, ``{Constraints on Z'
+  models from LHC dijet searches},''
+\href{http://arxiv.org/abs/1605.07940}{{\ttfamily arXiv:1605.07940 [hep-ph]}}.
+%%CITATION = ARXIV:1605.07940;%%.
+
+\bibitem{Abbiendi:2003sc}
+{\bfseries OPAL} Collaboration, G.~Abbiendi {\em et~al.}, ``{Search for
+  chargino and neutralino production at $\sqrt{s}$ = 192 - 209 GeV at LEP},''
+  \href{http://dx.doi.org/10.1140/epjc/s2004-01758-8}{{\em Eur. Phys. J.}
+  {\bfseries C35} (2004) 1--20},
+\href{http://arxiv.org/abs/hep-ex/0401026}{{\ttfamily arXiv:hep-ex/0401026
+  [hep-ex]}}.
+%%CITATION = HEP-EX/0401026;%%.
+
+\bibitem{Read:2002hq}
+A.~L. Read, ``{Presentation of search results: The CL(s) technique},''
+\href{http://dx.doi.org/10.1088/0954-3899/28/10/313}{{\em J. Phys.} {\bfseries
+  G28} (2002) 2693--2704}.
+%%CITATION = JPAGA,G28,2693;%%.
+
+\bibitem{Read:2000ru}
+A.~L. Read, ``{Modified frequentist analysis of search results (The CL(s)
+  method)},'' in {\em {Workshop on confidence limits, CERN, Geneva,
+  Switzerland, 17-18 Jan 2000: Proceedings}}.
+\newblock 2000.
+\newblock
+\url{http://weblib.cern.ch/abstract?CERN-OPEN-2000-205}.
+\newblock
+%%CITATION = CERN-OPEN-2000-205;%%.
+
+\bibitem{Khachatryan:2014rra}
+{\bfseries CMS} Collaboration, V.~Khachatryan {\em et~al.}, ``{Search for dark
+  matter, extra dimensions, and unparticles in monojet events in proton-proton
+  collisions at $\sqrt{s} = 8$ TeV},''
+  \href{http://dx.doi.org/10.1140/epjc/s10052-015-3451-4}{{\em Eur. Phys. J.}
+  {\bfseries C75} no.~5, (2015) 235},
+\href{http://arxiv.org/abs/1408.3583}{{\ttfamily arXiv:1408.3583 [hep-ex]}}.
+%%CITATION = ARXIV:1408.3583;%%.
+
+\bibitem{Allanach:2008qq}
+B.~C. Allanach {\em et~al.}, ``{SUSY Les Houches Accord 2},''
+  \href{http://dx.doi.org/10.1016/j.cpc.2008.08.004}{{\em Comput. Phys.
+  Commun.} {\bfseries 180} (2009) 8--25},
+\href{http://arxiv.org/abs/0801.0045}{{\ttfamily arXiv:0801.0045 [hep-ph]}}.
+%%CITATION = ARXIV:0801.0045;%%.
+
+\bibitem{Carena:1995wu}
+M.~Carena, M.~Quiros, and C.~E.~M. Wagner, ``{Effective potential methods and
+  the Higgs mass spectrum in the MSSM},''
+  \href{http://dx.doi.org/10.1016/0550-3213(95)00665-6}{{\em Nucl. Phys.}
+  {\bfseries B461} (1996) 407--436},
+\href{http://arxiv.org/abs/hep-ph/9508343}{{\ttfamily arXiv:hep-ph/9508343
+  [hep-ph]}}.
+%%CITATION = HEP-PH/9508343;%%.
+
+\bibitem{Bobeth:2001sq}
+C.~Bobeth, T.~Ewerth, F.~Kruger, and J.~Urban, ``{Analysis of neutral Higgs
+  boson contributions to the decays $\bar{B}$( $s^{)} \to \ell^{+} \ell^{-}$
+  and $\bar{B} \to K \ell^{+} \ell^{-}$},''
+  \href{http://dx.doi.org/10.1103/PhysRevD.64.074014}{{\em Phys. Rev.}
+  {\bfseries D64} (2001) 074014},
+\href{http://arxiv.org/abs/hep-ph/0104284}{{\ttfamily arXiv:hep-ph/0104284
+  [hep-ph]}}.
+%%CITATION = HEP-PH/0104284;%%.
+
+\bibitem{Domingo:2007dx}
+F.~Domingo and U.~Ellwanger, ``{Updated Constraints from $B$ Physics on the
+  MSSM and the NMSSM},''
+  \href{http://dx.doi.org/10.1088/1126-6708/2007/12/090}{{\em JHEP} {\bfseries
+  12} (2007) 090},
+\href{http://arxiv.org/abs/0710.3714}{{\ttfamily arXiv:0710.3714 [hep-ph]}}.
+%%CITATION = ARXIV:0710.3714;%%.
+
+\bibitem{Lee:2007gn}
+J.~S. Lee, M.~Carena, J.~Ellis, A.~Pilaftsis, and C.~E.~M. Wagner,
+  ``{CPsuperH2.0: an Improved Computational Tool for Higgs Phenomenology in the
+  MSSM with Explicit CP Violation},''
+  \href{http://dx.doi.org/10.1016/j.cpc.2008.09.003}{{\em Comput. Phys.
+  Commun.} {\bfseries 180} (2009) 312--331},
+\href{http://arxiv.org/abs/0712.2360}{{\ttfamily arXiv:0712.2360 [hep-ph]}}.
+%%CITATION = ARXIV:0712.2360;%%.
+
+\bibitem{Domingo:2015wyn}
+F.~Domingo, ``{Update of the flavour-physics constraints in the NMSSM},''
+\href{http://arxiv.org/abs/1512.02091}{{\ttfamily arXiv:1512.02091 [hep-ph]}}.
+%%CITATION = ARXIV:1512.02091;%%.
+
+\bibitem{Eidelman:2004wy}
+{\bfseries Particle Data Group} Collaboration, S.~Eidelman {\em et~al.},
+  ``{Review of particle physics. Particle Data Group},''
+\href{http://dx.doi.org/10.1016/j.physletb.2004.06.001}{{\em Phys. Lett.}
+  {\bfseries B592} (2004) 1--1109}.
+%%CITATION = PHLTA,B592,1;%%.
+
+\bibitem{Mahmoudi:2010iz}
+F.~Mahmoudi {\em et~al.}, ``{Flavour Les Houches Accord: Interfacing Flavour
+  related Codes},'' \href{http://dx.doi.org/10.1016/j.cpc.2011.10.006}{{\em
+  Comput. Phys. Commun.} {\bfseries 183} (2012) 285--298},
+\href{http://arxiv.org/abs/1008.0762}{{\ttfamily arXiv:1008.0762 [hep-ph]}}.
+%%CITATION = ARXIV:1008.0762;%%.
+
+\bibitem{Numerical}
+W.~H. Press, S.~A. Teukolsky, W.~T. Vetterling, and B.~P. Flannery,
+  ``{Numerical Recipes: The Art of Scientific Computing}.''.
+
+\bibitem{Feldman:1997qc}
+G.~J. Feldman and R.~D. Cousins, ``{A Unified approach to the classical
+  statistical analysis of small signals},''
+  \href{http://dx.doi.org/10.1103/PhysRevD.57.3873}{{\em Phys. Rev.} {\bfseries
+  D57} (1998) 3873--3889},
+\href{http://arxiv.org/abs/physics/9711021}{{\ttfamily arXiv:physics/9711021
+  [physics.data-an]}}.
+%%CITATION = PHYSICS/9711021;%%.
+
+\bibitem{Misiak:2006zs}
+M.~Misiak {\em et~al.}, ``{Estimate of $\mathcal{B} (\bar B \to X_s \gamma)$ at
+  $O(\alpha_s^2)$},''
+  \href{http://dx.doi.org/10.1103/PhysRevLett.98.022002}{{\em Phys. Rev. Lett.}
+  {\bfseries 98} (2007) 022002},
+\href{http://arxiv.org/abs/hep-ph/0609232}{{\ttfamily arXiv:hep-ph/0609232
+  [hep-ph]}}.
+%%CITATION = HEP-PH/0609232;%%.
+
+\bibitem{Misiak:2006ab}
+M.~Misiak and M.~Steinhauser, ``{NNLO QCD corrections to the anti-B ---> X(s)
+  gamma matrix elements using interpolation in m(c)},''
+  \href{http://dx.doi.org/10.1016/j.nuclphysb.2006.11.027}{{\em Nucl. Phys.}
+  {\bfseries B764} (2007) 62--82},
+\href{http://arxiv.org/abs/hep-ph/0609241}{{\ttfamily arXiv:hep-ph/0609241
+  [hep-ph]}}.
+%%CITATION = HEP-PH/0609241;%%.
+
+\bibitem{Gambino:2008fj}
+P.~Gambino and P.~Giordano, ``{Normalizing inclusive rare B decays},''
+  \href{http://dx.doi.org/10.1016/j.physletb.2008.09.046}{{\em Phys. Lett.}
+  {\bfseries B669} (2008) 69--73},
+\href{http://arxiv.org/abs/0805.0271}{{\ttfamily arXiv:0805.0271 [hep-ph]}}.
+%%CITATION = ARXIV:0805.0271;%%.
+
+\bibitem{Yao:2006px}
+{\bfseries Particle Data Group} Collaboration, W.~M. Yao {\em et~al.},
+  ``{Review of Particle Physics},''
+\href{http://dx.doi.org/10.1088/0954-3899/33/1/001}{{\em J. Phys.} {\bfseries
+  G33} (2006) 1--1232}.
+%%CITATION = JPAGA,G33,1;%%.
+
+\end{thebibliography}\endgroup

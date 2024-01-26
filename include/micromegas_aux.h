@@ -198,6 +198,7 @@ extern double plazmaWidth(char *process,double T);
 
 extern double cs23MM(numout*cc, int nsub, double Pcm, int fast,int ii3, double M45min, double M45max);
 
+extern double cs23Pcm(numout*cc, int nsub, double Pcm, int i3,int*err);
 extern double cs23(numout*cc, int nsub, double Pcm, int ii3,int*err);
 
 extern double amoeba(double *p, double *dp, int ndim, double (*f)(double *), double eps, int *nCalls);
@@ -242,6 +243,10 @@ extern float UpperLim(float CL,int If, int N, float* FC, float muB,float*FB,int 
 
 extern void  addErrorMess( char** All, char * one);
 extern void delInterval(double x1,double x2,double **intervals, int*n);
+
+// typedef struct { int dim; double *x; double *y;}   polintStr;
+extern double polint_arg(double x, void * arg);
+
 
 #include"../CalcHEP_src/include/num_in.h"
 

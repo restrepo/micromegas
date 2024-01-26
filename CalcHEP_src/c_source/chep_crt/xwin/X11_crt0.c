@@ -77,7 +77,7 @@ static int  read_ini(char * fname)
   }
   fclose(ini);
   strcpy(f_ini_name,fname);
-printf("f_ini_name=%s\n", f_ini_name);  
+//printf("f_ini_name=%s\n", f_ini_name);  
   return 1;
 }
 
@@ -172,7 +172,7 @@ static int findNextFont(char * fontName, int dir)
          if(w==wc && strcmp(currentFont,allFonts[n]))  
          { strcpy(fontName,allFonts[n]); 
            static int newFont=0;
-           if(newFont>1) printf("= Font n=%d :%s: width=%d/%d height=%d \n",n,currentFont,w,w_,h); 
+           if(newFont>1) printf("Font n=%d :%s: width=%d/%d height=%d \n",n,currentFont,w,w_,h); 
            newFont++;
            nCurF=n;
            XFreeFontInfo(allFonts, info, nFonts); 
@@ -474,10 +474,8 @@ int  crt0_inkey(void)
                           char c=0;
                           char newFont[200]; 
                           KeySym keysym;
-//                          CtrlPressed=0;
-                          
+                          CtrlPressed=0;
                           XLookupString(&report.xkey,&c,1,&keysym,NULL);
-
                           if(Ctrl_mem && keysym==XK_greater)     
                           {  
                              if(0==findNextFont(newFont,1)) { setNewFont(newFont); printf(" Next font\n"); write_ini();} 
@@ -488,7 +486,7 @@ int  crt0_inkey(void)
                           if(Ctrl_mem && keysym==XK_less)     
                           {  
                              if(0==findNextFont(newFont,-1)) { setNewFont(newFont); printf(" Next font\n"); write_ini();} 
-                             else printf(" There is only one fornt of this size\n");
+                             else printf(" There is only one font of this size\n");
                              break;
                           }
                                                     
@@ -507,7 +505,7 @@ int  crt0_inkey(void)
                              break;    
                           }                                                          
                              
-				if(c!=0 && c<127 )  return c;
+				if(c!=0 && c<127 ) {   return c;}
 				switch(keysym)
 				{
 				case XK_Left: return KB_LEFT;
@@ -547,7 +545,8 @@ int  crt0_inkey(void)
  	        case KeyRelease :
  	                {  char c;
  	                   KeySym keysym;
- 	                   XLookupString(&report.xkey,&c,1,&keysym,NULL);  
+ 	                   XLookupString(&report.xkey,&c,1,&keysym,NULL); 
+ 	                    
  	                   if(keysym==XK_Control_L || keysym==XK_Control_R) CtrlPressed=0;
  	                }  
                         break;

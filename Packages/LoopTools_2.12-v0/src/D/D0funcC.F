@@ -948,7 +948,7 @@ c	PRINT '(8F14.2)', Mc(1), Mc(2), Mc(3), Mc(4)
 
 	if( case .eq. 1 ) then
 	  dilogs = cLi2omrat2(q4, s, m3, m4) +
-     &             cLi2omrat2(q4, s, -1D0, -1D0)
+     &             cLi2omrat2(q4, s, minus1, minus1)
 	else if( case .eq. 2 ) then
 	  dilogs = cLi2omrat2(q4, s, x43(1), x43(3)) +
      &             cLi2omrat2(q4, s, x43(2), x43(4))

@@ -5,6 +5,7 @@ Block SPINFO          # Program information
      2    4.1.0       # version number
 Block MODSEL  # Select model
      1    0   # nonUniversal
+    11    5
 Block SMINPUTS             # Standard Model inputs
      1    1.27918000e+02   # alpha_em^(-1)(MZ) SM MSbar
      2    1.16637900e-05   # G_Fermi

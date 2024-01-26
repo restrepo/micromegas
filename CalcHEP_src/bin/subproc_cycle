@@ -13,6 +13,13 @@ if(test -x ./n_calchep) then
      echo ./n_calchep get error at start
      exit 2 
    fi
+   vegas=`grep  Vegas_integral session.dat`
+   grid=`echo  $vegas |cut -f8 -d " "` 
+   if(test $grid -ne 0 ) then 
+    ./n_calchep -blind  "[[[[[[[[[{[[[[[[{0" 1>/dev/null 2>/dev/null
+   fi
+   ./n_calchep -blind "{{}0" 1>/dev/null 2>/dev/null 
+
    Sep=`grep \#Subprocess  session.dat |cut -f5 -d" "`
    if(test "$Sep" = "->" ) then
      if(test $# -ne 1) then
@@ -20,6 +27,7 @@ if(test -x ./n_calchep) then
        echo  number of events for each particle
        exit 200
      fi
+echo $*
      $sbin/_subproc_cycle_1 $bin $*
    else
 
@@ -29,12 +37,10 @@ if(test -x ./n_calchep) then
 #       echo And one auxilary parameter 
 #       echo 2: a limit for number of events for each channel.
 #       exit 200
-#     fi
- 
+#     fi 
      $sbin/_subproc_cycle_2 $bin $*
    fi
 else 
-
-   echo can not find ./n_calchep
+   echo  ./n_calchep  is absent
    exit 1
 fi

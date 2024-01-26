@@ -1,0 +1,13 @@
+NMM23*Zh21*Zn12*Zn13*sb+NMM13*Zh21*Zn11*Zn13*sb+NMM24*Zh22*Zn12*Zn14*cb+NMM14*Zh22*Zn11*Zn14*cb
+
+-EE/(MW*SW)
+
+ -EE/(SW) * Zh21 * Zn12*Zn13
+ +EE/(CW) * Zh21 * Zn11*Zn13
+ +EE/(SW) * Zh22 * Zn12*Zn14
+ -EE/(CW) * Zh22 * Zn11*Zn14
+
+%NMM23 |
+%NMM13 |
+%NMM24 |
+%NMM14 |

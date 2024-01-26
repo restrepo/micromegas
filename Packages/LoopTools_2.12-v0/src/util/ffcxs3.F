@@ -198,6 +198,7 @@
 	absc(c) = abs(Re(c)) + abs(Im(c))
 *  #] declarations:
 *  #[ get ieps:
+        ieps0=1000
 	ip = ii+3
 	call ffieps(ieps,cz(1),cpi(ip),cpiDpj(ip,ii),isoort)
 *  #] get ieps:

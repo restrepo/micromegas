@@ -85,17 +85,9 @@ int main(int argc,char** argv)
   if(err) { printf("Can't calculate %s\n",cdmName); return 1;}
 
 
-  if(CDM1)
   {
-     qNumbers(CDM1, &spin2, &charge3, &cdim);
-     printf("\nDark matter candidate is '%s' with spin=%d/2 mass=%.2E\n",CDM1,  spin2,Mcdm1);
-     if(charge3) printf("Dark Matter has electric charge %d/3\n",charge3);
-     if(cdim!=1) printf("Dark Matter is a color particle\n");
-  }
-  if(CDM2)
-  {
-     qNumbers(CDM2, &spin2, &charge3, &cdim);
-     printf("\nDark matter candidate is '%s' with spin=%d/2 mass=%.2E\n",CDM2,spin2,Mcdm2);
+     qNumbers(CDM[1], &spin2, &charge3, &cdim);
+     printf("\nDark matter candidate is '%s' with spin=%d/2 mass=%.2E\n",CDM[1],  spin2,McdmN[1]);
      if(charge3) printf("Dark Matter has electric charge %d/3\n",charge3);
      if(cdim!=1) printf("Dark Matter is a color particle\n");
   }
@@ -215,7 +207,6 @@ int main(int argc,char** argv)
 { int fast=1;
   double Beps=1.E-4, cut=1e-10, vsPb;
   double Omega, Xf;
-  double Y[2];
   int i,err;
   printf("\n==== Calculation of relic density =====\n");
 
@@ -228,7 +219,7 @@ int main(int argc,char** argv)
 
   printThermalSets();
 
-  Omega=darkOmegaN(Y,Beps,&err);
+  Omega=darkOmegaN(fast,Beps,&err);
   printf("Omega = %.3f\n",Omega);
 
 }
@@ -239,7 +230,7 @@ int main(int argc,char** argv)
 {
   double TR=1E10;
   double omegaFi;
-  toFeebleList(CDM1);
+  toFeebleList(CDM[1]);
   VWdecay=0; VZdecay=0;
 
   omegaFi=darkOmegaFi(TR,&err);
@@ -349,40 +340,21 @@ printf("\n==== Indirect detection =======\n");
   double csSIp2,csSIn2,csSDp2,csSDn2, csSIp2_,csSIn2_,csSDp2_,csSDn2_;
 printf("\n==== Calculation of CDM-nucleons amplitudes  =====\n");
 
-  if(CDM1)
   {
-    nucleonAmplitudes(CDM1, pA0,pA5,nA0,nA5);
-    printf("%s[%s]-nucleon micrOMEGAs amplitudes\n",CDM1,aCDM1?aCDM1:CDM1);
+    nucleonAmplitudes(CDM[1], pA0,pA5,nA0,nA5);
+    printf("%s[%s]-nucleon micrOMEGAs amplitudes\n",CDM[1],antiParticle(CDM[1]));
     printf("proton:  SI  %.3E [%.3E]  SD  %.3E [%.3E]\n",pA0[0], pA0[1],  pA5[0], pA5[1] );
     printf("neutron: SI  %.3E [%.3E]  SD  %.3E [%.3E]\n",nA0[0], nA0[1],  nA5[0], nA5[1] );
 
-    SCcoeff=4/M_PI*3.8937966E8*pow(Nmass*Mcdm1/(Nmass+ Mcdm1),2.);
+    SCcoeff=4/M_PI*3.8937966E8*pow(Nmass*McdmN[1]/(Nmass+ McdmN[1]),2.);
     csSIp1=  SCcoeff*pA0[0]*pA0[0];  csSIp1_=  SCcoeff*pA0[1]*pA0[1];
     csSDp1=3*SCcoeff*pA5[0]*pA5[0];  csSDp1_=3*SCcoeff*pA5[1]*pA5[1];
     csSIn1=  SCcoeff*nA0[0]*nA0[0];  csSIn1_=  SCcoeff*nA0[1]*nA0[1];
     csSDn1=3*SCcoeff*nA5[0]*nA5[0];  csSDn1_=3*SCcoeff*nA5[1]*nA5[1];
 
-    printf("%s[%s]-nucleon cross sections[pb]:\n",CDM1,aCDM1?aCDM1:CDM1);
+    printf("%s[%s]-nucleon cross sections[pb]:\n",CDM[1],antiParticle(CDM[1]));
     printf(" proton  SI %.3E [%.3E] SD %.3E [%.3E]\n", csSIp1,csSIp1_,csSDp1,csSDp1_);
     printf(" neutron SI %.3E [%.3E] SD %.3E [%.3E]\n", csSIn1,csSIn1_,csSDn1,csSDn1_);
-  }
-  if(CDM2)
-  {
-    nucleonAmplitudes(CDM2, pA0,pA5,nA0,nA5);
-    printf("%s[%s]-nucleon micrOMEGAs amplitudes\n",CDM2,aCDM2?aCDM2:CDM2 );
-    printf("proton:  SI  %.3E [%.3E]  SD  %.3E [%.3E]\n",pA0[0], pA0[1],  pA5[0], pA5[1] );
-    printf("neutron: SI  %.3E [%.3E]  SD  %.3E [%.3E]\n",nA0[0], nA0[1],  nA5[0], nA5[1] );
-
-    SCcoeff=4/M_PI*3.8937966E8*pow(Nmass*Mcdm2/(Nmass+ Mcdm2),2.);
-    csSIp2=  SCcoeff*pA0[0]*pA0[0];  csSIp2_=  SCcoeff*pA0[1]*pA0[1];
-    csSDp2=3*SCcoeff*pA5[0]*pA5[0];  csSDp2_=3*SCcoeff*pA5[1]*pA5[1];
-    csSIn2=  SCcoeff*nA0[0]*nA0[0];  csSIn2_=  SCcoeff*nA0[1]*nA0[1];
-    csSDn2=3*SCcoeff*nA5[0]*nA5[0];  csSDn2_=3*SCcoeff*nA5[1]*nA5[1];
-
-    printf("%s[%s]-nucleon cross sections[pb]:\n",CDM2,aCDM2?aCDM2:CDM2);
-    printf(" proton  SI %.3E [%.3E] SD %.3E [%.3E]\n", csSIp2,csSIp2_,csSDp2,csSDp2_);
-    printf(" neutron SI %.3E [%.3E] SD %.3E [%.3E]\n", csSIn2,csSIn2_,csSDn2,csSDn2_);
-
   }
 }
 #endif
@@ -397,7 +369,6 @@ printf("\n==== Calculation of CDM-nucleons amplitudes  =====\n");
 #endif
 
 #ifdef NEUTRINO
-if(!CDM1 || !CDM2)
 { double nu[NZ], nu_bar[NZ],mu[NZ];
   double Ntot;
   int forSun=1;

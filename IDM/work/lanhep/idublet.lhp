@@ -256,13 +256,13 @@ lterm i*EE*MW/2/CW/SW*(
 	'W-.f'*('W+.C'*'Z.c'*(1-2*SW**2)+'W+.c'*'Z.C'
 			+2*CW*SW*'W+.C'*'A.c')).
 
-
 SetAngle(1-SW**2=CW**2).
 SetAngle(MW/CW=MZ).
+
 
 do_if  hgg==On.
 read 'higgs_eff.lhp'.
 end_if.
 
-CheckMasses.
+%CheckMasses.
 CheckHerm.

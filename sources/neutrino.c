@@ -1,3 +1,4 @@
+//  original version MICROMEGAS/Annecy_2014/micromegas_3.6.7/neutrino.c
 #include<stdio.h>
 #include<stdlib.h>
 #include"micromegas.h"
@@ -65,14 +66,15 @@ static double rIntegrand(double r)
   if(w2rate<=0) return 0;
   rhoGeVcm3=polint1(r/Rcm,nTab,rTab,rhoTab)/mp_g;   // in proton mass units
   mfrac=polint1(r/Rcm,nTab,rTab,aFraction);
-  if(FFalpha==0) return rhoGeVcm3*mfrac*w2rate; 
+  if(FFalpha==0) return 3*r*r*rhoGeVcm3*mfrac*w2rate; 
   else  return  3*r*r*rhoGeVcm3*mfrac*(1+muX)*( exp(-v_stat*v_stat*FFalpha) - exp(-(v_stat*v_stat+vescQ)*FFalpha/(1+muX)))/FFalpha;
 }
 
 
 
 static double vIntegrand(double v)
-{ double u=fvStat(v); 
+{ if(v==0) return 0;
+  double u=fvStat(v); 
   double phiv,Rmax;
   if(!u)return 0;
   int err;
@@ -156,7 +158,7 @@ static int readSunData(void)
   if(!rdOK) 
   { FILE*f;
     char fname[300];
-    sprintf(fname,"%s/sources/data_nu/SSM.dat",micrO);
+    sprintf(fname,"%s/Data/data_nu/SSM.dat",micrO);
     
     f=fopen(fname,"r"); 
     fscanf(f,"%*[^\n]"); 
@@ -215,10 +217,12 @@ static double captureSun(double(*vfv)(double), double M_cdm, double pA0, double 
     if(i==0) FFalpha=0; else FFalpha=M_cdm*MA*pow((0.91*pow(MA,0.3333333) +0.3)*GeVfm,2)/3;
     cI=fr*FF/A[i]*si*simpson(vIntegrand,0,1.E-3*Vlight*sqrt(vmaxQ),1.E-3,NULL);     
     sumI+=cI;
-//printf("C%d = %E  \n",A[i],rhoDM/M_cdm*cI);
+//printf("i=%d fr=%E  FF=%e si=%E  A=%d  cI=%e  vMax=%e \n",i, fr, FF,si,A[i],cI, 1.E-3*Vlight*sqrt(vmaxQ));
   }
 //printf("Sun capture =%E\n",rhoDM*sumI/M_cdm);  
+//printf("result=%e sumI=%e \n",rhoDM*sumI/M_cdm,sumI);
   return  rhoDM*sumI/M_cdm;
+
 }
 
 
@@ -279,7 +283,7 @@ static int readEarthData(void)
   if(!rdOK) 
   { FILE*f;
     char fname[300];
-    sprintf(fname,"%s/sources/data_nu/EarthModel.dat",micrO);
+    sprintf(fname,"%s/Data/data_nu/EarthModel.dat",micrO);
     f=fopen(fname,"r"); 
     fscanf(f,"%*[^\n]"); 
     for(i=0;i<EARTHPOINTS;i++)
@@ -566,11 +570,30 @@ static int  nuTabInterpolation(nuTableStr*T,double Mass,int pdgN,int pol, int sm
 
 //printf("alpha=%E  T->ch[%d]=%d\n", alpha,iCh,T->ch[iCh]  );  
 //  for(i=0;i<T->nX;i++) printf("x=%e  Y=%e\n", T->x[i], T->buff[i]);
+
+  smooth=1;
+
+
+  if(pdgN==12||pdgN==14||pdgN==16)
+  {
+     for(i=2;i<NZ;i++)
+     { double x=exp(Zi(i));
+       tab[i]=smooth?  x*polint3(x,T->nX-1, T->x ,T->buff): x*polint1(x,T->nX-1, T->x ,T->buff);
+     }
+     
+     tab[1]=2*T->buff[99]*0.01/(1-exp(Zi(2)));
+//printf("%E\n",0.01/(1-exp(Zi(2))));     
+     
+  }
+  else 
+  
   for(i=1;i<NZ;i++)
   { double x=exp(Zi(i));
     tab[i]=smooth?  x*polint3(x,T->nX, T->x ,T->buff): x*polint1(x,T->nX, T->x ,T->buff);
   }
-  
+//double sum=0; 
+//for(int i=0;i<100;i++) sum+=T->buff[i]*.001;
+//printf("sum=%E\n",sum);   
   
   if(Mass<T->m[0] || Mass>T->m[T->nM-1]) err++;             
                                     
@@ -622,7 +645,7 @@ int basicNuSpectra(int forSun, double Mass, int pdgN, int pol, double*nu, double
      char * source[2]={"Earth","Sun"};
      char * yeald[2] ={"numub","numu"};
      char * fname=malloc(50+strlen(micrO));    
-     sprintf(fname,"%s/sources/data_nu/%s_%s_%s.txt",micrO,source[forSun],yeald[outN], packages[pkgN]);
+     sprintf(fname,"%s/Data/data_nu/%s_%s_%s.txt",micrO,source[forSun],yeald[outN], packages[pkgN]);
      FILE *F=fopen(fname,"r");
      if(!F)
      { printf("Can not open file %s\n",fname); free(fname); return -1;}      
@@ -901,9 +924,9 @@ int neutrinoFlux(double (* fvf)(double), int forSun, double* nu, double * Nu)
 
   for(i=1;i<NZ;i++) nu[i]=Nu[i]=0;
   
-  if(CDM1&&CDM2) { printf(" The 'neutrinoFlux' code is still not upgrated for 2DM case\n");  return 1;}
+  if(Ncdm>1) { printf(" The 'neutrinoFlux' code is still not upgrated for 2DM case\n");  return 1;}
 
-  if(CDM1) CDM_=CDM1; else CDM_=CDM2;
+  CDM_=CDM[1];
 
   double M_cdm=pMass(CDM_);
      
@@ -922,7 +945,7 @@ int neutrinoFlux(double (* fvf)(double), int forSun, double* nu, double * Nu)
 
   if(pA0[0]==pA0[1] && nA0[0]==nA0[1] &&pA5[0]==pA5[1]&&nA5[0]==nA5[1]) Cr1=Cr0; else
   Cr1=forSun? captureSun(fvf,M_cdm,pA0[1],nA0[1],pA5[1],nA5[1]):captureEarth(fvf,M_cdm,pA0[1],nA0[1],pA5[1],nA5[1]);  
-                         
+                     
   name=CDM_;
   aname=pdg2name(-pNum(CDM_));
   if(!aname) aname=name;
@@ -1266,9 +1289,10 @@ void muonContained(double*nu,double*Nu,double rho, double*mu)
      if(Emu_stat>0.01) for(k=0;k<2;k++)
      { inNu=1-2*k;
        if(Sp[k])
-       {
+       { int err;
          SpN_stat=Sp[k];
-         mu[i]+=simpson(integrandEnuContained,1/M_cdm, 1/Emu_stat,1.E-4,NULL);
+         mu[i]+=simpson(integrandEnuContained,1/M_cdm, 1/Emu_stat,1.E-3,&err);
+//         if(err) displayPlot("ntegrandEnuContained","1/E", 1/M_cdm, 1/Emu_stat,0,1,"",0,integrandEnuContained,NULL);
        }  
      }  
      mu[i]*=rho*NA*Emu_stat*1E5;
@@ -1351,8 +1375,8 @@ double  ATMmuonContained(double cosFi, double E,double rho)
 }
 
 typedef  struct 
-{ double E[31];
-  double data[31][10];
+{ double E[41];
+  double data[41][10];
 }  atmDataStr;
 
 static atmDataStr *atmNu=NULL, *atmNuBar=NULL;
@@ -1364,12 +1388,12 @@ static int readATMnuTab(void)
 
   if(atmNu && atmNuBar) return 0;  
     
-  sprintf(fname,"%s/sources/data_nu/atm_nu_tab.dat",micrO);
+  sprintf(fname,"%s/Data/data_nu/atm_nu_tab.dat",micrO);
   f=fopen(fname,"r");
   if(!f) return 1;
   atmNu=malloc(sizeof(atmDataStr)); 
   for(i=0;i<5;i++) fscanf(f," %*[^\n]");
-  for(i=0;i<31;i++)
+  for(i=0;i<41;i++)
   {  int j;
      double norm;
      fscanf(f," %lf", atmNu->E+i);
@@ -1379,7 +1403,7 @@ static int readATMnuTab(void)
   }
   fscanf(f," %*[^\n]");
   atmNuBar=malloc(sizeof(atmDataStr));
-  for(i=0;i<31;i++)
+  for(i=0;i<41;i++)
   {  int j;
      double norm;
      fscanf(f," %lf", atmNuBar->E+i);
@@ -1394,18 +1418,23 @@ static int readATMnuTab(void)
 double atmNuFlux(int nu,double cs, double E)
 {
   double alpha;
-  double cstab[10]={0.05,0.15,0.25,0.35,0.45,0.55,0.65,0.75,0.85,0.95};
+//  double cstab[10]={0.05,0.15,0.25,0.35,0.45,0.55,0.65,0.75,0.85,0.95};
+  
+   double cstab[10]={0.95,0.85,0.75,0.65,0.55,0.45,0.35,0.25,0.15,0.05};
+
+  
+
   atmDataStr *data;
   int i;
 
-  if(E<10 || E>1E4)  printf("ATM neutrino flux: Energy %E out of table range\n",E);
+  if(E<1 || E>1E4)  printf("ATM neutrino flux: Energy %E out of table range\n",E);
 
   if((!atmNu || !atmNuBar) && readATMnuTab() ) { printf(" Can not read data file for atmospheric neutrino\n"); return -1;}  
-  if(nu>=0) data=atmNu; else data=atmNuBar; 
+  if(nu>0) data=atmNu; else data=atmNuBar; 
   
-  i=10*log10(E/10);
+  i=10*log10(E);
 
-  if(i<0) i=0;else if(i>29) i=29; 
+  if(i<0) i=0;else if(i>39) i=39; 
   
   alpha= (log(data->E[i+1])-log(E) )/(log(data->E[i+1])-log(data->E[i]));
 

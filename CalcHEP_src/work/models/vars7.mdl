@@ -1,0 +1,43 @@
+FPVDM-tf_DM
+ Variables 
+ Name   | Value       |>  Comment                                   <|
+PI      |3.14159      |
+Q       |100          |Scale of effective running masses
+alphaSMZ|0.1184       |Strong alpha(MZ)
+aEWM1   |127.9        |
+thetaS  |0            |scalar mixing angle
+SW2     |0.23122      |sin squared of weinberg angle
+MW      |80.377       |Mass of W boson
+Mt      |172          |Top quark pole mass
+McMc    |1.23         |Mc(Mc)  MS-BAR
+MbMb    |4.18         |Mb(Mb)  MS-BAR
+Mu      |0.0022       |up quark mass
+Md      |0.0047       |down quark mass
+Mb      |4.25         |
+Mc      |1.23         |
+Ms      |0.0934       |s-quark effective mass  via 2MeV running one
+Mta     |1.777        |
+Mmu     |0.1057       |
+Me      |0.0005       |
+GG      |1.21978      |Strong coupling constant (Z point)
+GF      |1.16637e-05  | experimental value 1.166E-5 [1/GeV^2] (PDG-2018)
+sKM     |1            |switch to turn off KM term
+sDM     |1            |switch DMV term
+Mh1     |125.5        |SM-Higgs mass
+Mh2     |300          |Heavy Higgs mass
+s12     |0.2265       |Parameter of C-K-M matrix (PDG-94)
+s23     |0.04053      |Parameter of C-K-M matrix (PDG-94)
+s13     |0.00361      |Parameter of C-K-M matrix (PDG-94)
+gd      |0.01         |coupling of the SU2D
+MV      |50           |Mass of V boson
+MtD     |1106         |
+epsMF   |0.1          | epsMF=(Mtp-MtD)/MtD
+sPI     |1            |
+KKA     |1            |
+KKZ     |1            |
+lSP     |0            |
+lSN     |0            |
+lAP     |0            |
+lAN     |0            |
+sXe     |1            |switch for Xenon interactions
+MXe     |124          |mass of Xenon nucleus

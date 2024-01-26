@@ -9,7 +9,7 @@ int main(int np, char ** par)
   FILE*f;
 
 
-  if(np<3) 
+  if(np<2) 
   { printf(" This  routine is intended to sum the  distributions produced\n" 
            " in  calcHEP numerical sessions (files dist_#).\n"
            " The names of files must be submitted as parameters\n"

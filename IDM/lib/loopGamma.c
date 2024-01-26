@@ -36,11 +36,11 @@ int loopGamma(double * csAZ, double *csAA)
      printf("Error: loopGamma routine expects that DM is presented by  ~X, but for the current point DM=%s\n",CDM1); 
      return -2;  
   }
-  if(Qaddress){ Qstat=*Qaddress; *Qaddress=2*Mcdm1; calcMainFunc();}
+  if(Qaddress){ Qstat=*Qaddress; *Qaddress=2*Mcdm; calcMainFunc();}
   
   f=fopen(FIN,"w");
   for(i=0;i<nModelVars;i++) fprintf(f,"%-6.6s   %f\n", varNames[i], (double)varValues[i]);
-  fprintf(f,"%-6.6s   %f\n", "GG", sqrt(4*M_PI*parton_alpha(2*Mcdm1/3.)));
+  fprintf(f,"%-6.6s   %f\n", "GG", sqrt(4*M_PI*parton_alpha(2*Mcdm/3.)));
   fprintf(f,"%-6.6s   %f\n", "wZ", pWidth("Z",NULL));
   fprintf(f,"%-6.6s   %f\n", "wW", pWidth("W+",NULL));
   fprintf(f,"%-6.6s   %f\n", "wh", pWidth("h",NULL)); 

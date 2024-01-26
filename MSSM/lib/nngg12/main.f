@@ -42,7 +42,7 @@ C      write(*,*) nArgs
       err=slharead(fInput,1)
       if(err.ne.0)  stop 'Problem in reading  input file'
       Nch=ModelConstIni(MW,SW,EE,Mb)
-      v=1E-3   
+      v=0
       vcsgg=vcsnngg(v)
       if(Nch.gt.1) then    
         vcsgz=vcsnngz(v)
@@ -52,7 +52,7 @@ C      write(*,*) nArgs
  
       OPEN(UNIT=78,FILE=fOutput,STATUS='UNKNOWN')   
       write(78,fmt='("BLOCK lGamma  # AZ and AA cross sections")')
-      write(78,fmt='(A6, 1PE10.4,A20)') '  1   ', vcsgz,'# ~o1,~o1->A,Z [pb]'
-      write(78,fmt='(A6, 1PE10.4,A20)') '  2   ', vcsgg,'# ~o1,~o1->A,A [pb]'
+      write(78,fmt='(A6, 1PE11.4,A20)') '  1   ', vcsgz,'# ~o1,~o1->A,Z [pb]'
+      write(78,fmt='(A6, 1PE11.4,A20)') '  2   ', vcsgg,'# ~o1,~o1->A,A [pb]'
       close(78)
       end 

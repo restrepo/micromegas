@@ -6,7 +6,7 @@ SW     |sqrt(1-CW^2)
 vev    |Sqrt2*MW*SW/EE
 C2W    |CW^2-SW^2
 LamQCD |initQCD5(alfSMZ, McMc, MbMb, Mtp)
-rd     |slhaRead("../spectr.dat", 0)
+rd     |slhaRead("../../spectr.dat", 0)
 mu     |slhaVal("HMIX", MZ, 1, 1)
 Lambda |slhaVal("NMSSMRUN", MZ, 1, 1)
 Kappa  |slhaVal("NMSSMRUN", MZ, 1, 2)

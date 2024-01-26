@@ -1,4 +1,3 @@
-
 #include"SLHAplus.h"
 #include"../../include/nType.h"
 
@@ -121,16 +120,14 @@ int rDiagonal(int nDim,...)
    
   va_start(ap,nDim);
   for(i=0;i<nDim;i++)for(j=i;j<nDim;j++) MassM[sMT(i,j)]=va_arg(ap, REAL); 
-//for(i=0;i<nDim;i++)for(j=i;j<nDim;j++) printf("%d %d %E\n",i,j, (doubble)MassM[sMT(i,j)]);
   va_end(ap);
 
   if(idCur>idLIM) idCur=0;
   id=idCur++;
   extendData(id,nDim,1);
-  FError=FError|rJacobi(MassM, nDim, ev[id], rV[id]); 
+  FError=FError|rJacobi(MassM, nDim, ev[id], rV[id]);   
   free(MassM);
-//for(i=0;i<nDim;i++) printf(" %E ",(double)ev[id][i]);
-//printf("\n");  
+
   
   if(!FError){ return id;}
   else return -1;

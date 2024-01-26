@@ -1,0 +1,35 @@
+
+Here we compare results of micrOMEGAs for 
+    dm,dm -> A,A 
+    dm,dm -> Z,A 
+with  paper: 0507127 (Table 1, the v=0 case) 
+For successful comparison one has to choose in main.c 
+1. #define EWSB
+2. #define RGE tree
+3. VWdecay=0, VZdecay=0;  // for comparison of Omega
+4. exclude  factor 
+          f=alpha_QED(0)/alpha_QED(MZ)  // for AZ
+          f^2                           // for AA
+which is taken into account in micrOMEGAs, but absent in 0507127. 
+ 
+Result of comparison:
+
+   omega h^2    AA[cm^3/s]  AZ[cm^3/s]
+1   5.31        5.82e-32    2.03e-32   paper
+    5.33e+00    5.77E-32    2.05E-32   micro
+
+2   18.8        1.58e-32    2.61e-33
+    1.86e+01    1.57E-32    2.64E-33
+
+3   6.41e-3     7.01e-29    2.19e-28
+    6.34e-03    7.01E-29    2.19E-28
+
+4   1.59        4.71e-29    2.20e-29
+    1.57e+00    4.71E-29    2.20E-29
+
+5   1.16e-3     1.99e-27    11.7e-27
+    1.16e-03    1.99E-27    1.17E-26
+
+6   0.46        1.52e-27    10.1e-27
+    4.66e-01    1.52E-27    1.01E-26
+  

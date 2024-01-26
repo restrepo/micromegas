@@ -1,0 +1,43 @@
+Type3SeesawADM (un. ga
+ Variables 
+ Name  | Value       |>  Comment                                   <|
+EE     |0.31333      |Electromagnetic coupling constant (<->1/128)
+g2     |1.117        |Strong coupling constant (Z point)  (PDG-94)
+SW     |0.474        |sin of the Weinberg angle (PDG-94,"on-shell")
+s12    |0.221        |Parameter of C-K-M matrix (PDG-94)
+s23    |0.04         |Parameter of C-K-M matrix (PDG-94)
+s13    |0.0035       |Parameter of C-K-M matrix (PDG-94)
+MZ     |91.187       |mass of Z boson
+wZ     |2.502        |width of Z boson
+wW     |2.094        |width of W boson
+Me     |0.00051      |mass of electron
+Mm     |0.10565      |mass of muon
+Mt     |1.7769       |mass of tau-lepton
+Mu     |0.00216      |mass of u-quark
+Md     |0.00467      |mass of d-quark
+Mc     |1.27         |mass of c-quark
+Ms     |0.0934       |mass of s-quark
+Mtop   |172.69       |mass of t-quark
+wtop   |1.442        |width of t-quark
+Mb     |4.18         |mass of b-quark
+MH     |125.25       |mass of Higgs
+wH     |0.0032       |width of Higgs
+Ms0    |10000        |mass of sig0
+Ms1    |10001        |mass of sig1
+Mx     |100          |mass of chi
+Md1    |1000.19      |
+a1     |3.79         |
+a2     |246.22       |
+Ysig1  |0.0001       |
+Ysig2  |0.0001       |
+Ysig3  |0.0001       |
+Ysige1 |0.0001       |
+Ysige2 |0.0001       |
+Ysige3 |0.0001       |
+yx     |0.0001       |
+v0     |246          |
+v1     |3.79         |
+ld     |0.01         |
+ldh    |0.01         |
+pi     |3.14         |
+=====================================================================

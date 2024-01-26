@@ -1376,7 +1376,7 @@ REDRAW:
      y=yPhys();
 //     if(y<=yMin||y>=yMax) continue;
      int  w=2+log10(fabs((xMax+xMin)/(xMax-xMin) ));    
-     goto_xy(1,maxRow()-1); scrcolor(Blue,bkcolor); print("Mouse: X=%.*E ",w,x);
+     goto_xy(1,maxRow()-1); scrcolor(Blue,bkcolor); print("Mouse: %s=%.*E ",xName,w,x);
      if(mouseXY) print(" Y=%.2E ",yPhys()); else     
      { 
        print(" Func =");

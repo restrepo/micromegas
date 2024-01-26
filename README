@@ -1,8 +1,7 @@
 The file content of the code is described in the file fileMap.txt
 
-!   We use 'gmake' options in our Makefiles. If you do not have 'gmake'
-!   then more likely your  'make'  is identical to 'gmake'.
-
+   We use 'gmake' options in our Makefiles. If you do not have 'gmake'
+   then in general  'make' can be used  instead of  'gmake'.
 
 I. General  installation.
    Launch
@@ -18,29 +17,26 @@ I. General  installation.
 
    Possible problems are discussed in Section VII below.
 
-   micromegas_4.3 was tested for  Linux, and  Darwin
+micromegas_6.0 was tested for  Linux, and  Darwin 
 
-II. To work with MSSM, NMSSM, CPVMSSM, UMSSM, IDM, LHM,   Z3IDM, Z4IDSM  models
+II. To work with MSSM, NMSSM, CPVMSSM, IDM, LHM,   Z3IDM, Z4IDSM  models
     go to the corresponding directory.
 
     To generate an executable use
      [g]make main=<source file>
 
-    <source file> is expected to be a C  (.c) file, C++ (.cpp) one,
-     or a Fortran (.F) file.
+    <source file> is expected to be a C  (.c) file  or  C++ (.cpp) one.
 
-    The list of functions you can use in  your programs are described in man/man.pdf as well as
-    hep-ph/0405253, hep-ph/0607059, arXiv:0803.2360[hep-ph], arXiv:1005.4133[hep-ph] and arXiv:1305.0237[hep-ph].
+    The list of functions you can use in your programs is described in man/manual_6.0.pdf as well as
+    hep-ph/0405253, hep-ph/0607059, arXiv:0803.2360[hep-ph], arXiv:1005.4133[hep-ph], arXiv:1305.0237[hep-ph],
+    arXiv:1407.6129[hep-ph], arXiv:1606.03834[hep-ph], arXiv:1801.03509[hep-ph], arXiv:2312.14894[hep-ph].
 
- *** For Cygwin, launch an executable with
-    ../cgwRun <exe with parameters>
 
-III. Each model directory  contains at least 2 sample  files:
+III. Each model directory  contains at least one sample  file:
       main.c
-      main.F
-      a sample for C++  can be obtained by 'cp main.c main.cpp'
+     a sample for C++  can be obtained by 'cp main.c main.cpp'
 
-     main.c and main.F  contain  several independent modules
+     main.c  contain  several independent modules
      which can be switched ON  by '#define' preprocessor instructions
      at the top of the file.
 
@@ -52,56 +48,63 @@ III. Each model directory  contains at least 2 sample  files:
    b) CONSTRAINTS
        checks experimental  constraints;
    c) HIGGSBOUNDS
-	calls HiggsBounds and HiggsSignal to constrain the Higgs sector;
+	calls HiggsBounds to constrain the Higgs sector;
+   d) HIGGSSIGNALS
+        Calls HiggsSignals to constrain the SM Higgs;
    d) LILITH
 	calls LiLith to constrain the Higgs sector;
    e) SModelS
 	calls SModelS to constrain the new physics sector;
    f) OMEGA
-       computes the relic density;
-   g) INDIRECT_DETECTION
+       computes the relic density for freeze-out;
+   g) FREEZEIN
+       computes the relic density for freeze-in;
+   h) INDIRECT_DETECTION
        calculates the WIMP annihilation spectra and integrates
        over the halo profile;
-   h) LOOP_GAMMA
+   i) LOOP_GAMMA
        calculates the two-photon spectrum from annihilation of two neutrinos
        into two-photons and     Z-photon;
-   i) RESET_FORMFACTORS
+   j) RESET_FORMFACTORS
        resets parameters of nucleon form factors, DM velocity
        distribution, and nucleus Fermi density;
-   j) CDM_NUCLEON
+   k) CDM_NUCLEON
        calculates WIMP-nucleon elastic scattering amplitudes  and cross-sections;
-   k) CDM_NUCLEUS
+   l) CDM_NUCLEUS
        calculates the number of events for 1day&1kg  of detector material and
        recoil energy distribution for WIMP-nuclei interactions;
-   l) NEUTRINO
+   m) NEUTRINO
 	computes the neutrino flux from DM captured in the Sun/Earth and
 	the corresponding muon flux;
-   m) DECAYS
+   n) DECAYS
 	computes the decay widths and branching ratios for any particle;
-   n) CROSS_SECTIONS
+   o) CROSS_SECTIONS
        calculates cross sections for any 2->2 process and some 2->3 processes
-   o) SHOWPLOTS
-	displays plots on the screen
    p) CLEAN
 	cleans intermediate files
 
-IV. Each model directory contains a subdirectory  'calchep/' intended
-    for calculation of different cross sections and decay widths
-    in  interactive sessions  for SM and other models.
+   The switch 
+      #define  SHOWPLOTS
+   allows to display plots on the screen
 
-V.To implement a new model, launch
+
+IV.   Each model contains a  directory  work/   which is intended for the calculation of matrix elements with CalcHEP. The
+      compiled codes of matrix elements are stored in the directory work/so_generated.  
+      The directory work/ also contains the executable file ./calchep, which launches an interactive CalcHEP session that allows
+      to calculate different cross sections and decay widths in the model under consideration.
+
+V.  To implement a new model, launch
     ./newProject  <project name>
 
- Then the directory <project name> will be created with all needed subdirectories
- and  sample  files inside. Next you need to put the new model files in the
- work/models directory. Further instructions can be found in the local
- README file.
+     Then the directory <project name> will be created with all needed subdirectories
+     and  sample  files inside. Next you need to put the new model files in the
+     work/models directory. Further instructions can be found in the local
+     README file.
+
 
 VI. To clean all generated files use
    [g]make clean
-      or
-   ./clean
-   launched from micromegas_3.X directory. In each model directory you
+   launched from micromegas_X directory. In each model directory you
    can call
      [g]make clean
    to remove all generated files in this particular directory.
@@ -121,24 +124,58 @@ VII. Compilers and  their Flags
     only generates FlagsForSh file. It gives you an option to
     select the compiler and flags you prefer.
 
-    Special requirements, but not strictly necessary.
-     1) To see graphical plots generated by micrOMEGAS and work with CalcHEP
-        graphical interface,   X11 development package should be installed.
-        One can check that directory   /usr/include/X11  contains *.h files.
-        If not, CalcHEP  will be compiled in 'blind' mode and
-        CalcHEP/FlagsForSh will contain empty definition of LX11 variable.
-          LX11=""
-        The name of package which has to be installed to solve the problem
-        depends on platform
-           libX11-devel     for  Fedora/Scientific, Darwin(MAC)
-           libX11-dev       for  Ubuntu/Debian
-           xorg-x11-devel   for  SUSE
-      2) CalcHEP interactive section needs   'xterm' command.
+Special requirements  
+     1) For graphical interface, in particular for interactive CalcHEP session and
+        plot facilities the X11-devel package is required, it depends on the platform:  
+
+ 	      libX11-devel    for Fedora/Scientific, old Darwin(Mac)
+              Xquartz ( https://www.xquartz.org)     new Mac
+              libX11-dev      for Ubuntu/Debian      [old Ubuntu]
+              libx11-dev      for Ubuntu/Debian      [new Ubuntu]
+              xorg-x11-devel  for SUSE
+
+      If you have *.h files in the directory   /usr/include/X11, then X11-devel is installed.
+      micrOMEGAs works without X11-devel, however graphical options will not be available.  
+            
+      2) Fortran is needed for some models that use external libraries written in Fortran, for example MSSM or NMSSM.
+      But in general having a Fortran compiler is not a strict requirement.   
 
 
 VIII. Citation and information
 
-1.%\cite{Belanger:2013oya}
+1. %\cite{Alguero:2023zol}
+\bibitem{Alguero:2023zol}
+G.~Alguero, G.~Belanger, F.~Boudjema, S.~Chakraborti, A.~Goudelis, S.~Kraml, A.~Mjallal and A.~Pukhov,
+%``micrOMEGAs 6.0: N-component dark matter,''
+[arXiv:2312.14894 [hep-ph]].
+
+2.%\cite{Belanger:2018ccd}
+\bibitem{Belanger:2018ccd}
+G.~B\'elanger, F.~Boudjema, A.~Goudelis, A.~Pukhov and B.~Zaldivar,
+%``micrOMEGAs5.0 : Freeze-in,''
+Comput. Phys. Commun. \textbf{231} (2018), 173-186
+doi:10.1016/j.cpc.2018.04.027
+[arXiv:1801.03509 [hep-ph]].
+
+
+3.%\cite{Barducci:2016pcb}
+\bibitem{Barducci:2016pcb}
+D.~Barducci, G.~Belanger, J.~Bernon, F.~Boudjema, J.~Da Silva, S.~Kraml, U.~Laa and A.~Pukhov,
+%``Collider limits on new physics within micrOMEGAs$\_$4.3,''
+Comput. Phys. Commun. \textbf{222} (2018), 327-338
+doi:10.1016/j.cpc.2017.08.028
+[arXiv:1606.03834 [hep-ph]].
+
+4.%\cite{Belanger:2014vza}
+\bibitem{Belanger:2014vza}
+G.~B\'elanger, F.~Boudjema, A.~Pukhov and A.~Semenov,
+%``micrOMEGAs4.1: two dark matter candidates,''
+Comput. Phys. Commun. \textbf{192} (2015), 322-329
+doi:10.1016/j.cpc.2015.03.003
+[arXiv:1407.6129 [hep-ph]].
+
+
+5.%\cite{Belanger:2013oya}
 \bibitem{Belanger:2013oya}
   G.~Belanger, F.~Boudjema, A.~Pukhov and A.~Semenov,
   %``micrOMEGAs3.1 : a program for calculating dark matter oservables,''
@@ -146,21 +183,21 @@ VIII. Citation and information
   %%CITATION = ARXIV:1305.0237;%%
 
 
-1.%\cite{Belanger:2010pz}
+6.%\cite{Belanger:2010pz}
   \bibitem{Belanger:2010pz}
   G.~Belanger, F.~Boudjema, A.~Pukhov and A.~Semenov,
   %``micrOMEGAs : a tool for dark matter studies,''
   arXiv:1005.4133 [hep-ph].
   %%CITATION = ARXIV:1005.4133;%%
 
-2.%\cite{Belanger:2008sj}
+7.%\cite{Belanger:2008sj}
   \bibitem{Belanger:2008sj}
   G.~Belanger, F.~Boudjema, A.~Pukhov and A.~Semenov,
   %`Dark matter direct detection rate in a generic model with micrOMEGAs2.1,''
   arXiv:0803.2360 [hep-ph].
   %%CITATION = ARXIV:0803.2360;%%
 
-3.%\cite{Belanger:2006is}
+8.%\cite{Belanger:2006is}
   \bibitem{Belanger:2006is}
   G.~Belanger, F.~Boudjema, A.~Pukhov and A.~Semenov,
   %`micrOMEGAs2.0: A program to calculate the relic density of dark matter  in

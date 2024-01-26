@@ -1,6 +1,6 @@
 # --- variables defined by configure ---
 
-LOOPTOOLS = ../../../Packages/LoopTools
+LOOPTOOLS = ../../../Packages/LoopTools_2.12-v0
 CHEP = ../../../CalcHEP_src/
 
 include  $(LOOPTOOLS)/FlagsForMake

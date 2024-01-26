@@ -100,7 +100,7 @@ int displayPlot(char * title, char*xName, double xMin, double xMax ,  int lScale
       F=va_arg(ap,void*);
       A=va_arg(ap,void*);
          
-      for(j=Dim[i]-1;j>=0;j--)
+      for(j=0;j<Dim[i];j++)
       { double x;
         if(lScale) x=xMin*pow(xMax/xMin,(j+0.5)/Dim[i]); else x= xMin+(j+0.5)/Dim[i]*(xMax-xMin);
         if(A) { double (*func)(double,void*)=F; f[i][j]=func(x,A);} 

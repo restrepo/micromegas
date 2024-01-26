@@ -9,11 +9,6 @@ static double   fiRe(double tau)
   { x=asin(sqrt(tau));
     return x*x;
   }else if(tau==1) return 0;
-  else if(tau>1E10)
-  { 
-     x=log(4*tau);
-     return -0.25*(x*x - M_PI*M_PI);
-  }
   else
   {
     x=sqrt(1-1/tau);   
@@ -26,10 +21,6 @@ static double fiIm(double tau)
 {
   double x;
   if(tau<=1) return 0;
-  if(tau>1E10)
-  {  x=log(4*tau);
-     return 0.5*x*M_PI;
-  }
   else
   {
      x=sqrt(1-1/tau);   
@@ -38,7 +29,7 @@ static double fiIm(double tau)
   }
 }
 
-static double HggFr(double tau) {  return  2*(tau+(tau-1)*fiRe(tau))/(tau*tau); }
+static double HggFr(double tau) { return  2*(tau+(tau-1)*fiRe(tau))/(tau*tau); }
 static double HggFi(double tau) { return  2*(tau-1)*fiIm(tau)/(tau*tau); }
 static double HggVr(double tau) { return -2*(2*tau*tau + 3*tau + 3*(2*tau-1)*fiRe(tau))/(2*tau*tau); }
 static double HggVi(double tau) { return -2*(3*(2*tau-1)*fiIm(tau))/(2*tau*tau); }
@@ -257,7 +248,7 @@ double complex hGGeven(double MH, double aQCD, int Nitems, ...)
        } break;
        default: lf=1;
      }   
-//lf=1;   // to switch off loop factor
+
      sum+= res*cf*lf*part[i].coeff;
   }
   free(part); 

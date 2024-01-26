@@ -158,13 +158,8 @@ double interFunc(double x, double q, pdtStr * W)
 //      double C=(f1-f0)/f0/(0.1*q0);  
 //printf("f0=%E f1=%E C=%e f1'=%E  f(%e)=%e\n",f0,f1,C,f0*pow(k1,2+k1*(C-2)),k, f0*pow(k,2+ k*k*(C-2)));          
       return f0*pow(k*k,1+ k*k*(C-1)); 
-    }
-    if(q>W->q_max) 
-    { W->nLargeQ++; 
-      if(W->nLargeQ==1) printf("Too large scale Q=%.2E < Qmax=%.2E for  structure function  \"PDT:%s\" \n",q,W->q_max, W->source); 
-       else if(W->nLargeQ==101) printf(" More then 100 calls of structure function \"PDT:%s\" with large Q \n",W->source);  
-       q=W->q_max;  
-    } else if(q<W->q_min) W->nSmallQ++;  
+    }  
+    if(q>W->q_max) W->nLargeQ++; else if(q<W->q_min) W->nSmallQ++;  
   }
   if(x<W->x_min)  W->nSmallX++;
 
@@ -189,7 +184,6 @@ double interAlpha(double q, pdtStr * W )
 
 void freePdtData( pdtStr * data)
 { if(!data)return;
-  if(data->source)     {free(data->source);      data->source=NULL;     } 
   if(data->x_grid)     {free(data->x_grid);      data->x_grid=NULL;     }
   if(data->q_grid)     {free(data->q_grid);      data->q_grid=NULL;     }
  
@@ -220,7 +214,6 @@ int getPdtData(char * file, int n_parton, pdtStr * data )
   data->set=0;
   data->nq=0;
   data->nx=0;
-  data->source=NULL;
   data->x_grid=NULL;
   data->q_grid=NULL;
   data->lx_grid=NULL;
@@ -249,15 +242,7 @@ int getPdtData(char * file, int n_parton, pdtStr * data )
   { double qq; int i;
     
     fscanf(f,"%s",buff);
-    if(!strcmp(buff,"distribution") && !data->source )
-    {
-      fscanf(f," \"%[^\"]",buff);
-      char* ch=strchr(buff,'(');
-      if(ch) ch[0]=0;
-      data->source=malloc(1+strlen(buff));
-      strcpy(data->source, buff);      
-    }
-    else if(!strcmp(buff,"Index"))
+    if(!strcmp(buff,"Index"))
     {  if(1!=fscanf(f,"%d",&data->index)) goto errexit;}
     else if(!strcmp(buff,"Set"))
     { if(1!=fscanf(f,"%d",&data->set)) goto errexit;} 

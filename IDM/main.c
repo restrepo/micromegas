@@ -42,8 +42,7 @@
             
 //#define NEUTRINO //neutrino telescope
 
-//#define DECAYS
-
+#define DECAYS
 //#define CROSS_SECTIONS
   
 /*===== end of Modules  ======*/
@@ -67,7 +66,7 @@ int main(int argc,char** argv)
   int spin2, charge3,cdim;
    
   ForceUG=0;  /* to Force Unitary Gauge assign 1 */
-  loadHeffGeff("GG.thg");
+  //useSLHAwidth=0;
   if(argc==1)
   { 
       printf(" Correct usage:  ./main  <file with parameters> \n");
@@ -173,7 +172,6 @@ int main(int argc,char** argv)
                   -2*log(SmoLsig/SmoLmax),-2*log(SmoLSM/SmoLmax)); }
       }
     }  
-
     if(status==1) { printf("\n excluded by SMS results"); }
     else if(status==0) printf("\n not excluded"); 
     else if(status==-1) printf("\n not not tested by results in SModelS database"); 
@@ -194,22 +192,58 @@ int main(int argc,char** argv)
 #endif 
 
 #ifdef OMEGA
-{ int fast=0;
+{ int fast=1;
   double Beps=1.E-5, cut=0.01;
   double Omega,Xf;   
   int i;
  
+// to exclude processes with virtual W/Z in DM   annihilation      
+    VZdecay=0; VWdecay=0; cleanDecayTable();
 
+// to include processes with virtual W/Z  also  in co-annihilation
+//   VZdecay=2; VWdecay=2; cleanDecayTable();
+ 
   printf("\n==== Calculation of relic density =====\n");  
-  VWdecay=1;  VZdecay=0; cleanDecayTable(); 
-
-
   Omega=darkOmega(&Xf,fast,Beps,&err);
-  printf("VWdecay=%d  darkOmega=%.2e\n",VWdecay,Omega);
-  if(Omega>0)printChannels(Xf,cut,Beps,1,stdout); 
+  printf("Xf=%.2e Omega=%.2e\n",Xf,Omega);
+  if(Omega>0)printChannels(Xf,cut,Beps,1,stdout);   
+
+//   VZdecay=1; VWdecay=1; cleanDecayTable();  // restore default
 
 }
 #endif
+
+
+#ifdef OMEGA
+{ int fast=1;
+  double Beps=1.E-4, cut=0.01;
+  double Omega,Xf;
+
+// to exclude processes with virtual W/Z in DM   annihilation      
+   VZdecay=1; VWdecay=1; cleanDecayTable();
+     
+
+//   to include processes with virtual W/Z  also  in co-annihilation 
+//   VZdecay=2; VWdecay=2; cleanDecayTable(); 
+       
+  printf("\n==== Calculation of relic density =====\n");  
+  Omega=darkOmega(&Xf,fast,Beps,&err);
+  
+  printf("Xf=%.2e Tf=%E  Omega=%.2e\n",Xf,Mcdm/Xf,  Omega);  
+/*  
+  Omega=darkOmega2(fast,Beps,&err);
+  printf(" Omega2=%.2e\n",Omega); 
+*/  
+  if(Omega>0)printChannels(Xf,cut,Beps,1,stdout);   
+//   VZdecay=1; VWdecay=1; cleanDecayTable();  // restore default
+
+//  double Y;
+//  darkOmegaN(&Y,Beps,&err);   
+//   Omega=Y*McdmN[1]*2.742E8;
+//   printf("OmegaN=%E\n", Omega);
+}
+#endif
+
 
 #ifdef INDIRECT_DETECTION
 { 
@@ -221,7 +255,7 @@ int main(int argc,char** argv)
   double FluxA[NZ],FluxE[NZ],FluxP[NZ];
   double * SpNe=NULL,*SpNm=NULL,*SpNl=NULL;
   double Etest=Mcdm/2;
-//SpectraFlag=1;  
+  
 printf("\n==== Indirect detection =======\n");  
 
   sigmaV=calcSpectrum(4,SpA,SpE,SpP,SpNe,SpNm,SpNl ,&err);
@@ -327,7 +361,7 @@ printf("\n==== Indirect detection =======\n");
   int sI=1,sD=1;
   printf("\n==== Calculation of CDM-nucleons amplitudes  =====\n");   
 
-    nucleonAmplitudes(CDM[1], pA0,pA5,nA0,nA5);
+    nucleonAmplitudes(CDM1, pA0,pA5,nA0,nA5);
     printf("CDM[antiCDM]-nucleon micrOMEGAs amplitudes:\n");
     printf("proton:  SI  %.3E [%.3E]  SD  %.3E [%.3E]\n",pA0[0], pA0[1],  pA5[0], pA5[1] );
     printf("neutron: SI  %.3E [%.3E]  SD  %.3E [%.3E]\n",nA0[0], nA0[1],  nA5[0], nA5[1] ); 

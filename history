@@ -1,28 +1,3 @@
-
-9. Version 6.0 19.12.2023
-
-   a) The calculation of the relic density  and of the  direct and indirect detection rate of DM are performed in the 
-      framework of multi-component DM models.
-   b) To take into account the  possibility of lack of chemical equilibrium within some dark sector where particles 
-      have identical charges with respect to an internal symmetry, we provide an option to split the sector into two 
-      or more subsectors. The equations for DM formation  is then solved assuming thermal equilibrium within 
-      subsectors only.  The processes of co-scattering and decay between subsectors/sectors  are taken into account.
-   c) The multi-component set of equations  can also treat  DM models which contain simultaneously  WIMP and feeble 
-      particles. In this case quantum statistics effects are not included. 
-   d) For freeze-in calculation we  have included an option to take into account screening  effects caused by thermal 
-      masses of particles in the bath,  for this a cut on t/u-channel propagators is imposed.
-   e) We have improved the formulas for running QCD couplings and masses to include 4-loop effects.
-   f) We have implemented new spectra for stable particle production from DM annihilation relevant for indirect 
-      detection, in particular : arXiv: 2202.11546,  arXiv:1009.0224. New  photon spectra from production 
-      of pions and kaons in light DM scenarios are implemented as well.
-   g) A routine for  calculating the  effect of Sommerfeld enhancement in cases of a single scalar and/or vector 
-      exchange is provided.
-   h) We have realized a possibility to take into account resonance contribution of 2->4 processes  for calculation of 
-      relic  density and indirect detection signal. 
-   i) We implement an option to add to decays of a given particle the reactions with n_min+1 outgoing particles, 
-     where n_min is a minimal number of outgoing particles.
-   j) Z7 model is included :  2212.07488 [hep-ph]
-
 8. Version 5.3.36  05.08.2022 
    a) A bug in freeze-in calculation is fixed.
 

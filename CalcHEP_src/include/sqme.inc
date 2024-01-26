@@ -59,11 +59,12 @@ double sqme_ext(int nsub, double GG,REAL*momenta,REAL*cb_coeff, int * err)
      if(cb_buff && cb_buff !=cb_buf_) free(cb_buff);
   }
 
-//    printf(" zero=%E\n", (double)(Fabs(result)*1E-3/(Fmax*computer_eps)));
-
-  if(  Fabs(result) < 1E3*Fmax*computer_eps  ) 
-  { 
-      *err=1; return 0; 
+  if(!(*err) && Fmax*computer_eps*1000 > (result>0 ? result : -result) )
+  { *err=1;
+     if(result>0) { result-=(1000*Fmax*computer_eps -result)*0.1  ; if(result<0) result=0;}
+     else { result+=(1000*Fmax*computer_eps+result)*0.05  ; if(result>0) result=0;}
   }
-  return (double)result;
+
+
+   return (double)result;
 }

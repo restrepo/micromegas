@@ -4,6 +4,9 @@
 
 int Zinvisible(void)
 {
+  REAL mass[2]={Mcdm1,Mcdm2};
+  char*  name[2]={CDM1,CDM2};
+  char*  aname[2]={aCDM1,aCDM2};
   char* zname;
   txtList L;
   int i;
@@ -12,9 +15,9 @@ int Zinvisible(void)
   zname=pdg2name(23);
   if(!zname) { printf("Z boson  is absent\n"); return 0;}   
   width=pWidth(zname,&L);
-  for(i=0,br=0;i<Ncdm;i++) if(CDM[i] && 2*pMass(CDM[i])< pMass(zname))
+  for(i=0,br=0;i<2;i++) if(name[i] && 2*mass[i]< pMass(zname))
   { char channel[40];
-    sprintf(channel,"%s %s",CDM[i],antiParticle(CDM[i]));
+    sprintf(channel,"%s %s",name[i],aname[i]);
     br+=findBr(L,channel);   
   }
   
@@ -28,52 +31,88 @@ int Zinvisible(void)
 extern int zinvisible_(void); //Fortran 
 int zinvisible_(void) { return Zinvisible();}
 
+
 int LspNlsp_LEP(double *cs_out)
 {  
   char *e=pdg2name(11),*e_=pdg2name(-11),*z_=pdg2name(23);
-  if(!e || !e_ || z_) { if(cs_out) *cs_out=0;  return 0;} 
-  int VZ_tmp=VZdecay;
-  if(!VZ_tmp) { VZdecay=1; cleanDecayTable();}
-
   double res=0;
   double P=104;
+  int VZ_tmp=VZdecay;
+  int m;
+  double resMax=0,csLim=0.5;
 
-  for(int  n=1;n<=Ncdm;n++)  if(CDM[n] && pMass(CDM[n])<P/2.)   // cycle over  DM sectors
+  if(!e || !e_ || !z_) return 0;
+  if(!VZ_tmp) { VZdecay=1; cleanDecayTable();}
+
+  for(m=0;m<2;m++) // cycle over two DM sectors
   {   
-     char process[100];
-     sprintf(process,"%s,%s->%s,1*x",e,e_,CDM[n]);
-     numout*cc= newProcess(process);
-     if(!cc) continue;
-     for(int k=1;k<=cc->interface->nprc;k++)   // cycle over second second odd particles
-     {  
-         int l,pdg_;
-         char*cdm_;
-         REAL m_;
-         for(l=3;l<=4;l++)
-         { cdm_=cc->interface->pinf(k,l,&m_,&pdg_);
-           if(strcmp(cdm_, CDM[k])) break;
-         }  
-         if(l>4) continue;
-         if(m_+pMass(CDM[n])>2*P) continue;
-         if(abs(pdg_) == abs(pNum(CDM[n]))) continue;
-         double dM=pMass(cdm_)-pMass(CDM[n]);
-         if(dM< 2 ) continue;  // for smaller dM we have to treat Z->p0 by some special way
+    char *CDM,*aCDM;
+    double M,M_;    
+    int n;
     
-         txtList L;
-         double width=pWidth(cdm_,&L);
-         double brZ=findBr(L,z_);
-         double brZu=brZ*0.119, brZd=brZ*0.152;
-         brZ=brZu+2*brZd; // d,u,s
-         if(dM< 3)  brZ +=brZu; // c
-         if(dM< 10) brZ +=brZd; // b
-         int err;
-         double cs=cs22(cc,k,P,-1,1 ,&err);
-         if(m_>100) res+=cs*brZ/0.1; else res+=cs*brZ/0.5;
+    if(m){ CDM=CDM2; M=Mcdm2;} else {CDM=CDM1;M=Mcdm1;}
+    if(!CDM) continue;
+
+    aCDM=pdg2name(-pNum(CDM));
+    if(aCDM && strcmp(aCDM,CDM)==0) aCDM=NULL;
+    
+    for(n=1;;n++) // looking for next DM
+    { 
+      double width,brZ,brZu,brZd;
+      char chan[50];
+      txtList L;
+      char *CDM_,*aCDM_;
+      
+      CDM_= nextOdd(n,&M_);
+      
+//printf("CDM_=%s\n", CDM_);     
+
+      if(!CDM_ || M+M_>2*P)break; 
+      if( (CDM[1]=='~' && m==0 ) || (CDM[1]!='~' && m!=0  ) ) continue;
+      width=pWidth(CDM_,&L);
+      sprintf(chan,"%s,%s", CDM,z_);
+      brZ=findBr(L,chan);
+      if(brZ==0 && aCDM)
+      { sprintf(chan,"%s,%s", aCDM,z_);
+        brZ=findBr(L,chan);
+      } 
+      if(brZ >0)
+      {  double brZu=brZ*0.119, brZd=brZ*0.152;
+         char process[100];
+         char lib[40];
+         char buff[20];
+         int k,err;
+         numout*cc;        
+
+         brZ=2*brZd+brZu;
+         if(M_-M > 2*1.5) brZ+=brZu; // c-quark
+         if(M_-M > 2*5)   brZ+=brZd; // b-quark   
+         sprintf(process,"%s,%s->_CDM_,_NCDM_{%s",e,e_,CDM);
+         if(aCDM) sprintf(process+strlen(process),",%s",aCDM);
+         sprintf(process+strlen(process),"{%s",CDM_);
+         aCDM_=pdg2name(-pNum(CDM_));
+         if(aCDM_ && strcmp(aCDM_,CDM_)==0) aCDM_=NULL;
+         if(aCDM_) sprintf(process+strlen(process),",%s",aCDM_);
+//printf("process=%s\n",process);
+         sprintf(lib,"ee_");
+         pname2lib(CDM,buff);
+         strcat(lib,buff); 
+         strcat(lib,"_");
+         pname2lib(CDM_,buff);
+         strcat(lib,buff); 
+         cc= getMEcode(0,ForceUG, process, NULL,NULL,lib);
+//printf(" cc->interface->nprc=%d\n",cc->interface->nprc);
+         double dres=0;
+         for(k=1;k<=cc->interface->nprc;k++) 
+         { dres+=brZ*cs22(cc,k,P,-1,1 ,&err);} 
+         res+=dres;
+         if(dres>resMax) { resMax=dres; if(M_>100) csLim=0.1; else csLim=0.5; }
       }   
-  }      
+    }                 
+  }
   if(VZ_tmp!=VZdecay) { VZdecay=VZ_tmp; cleanDecayTable();}
   if(cs_out) *cs_out=res;
-  if( res>1) return 1; else return 0;    
+  if( res>csLim) return 1; else return 0;    
 }
 
 int  lspnlsp_lep_(double *cs_out) { return  LspNlsp_LEP(cs_out);}

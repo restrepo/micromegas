@@ -1,0 +1,17 @@
+# file to improve default parameters
+MZ     91.187    
+Q      100       
+Mtp    173.2      
+Mh    125.
+MHC   260.3
+Msc   10.
+MHX  291.0
+MH3   198.6
+la2   4.41e-3
+la3   5.86
+laS   1.
+lapS  0.5
+laS1  3.e-12
+laS2  0.
+laS12 0.
+laS21 0.

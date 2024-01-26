@@ -1,0 +1,36 @@
+% Higgs effective vertices
+
+external_func(hGGeven,*).
+external_func(hAAeven,*).
+external_func(hGGodd,*).
+external_func(hAAodd,*).
+external_func(lGGhiggs,2).
+external_func(lAAhiggs,2).
+
+
+external_func(MbRun,1).
+external_func(MtRun,1).
+
+
+
+alias Mb=Mbp, Mc=Mcp, Mt=Mtp.
+
+
+
+
+parameter aQCD_h =alphaQCD(Mh)/PI, Rqcd_h=sqrt(1+ aQCD_h*(149/12+ aQCD_h*(68.6482-aQCD_h*212.447))).
+
+parameter LGGH=-cabs(lGGhiggs(Mh,str("h"))).
+   
+parameter LAAH=-cabs(lAAhiggs(Mh,str("h"))).
+
+let F_A^mu^nu=deriv^mu*A^nu-deriv^nu*A^mu.
+let F_G^mu^nu^a=deriv^mu*G^nu^a-deriv^nu*G^mu^a.
+let dF_G^mu^nu^a=i*GG*f_SU3^a^b^c*G^mu^b*G^nu^c.
+
+
+lterm  Rqcd_h*LGGH*h*F_G*(F_G+2*dF_G).
+lterm  LAAH*h*F_A**2.
+
+clear F_G,F_A,dF_G.
+

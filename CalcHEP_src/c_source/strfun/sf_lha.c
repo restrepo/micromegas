@@ -25,8 +25,6 @@
 static int VERS=0;
 
 static double xMin[2]={0,0},xMax[2]={0,0},qMin[2]={1,1},qMax[2]={1E10,1E10};
-static int nqMax[2]={0,0};
-static char  title[2][50]={"", ""};
 
 /*static char * pdfName[2]={NULL,NULL}; */
 
@@ -219,14 +217,16 @@ int r_lha(int i, char *name)
   char*men,*c;
   int max;
   if(!initLHA())return 0; 
-  if(3!=sscanf(name,"LHA:%[^:]:%d:%d",title[i1],setNum+i1,sgn+i1)) return 0;  
+  if(3!=sscanf(name,"LHA:%[^:]:%d:%d",txt+1,setNum+i1,sgn+i1)) return 0;  
   if(abs(sgn[i1])!=1) return 0;
   men=lhaMenu();
 
   if(!men) return 0;
   men[0]=' ';
 
-  sprintf(txt," %s ", title[i1]);
+  txt[0]=' ';
+  txt[strlen(txt)+1]=0;
+  txt[strlen(txt)]=' ';
   c=strstr(men,txt);
   trim(txt);
   free(men);
@@ -237,7 +237,6 @@ int r_lha(int i, char *name)
   numberpdfm(&i,&max);
   if(max<setNum[i1] || setNum[i1]<0) return 0;
   initpdfm(&i,setNum+i1,xMin+i1,xMax+i1,qMin+i1,qMax+i1);
-  nqMax[i1]=0;
   strcpy(fname[i1],txt);
   return 1;
 }
@@ -333,15 +332,10 @@ double c_lha(int i, double x, double q)
 
   if(x<xMin[i1]) x=xMin[i1]; else if(x>xMax[i1]) x=xMax[i1];
 //  if(q<qMin[i1]) q=qMin[i1]; else 
-  if(q>qMax[i1]) 
-  {  nqMax[i1]++;
-     if(nqMax[i1]==1) printf(" Call of LHA:%s with q=%.2E > Qmax=%.2E\n", title[i1],q,qMax[i1]);
-     else if(nqMax[i1]==100) printf(" More than 100 calls  of LHA:%s with q > Qmax=%.2E\n", title[i1],qMax[i1]);  
-     q=qMax[i1];
-  }
-  if(nPROCSS>1 && VERS<7) pthread_mutex_lock(&strfun_key);
+                        if(q>qMax[i1]) q=qMax[i1];
+  if(nPROCSS>1 && VERS<6) pthread_mutex_lock(&strfun_key);
    evolvePDFm(i,x,q,f);
-  if(nPROCSS>1 && VERS<7) pthread_mutex_unlock(&strfun_key);  
+  if(nPROCSS>1 && VERS<6) pthread_mutex_unlock(&strfun_key);  
 
   if(sgn[i1]<0) p=-p;
 

@@ -84,46 +84,24 @@ int main(int argc,char** argv)
   else if(err>0)  { printf("Wrong file contents at line %d\n",err);exit(1);}
 
 
-  err=sortOddParticles(cdmName);
-/*
-{   
-  double Xf, Omega,Beps=1E-5, cut=0.01;
-  double TR=Mcdm;
-  int fast=0;
-  printf("Mcdm=%.2E\n", Mcdm);
-     Omega=darkOmega(&Xf,fast,Beps,&err);
-     printf("Xf=%.2e Tend=%.2E Omega=%.6e\n",Xf,Tend,Omega);
-     if(Omega>0)printChannels(Xf,cut,Beps,1,stdout);
-    
-    Tend=1.e-12;
-    Omega=darkOmega(&Xf,fast,Beps,&err);
-    printf("Xf=%.2e Tend=%2E Omega=%.6e\n",Xf,Tend,Omega);
-   
-    Tend=1.e-3;
- 
-    Y[0]=YdmNEq(TR,"1");
-    double delta=1-findValW("MZp")*findValW("MZp")/4./McdmN[1]/McdmN[1];
-      printf("\n==== Calculation of relic density Tend=10^-3=====\n");
-      Omega=darkOmegaN(fast,Beps,&err);
-      printf("Xf=%.2e delta=%.5e Omega=%.6e\n",Xf,delta,Omega);
-    Y[0]=YdmNEq(TR,"1");
-    Tend=1.e-12;
-    printf("\n==== Calculation of relic density Tend=10^-8 =====\n");
-    Omega=darkOmegaN(fast,Beps,&err);
-    printf("Xf=%.2e Omega=%.6e\n",Xf,Omega); 
-exit(0);    
-}  
-*/
 
+  err=sortOddParticles(cdmName);
   if(err) { printf("Can't calculate %s\n",cdmName); return 1;}
-  for(int k=1;k<=Ncdm;k++) 
-  { 
-     qNumbers(CDM[k], &spin2, &charge3, &cdim);
-     printf("\nDark matter candidate is '%s' with spin=%d/2 mass=%.2E\n",CDM[k],  spin2,McdmN[k]); 
+
+  if(CDM1)
+  {
+     qNumbers(CDM1, &spin2, &charge3, &cdim);
+     printf("\nDark matter candidate is '%s' with spin=%d/2 mass=%.2E\n",CDM1,  spin2,Mcdm1);
      if(charge3) printf("Dark Matter has electric charge %d/3\n",charge3);
      if(cdim!=1) printf("Dark Matter is a color particle\n");
   }
-
+  if(CDM2)
+  {
+     qNumbers(CDM2, &spin2, &charge3, &cdim);
+     printf("\nDark matter candidate is '%s' with spin=%d/2 mass=%.2E\n",CDM2,spin2,Mcdm2);
+     if(charge3) printf("Dark Matter has electric charge %d/3\n",charge3);
+     if(cdim!=1) printf("Dark Matter is a color particle\n");
+  }
 
 
 #ifdef MASSES_INFO
@@ -243,6 +221,14 @@ exit(0);
   int i,err;
   printf("\n==== Calculation of relic density =====\n");
 
+  if( CDM1 && CDM2)
+  {
+
+    Omega= darkOmega2(fast,Beps,&err);
+    printf("Omega_1h^2=%.2E\n", Omega*(1-fracCDM2));
+    printf("Omega_2h^2=%.2E\n", Omega*fracCDM2);
+
+  } else
   {  double Xf;
      Omega=darkOmega(&Xf,fast,Beps,&err);
      printf("Xf=%.2e Omega=%.2e\n",Xf,Omega);
@@ -255,21 +241,27 @@ exit(0);
 {
   double TR=3E7;
   double omegaFi;
-//  int err;
-  toFeebleList(CDM[1]);
+  toFeebleList(CDM1);
 //  toFeebleList("Zp");
 
-  sortOddParticles(NULL);
+  VWdecay=0; VZdecay=0;
 
-  omegaFi=darkOmegaFiDecay(TR,"Zp",CDM[1]);
-  
+#ifdef SHOWPLOTS
+  omegaFi=darkOmegaFiDecay(TR,"Zp",0,1);
+#else
+   omegaFi=darkOmegaFiDecay(TR,"Zp",0,0);
+#endif
   printf("OmegaFiDecay(Zp)= %E\n", omegaFi);
 
-  
-  omegaFi=darkOmegaFi(TR,"~dm",&err);
-  printf("Omega freeze-in=%E\n", omegaFi);
+  omegaFi=darkOmegaFi(TR,&err);
+  printf("Omega freeze-in=%.3E\n", omegaFi);
   printChannelsFi(0,0,stdout);
 
+  if(CDM1 && CDM2)
+  { double omg1,omg2;
+    sort2FiDm(&omg1,&omg2);
+    printf("Omega1=%.3E Omega2=%.3E\n", omg1,omg2);
+  }
 }
 #endif
 
@@ -370,8 +362,8 @@ printf("\n==== Indirect detection =======\n");
 
 printf("\n==== Calculation of CDM-nucleons amplitudes  =====\n");
 
-    nucleonAmplitudes(CDM[1], pA0,pA5,nA0,nA5);
-    printf("CDM[antiCDM]-nucleon micrOMEGAs amplitudes for %s \n",CDM[1]);
+    nucleonAmplitudes(CDM1, pA0,pA5,nA0,nA5);
+    printf("CDM[antiCDM]-nucleon micrOMEGAs amplitudes for %s \n",CDM1);
     printf("proton:  SI  %.3E [%.3E]  SD  %.3E [%.3E]\n",pA0[0], pA0[1],  pA5[0], pA5[1] );
     printf("neutron: SI  %.3E [%.3E]  SD  %.3E [%.3E]\n",nA0[0], nA0[1],  nA5[0], nA5[1] );
 
@@ -399,6 +391,7 @@ printf("\n==== Calculation of CDM-nucleons amplitudes  =====\n");
 #endif
 
 #ifdef NEUTRINO
+if(!CDM1 || !CDM2)
 { double nu[NZ], nu_bar[NZ],mu[NZ];
   double Ntot;
   int forSun=1;

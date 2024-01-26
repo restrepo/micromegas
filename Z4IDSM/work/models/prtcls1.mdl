@@ -6,7 +6,7 @@ Z boson         |Z    |Z    |23        |2    |MZ  |!wZ  |1    |G  |Z            
 gluon           |G    |G    |21        |2    |0   |0    |8    |G  |G                 |G                       |
 W boson         |W+   |W-   |24        |2    |MW  |!wW  |1    |G  |W^+               |W^-                     |
 neutrino        |ne   |Ne   |12        |1    |0   |0    |1    |L  |\nu^e             |\bar{\nu}^e             |
-electron        |e    |E    |11        |1    |Me  |0    |1    |   |e                 |\bar{e}                 |
+electron        |e    |E    |11        |1    |0   |0    |1    |   |e                 |\bar{e}                 |
 mu-neutrino     |nm   |Nm   |14        |1    |0   |0    |1    |L  |\nu^\mu           |\bar{\nu}^\mu           |
 muon            |m    |M    |13        |1    |Mm  |0    |1    |   |\mu               |\bar{\mu}               |
 tau-neutrino    |nl   |Nl   |16        |1    |0   |0    |1    |L  |\nu^\tau          |\bar{\nu}^\tau          |
@@ -22,4 +22,3 @@ Higgs           |h    |h    |25        |0    |Mh  |!wh  |1    |   |h            
 Charged Higgs   |~~H+ |~~H- |37        |0    |MHC |!wHC |1    |   |(~H+)             |(~H-)                   |
 second Higgs    |~~X  |~~X  |35        |0    |MHX |!wHX |1    |   |(~X)              |(~X)                    |
 new  scalar     |~sc  |~Sc  |50        |0    |Msc |!wSc |1    |0  |(sc)              |(Sc)                    |
-pion            |pi+  |pi-  |211       |0    |Mpip|0    |1    |   |\pi^+             |\pi^-                   |

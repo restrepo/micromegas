@@ -2,11 +2,9 @@
 
 err=0
 if(test ! -r session.dat) then 
-  ./n_calchep -blind  "[[[[[[[[[{0" 
-#1>/dev/null 2>/dev/null
+  ./n_calchep -blind  "[[[[[[[[[{0" 1>/dev/null 2>/dev/null
   err=$?
-echo err=$err
-  if(test $err -ne 0) then 
+  if(test $err!=0) then 
     exit $err
   fi 
   grid=0
@@ -14,6 +12,7 @@ else
   vegas=`grep  Vegas_integral session.dat`
   grid=`echo  $vegas |cut -f8 -d " "` 
 fi 
+
 
 
 line=`grep Vegas_calls session.dat`
@@ -27,13 +26,8 @@ nc2=`echo $ll |cut -f4 -d " "`
 if(test $nc1 -ne 0 -a $n1 -ne 0 ) then
   if(test $grid -ne 0 ) then 
     ./n_calchep -blind  "[[[[[[[[[{[[[[[[{0" 1>/dev/null 2>/dev/null
-
-   vegas=`grep  Vegas_integral session.dat`
-   grid=`echo  $vegas |cut -f8 -d " "` 
-
-#    grid=0
   fi
-
+ 
   if(test $nc2 -ne 0  -a  $n2 -ne  0 ) then 
     ./n_calchep -blind  "[[[[[[[[[{[[[{[[{[{]]]{0" 1>/dev/null 2>/dev/null
     err=$?
@@ -48,7 +42,7 @@ else
      ./n_calchep -blind  "[[[[[[[[[{[[[{0" 1>/dev/null 2>/dev/null
      err=$?
   else
-     echo ' Zero number of Vegas calls'
+     echo ' Zero number of Vecas call'
      exit 1
   fi
 fi

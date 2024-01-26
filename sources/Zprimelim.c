@@ -138,7 +138,7 @@ double dijetgrid[4260][3],Zprimearray[71],Ratioarray[60],j95grid[71][60];
 double ULj95=0;
 
 char fname[300];
-sprintf(fname, "%s/Data/data/dijetgrid.dat",micrO);
+sprintf(fname, "%s/sources/data/dijetgrid.dat",micrO);
 FILE *f=fopen(fname, "r");
 if(!f) return 1;
 for(i=0;i<5;i++) fscanf(f," %*[^\n]");

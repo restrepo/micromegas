@@ -6,8 +6,9 @@
 
 
 void FillVal(int mode)
-{ double Q;
-  if(findVal("Q",&Q))Q=125;
+{ 
+  double Q=91.;
+  
   if(mode) 
   {  assignValW("MH3",slhaVal("MASS", Q,  1, 36));
      assignValW("mu", slhaVal("HMIX", Q,  1, 1) );

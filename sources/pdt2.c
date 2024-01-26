@@ -314,9 +314,7 @@ double parton_x( int pNum, double  Q)
   if(pNum==21) return x1;
   if(abs(pNum)>2) return 2*x1;
   pc1_=-pNum;
-  double r= x1+simpson(x_integrand,1E-4,1.,1.E-4,NULL);
-//  printf("partoc_x=%E\n", r);
-  return r;
+  return x1+simpson(x_integrand,1E-4,1.,1.E-4,NULL);
 }
 
 // FORTRAN

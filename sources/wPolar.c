@@ -9,7 +9,7 @@ int vPolar( char**N,  double*lng)
   sprintf(process,"%s,%s->",N[0],N[1]);
 
 
-//printf("Wpolar %s %s -> %s %s\n", N[0],N[1],N[2],N[3]);
+printf("Wpolar %s %s -> %s %s\n", N[0],N[1],N[2],N[3]);
 
 
   int v;   // position of vector particle W,or Z
@@ -85,6 +85,6 @@ int vPolar( char**N,  double*lng)
   double  s=r[0]+r[1]+r[2];                 
   *lng=r[1]/s;  //    *left=r[2]/s;  *right=r[0]/s;
   if(*lng<0) *lng=0;
-// printf("       lng=%E\n",*lng); 
+ printf("       lng=%E\n",*lng); 
   return 0;
 }  

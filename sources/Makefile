@@ -16,7 +16,7 @@ OBJ = $(notdir $(subst .c,.o,$(filter-out $(special),$(wildcard *.c))))
 #ifneq ($(FC),)
 #   override OBJ += faux.o
 #endif
-../lib/micromegas.a(cs22.o):../Data/data/et_tab.inc
+../lib/micromegas.a(cs22.o):data/et_tab.inc
 
 ../lib/micromegas.a:../lib/micromegas.a($(OBJ)) 
 	$(RANLIB) ../lib/micromegas.a 

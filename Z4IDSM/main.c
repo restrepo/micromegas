@@ -16,7 +16,7 @@
 //#define FREEZEIN  /*  Calculate relic density in Freeze-in scenario  */
 
 
-#define INDIRECT_DETECTION  
+//#define INDIRECT_DETECTION  
   /* Compute spectra of gamma/positron/antiprotons/neutrinos for DM annihilation; 
      Calculate <sigma*v>;
      Integrate gamma signal over DM galactic squared density for given line 
@@ -62,8 +62,7 @@ int main(int argc,char** argv)
    
   ForceUG=0;  /* to Force Unitary Gauge assign 1 */
   //useSLHAwidth=0;
-  VZdecay=0; VWdecay=0;  cleanDecayTable();
-  
+  VZdecay=1; VWdecay=1;  
 
   if(argc==1)
   { 
@@ -80,17 +79,17 @@ int main(int argc,char** argv)
   
   if(err) { printf("Can't calculate %s\n",cdmName); return 1;}
   
-  if(CDM[1]) 
+  if(CDM1) 
   { 
-     qNumbers(CDM[1], &spin2, &charge3, &cdim);
-     printf("\nDark matter candidate is '%s' with spin=%d/2 mass=%.2E\n",CDM[1],  spin2,McdmN[1]); 
+     qNumbers(CDM1, &spin2, &charge3, &cdim);
+     printf("\nDark matter candidate is '%s' with spin=%d/2 mass=%.2E\n",CDM1,  spin2,Mcdm1); 
      if(charge3) printf("Dark Matter has electric charge %d/3\n",charge3);
      if(cdim!=1) printf("Dark Matter is a color particle\n");
   }
-  if(CDM[2]) 
+  if(CDM2) 
   { 
-     qNumbers(CDM[2], &spin2, &charge3, &cdim);
-     printf("\nDark matter candidate is '%s' with spin=%d/2 mass=%.2E\n",CDM[2],spin2,McdmN[2]); 
+     qNumbers(CDM2, &spin2, &charge3, &cdim);
+     printf("\nDark matter candidate is '%s' with spin=%d/2 mass=%.2E\n",CDM2,spin2,Mcdm2); 
      if(charge3) printf("Dark Matter has electric charge %d/3\n",charge3);
      if(cdim!=1) printf("Dark Matter is a color particle\n");
   }
@@ -199,79 +198,78 @@ int main(int argc,char** argv)
 
 #endif 
 
+#ifdef FREEZEIN
+{
+  double TR=1E10;
+  double omegaFi;
+  toFeebleList("~sc");
+  pWidthPref("~~H3",1);
+  sortOddParticles(NULL); 
+  omegaFi=darkOmegaFi(TR,&err);
+  printf("omega freeze-in=%.3E\n", omegaFi);
+  printf("   omega1=%.3E omega2= %.3E fracCDM2=%.3E\n",omegaFi*(1-fracCDM2), omegaFi*fracCDM2,fracCDM2); //The output is: fracCDM2=0, i.e omegaFi=Omega(~sc).
+  printChannelsFi(0,0,stdout);
+
+}
+#endif
+
+
 #ifdef OMEGA
-{ int fast=0;
-  double Beps=1.E-8, cut=0.01;
+{ int fast=-1;
+  double Beps=1.E-4, cut=0.01;
   double Omega,Xf;  
   int i,err; 
   printf("\n==== Calculation of relic density =====\n");   
-  printf("CDM: %s %s \n", CDM[1], CDM[2]); 
+printf("CDM %s %s     %s %s\n", CDM1,CDM[1], CDM2, CDM[2]); 
 
-//ExcludedForNDM="2010";
-
-
-  VWdecay=0;VZdecay=0; cleanDecayTable(); 
+//ExcludedFor2DM="2010";
 
   Omega= darkOmega2(fast,Beps,&err);
 
   printf("Tstart=%E\n", Tstart);
-  printf("omega1=%.2E\n", Omega*fracCDM[1]);
-  printf("omega2=%.2E\n", Omega*fracCDM[2]);
+  printf("omega1=%.2E\n", Omega*(1-fracCDM2));
+  printf("omega2=%.2E\n", Omega*fracCDM2);
 
-#ifdef SHOWPLOTS
-  displayPlot("vsXX00","T",Tend,Tstart,0,2
-      ,"vs1100",0,vs1100F,NULL
-      ,"vs2200",0,vs2200F,NULL
-      );
-      
-  displayPlot("vsXXYY","T",Tend,Tstart,0,2
-      ,"vs1122",0,vs1122F,NULL
-      ,"vs2211",0,vs2211F,NULL
-      );
-      
-  displayPlot("vsXY","T",Tend,Tstart,0,2
-             ,"vs1210",0,vs1210F,NULL
-             ,"vs1120",0,vs1120F,NULL
-             );
-  displayPlot("Y","T",   Tend,Tstart,0,2,"Y1" ,0,Y1F,NULL,"Y2",0,Y2F,NULL);
-#endif
-  
-  
-  Tend=1E-8;
-//  ExcludedForNDM="DMdecay";
-  Omega=darkOmegaN(fast,Beps,&err);
+
+#ifdef omegaN
+//  sortOddParticles(NULL);
+  double Y[2];
+  Omega=darkOmegaN(Y,Beps,&err);
   printf("darkOmegaN Tstart=%.2E  Omega=%.2E  err=%d  \n", Tstart,Omega,err); 
-  printf("omega1=%.2E\n", Omega*fracCDM[1]);
-  printf("omega2=%.2E\n", Omega*fracCDM[2]);
+  printf("omega1=%.2E\n", Y[0]*McdmN[1]*2.742E8);
+  printf("omega2=%.2E\n", Y[1]*McdmN[2]*2.742E8);
 
-#ifdef SHOWPLOTS
-  displayPlot("Y ","T",   Tend,Tstart,1,2
-     , "Y1",0,YdmN, "1"
-     , "Y2",0,YdmN, "2"
-             );
-     
-  displayPlot("vSigma","T",   Tend,Tstart,0,2
-   , "vs1100",0,vSigmaN,"!1100"
-   , "vs2200",0,vSigmaN,"!2200"
+/*
+  displayPlot("Y1","T",   Tend,Tstart,0,3
+     ,"Y1F",0,Y1F,NULL
+     , "YdmN",0,YdmN ,"1"
+     , "Y1eq",0,Yeq1,NULL
+     );
+  displayPlot("Y2","T",   Tend,Tstart,0,3
+   , "Y2F",0,Y2F,NULL
+   , "YdmN",0,YdmN ,"2"
+   , "Y2eq",0,Yeq2,NULL
    );  
+*/  
 #endif            
 }
 
 #endif
 
-#ifdef FREEZEIN
+/*#ifdef FREEZEIN
 {
   double TR=1E10;
   double omegaFi;  
-  toFeebleList(CDM[1]);
+  toFeebleList(CDM1);
   VWdecay=0; VZdecay=0;
   
   omegaFi=darkOmegaFi(TR,&err);
   printf("omega freeze-in=%.3E\n", omegaFi);
-  printf("   omega1=%.3E omega2= %.3E fracCDM[2]=%.3E\n",omegaFi*(1-fracCDM[2]), omegaFi*fracCDM[2],fracCDM[2]); 
+  printf("   omega1=%.3E omega2= %.3E fracCDM2=%.3E\n",omegaFi*(1-fracCDM2), omegaFi*fracCDM2,fracCDM2); 
   printChannelsFi(0,0,stdout);
 }
 #endif
+*/
 
 
 #ifdef INDIRECT_DETECTION
@@ -283,13 +281,11 @@ int main(int argc,char** argv)
   double SpA[NZ],SpE[NZ],SpP[NZ];
   double FluxA[NZ],FluxE[NZ],FluxP[NZ];
   double * SpNe=NULL,*SpNm=NULL,*SpNl=NULL;
-  double Etest=McdmN[1]/2;
+  double Etest=Mcdm/2;
   
-  SpectraFlag=1;
-
 printf("\n==== Indirect detection =======\n");  
 
-sigmaV=calcSpectrum(4,SpA,SpE,SpP,NULL,NULL,NULL,&err);
+  sigmaV=calcSpectrum(4,SpA,SpE,SpP,SpNe,SpNm,SpNl ,&err);
     /* Returns sigma*v in cm^3/sec.     SpX - calculated spectra of annihilation.
        Use SpectdNdE(E, SpX) to calculate energy distribution in  1/GeV units.
        
@@ -297,7 +293,8 @@ sigmaV=calcSpectrum(4,SpA,SpE,SpP,NULL,NULL,NULL,&err);
                        2-includes gammas for 2->2+gamma
                        4-print cross sections             
     */
-  printf("sigmav=%.2E[cm^3/s] err=%d\n",sigmaV,err);  
+  printf("sigmav=%.2E[cm^3/s]\n",sigmaV);  
+
 
   { 
      double fi=0.1,dfi=0.05; /* angle of sight and 1/2 of cone angle in [rad] */ 
@@ -309,7 +306,7 @@ sigmaV=calcSpectrum(4,SpA,SpE,SpP,NULL,NULL,NULL,&err);
      sprintf(txt,"Photon flux[cm^2 s GeV]^{1} at f=%.2f[rad], cone angle %.2f[rad]",fi,2*dfi);
      displayPlot(txt,"E[GeV]",Emin,Mcdm,0,1,"flux",0,SpectdNdE,FluxA);
 #endif
-     printf("Photon flux = %.2E[cm^2 s GeV]^{-1} for E=%.1f[GeV]\n",SpectdNdE(Etest, FluxA), Etest);     
+     printf("Photon flux = %.2E[cm^2 s GeV]^{-1} for E=%.1f[GeV]\n",SpectdNdE(Etest, FluxA), Etest);       
   }
 
   { 
@@ -381,33 +378,33 @@ sigmaV=calcSpectrum(4,SpA,SpE,SpP,NULL,NULL,NULL,&err);
   
 printf("\n==== Calculation of CDM-nucleons amplitudes  =====\n");   
 
-    nucleonAmplitudes(CDM[1], pA0,pA5,nA0,nA5);
-    printf("%s[%s]-nucleon micrOMEGAs amplitudes\n",CDM[1],antiParticle(CDM[1]) );
+    nucleonAmplitudes(CDM1, pA0,pA5,nA0,nA5);
+    printf("%s[%s]-nucleon micrOMEGAs amplitudes\n",CDM1,aCDM1? aCDM1:CDM1 );
     printf("proton:  SI  %.3E [%.3E]  SD  %.3E [%.3E]\n",pA0[0], pA0[1],  pA5[0], pA5[1] );
     printf("neutron: SI  %.3E [%.3E]  SD  %.3E [%.3E]\n",nA0[0], nA0[1],  nA5[0], nA5[1] ); 
 
-    SCcoeff=4/M_PI*3.8937966E8*pow(Nmass*McdmN[1]/(Nmass+ McdmN[1]),2.);
+    SCcoeff=4/M_PI*3.8937966E8*pow(Nmass*Mcdm1/(Nmass+ Mcdm1),2.);
     csSIp=  SCcoeff*pA0[0]*pA0[0];  csSIp_=  SCcoeff*pA0[1]*pA0[1];
     csSDp=3*SCcoeff*pA5[0]*pA5[0];  csSDp_=3*SCcoeff*pA5[1]*pA5[1];
     csSIn=  SCcoeff*nA0[0]*nA0[0];  csSIn_=  SCcoeff*nA0[1]*nA0[1];
     csSDn=3*SCcoeff*nA5[0]*nA5[0];  csSDn_=3*SCcoeff*nA5[1]*nA5[1];
     
-    printf("%s[%s]-nucleon cross sections[pb] :\n",CDM[1],antiParticle(CDM[1]));
+    printf("%s[%s]-nucleon cross sections[pb] :\n",CDM1,aCDM1);
     printf(" proton  SI %.3E [%.3E] SD %.3E [%.3E]\n", csSIp,csSIp_,csSDp,csSDp_);
     printf(" neutron SI %.3E [%.3E] SD %.3E [%.3E]\n", csSIn,csSIn_,csSDn,csSDn_); 
                 
-    nucleonAmplitudes(CDM[2], pA0,pA5,nA0,nA5);
-    printf("%s[%s]-nucleon micrOMEGAs amplitudes\n",CDM[2], antiParticle(CDM[2]));
+    nucleonAmplitudes(CDM2, pA0,pA5,nA0,nA5);
+    printf("%s[%s]-nucleon micrOMEGAs amplitudes\n",CDM2,aCDM2?aCDM2:CDM2);
     printf("proton:  SI  %.3E [%.3E]  SD  %.3E [%.3E]\n",pA0[0], pA0[1],  pA5[0], pA5[1] );
     printf("neutron: SI  %.3E [%.3E]  SD  %.3E [%.3E]\n",nA0[0], nA0[1],  nA5[0], nA5[1] ); 
 
-    SCcoeff=4/M_PI*3.8937966E8*pow(Nmass*McdmN[2]/(Nmass+ McdmN[2]),2.);
+    SCcoeff=4/M_PI*3.8937966E8*pow(Nmass*Mcdm2/(Nmass+ Mcdm2),2.);
     csSIp=  SCcoeff*pA0[0]*pA0[0];  csSIp_=  SCcoeff*pA0[1]*pA0[1];
     csSDp=3*SCcoeff*pA5[0]*pA5[0];  csSDp_=3*SCcoeff*pA5[1]*pA5[1];
     csSIn=  SCcoeff*nA0[0]*nA0[0];  csSIn_=  SCcoeff*nA0[1]*nA0[1];
     csSDn=3*SCcoeff*nA5[0]*nA5[0];  csSDn_=3*SCcoeff*nA5[1]*nA5[1];
                     
-    printf("%s[%s]-nucleon cross sections[pb]:\n",CDM[2],antiParticle(CDM[2]));
+    printf("%s[%s]-nucleon cross sections[pb]:\n",CDM2,aCDM2);
     printf(" proton  SI %.3E [%.3E] SD %.3E [%.3E]\n", csSIp,csSIp_,csSDp,csSDp_);
     printf(" neutron SI %.3E [%.3E] SD %.3E [%.3E]\n", csSIn,csSIn_,csSDn,csSDn_);             
 }

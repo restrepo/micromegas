@@ -19,11 +19,8 @@ int main(int argn, char** argc)
   if(argn<2) return 1;
   if(argc[1][0]=='%')
   { int d;
-    if(argc[1][1]=='d') sprintf(format,"%%d\n"); else
-    {
-       sscanf(argc[1]+1,"%d",&d);
-       sprintf(format,"%%.%dE\n",d);
-    }   
+    sscanf(argc[1]+1,"%d",&d);
+    sprintf(format,"%%.%dE\n",d);
     i=2;
   } else 
   { strcpy(format,"%.3E\n");
@@ -32,8 +29,7 @@ int main(int argn, char** argc)
   for(s[0]=0; i < argn;i++) strcat(s,argc[i]);
   userFuncTxt=s;
   r = userFuncNumC();
-  if(!rderrcode) 
-  {  if(format[1]=='d') printf(format,(int)r);  else printf(format,r); }
+  if(!rderrcode)  printf(format,r);
   return rderrcode;
 }          
 

@@ -245,12 +245,12 @@ int buildInterpolation(double (*Fun)(double), double x1,double x2, double eps,do
 {  int i,cnt,N,k;
    double *xa,*ya,dx0;
    dx0=fabs(x2-x1)*delt;   
-   N=10;
+   N=5;
    xa=malloc(N*sizeof(double));
    ya=malloc(N*sizeof(double));
 //printf("==================================\n");
    
-   for(i=0;i<N;i++) {xa[i]=x1+ i*(x2-x1)/(N-1.); ya[i]=Fun(xa[i]); /*printf("x=%E y=%E\n",xa[i],ya[i]);*/ }  
+   for(i=0;i<5;i++) {xa[i]=x1+ (x2-x1)/4*i; ya[i]=Fun(xa[i]); /*printf("x=%E y=%E\n",xa[i],ya[i]);*/ }  
 
 
    for(cnt=1;cnt;)
@@ -292,13 +292,13 @@ int buildInterpolation_arg(double (*Fun)(double,void*), void*arg, double x1,doub
 {  int i,cnt,N,k;
    double *xa,*ya,dx0;
    dx0=fabs(x2-x1)*delt;   
-   N=20;
+   N=5;
    xa=malloc(N*sizeof(double));
    ya=malloc(N*sizeof(double));
 
 //printf("======  x1=%E ==== x2=%E ========================\n",x1,x2);
    
-   for(i=0;i<N;i++) {xa[i]=x1+ i*(x2-x1)/(N-1.); ya[i]=Fun(xa[i],arg); /*printf("x=%E y=%E\n",xa[i],ya[i]);*/ }  
+   for(i=0;i<5;i++) {xa[i]=x1+ (x2-x1)/4*i; ya[i]=Fun(xa[i],arg); /*printf("x=%E y=%E\n",xa[i],ya[i]);*/ }  
 
 
    for(cnt=1;cnt;)
@@ -314,11 +314,10 @@ int buildInterpolation_arg(double (*Fun)(double,void*), void*arg, double x1,doub
         yy=polint3(x, N, xa, ya);
         ins(i, x, y, &N,xa, ya);
 
-//printf("N=%d x=%e y=%E yy=%E dy=%E eps=%E \n",N, x,y,yy, fabs(y-yy),eps );        
+//printf("N=%d x=%e y=%E yy=%E dy=%E\n",N, x,y,yy, fabs(y-yy));        
 
         if( (eps>0 && fabs(yy-y) > eps) || (eps<0 && fabs(yy-y)> -eps*fabs(y)))  
         {
-//printf("new poin!\n");        
            cnt=1;
            xa=realloc(xa,sizeof(double)*(N+1));
            ya=realloc(ya,sizeof(double)*(N+1));
@@ -390,7 +389,6 @@ int readTable(char * fileName, int *Ncolumn, double **tab)
    while(fgets(buff,BUFFSIZE,f))
    { int i;
      char*ch;
-     for(i=0; buff[i];i++) if(buff[i]=='\t') buff[i]=' ';
      for(i=0; buff[i] && buff[i]==' ';i++);
      if(buff[i]==0 || buff[i]=='#') {nCom++; continue;}
      ch=strtok(buff," \n");

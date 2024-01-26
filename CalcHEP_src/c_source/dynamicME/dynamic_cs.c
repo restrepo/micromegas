@@ -56,7 +56,7 @@ char  * modelDir=NULL;
 char  * compDir=NULL;
 char  * calchepDir=NULL;
 int   modelNum=0;
-double BWrange=27;   // small value leads to problems in  numerical integrations
+double BWrange=2.7;
 
 int  prepareWorkPlace(void)
 {  char * command;
@@ -345,7 +345,6 @@ numout*getMEcode(int twidth,int Gauge, char*Process, char*excludeVirtual,
    } else if(new) dClose(handle);  
     free(command); free(proclibf); free(lib_);
     if(cc) *(cc->interface->twidth) =twidth;
-//printf("New %s %p\n",Process,cc);    
     return cc; 
 }
 

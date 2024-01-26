@@ -25,6 +25,7 @@
      of sight;
      Calculate galactic propagation of positrons and antiprotons.
   */
+#define FREEZEIN 
 
 //#define RESET_FORMFACTORS
   /* Modify default nucleus form factors,
@@ -86,9 +87,17 @@ int main(int argc,char** argv)
   err=sortOddParticles(cdmName);
   if(err) { printf("Can't calculate %s\n",cdmName); return 1;}
 
+  if(CDM1)
   {
-     qNumbers(CDM[1], &spin2, &charge3, &cdim);
-     printf("\nDark matter candidate is '%s' with spin=%d/2 mass=%.2E\n",CDM[1],  spin2,McdmN[1]);
+     qNumbers(CDM1, &spin2, &charge3, &cdim);
+     printf("\nDark matter candidate is '%s' with spin=%d/2 mass=%.2E\n",CDM1,  spin2,Mcdm1);
+     if(charge3) printf("Dark Matter has electric charge %d/3\n",charge3);
+     if(cdim!=1) printf("Dark Matter is a color particle\n");
+  }
+  if(CDM2)
+  {
+     qNumbers(CDM2, &spin2, &charge3, &cdim);
+     printf("\nDark matter candidate is '%s' with spin=%d/2 mass=%.2E\n",CDM2,spin2,Mcdm2);
      if(charge3) printf("Dark Matter has electric charge %d/3\n",charge3);
      if(cdim!=1) printf("Dark Matter is a color particle\n");
   }
@@ -208,6 +217,13 @@ int main(int argc,char** argv)
   int i,err; 
   printf("\n==== Calculation of relic density =====\n");   
 
+  if(CDM1 && CDM2) 
+  {
+  
+    Omega= darkOmega2(fast,Beps,&err);
+    printf("Omega_1h^2=%.2E\n", Omega*(1-fracCDM2));
+    printf("Omega_2h^2=%.2E\n", Omega*fracCDM2);
+  } else
   {  double Xf;
      Omega=darkOmega(&Xf,fast,Beps,&err);
      printf("Xf=%.2e Omega=%.2e\n",Xf,Omega);
@@ -226,7 +242,7 @@ int main(int argc,char** argv)
   toFeebleList("~s0");
   VWdecay=0; VZdecay=0;
   
-  omegaFi=darkOmegaFi(TR,"~s0", &err);
+  omegaFi=darkOmegaFi(TR,&err);
   printf("omega freeze-in=%.3E\n", omegaFi);
   printChannelsFi(0,0,stdout);
 }
@@ -328,8 +344,8 @@ printf("\n==== Indirect detection =======\n");
   int sI,sD;
 printf("\n==== Calculation of CDM-nucleons amplitudes  =====\n");
 
-    nucleonAmplitudes(CDM[1], pA0,pA5,nA0,nA5);
-    printf("%s-nucleon micrOMEGAs amplitudes\n",CDM[1]);
+    nucleonAmplitudes(CDM1, pA0,pA5,nA0,nA5);
+    printf("%s-nucleon micrOMEGAs amplitudes\n",CDM1);
     printf("proton:  SI  %.3E  SD  %.3E\n",pA0[0], pA5[0]);
     printf("neutron: SI  %.3E  SD  %.3E\n",nA0[0], nA5[0]);
 
@@ -338,7 +354,7 @@ printf("\n==== Calculation of CDM-nucleons amplitudes  =====\n");
     csSDp=3*SCcoeff*pA5[0]*pA5[0]; 
     csSIn=  SCcoeff*nA0[0]*nA0[0]; 
     csSDn=3*SCcoeff*nA5[0]*nA5[0]; 
-    printf("%s-nucleon cross sections[pb]:\n",CDM[1]);
+    printf("%s-nucleon cross sections[pb]:\n",CDM1);
     printf(" proton  SI %.3E SD %.3E\n", csSIp,csSDp);
     printf(" neutron SI %.3E SD %.3E\n", csSIn,csSDn);    
 }
@@ -355,6 +371,7 @@ printf("\n==== Calculation of CDM-nucleons amplitudes  =====\n");
 #endif
 
 #ifdef NEUTRINO
+if(!CDM1 || !CDM2)
 { double nu[NZ], nu_bar[NZ],mu[NZ];
   double Ntot;
   int forSun=1;

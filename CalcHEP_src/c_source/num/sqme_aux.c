@@ -1,8 +1,5 @@
 #include"num_in.h"
 
-#include<stdio.h>
-int myCheck=0;
-
 REAL Helicity[2]={0.,0.};
 REAL N_pol_11_,N_pol_12_,N_pol_21_,N_pol_22_;
 
@@ -19,7 +16,7 @@ static int stype(int nin, char * momStr)
   for(i=0,c=0; momStr[i];i++) if (momStr[i]<=2) c++;
   if(c&1) return 0; else return 1;
 }
-
+     
 #endif
 
 int indx_(int k,int l)
@@ -64,7 +61,6 @@ static REAL sqrMom(int nin, char * momnum, REAL * lv)
 
 #ifdef forMICROMEGAS
 double DDmomSQ=0;
-double omgWidth[40]={0.};
 #endif
 
 int prepDen(int nden, int nin,double BWrange2, REAL*dmass,REAL*dwidth, char** Qtxt,REAL*momenta,
@@ -83,8 +79,9 @@ int prepDen(int nden, int nin,double BWrange2, REAL*dmass,REAL*dwidth, char** Qt
 
   for(i=0,s0max=0;i<nin;i++) s0max+=momenta[4*i];
   s0max=computer_eps*s0max*s0max;
+  
   for(i=1;i<= nden;i++)
-  {
+  { 
 #ifdef forMICROMEGAS
    int sgn=0;
    if(loopFF__)
@@ -102,27 +99,18 @@ int prepDen(int nden, int nin,double BWrange2, REAL*dmass,REAL*dwidth, char** Qt
      Q0[i]=1;
      continue;
    } 
+   if(WIDTH_FOR_OMEGA && !stype(nin,Qtxt[i])) dwidth[i]=0.01*Fabs(dmass[i]);
 #endif
 
   Q1[i]=dmass[i]*dmass[i]-sqrMom(nin,Qtxt[i],momenta);
-#ifdef forMICROMEGAS
-    
-   dwidth[i]+=omgWidth[i];      
-if(WIDTH_FOR_OMEGA && !stype(nin,Qtxt[i]) ) 
-if(WIDTH_FOR_OMEGA==1) dwidth[i]=omgWidth[i];  
-else dwidth[i]=0.01*Fabs(dmass[i]);
-#endif  
-    
 #ifdef forMICROMEGAS  
   if(strcmp(Qtxt[i],"\1\3")==0) Q1[i]+=DDmomSQ;   
 #endif  
-
   if(dwidth[i] && BWrange2>0)
   {  REAL w,w2, q2=Q1[i]*Q1[i];
      w=dmass[i]*dwidth[i];
      w2=w*w;
-     if(q2>(BWrange2+1)*w2) w2=0; 
-     else if(q2>BWrange2*w2) w2=(BWrange2+1)*w2-q2;       
+     if(q2>BWrange2*w2) { if(q2<(BWrange2+1)*w2) q2=(BWrange2+1) *w2; w2=0; }
 
      Q2[i]=1/(q2+w2);
      Q0[i]=Q2[i]*Q1[i]*Q1[i];
@@ -136,7 +124,6 @@ else dwidth[i]=0.01*Fabs(dmass[i]);
      Q1[i]=1/Q1[i];
      Q2[i]=Q1[i]*Q1[i];
      Q0[i]=1;
-     
   }
   }
   return err;

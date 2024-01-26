@@ -1,0 +1,22 @@
+
+keys gauge_fixing=Feynman, CKMdim=1, hgg=On, h4G=Off.
+
+do_if hgg==On.
+		model 'SingletDM(+hgg)'/1.
+do_else.
+	model 'SingletDM'/1.
+end_if.
+
+read 'sm.inc'.
+
+parameter Mdm=60, laSH=0.1, laS=0.01.
+scalar  '~x'/'~x':(DM,  mass Mdm, pdg 10000 ). 
+
+
+lterm   1/2*(deriv^mu*'~x')*(deriv^mu*'~x') -1/2*Mdm*'~x'*'~x'.
+lterm   - laSH* '~x'*'~x'*shd*shD.
+lterm   - 1/4*laS*'~x'*'~x'*'~x'*'~x'.   
+
+CheckHerm.
+
+CheckMasses.

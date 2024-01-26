@@ -1,0 +1,36 @@
+# --- variables defined by configure ---
+
+SRC = 
+PREFIX = x86_64-Linux
+LIBDIRSUFFIX = 64
+
+EXE = 
+DEF = -D
+NOUNDERSCORE = 0
+
+FC = gfortran
+FFLAGS =  -O3 -ffixed-line-length-none -fno-range-check $(DEF)QUAD= $(DEF)U77EXT=0
+
+CC = gcc
+CFLAGS =  -O3 -g -fomit-frame-pointer -ffast-math -fPIC -Wall -m64 -fPIC -DNOUNDERSCORE=$(NOUNDERSCORE) -DBIGENDIAN=0
+
+CXX = g++
+CXXFLAGS =  -O3 -g -fomit-frame-pointer -ffast-math -fPIC -Wall -m64 
+
+ML = 1
+MCC = mcc
+MCFLAGS =  -n
+MCLIBS =  -lpthread -lrt
+
+LDFLAGS =  -L/usr/libexec/gcc/x86_64-redhat-linux/8/liblto_plugin.so -L/usr/lib/gcc/x86_64-redhat-linux/8 -L/usr/lib/gcc/x86_64-redhat-linux/8/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/usr/lib/gcc/x86_64-redhat-linux/8/../../.. -lgfortran -lm -lgcc_s -lgcc -lquadmath -lm -lgcc_s -lgcc -lgcc_s -lgcc 
+
+AR=ar 
+RANLIB = 
+NM = 
+DLLTOOL = 
+
+PARALLEL = -j 4
+
+# --- end defs by configure ---
+
+

@@ -9,8 +9,6 @@
 
 #define nErrMax 10
 
-//  https://pomax.github.io/bezierinfo/legendre-gauss.html
-
 static double const X2[2]={2.113249E-01,7.886751E-01 };
 static double const F2[2]={5.000000E-01,5.000000E-01 };
 static double const X3[3]={1.127017E-01,5.000000E-01 ,8.872983E-01 };
@@ -23,24 +21,18 @@ static double const X6[6]={3.376523E-02,1.693953E-01 ,3.806904E-01 ,6.193096E-01
 static double const F6[6]={8.566223E-02,1.803808E-01 ,2.339570E-01 ,2.339570E-01 ,1.803808E-01 ,8.566225E-02 };
 static double const X7[7]={2.544604E-02,1.292344E-01 ,2.970774E-01 ,5.000000E-01 ,7.029226E-01 ,8.707656E-01 ,9.745540E-01 };
 static double const F7[7]={6.474248E-02,1.398527E-01 ,1.909150E-01 ,2.089796E-01 ,1.909150E-01 ,1.398527E-01 ,6.474248E-02 };
-static double const X12[12]={9.2196828766E-03,4.7941371815E-02,1.1504866290E-01,2.0634102286E-01,3.1608425050E-01,4.3738329574E-01,5.6261670426E-01,6.8391574950E-01,7.9365897714E-01,8.8495133710E-01,9.5205862819E-01,9.9078031712E-01};
-static double const F12[12]={2.3587668193E-02,5.3469662998E-02,8.0039164272E-02,1.0158371336E-01,1.1674626827E-01,1.2457352291E-01,1.2457352291E-01,1.1674626827E-01,1.0158371336E-01,8.0039164272E-02,5.3469662998E-02,2.3587668193E-02};
-
-static double const X15[15]={6.0037409898E-03,3.1363303800E-02,7.5896708295E-02,1.3779113432E-01,2.1451391370E-01,3.0292432646E-01,3.9940295300E-01,5.0000000000E-01,6.0059704700E-01,6.9707567354E-01,7.8548608630E-01,8.6220886568E-01,9.2410329171E-01,9.6863669620E-01,9.9399625901E-01};
-static double const F15[15]={1.5376620998E-02,3.5183023744E-02,5.3579610234E-02,6.9785338963E-02,8.3134602908E-02,9.3080500008E-02,9.9215742664E-02,1.0128912096E-01,9.9215742664E-02,9.3080500008E-02,8.3134602908E-02,6.9785338963E-02,5.3579610234E-02,3.5183023744E-02,1.5376620998E-02};
-
-static double const X20[20]={3.4357004075E-03,1.8014036361E-02,4.3882785874E-02,8.0441514089E-02,1.2683404677E-01,1.8197315964E-01,2.4456649902E-01,3.1314695564E-01,3.8610707443E-01,4.6173673943E-01,5.3826326057E-01,6.1389292557E-01,6.8685304436E-01,7.5543350098E-01,8.1802684036E-01,8.7316595323E-01,9.1955848591E-01,9.5611721413E-01,9.8198596364E-01,9.9656429959E-01}; 
-static double const F20[20]={8.8070035696E-03,2.0300714900E-02,3.1336024167E-02,4.1638370788E-02,5.0965059909E-02,5.9097265981E-02,6.5844319225E-02,7.1048054659E-02,7.4586493236E-02,7.6376693565E-02,7.6376693565E-02,7.4586493236E-02,7.1048054659E-02,6.5844319225E-02,5.9097265981E-02,5.0965059909E-02,4.1638370788E-02,3.1336024167E-02,2.0300714900E-02,8.8070035696E-03};
 
 
 
 double gauss( double (*func)(double),double a,double b, int n)
-{   
+{
+        
   double ans=0;
-  if(n<2) n=2;
-  if(n>20) { printf(" 20 is a miximum number of points for Gauss integration (call with %d)\n",n); n=20;} 
+  if(n<1) n=1;
+  if(n>7) { printf(" 7 is a miximum number of points for Gauss integration (call with %d)\n",n); n=7;} 
   switch(n)
   {  int i;
+    case 1: ans=(b-a)*func((a+b)/2);  break;
     case 2:
       for(i=0;i<n;i++) ans+=F2[i]*func(a+ (b-a)*X2[i]); break;
     case 3: 
@@ -53,12 +45,6 @@ double gauss( double (*func)(double),double a,double b, int n)
       for(i=0;i<n;i++) ans+=F6[i]*func(a+ (b-a)*X6[i]); break;
     case 7:
       for(i=0;i<n;i++) ans+=F7[i]*func(a+ (b-a)*X7[i]); break;      
-    case 8: case 9: case 11: case 12: 
-      for(i=0;i<12;i++) ans+=F12[i]*func(a+ (b-a)*X12[i]); break;
-    case 13: case 14: case 15: 
-      for(i=0;i<15;i++) ans+=F15[i]*func(a+ (b-a)*X15[i]); break;
-    case 16: case 17: case 18: case 19: case 20:
-      for(i=0;i<20;i++) ans+=F20[i]*func(a+ (b-a)*X20[i]); break;  
     default: 
       return 0;
   }
@@ -151,7 +137,7 @@ double gauss_arg( double (*func)(double,void*),void*par,double a,double b,  int 
                 
   double ans=0;
   if(n<1) n=1;
-  if(n>20) { n=20; printf(" 20 is the miximum number of points for Gauss integration\n");} 
+  if(n>7) { n=7; printf(" 7 is a miximum number of points for Gauss integration\n");} 
   switch(n)
   {  int i;
     case 1: ans=(b-a)*func((a+b)/2,par);  break;
@@ -166,14 +152,7 @@ double gauss_arg( double (*func)(double,void*),void*par,double a,double b,  int 
     case 6:
       for(i=0;i<n;i++) ans+=F6[i]*func(a+ (b-a)*X6[i],par); break;
     case 7:
-      for(i=0;i<n;i++) ans+=F7[i]*func(a+ (b-a)*X7[i],par); break;
-    case 8: case 9: case 11: case 12: 
-      for(i=0;i<12;i++) ans+=F12[i]*func(a+ (b-a)*X12[i],par); break;
-    case 13: case 14: case 15: 
-      for(i=0;i<15;i++) ans+=F15[i]*func(a+ (b-a)*X15[i],par); break;
-    case 16: case 17: case 18: case 19: case 20:
-      for(i=0;i<20;i++) ans+=F20[i]*func(a+ (b-a)*X20[i],par); break;  
-    default: return 0;            
+      for(i=0;i<n;i++) ans+=F7[i]*func(a+ (b-a)*X7[i],par); break;      
   }
   return ans*(b-a);                       
  }
@@ -284,12 +263,11 @@ double peterson21_arg(double (*F)(double,void*),void*par, double a, double b, do
 }
 
 int simpson_err=0;
-static double errA,errB;
 
 static void drawP(void*f, void*par, double x1, double x2,double ans,int nErr)
 {  
    FILE*F=fopen("verifySimpson.tab","w");
-   fprintf(F,"#title verifySimpson integral=%E [%e %e] \n", ans,errA,errB);
+   fprintf(F,"#title verifySimpson integral=%E \n", ans);
    fprintf(F,"#yName func{c}\n"); 
    fprintf(F,"#xName x\n");
    fprintf(F,"#xMin %E\n", x1); 
@@ -320,6 +298,7 @@ void verifySimpson(void*f, void*par, double a, double b,double ans,int nErr)
 }
 
 void * funcAddress=NULL;
+
 static void r_simpson_arg( void*F, void*par,  double a,double b,  
                            double eps, double * f,  double * ans, double * absAns,double*dErr, int depth,int depth1,int*nErr)
 {
@@ -358,8 +337,8 @@ if(funcAddress==F) printf("a=%E b=%E depth=%d depth1=%d  nErr=%d \n", a,b,depth,
        double df=sqrt(ff2-ff*ff)/pow(2,0.5*depth);
        if( df<0.01*fabs(ff) ) 
        { *nErr=*nErr|4; *ans+= ff*(b-a); 
-         errA=a; errB=b; 
-//       for(int i=0;i<8;i++) printf("!!!! %E", f[i]);  printf("    a=%E b=%e c=%d\n",a,b,c);
+       
+//       for(int i=0;i<7;i++) printf(" %E", f[i]);  printf("a=%E b=%e\n",a,b);
        return;}
     }   
   }

@@ -134,12 +134,11 @@ static void write_event_cap(void)
   }
   fprintf(events_,"#PROCESS  ");
   for(i=1;i<=nin_int+nout_int; i++)
-  { int pcode; 
+  { int pcode;
     char * pname=pinf_int(Nsub,i,NULL,&pcode);
     fprintf(events_," %d(%s)", pcode, pname);
     if(i==nin_int)  fprintf(events_," ->");
   } 
-printf("\n");  
   fprintf(events_,"\n");    
   fprintf(events_,"#MASSES ");
   for(i=0;i<nin_int+nout_int;i++)
@@ -568,12 +567,7 @@ int runVegas(void)
              setEventCubes(veg_Ptr, EventGrid);
              EventGrid=veg_Ptr->evnCubes;  
            } break;
-        case 10:  
-           { double nEventsR=nEvents;
-                 correctDouble(50,15,"",&nEventsR,1);
-                 nEvents=nEventsR; 
-           } break;     
-
+        case 10:  correctInt(50,15,"",&nEvents,1); break;
         case 11: 
            if( !veg_Ptr || !veg_Ptr->fMax)
            { char * mess="Before event generation one has to launch  Vegas session with freezed grid\n"

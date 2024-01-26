@@ -13,7 +13,7 @@
 #define VVmassGap  70
 
 
-extern int displayPlot(char * title, char*xName, double xMin, double xMax ,  int lScale, int N, ...);
+//extern int displayPlot(char * title, char*xName, double xMin, double xMax ,  int lScale, int N, ...);
 
 extern  char * trim(char *);
 
@@ -53,7 +53,7 @@ typedef struct{  double w1,w2,m0,m1,m2,m1p,m2p, y11,y12,y21,y22;  int nGauss;} s
 #define y_21      sVar->y21
 #define y_22      sVar->y22
 #define n_Gauss  sVar->nGauss
-#define nn       3
+
 
 //static double w1_,w2_,m0_,m1_,m2_,m1_p,m2_p;
 //static int n_Gauss=0;
@@ -69,7 +69,7 @@ static double intDecay2(double y2,sVarW*sVar)
 
 static double intDecay2_(double x,sVarW*sVar)
 { if(x<=0 || x>=1) return 0;
-  return intDecay2(y_21+pow(x,nn)*(nn+1-nn*x)*(y_22-y_21),sVar)*nn*(nn+1)*pow(x,nn-1)*(1-x)*(y_22-y_21);
+  return intDecay2(y_21+x*x*x*(4-3*x)*(y_22-y_21),sVar)*12*x*x*(1-x)*(y_22-y_21);
 }
 
 static double  intDecay1(double y1,sVarW*sVar)
@@ -81,17 +81,13 @@ static double  intDecay1(double y1,sVarW*sVar)
    y_21=atan(-m2_p/w2_);
    y_22=atan( ((m0_-m1_)*(m0_-m1_)-m2_p*m2_p)/(m2_p*w2_));
    if(n_Gauss) return  gauss_arg(intDecay2_,sVar,0,1,n_Gauss);
-   else       return  simpson_arg(intDecay2_,sVar,0,1,1.E-5,NULL);
+   else       return  simpson_arg(intDecay2_,sVar,0,1,1.E-3,NULL);
 //   return  simpson(intDecay2, atan(-m2_p/w2_), atan( ((m0_-m1_)*(m0_-m1_)-m2_p*m2_p)/(m2_p*w2_)), 1.E-3);
 }
 
 static double intDecay1_(double x,sVarW*sVar)
-{ //if(x<=0 || x>=1) return 0;
-//   return intDecay1(y_11+pow(x,nn)*(1+nn*(1-x))*(y_12-y_11),sVar)*nn*(nn+1)*pow(x,nn-1)*(1-x)*(y_12-y_11);
-   double res= intDecay1(y_11+pow(x,nn)*(y_12-y_11),sVar)*nn*pow(x,nn-1)*(y_12-y_11);
-//   printf("x =%e res=%e\n", x,res);
-
-   return res;
+{ if(x<=0 || x>=1) return 0;
+   return intDecay1(y_11+x*x*x*(4-3*x)*(y_12-y_11),sVar)*12*x*x*(1-x)*(y_12-y_11);
 }
   
 
@@ -129,32 +125,9 @@ double decayPcmW(double m0,double m1,double m2,double w1,double w2, int N)
     if(w1<=w2)  { w1_=w1; w2_=w2;  m1_p=m1;  m2_p=m2; }
      else       { w1_=w2; w2_=w1;  m1_p=m2;  m2_p=m1; }
    y_11=atan(-m1/w1); y_12=atan( (m0*m0-m1*m1)/(m1*w1));
-
-//((m0-m2)^2-m1_p*m1_p)/(w1_*m1_p) =tan(y1);
-
-// m1_=m1_p*m1_p + w1_*m1_p*tan(y1);
- 
- 
-//double y_1m=atan( ((m0-m2+3*w2 )*(m0-m2+3*w2)-m1*m1)/(m1*w1));
-
-//printf("y_11 y_1m y_12 = %E %E %E\n", y_11, y_1m, y_12);
-//displayPlot("intDecay1_1","y",y_11,y_1m,0,1,"",0,intDecay1,sVar);
-//displayPlot("intDecay1_2","y",y_1m,y_12,0,1,"",0,intDecay1,sVar);
-
-//y_11=atan( ((m0-m2+3*w2 )*(m0-m2)-m1*m1)/(m1*w1));
-
-//y_11+pow(x,nn)*(y_12-y_11)=y_1m 
-
-//double x0=pow( (y_1m-y_11)/(y_12-y_11), 1./nn); 
-
-//printf("x0=%e\n",x0);
-//displayPlot("intDecay1_","x",0,1,0,1,"",0,intDecay1_,sVar);
-//double sum=0;
-//for(int i=0;i<10;i++) sum+=intDecay1_((i+0.5)/10.,sVar)/10;
-//printf("=====================\n");
-double res=simpson_arg(intDecay1_,sVar,0,1,1E-5,NULL);
-//printf("sum=%E res=%E\n",sum,res);
-return res/(M_PI*M_PI)/ME(m0,m1,m2);
+//displayPlot("intDecay1_","x",0,1,0,1,"",0,intDecay1_,NULL);
+   if(n_Gauss) return gauss_arg(intDecay1_,sVar,0,1,n_Gauss)/(M_PI*M_PI)/ME(m0,m1,m2);
+   else       return simpson_arg(intDecay1_,sVar,0,1,1E-3,NULL)/(M_PI*M_PI)/ME(m0,m1,m2);
 
   }
 }
@@ -676,7 +649,6 @@ double pWidth2(numout * cc, int nsub)
   REAL pvect[12];
   double width=0.;
   REAL m1,m2,m3; 
-  int pdg1,pdg2,pdg3;
   int ntot,nin,nout;
   double GG;
   procInfo1(cc,&ntot,&nin,&nout);
@@ -684,16 +656,10 @@ double pWidth2(numout * cc, int nsub)
        
   if(passParameters(cc)) return -1;
   
-  cc->interface->pinf(nsub,1,&m1,&pdg1);
-  cc->interface->pinf(nsub,2,&m2,&pdg2); 
-  cc->interface->pinf(nsub,3,&m3,&pdg3);
+  cc->interface->pinf(nsub,1,&m1,NULL);
+  cc->interface->pinf(nsub,2,&m2,NULL); 
+  cc->interface->pinf(nsub,3,&m3,NULL);
   if(cc->SC) GG=*(cc->SC); else GG=sqrt(4*M_PI*alphaQCD(m1));
-  
-  if(fabs(pdg2)<=2 && m2<0.14) m2=0.14;
-  if(fabs(pdg3)<=2 && m3<0.14) m3=0.14;
-  if(fabs(pdg3)==3  && m2<0.5) m2=0.5;
-  if(fabs(pdg3)==32 && m3<0.5) m3=0.5;
-   
   
   if(m1 >m2 + m3)
   {   int i,err_code=0; 
@@ -777,7 +743,7 @@ static double decay22List(char * pname, txtList *LL)
   pname2lib(pname2,plib+7);
   sprintf(process,"%s->2*x",pname2);
   cc=getMEcode(0,ForceUG,process,NULL,"",plib);
-  if(!cc) { if(LL) *LL=NULL; return 0;}  // !!! 
+  if(!cc) { if(LL) *LL=NULL; return -1;} 
   passParameters(cc);
   procInfo1(cc,&ntot,NULL,NULL);
   for(wtot=0,i=1;i<=ntot;i++)  if(chOpen(cc,i))
@@ -817,7 +783,8 @@ static double decay22List(char * pname, txtList *LL)
 
       if(vd[1]||vd[2])
       {
-         if(vd[1] && vd[2]) { if(m[1]>m[2]) l=1; else l=2;} else {if(vd[1]) l=1; else l=2;} 
+         if(vd[1] && vd[2]) { if(m[1]>m[2]) vd[2]=0; else vd[1]=0;} 
+         if(vd[1])  l=1; else l=2;
          int l_=3-l;
          if(m[0]>m[l_] + 5)    
          {  numout * cc13;
@@ -881,9 +848,7 @@ static double decay22List(char * pname, txtList *LL)
 }
 
 static txtList conBrList(txtList BrList)
-{ 
-
-txtList out=NULL;
+{ txtList out=NULL;
   char buff[100];
   double br;
   int inCode[10], outCode[10],i;
@@ -958,6 +923,7 @@ static void sortWidthTxtList(txtList L)
 
 static double pWidthSTD(char * name, txtList * LL)
 {  
+
   double width=0;
   txtList Lout=NULL,L;
   
@@ -1056,7 +1022,9 @@ static double pWidthPlus(char *name, txtList * LL)
        } 
        cleanTxtList(L); 
     }
-  }
+
+  }                                                                    
+
 
   if(nout<5) 
   { 
@@ -1119,8 +1087,7 @@ static double pWidthPlus(char *name, txtList * LL)
      }   
      sortWidthTxtList(Lout);
      if(LL) *LL=Lout;
-  } else *LL=NULL;
-  
+  }
   if(Q) { *Q=Qstat; calcMainFunc();}
   return width;
 }
@@ -1223,6 +1190,7 @@ double pWidth(char *name, txtList * LL)
   if(Q) { Qstat=*Q; setQforParticle(Q,name);}  //ok 
   
   if(pref==0 || pref==2 || pref==4) width=pWidthSTD(name,&L); else width=pWidthPlus(name,&L);
+    
   decayTable[i0].width=width;
   decayTable[i0].status=1;
   decayTable[i0].pdList[j0]=L;
@@ -1270,7 +1238,7 @@ int  pWidthPref(char *name, int pref)
 
 
 
-double aWidth(char *name) {  return pWidth(name,NULL); }
+double aWidth(char *name) {   return pWidth(name,NULL);}
 
 static int pListEq(char * txt1, char * txt2)  
 {  char buff[100];
@@ -1368,27 +1336,14 @@ int procInfo2(numout*cc,int nsub,char**name,REAL*mass)
 /*============= Export of parameters ============*/
 int passParameters(numout*cc)
 {
-// printf("passParameters(%p  %s %s %s %s)\n",cc, cc->interface->pinf(1,1,NULL,NULL), cc->interface->pinf(1,2,NULL,NULL), cc->interface->pinf(1,3,NULL,NULL),cc->interface->pinf(1,4,NULL,NULL) );
    int i;
    if(dynamic_cs_mutex) pthread_mutex_lock(dynamic_cs_mutex); 
-   
 // if(*currentVarPtr!=53)  printf("currentVarPtr=%d\n", *currentVarPtr);      
    for(i=1;i<=cc->interface->nvar;i++) if(cc->link[i] &&  ((cc->link[i]-varValues)) < *currentVarPtr)  cc->interface->va[i]=*(cc->link[i]); else 
    { 
-   
-//printf("%s %d %s \n",cc->interface->varName[i], cc->link[i],varNames[cc->link[i]] );
-     int nin=cc->interface->nin;
-     int nout=cc->interface->nout;
-     for(int  i=1;i<=nin;i++) printf("%s ", cc->interface->pinf(1,i,NULL,NULL));
-     printf("->" );
-     for(int  i=nin+1;i<=nin+nout;i++) printf("%s ", cc->interface->pinf(1,i,NULL,NULL));
-     printf("\n");
-     
-     
      printf("Value of variable  '%s' needed for calculation of '%s' is not known yet\n",
      cc->interface->varName[i], varNames[*currentVarPtr]);  
      cc->interface->va[i]=*(cc->link[i]); FError=1;
-     exit(0);
    }
    
    int err=cc->interface->calcFunc();

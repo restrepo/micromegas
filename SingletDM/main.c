@@ -17,9 +17,7 @@
 #define OMEGA  /* Calculate relic density and display contribution of  individual channels */
 //#define FREEZEIN      /*  Calculate relic density in Freeze-in scenario  */
 
-//#define OMEGAvsDD // finds region of parameters where there is agreement between DD and OMEGA constraints
-
-//#define INDIRECT_DETECTION
+#define INDIRECT_DETECTION
   /* Compute spectra of gamma/positron/antiprotons/neutrinos for DM annihilation;
      Calculate <sigma*v>;
      Integrate gamma signal over DM galactic squared density for given line
@@ -32,10 +30,10 @@
     DM velocity distribution,
     A-dependence of Fermi-dencity
   */
-//#define CDM_NUCLEON
+#define CDM_NUCLEON
   /* Calculate amplitudes and cross-sections for  CDM-mucleon collisions */
 
-#define CDM_NUCLEUS
+//#define CDM_NUCLEUS
    // Calculate  exclusion rate for direct detection experiments Xenon1T, DarkSide50, CRESST-III, and PICO-60
        
 //#define NEUTRINO
@@ -65,7 +63,7 @@ int main(int argc,char** argv)
 
   ForceUG=1;  /* to Force Unitary Gauge assign 1 */
   //useSLHAwidth=0;
-  VWdecay=0,VZdecay=0; //  Here effect of virtual decay is compensated by Higgs width. 
+  VZdecay=1; VWdecay=1;
 
   if(argc==1)
   {
@@ -86,10 +84,24 @@ int main(int argc,char** argv)
 
 
 
-     qNumbers(CDM[1], &spin2, &charge3, &cdim);
-     printf("\nDark matter candidate is '%s' with spin=%d/2 mass=%.2E\n",CDM[1],  spin2,McdmN[1]);
+
+
+/*
+  if(CDM1)
+  {
+     qNumbers(CDM1, &spin2, &charge3, &cdim);
+     printf("\nDark matter candidate is '%s' with spin=%d/2 mass=%.2E\n",CDM1,  spin2,Mcdm1);
      if(charge3) printf("Dark Matter has electric charge %d/3\n",charge3);
      if(cdim!=1) printf("Dark Matter is a color particle\n");
+  }
+  if(CDM2)
+  {
+     qNumbers(CDM2, &spin2, &charge3, &cdim);
+     printf("\nDark matter candidate is '%s' with spin=%d/2 mass=%.2E\n",CDM2,spin2,Mcdm2);
+     if(charge3) printf("Dark Matter has electric charge %d/3\n",charge3);
+     if(cdim!=1) printf("Dark Matter is a color particle\n");
+  }
+*/
 
 #ifdef MASSES_INFO
 {
@@ -200,16 +212,28 @@ int main(int argc,char** argv)
 #endif
 
 #ifdef OMEGA
-{ int fast=0;
-  double Beps=1.E-6, cut=0.01;
-  double Omega,Xf;  
+{ int fast=1;
+  double Beps=1.E-4, cut=0.01;
+  double Omega;  
+  int i,err; 
+  printf("\n==== Calculation of relic density =====\n");   
+
+  if(CDM1 && CDM2) 
+  {
   
-  int err; 
-  Omega=darkOmega(&Xf,fast,Beps,&err);
-  printf("Xf=%.2e Omega=%.2E \n",Xf,Omega);
-  if(isfinite(Omega) )printChannels(Xf,cut,Beps,1,stdout);
+    Omega= darkOmega2(fast,Beps,&err);
+    printf("Omega_1h^2=%.2E\n", Omega*(1-fracCDM2));
+    printf("Omega_2h^2=%.2E\n", Omega*fracCDM2);
+  } else
+  {  double Xf;
+     Omega=darkOmega(&Xf,fast,Beps,&err);
+     printf("Xf=%.2e Omega=%.2e\n",Xf,Omega);
+     if(Omega>0)printChannels(Xf,cut,Beps,1,stdout);
+  }
 }
+
 #endif
+
 
 
 #ifdef FREEZEIN
@@ -221,15 +245,14 @@ int main(int argc,char** argv)
   double TR=1E6;
   toFeebleList("~x1");
   
-  omegaFi=darkOmegaFiDecay(TR, "h", CDM[1]);
+  omegaFi=darkOmegaFiDecay(TR, "h", 1, 1);
   printf("omegaFiDecay=%.3E\n", omegaFi);
 
-  omegaFi=darkOmegaFi(TR,CDM[1],&err);
+  omegaFi=darkOmegaFi(TR,&err);
   
   if(err) printf("darkOmegaFi error code = %d\n", err);
   else  printf("Freeze-in Omega h^2 =%.3E\n", omegaFi);
   printChannelsFi(0,0,stdout);
-  
  
 
 // darkOmegaFi22(TR,"b,B->~x1,~x1",0, 1, &err);
@@ -331,8 +354,8 @@ printf("\n==== Indirect detection =======\n");
   int sI,sD;
 printf("\n==== Calculation of CDM-nucleons amplitudes  =====\n");
 
-  nucleonAmplitudes(CDM[1], pA0,pA5,nA0,nA5);
-  printf("%s-nucleon micrOMEGAs amplitudes \n",CDM[1]);
+  nucleonAmplitudes(CDM1, pA0,pA5,nA0,nA5);
+  printf("%s-nucleon micrOMEGAs amplitudes \n",CDM1);
   printf("proton:  SI  %.3E  SD  %.3E\n",pA0[0],pA5[0]);
   printf("neutron: SI  %.3E  SD  %.3E\n",nA0[0],nA5[0]); 
             
@@ -342,7 +365,7 @@ printf("\n==== Calculation of CDM-nucleons amplitudes  =====\n");
   csSIn=  SCcoeff*nA0[0]*nA0[0];  
   csSDn=3*SCcoeff*nA5[0]*nA5[0];  
                   
-  printf("\n%s-nucleon cross sections[pb] ====\n",CDM[1]);
+  printf("\n%s-nucleon cross sections[pb] ====\n",CDM1);
   printf(" proton  SI %.3E  SD %.3E\n",csSIp,csSDp);
   printf(" neutron SI %.3E  SD %.3E\n",csSIn,csSDn);
 }
@@ -360,57 +383,9 @@ printf("\n==== Calculation of CDM-nucleons amplitudes  =====\n");
 
 #endif
 
-#ifdef OMEGAvsDD
-{
-printf("====================>\n");
-  double pA0[2],pA5[2],nA0[2],nA5[2];
-  double Nmass=0.939; /*nucleon mass*/
-  VWdecay=0,VZdecay=0; cleanDecayTable();
-  double omg[200], la[200], Beps=1E-5, laSH=1E-10, M1=40,M2=4000;
-  double omg2[200],br[200];;
-//  M1=57; M2=63;
-  int lgPlot=1, gridN=100;
-  for(int i=0; i<gridN; i++) 
-  {   double M;
-      if(lgPlot)  M=M1*pow(M2/M1, (i+0.5)/gridN ); else M=M1+(M2-M1)*(i+0.5)/gridN;
-      assignValW("Mdm1", M); assignValW("laSH", laSH); sortOddParticles(NULL); 
-printf("M=%E\n", M);        
-      nucleonAmplitudes(CDM[1], pA0,pA5,nA0,nA5);
-      double SCcoeff=4/M_PI*3.8937966E8*pow(Nmass*Mcdm/(Nmass+ Mcdm),2.)*1E-36; // cm^2
-      double csSIp=  SCcoeff*pA0[0]*pA0[0];
-      la[i]=laSH*sqrt(LZ5T(M)/csSIp);  assignValW("laSH", la[i]);  sortOddParticles(NULL);
-printf("statrt\n");      
-      omg[i]=darkOmega2(0,Beps,&err);
-      txtList L;
-      pWidth("h",&L);
-      br[i]=findBr(L,"~x1,~x1");
-printf("stop\n");            
-  }
-/*  
-  assignValW("MbMb",4.7);
-  sortOddParticles(NULL);
-  for(int i=0; i<gridN; i++) 
-  {   double M;
-      if(lgPlot)  M=M1*pow(M2/M1, (i+0.5)/gridN ); else M=M1+(M2-M1)*(i+0.5)/gridN;
-     assignValW("Mdm1", M); assignValW("laSH", laSH); sortOddParticles(NULL);   
-     nucleonAmplitudes(CDM[1], pA0,pA5,nA0,nA5);
-     double SCcoeff=4/M_PI*3.8937966E8*pow(Nmass*Mcdm/(Nmass+ Mcdm),2.)*1E-36; // cm^2
-     double csSIp=  SCcoeff*pA0[0]*pA0[0];
-     la[i]=laSH*sqrt(LZ5T(M)/csSIp);  assignValW("laSH", la[i]);  sortOddParticles(NULL);
-     omg2[i]=darkOmega2(0,Beps,&err);      
-  }
-*/  
-  displayPlot("omega h^2","M",M1,M2, lgPlot, 1, "omg", gridN, omg,NULL
-//                                              , "omg", gridN, omg2,NULL
-                                              );
-   displayPlot("laSH max","M",M1,M2, lgPlot, 1, "laSH", gridN, la,NULL);
-   displayPlot("invisible","M",M1,M2, lgPlot, 1, "Br h->invis",gridN,br,NULL);
-  
-
-}
-#endif
 
 #ifdef NEUTRINO
+if(!CDM1 || !CDM2)
 { double nu[NZ], nu_bar[NZ],mu[NZ];
   double Ntot;
   int forSun=1;

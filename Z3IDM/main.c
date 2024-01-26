@@ -10,7 +10,7 @@
 
 //#define HIGGSBOUNDS
 //#define HIGGSSIGNALS 
-#define LILITH
+//#define LILITH
 //#define SMODELS
 
 #define OMEGA            
@@ -194,7 +194,7 @@ int main(int argc,char** argv)
 
 #ifdef OMEGA
 { int fast=1;
-  double Beps=1.E-7, cut=0.01;
+  double Beps=1.E-5, cut=0.01;
   double Omega,Xf;   
   int i;
   printf("\n==== Calculation of relic density =====\n");  
@@ -204,19 +204,10 @@ int main(int argc,char** argv)
 
 // to include processes with virtual W/Z  also  in co-annihilation 
 //   VZdecay=2; VWdecay=2; cleanDecayTable(); 
-
   
   Omega=darkOmega(&Xf,fast,Beps,&err);
   printf("Xf=%.2e Omega=%.2e\n",Xf,Omega);
   if(Omega>0)printChannels(Xf,cut,Beps,1,stdout);   
-//  displayPlot("Y","T",Tend,Tstart,0,1,"YF",0,YF,NULL);
-
-//VZdecay=0; VWdecay=0; cleanDecayTable(); 
-
-
-  Omega=darkOmega2(fast, Beps,&err);
-  printf("2 Omega=%.2e\n",Omega);
-// displayPlot("Y","T",Tend,Tstart,0,2,"YF",0,YF,NULL, "Y1F", 0, Y1F,NULL); 
 
   VZdecay=1; VWdecay=1; cleanDecayTable();  // restore default
 }
@@ -226,7 +217,7 @@ int main(int argc,char** argv)
 {
   double TR=3E7;
   double omegaFi;
-  toFeebleList(CDM[1]);
+  toFeebleList(CDM1);
 
   VWdecay=0; VZdecay=0;
 
@@ -335,19 +326,19 @@ printf("\n==== Indirect detection =======\n");
    double csSIp,csSIn,csSDp,csSDn, csSIp_,csSIn_,csSDp_,csSDn_;        
 
 printf("\n==== Calculation of CDM-nucleons amplitudes  =====\n");   
-  nucleonAmplitudes(CDM[1], pA0,pA5,nA0,nA5);
+  nucleonAmplitudes(CDM1, pA0,pA5,nA0,nA5);
   
-    printf("%s[%s]-nucleon micrOMEGAs amplitudes\n",CDM[1],antiParticle(CDM[1]) );
+    printf("%s[%s]-nucleon micrOMEGAs amplitudes\n",CDM1,aCDM1? aCDM1:CDM1 );
     printf("proton:  SI  %.3E [%.3E]  SD  %.3E [%.3E]\n",pA0[0], pA0[1],  pA5[0], pA5[1] );
     printf("neutron: SI  %.3E [%.3E]  SD  %.3E [%.3E]\n",nA0[0], nA0[1],  nA5[0], nA5[1] ); 
 
-    SCcoeff=4/M_PI*3.8937966E8*pow(Nmass*Mcdm/(Nmass+ Mcdm),2.);
+    SCcoeff=4/M_PI*3.8937966E8*pow(Nmass*Mcdm1/(Nmass+ Mcdm1),2.);
     csSIp=  SCcoeff*pA0[0]*pA0[0];  csSIp_=  SCcoeff*pA0[1]*pA0[1];
     csSDp=3*SCcoeff*pA5[0]*pA5[0];  csSDp_=3*SCcoeff*pA5[1]*pA5[1];
     csSIn=  SCcoeff*nA0[0]*nA0[0];  csSIn_=  SCcoeff*nA0[1]*nA0[1];
     csSDn=3*SCcoeff*nA5[0]*nA5[0];  csSDn_=3*SCcoeff*nA5[1]*nA5[1];
     
-    printf("%s[%s]-nucleon cross sections[pb] :\n",CDM[1],antiParticle(CDM[1]));
+    printf("%s[%s]-nucleon cross sections[pb] :\n",CDM1,aCDM1);
     printf(" proton  SI %.3E [%.3E] SD %.3E [%.3E]\n", csSIp,csSIp_,csSDp,csSDp_);
     printf(" neutron SI %.3E [%.3E] SD %.3E [%.3E]\n", csSIn,csSIn_,csSDn,csSDn_);           
 }

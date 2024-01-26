@@ -1,13 +1,10 @@
 #!/usr/bin/perl
 # (c) 2008 Neil Christensen
-$version="1.55";
+$version="1.54";
 #############################################################################################################
 #Version Notes:
 #############################################################################################################
-#1.55 : April 13, 2021
-#       Fixed typo bug in 1.54
-#       Implemented scans over polarization.
-#1.54 : March  25, 2021 
+#1.54   March  25, 2021 
 #       run-time error messages now are displayed on the screen 
 #1.53 : January 5, 2021
 #       improved copy of the output results 
@@ -565,8 +562,6 @@ $widths_in_lib=0;
 @all_subproc_in_lib = ();
 $pol1 = 0.0;
 $pol2 = 0.0;
-$pol1def=0.0;
-$pol2def=0.0;
 $pdf1="";
 $pdf2="";
 $pdf1_name="\"OFF\"";
@@ -738,8 +733,8 @@ LINE: while($line = <BATCH_FILE>){
 	elsif ($line =~ /Decay\s*:(.+)/){$tmp=$1;$tmp =~ s/\s//g;push(@decays,$tmp);}
 	elsif ($line =~ /Composite\s*:([^:]+)/){$tmp=$1;$tmp =~ s/\s//g;push(@partons,$tmp);}
 	elsif ($line =~ /[Aa]lias[^:]*:([^:]+)/){$tmp=$1;$tmp =~ s/\s//g;push(@partons,$tmp);}
-	elsif ($line =~ /[Pp]ol[^:]*1:([^:]+)/){$pol1=$1;$pol1 =~ s/\s//g;$pol1def=$pol1;}
-	elsif ($line =~ /[Pp]ol[^:]*2:([^:]+)/){$pol2=$1;$pol2 =~ s/\s//g;$pol2def=$pol2;}
+	elsif ($line =~ /[Pp]ol[^:]*1:([^:]+)/){$pol1=$1;$pol1 =~ s/\s//g;}
+	elsif ($line =~ /[Pp]ol[^:]*2:([^:]+)/){$pol2=$1;$pol2 =~ s/\s//g;}
 	elsif ($line =~ /pdf1\s*:\s*(.+)$/){$pdf1=$1;$pdf1 =~ s/\s//g;}
 	elsif ($line =~ /pdf2\s*:\s*(.+)$/){$pdf2=$1;$pdf2 =~ s/\s//g;}
 	elsif ($line =~ /[Bb]unch[^:]*[Ss]ize[^:]*:([^:]+)/){$bunch_size = $1;$bunch_size =~ s/\s//g;}
@@ -2302,26 +2297,18 @@ for (my $k=0;$k<=$#subprocesses;$k++){
 			    }
 			    $vars_values[$l] = eval($vars_values[$l]);
 			  }
-			  #Also update momenta and polarization
+			  #Also update momenta
 			  $p1 = $p1def;
 			  $p2 = $p2def;
-			  $pol1 = $pol1def;
-			  $pol2 = $pol2def;
 			  for(my $m=0;$m<=$#run_param;$m++){
 			    my $run_value = $run_begin[$m]+$run_step[$m]*$step_tmp[$m];
 			    $p1 =~ s/${run_param[$m]}/($run_value)/g; 
 			    $p2 =~ s/${run_param[$m]}/($run_value)/g; 
-			    if($p1 eq $run_param[$m]){$p1 = $run_value1;} 
-			    if($p2 eq $run_param[$m]){$p2 = $run_value;}
-			    $pol1 =~ s/${run_param[$m]}/($run_value)/g; 
-			    $pol2 =~ s/${run_param[$m]}/($run_value)/g; 
-			    if($pol1 eq $run_param[$m]){$pol1 = $run_value;} 
-			    if($pol2 eq $run_param[$m]){$pol2 = $run_value;}
+			    if($p1 eq $run_param[$m]){$p1 = $run_value;} 
+			    if($p2 eq $run_param[$m]){$p2 = $run_value;} 
 			  }
 			  $p1 = eval($p1);
 			  $p2 = eval($p2);
-			  $pol1 = eval($pol1);
-			  $pol2 = eval($pol2);
 			  update_session("$dir_name/$subdir_name",$k,$j);
 #!			  system("./n_calchep -blind \'\\8a\'");
 			}
@@ -3292,7 +3279,7 @@ else {
 		  $vars_values[$l] = eval($vars_values[$l]);
 		}
 		update_decay_session("$dir_name/$subdir_name",-1);
-#!		system("./n_calchep -blind \'\\8a\'");
+!#		system("./n_calchep -blind \'\\8a\'");
 
 		#Create job script
 		open(JOB_FILE,">job_script")
@@ -5649,12 +5636,6 @@ sub print_run_details {
 	print TXT_FILE "#########################################\n";
 	print TXT_FILE "p1 :         $p1def\n";
 	print TXT_FILE "p2 :         $p2def\n\n";
-	print TXT_FILE "\n";
-	print TXT_FILE "#########################################\n";
-	print TXT_FILE "#            Polarization               #\n";
-	print TXT_FILE "#########################################\n";
-	print TXT_FILE "pol1 :         $pol1def\n";
-	print TXT_FILE "pol2 :         $pol2def\n\n";
 	print TXT_FILE "\n";
 	print TXT_FILE "#########################################\n";
 	print TXT_FILE "#            Parameters                 #\n";

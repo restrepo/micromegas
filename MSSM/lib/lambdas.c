@@ -1901,7 +1901,7 @@ L4236:
 /*<         MTOP2 = DSQRT(MTOP4) >*/
     mtop2 = sqrt(mtop4);
 /*< 	MBOT2 = DSQRT(MBOT4) >*/
-    mbot2 = sqrt(fabs(mbot4));  // fabs  by AP
+    mbot2 = sqrt(sqrt(mbot4));  // fabs  by AP
 /*<        >*/
     d__1 = g2;
     d__2 = g1;

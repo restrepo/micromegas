@@ -1,0 +1,44 @@
+
+*** These modified files were found in JOE when it aborted on Wed Oct 19 23:40:14 2022
+*** JOE was aborted because the terminal closed
+
+*** File '(Unnamed)'
+
+
+
+*** File '(Unnamed)'
+,
+,
+,
+,
+,
+,
+,
+NZ
+,
+,
+
+*** File '(Unnamed)'
+~
+CDM_NUCLEON
+XENON
+NUCLE
+Somm
+1E36
+basicS
+clang
+-std
+ctime
+
+*** File '(Unnamed)'
+getFlags
+Makefile
+FlagsForMake
+Makefile
+../../CalcHEP_src/c_source/Makefile
+../../CalcHEP_src/c_source/symb/Makefile
+Makefile
+params.c
+Makefile
+spectra.c
+sum_distr.c

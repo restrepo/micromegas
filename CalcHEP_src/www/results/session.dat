@@ -1,0 +1,77 @@
+
+#Subprocess 1 ( u, U -> u, U )
+#Session_number 1
+#Initial_state  inP1=4.000000E+03  inP2=4.000000E+03
+ Polarizations= { 0.000000E+00  0.000000E+00 }
+  StrFun1="OFF"
+  StrFun2="OFF"
+
+#Physical_Parameters 
+        EE = 3.133300000000000E-01
+        SW = 4.740000000000000E-01
+         Q = 1.000000000000000E+02
+        MW = 8.038500000000001E+01
+       Mtp = 1.725000000000000E+02
+      McMc = 1.230000000000000E+00
+      MbMb = 4.250000000000000E+00
+  alphaSMZ = 1.184000000000000E-01
+        Ml = 1.777000000000000E+00
+        Mh = 1.250000000000000E+02
+----
+
+#Breit-Wigner BW range    2.700000
+t-channel widths 0
+GI trick in s-  0
+GI trick in t-  0
+useSLHAwidth    1
+
+#VVdecays  1
+
+#SLHAwidth  1
+#alphaQCD alphaPDF=1 alpha(MZ)=1.184000E-01 NF=5 Order=2 MbMb=4.200000E+00 Mtp=1.730000E+02
+#QCDscales 
+ Renormalization M12
+ Factorization1 Qren
+ Factorization2 Qpdf1
+ Showering Qren
+
+#Composites 
+*** Table ***
+ Composites  
+  Name  |> Comma separated list of particles                           <|
+p*      |G,d,D,u,U,s,S,c,C,b,B
+=========================================================================
+
+#Cuts 
+*** Table ***
+ Cuts  
+!|  Parameter  |> Min bound <|> Max bound <|
+%|T(p*)        | 50          |
+%|J(p*,p*)     | 0.5         |
+============================================
+
+#Parallelization   4
+
+#Distributions 
+*** Table ***
+Distributions
+Parameter_1|> Min_1  <|> Max_1  <|Parameter_2|> Min_2  <|> Max_2  <|
+====================================================================
+
+#Kinematical_scheme 
+12 -> 3 , 4
+
+#Regularization 
+*** Table ***
+ Regularization 
+ Momentum    |> Mass  <|> Width <| Power|
+=========================================
+
+#Vegas_calls 100000x5 100000x5
+#Vegas_integral  0.00000000000000000E+00 0.00000000000000000E+00 0.00000000000000000E+00 0 0 0 0 -1
+#Events 10000 0 10000 
+#Random 1234ABCD330E
+
+#VEGAS_Grid  Vegas_grid: dim=0  size=0
+
+#END

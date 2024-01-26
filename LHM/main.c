@@ -311,8 +311,8 @@ printf("\n==== Indirect detection =======\n");
   int i;
   int sI,sD;
 printf("\n==== Calculation of CDM-nucleons amplitudes  =====\n");   
-    nucleonAmplitudes(CDM[1], pA0,pA5,nA0,nA5);
-    printf("%s -nucleon micrOMEGAs amplitudes:\n",CDM[1]);
+    nucleonAmplitudes(CDM1, pA0,pA5,nA0,nA5);
+    printf("%s -nucleon micrOMEGAs amplitudes:\n",CDM1);
     printf("proton:  SI  %.3E SD  %.3E\n",pA0[0], pA5[0]);
     printf("neutron: SI  %.3E SD  %.3E\n",nA0[0], nA5[0]); 
 
@@ -322,7 +322,7 @@ printf("\n==== Calculation of CDM-nucleons amplitudes  =====\n");
     csSIn=  SCcoeff*nA0[0]*nA0[0]; 
     csSDn=3*SCcoeff*nA5[0]*nA5[0]; 
                     
-    printf("%s -nucleon cross sections[pb]:\n",CDM[1]);
+    printf("%s -nucleon cross sections[pb]:\n",CDM1);
     printf(" proton  SI %.3E  SD %.3E\n", csSIp,csSDp);
     printf(" neutron SI %.3E  SD %.3E\n", csSIn,csSDn);
 }
@@ -365,7 +365,7 @@ printf("\n==== Calculation of CDM-nucleons amplitudes  =====\n");
 /* Contained events */
   muonContained(nu,nu_bar,1., mu);
 #ifdef SHOWPLOTS
-//  displayPlot("Contained  muons[1/Year/km^3/GeV]","E[GeV]", Emin,Mcdm,0,1,"flux",0,SpectdNdE,mu);
+  displayPlot("Contained  muons[1/Year/km^3/GeV]","E[GeV]", Emin,Mcdm,0,1,"flux",0,SpectdNdE,mu);
 #endif
   printf(" E>%.1E GeV Contained muon flux %.3E [1/Year/km^3]\n",Emin,spectrInfo(Emin,mu,NULL));
 }

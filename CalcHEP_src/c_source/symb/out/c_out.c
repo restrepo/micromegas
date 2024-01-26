@@ -268,22 +268,22 @@ static void  writeDenominators(deninforec* dendescript, int forAll)
 
    for (i = 0; i < dendescript->tot_den; i++)
    {  int numm = dendescript->denarr[i].order_num; 
-      if(dendescript->denarr[i].width)  
+      if(dendescript->denarr[i].width==0)  numm += nden_w; else  
       { if(dendescript->denarr[i].stype)  nden_s2--; 
-        else {  nden_t2--;}
+        else { numm += nden_s; nden_t2--;}
       }
       if(dendescript->denarr[i].power == 2) writeF("*Q2[%d]",numm); else 
       { 
         if(dendescript->denarr[i].stype) 
         {
-          writeF("*(%s ? Creal(Q1[%d]):",gsw_txt,numm);
+          writeF("*(%s ? creal(Q1[%d]):",gsw_txt,numm);
           if (dendescript->denarr[i].power==1) writeF("Q1[%d])",numm);
-          else  writeF("Conj(Q1[%d]))",numm);
+          else  writeF("conj(Q1[%d]))",numm);
         } else
         { 
-          writeF("*(%s ? Creal(Q1[%d]):",gtw_txt,numm);
+          writeF("*(%s ? creal(Q1[%d]):",gtw_txt,numm);
           if (dendescript->denarr[i].power==1) writeF("Q1[%d])",numm);
-          else  writeF("Conj(Q1[%d]))",numm);
+          else  writeF("conj(Q1[%d]))",numm);
         }        
       }  
    }
@@ -310,7 +310,7 @@ static void  writeDenominators(deninforec* dendescript, int forAll)
         { int addpr = 1;							       
           for (i = 1; i <= dendescript->tot_den; i++)			       
           if (dendescript->denarr[i-1].width &&	(!dendescript->denarr[i-1].stype) &&			       
-   	     k == dendescript->denarr[i-1].order_num)  addpr = 0;	  	
+   	     k == dendescript->denarr[i-1].order_num+nden_s)  addpr = 0;	  	
           if (addpr)  writeF("*Q0[%d]",k);
         }
        writeF(";\n");
@@ -407,7 +407,7 @@ static void  onediagram(deninforec* dendescript)
    writeF("R*=(N/D);\n");
    writeF("Prop=1");
    writeDenominators(dendescript,0);
-   writeF("R*=Creal(Prop);\n");
+   writeF("R*=creal(Prop);\n");
    if(!noCChain)calcColor(cr.ndiagr_+inftmp->firstdiagpos);
 
    writeF(" return R;\n");  
@@ -468,7 +468,7 @@ static int  alldiagrams(FILE * fd,  int nsub)
       if(nin+nout>3)
       {  writeF("Prop=1");
          writeDenominators(&dendescript,1);
-         writeF("R*=Creal(Prop);\n");
+         writeF("R*=creal(Prop);\n");
          writeF(" if(R>(*Fmax)) (*Fmax)=R; else if(R<-(*Fmax)) (*Fmax)=-R;\n");
       } else  writeF(";\n");
       if(!noCChain)calcColor(cr.ndiagr_+inftmp->firstdiagpos);
@@ -572,11 +572,11 @@ static void  writesubprocess(int nsub,long firstDiag,long totDiag,int* breaker)
          {
            if(den_->stype) fprintf(outFile,"width[%d]=%s; ",i,vararr[den_->width].alias);
            else 
-           {
+           {  i+=nden_s;
              fprintf(outFile,"width[%d]=(twidth_ext)? %s : 0.; ",i,vararr[den_->width].alias); 
            }
          }else 
-         {
+         { i+=nden_w;
            fprintf(outFile,"width[%d]=0.; ",i);
          }
          fprintf(outFile,"mass[%d]=%s; ",i,vararr[den_->mass].alias);

@@ -49,7 +49,7 @@ static int  checkOut( int p, int v, int l)
     if(r>1) return  2;
     s+=r;
   } 
-  return s;
+  if(s) return s;
   
 }    
 
@@ -199,28 +199,16 @@ void  denominatorStatistic(int nsub,
                den_tmp->pnum=denom[i].pnum;
                den_tmp->stype= stype(denom[i].momStr);
                den_ = den_tmp;
-               den_tmp->order_num=1+*n_swidth+*n_twidth+*n_0width; //new 
                if(denom[i].width) 
-               { if(den_tmp->stype) ++(*n_swidth);
-                         else       ++(*n_twidth);
-               }  else              ++(*n_0width);
+               { if(den_tmp->stype) den_tmp->order_num= ++(*n_swidth);
+                         else       den_tmp->order_num= ++(*n_twidth);
+               }  else              den_tmp->order_num= ++(*n_0width);
             }
             dendescript.denarr[i].order_num=den_tmp->order_num;
             dendescript.denarr[i].stype=den_tmp->stype;
-         }
-               
+         }      
          if(fd) FWRITE1(dendescript,fd);
       }  /* if CR.nsub_ =nsub */
-   }
-
-   if(den_ && den_->next)
-   { denlist  t1=den_,t2=t1->next,t3=t2->next;
-     t1->next=NULL;
-     for(;;)
-     { t2->next=t1;
-       if(!t3) {  den_=t2; break;}
-       t1=t2;t2=t3;t3=t3->next;
-     }        
    }
    
 /*   if(ArchNum) fclose(archiv);  */

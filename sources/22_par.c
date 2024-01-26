@@ -349,7 +349,7 @@ void mass22_parDel(par_22*arg,double T)
 
 double sqmeIntDel(par_22*arg, double eps)
 {  
-  double delta=0.1;
+  double delta=0.05;
   
   REAL *mass=arg->pmass;
   REAL E[4];
@@ -362,34 +362,10 @@ double sqmeIntDel(par_22*arg, double eps)
 
   double t14min =mass[0]*mass[0]+mass[3]*mass[3]-2*E[0]*E[3], t14max =t14min;;
   t14min-=pp; t14max+=pp;
-  
-  double cos1=-1,cos2=1;
-  double T=arg->T;
- 
-  for(int n=1;;n++)
-     {  
-        int m,w,pnum;
-        char*s=arg->cc->interface->den_info(1,n,&m,&w,&pnum);
-        if(!s) break;
-//        if(!m) continue;
-        double kappa=Tkappa[pnum]*T;
-        if(kappa==0) continue;
-         double cos0=1-kappa*kappa/pp; 
-        if(s[0]==1 && s[1]==3)
-        {
-          if(cos2>cos0) cos2=cos0;       
-        } else  if(s[0]==1 && s[1]==4)    
-        {
-          if(-cos1>cos0) cos1=-cos0;
-        }   
-     }
-
-     if(cos2-cos1< 0.01 ) return 0;
- 
-  int nIn=1;
+        
   double*intervals=malloc(2*sizeof(double));
-  intervals[0]=cos1;intervals[1]=cos2;
-  
+  intervals[0]=-1;intervals[1]=1;
+  int nIn=1;
   for(int n=1;;n++)
   {  
      int m,w,pnum;
@@ -419,15 +395,14 @@ double sqmeIntDel(par_22*arg, double eps)
   double sum=0;
   int err;
   for(int i=0;i<nIn;i++)
-  { 
-
-    double dSum=simpson_arg(dSqme_dCos_arg,arg, intervals[2*i], intervals[2*i+1], 1E-3,&err);      
-
-    if(err)  arg->err=arg->err|8;
+  { double dI;
+    double dSum=peterson21_arg(dSqme_dCos_arg,arg, intervals[2*i], intervals[2*i+1],&dI);
+        
+    if(fabs(dI)> 1E-1*fabs(dSum))  arg->err=arg->err|8;
     sum+=dSum; 
   }      
   free(intervals);
    if(!isfinite(sum)) arg->err=arg->err|2;
-  return sum*2/(cos2-cos1);
+  return sum;
 } 
  

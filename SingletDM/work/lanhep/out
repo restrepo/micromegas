@@ -1,0 +1,8 @@
+SingletDM  ~x 
+ Lagrangian ~x
+P1   |P2   |P3   |P4   |>   Factor   ~x                                  <|> dLagrangian/ dA(p1) dA(p2) dA(p3)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <|
+h    |~x   |~x   |     |-4*MW*SW*laSH/EE                                  |1
+W+.f |W-.f |~x   |~x   |-2*laSH                                           |1
+Z.f  |Z.f  |~x   |~x   |-2*laSH                                           |1
+h    |h    |~x   |~x   |-2*laSH                                           |1
+~x   |~x   |~x   |~x   |-6*laS                                            |1

@@ -121,9 +121,12 @@ void setRhoClumps(double (*cProfile)(double)) {   rhoClumpEff_=cProfile; }
 
 
 static double  N_rho(void)
-{ 
-  double N=0;
-  for(int i=1; i<=Ncdm; i++) if(fracCDM[i])  N+=rhoDM*fracCDM[i]/McdmN[i];  
+{ double N;
+  if(CDM1==NULL && CDM2==NULL) N=rhoDM/Mcdm;
+  else if(CDM1==NULL) N=rhoDM/Mcdm2;
+  else if(CDM2==NULL) N=rhoDM/Mcdm1;
+  else N=rhoDM*(fracCDM2/Mcdm2 +(1-fracCDM2)/Mcdm1); 
+  
   return N/haloProfile(Rsun); 
 }
 

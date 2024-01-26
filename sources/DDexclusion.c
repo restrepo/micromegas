@@ -3,14 +3,6 @@
 
 //===================  Experimental Limits ==============
 
-static double maxRecoil(double A) 
-{ 
-  double Mdm=Mcdm;
-  for(int i=1;i<=Ncdm;i++) if(fracCDM[i]>0 && McdmN[i]>Mdm) Mdm=McdmN[i];   
-  return 1E6*2*A*0.94* pow( Mdm*(vEsc+vEarth)/299792./(A*0.94+Mdm),2);
-}
-
-
 
 typedef double ( * funcArg)(double x, void * arf);
 
@@ -18,10 +10,10 @@ typedef double ( * funcArg)(double x, void * arf);
 double  XENON1T_90(double M)
 { 
 // 1805.12562  
-  if(M<6) { return NAN;}
+  if(M<6 || M>1000) { return NAN;}
   double   data_1t_lnM[25]={ 1.790E+00, 1.885E+00, 2.006E+00, 2.148E+00, 2.297E+00, 2.449E+00, 2.598E+00, 2.783E+00, 2.961E+00, 3.117E+00, 3.302E+00, 3.444E+00, 3.614E+00, 3.796E+00, 4.037E+00, 4.268E+00, 4.581E+00, 4.904E+00, 5.178E+00, 5.441E+00, 5.768E+00, 6.095E+00, 6.369E+00, 6.550E+00, 6.891E+00};
   double   data_1t_lnS[25]={ 1.040E+00, 2.794E-02,-1.003E+00,-2.035E+00,-2.888E+00,-3.591E+00,-4.144E+00,-4.717E+00,-5.111E+00,-5.326E+00,-5.458E+00,-5.486E+00,-5.440E+00,-5.375E+00,-5.178E+00,-4.982E+00,-4.711E+00,-4.412E+00,-4.150E+00,-3.925E+00,-3.598E+00,-3.270E+00,-3.009E+00,-2.812E+00,-2.485E+00};
-  if(M>1000) return 1E-44* exp(data_1t_lnS[24])*M/exp(data_1t_lnM[24]);
+
   return 1E-44*exp( polint3(log(M),25,data_1t_lnM,  data_1t_lnS)); 
 } 
 
@@ -258,8 +250,9 @@ double PICO_Eff_C0(double E)
    return (685-y)/(685-66);
  }
 
-double LZ5T(double M)  // 2207.03764
-{  
+double LZ5T(double M)
+{
+
    double MA[40]={    9.0     ,    11.0   ,    13.0   ,    16.0   ,   17.0   ,     19.0   ,    21.0   ,   23.0   ,     26.0   ,    29.0   ,    30.0   ,    32.0   , 36.0      , 40.0      , 43.0      ,  46.0    ,   55.0    ,    65.0    ,   78.0    ,     91.0  ,    110.0  ,    129.0  ,    155.0  ,    182.0  ,   219.0  ,     256.0  ,   308.0  ,     361.0  ,    434.0  ,   508.0  ,     612.0  ,    716.0  ,    862.0  ,    1008.0 ,  1214.0 ,      1420.0 ,    1710.0 ,   2000.0 ,     5000.0 , 10000.0   }; 
    double cs[40]={ 3.65957e-46,9.77874e-47,3.90182e-47,1.45840e-47,1.16681e-47,9.27590e-48,8.03574e-48,7.04739e-48,6.18977e-48,5.90780e-48,5.89906e-48,6.51532e-48,7.40761e-48,9.07198e-48,9.70659e-48,1.08338e-47,1.35594e-47,1.66988e-47,2.04389e-47,2.37212e-47,2.93210e-47,3.47743e-47,4.25702e-47,4.95534e-47,6.01853e-47,7.06207e-47,8.39994e-47,9.80909e-47,1.19226e-46,1.40025e-46,1.66786e-46,1.94522e-46,2.32288e-46,2.74710e-46,3.26674e-46,3.90159e-46,4.63137e-46,5.47851e-46,1.35492e-45,2.73165e-45};
    if(M>MA[39]) return cs[39]*M/MA[39];
@@ -267,17 +260,7 @@ double LZ5T(double M)  // 2207.03764
    return polint3(M,40,MA,cs); 
 }
 
-double LZ5Tmedian_90(double M)  //2207.03764
-{
-  
-   double MA[40]={    9.0     ,    11.0   ,    13.0   ,    16.0   ,   17.0   ,     19.0   ,    21.0   ,   23.0   ,     26.0   ,    29.0   ,    30.0   ,    32.0   , 36.0      , 40.0      , 43.0      ,  46.0    ,   55.0    ,    65.0    ,   78.0    ,     91.0  ,    110.0  ,    129.0  ,    155.0  ,    182.0  ,   219.0  ,     256.0  ,   308.0  ,     361.0  ,    434.0  ,   508.0  ,     612.0  ,    716.0  ,    862.0  ,    1008.0 ,  1214.0 ,      1420.0 ,    1710.0 ,   2000.0 ,     5000.0 , 10000.0   };   
-   double cs[40]={4.69686e-46,1.52889e-46 ,7.44346e-47,4.09400e-47,3.52884e-47,2.77503e-47,2.42580e-47,2.21701e-47,1.98015e-47,1.85997e-47,1.82956e-47,1.78874e-47,1.80092e-47,1.75504e-47,1.83114e-47,1.85193e-47,1.92722e-47,2.08789e-47,2.32229e-47,2.58468e-47,2.96733e-47,3.41794e-47,4.00856e-47,4.62483e-47,5.42319e-47,6.31839e-47,7.50248e-47,8.78203e-47,1.04532e-46,1.18862e-46,1.41232e-46,1.65414e-46,2.01995e-46,2.34070e-46,2.86025e-46,3.35725e-46,4.02718e-46,4.62836e-46,1.17119e-45,2.31635e-45};
-   return polint3(M,40,MA,cs);
-}
-
-
-
-double LZ5TEff(double E)  
+double LZEff(double E)  
 {
    double Egrid[200]={2.500e-01,7.500e-01,1.250e+00,1.750e+00,2.250e+00,2.750e+00,3.250e+00,3.750e+00,4.250e+00,4.750e+00,5.250e+00,5.750e+00,6.250e+00,6.750e+00,7.250e+00,7.750e+00,8.250e+00,8.750e+00,9.250e+00,9.750e+00,1.025e+01,1.075e+01,1.125e+01,1.175e+01,1.225e+01,1.275e+01,1.325e+01,1.375e+01,1.425e+01,1.475e+01,1.525e+01,1.575e+01,1.625e+01,1.675e+01,1.725e+01,1.775e+01,1.825e+01,1.875e+01,1.925e+01,1.975e+01,2.025e+01,2.075e+01,2.125e+01,2.175e+01,2.225e+01,2.275e+01,2.325e+01,2.375e+01,2.425e+01,2.475e+01,2.525e+01,2.575e+01,2.625e+01,2.675e+01,2.725e+01,2.775e+01,2.825e+01,2.875e+01,2.925e+01,2.975e+01,3.025e+01,3.075e+01,3.125e+01,3.175e+01,3.225e+01,3.275e+01,3.325e+01,3.375e+01,3.425e+01,3.475e+01,3.525e+01,3.575e+01,3.625e+01,3.675e+01,3.725e+01,3.775e+01,3.825e+01,3.875e+01,3.925e+01,3.975e+01,4.025e+01,4.075e+01,4.125e+01,4.175e+01,4.225e+01,4.275e+01,4.325e+01,4.375e+01,4.425e+01,4.475e+01,4.525e+01,4.575e+01,4.625e+01,4.675e+01,4.725e+01,4.775e+01,4.825e+01,4.875e+01,4.925e+01,4.975e+01,5.025e+01,5.075e+01,5.125e+01,5.175e+01,5.225e+01,5.275e+01,5.325e+01,5.375e+01,5.425e+01,5.475e+01,5.525e+01,5.575e+01,5.625e+01,5.675e+01,5.725e+01,5.775e+01,5.825e+01,5.875e+01,5.925e+01,5.975e+01,6.025e+01,6.075e+01,6.125e+01,6.175e+01,6.225e+01,6.275e+01,6.325e+01,6.375e+01,6.425e+01,6.475e+01,6.525e+01,6.575e+01,6.625e+01,6.675e+01,6.725e+01,6.775e+01,6.825e+01,6.875e+01,6.925e+01,6.975e+01,7.025e+01,7.075e+01,7.125e+01,7.175e+01,7.225e+01,7.275e+01,7.325e+01,7.375e+01,7.425e+01,7.475e+01,7.525e+01,7.575e+01,7.625e+01,7.675e+01,7.725e+01,7.775e+01,7.825e+01,7.875e+01,7.925e+01,7.975e+01,8.025e+01,8.075e+01,8.125e+01,8.175e+01,8.225e+01,8.275e+01,8.325e+01,8.375e+01,8.425e+01,8.475e+01,8.525e+01,8.575e+01,8.625e+01,8.675e+01,8.725e+01,8.775e+01,8.825e+01,8.875e+01,8.925e+01,8.975e+01,9.025e+01,9.075e+01,9.125e+01,9.175e+01,9.225e+01,9.275e+01,9.325e+01,9.375e+01,9.425e+01,9.475e+01,9.525e+01,9.575e+01,9.625e+01,9.675e+01,9.725e+01,9.775e+01,9.825e+01,9.875e+01,9.925e+01,9.975e+01};
    double   Eff[200]={0.000e+00,0.000e+00,1.647e-04,3.641e-03,2.408e-02,7.633e-02,1.509e-01,2.416e-01,3.377e-01,4.239e-01,5.062e-01,5.753e-01,6.401e-01,6.913e-01,7.328e-01,7.682e-01,7.929e-01,8.118e-01,8.269e-01,8.377e-01,8.455e-01,8.516e-01,8.566e-01,8.616e-01,8.652e-01,8.683e-01,8.706e-01,8.729e-01,8.751e-01,8.770e-01,8.790e-01,8.806e-01,8.822e-01,8.837e-01,8.852e-01,8.866e-01,8.878e-01,8.891e-01,8.902e-01,8.913e-01,8.922e-01,8.931e-01,8.940e-01,8.948e-01,8.955e-01,8.961e-01,8.967e-01,8.973e-01,8.978e-01,8.983e-01,8.987e-01,8.991e-01,8.995e-01,8.999e-01,9.002e-01,9.006e-01,9.009e-01,9.012e-01,9.015e-01,9.018e-01,9.020e-01,9.023e-01,9.026e-01,9.028e-01,9.031e-01,9.033e-01,9.035e-01,9.037e-01,9.040e-01,9.042e-01,9.044e-01,9.046e-01,9.047e-01,9.049e-01,9.049e-01,9.052e-01,9.049e-01,9.047e-01,9.049e-01,9.046e-01,9.044e-01,9.035e-01,9.021e-01,9.003e-01,8.993e-01,8.960e-01,8.923e-01,8.891e-01,8.826e-01,8.759e-01,8.701e-01,8.586e-01,8.466e-01,8.360e-01,8.196e-01,8.005e-01,7.842e-01,7.631e-01,7.353e-01,7.123e-01,6.866e-01,6.509e-01,6.188e-01,5.875e-01,5.576e-01,5.213e-01,4.813e-01,4.547e-01,4.123e-01,3.818e-01,3.464e-01,3.156e-01,2.807e-01,2.494e-01,2.228e-01,2.000e-01,1.765e-01,1.520e-01,1.368e-01,1.183e-01,9.838e-02,8.288e-02,7.037e-02,6.165e-02,5.069e-02,4.270e-02,3.620e-02,2.972e-02,2.453e-02,1.967e-02,1.581e-02,1.143e-02,9.893e-03,8.031e-03,6.912e-03,4.918e-03,3.794e-03,2.988e-03,2.572e-03,1.608e-03,1.268e-03,1.484e-03,8.772e-04,4.203e-04,5.077e-04,2.819e-04,2.222e-04,1.406e-04,2.513e-04,1.121e-04,5.593e-05,5.565e-05,0.000e+00,2.821e-05,2.810e-05,5.627e-05,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00,0.000e+00};
@@ -950,7 +933,7 @@ int setSpinDepFF( int experiment, int name_of_FF_set)
       case  XENON1T_2018 :
         switch(name_of_FF_set)
         {
-         case EFT: 
+            case EFT: 
             XENON1T_2018_sdXe129=SxxXe129EFT;
             XENON1T_2018_sdXe131=SxxXe131EFT;                              return 0;   
           case SHELL:
@@ -984,7 +967,7 @@ int setSpinDepFF( int experiment, int name_of_FF_set)
 
 
 
-static double *dNdE_XENON1T_2018=NULL, *dNdE_LZ5Tmedian=NULL,  *dNdE_DarkSide_2018=NULL, *dNdE_PICO_2017=NULL, *dNdE_PICO_2019=NULL,*dNdE_CRESST_2019;
+static double *dNdE_XENON1T_2018=NULL,  *dNdE_DarkSide_2018=NULL, *dNdE_PICO_2017=NULL, *dNdE_PICO_2019=NULL,*dNdE_CRESST_2019;
 
 static double PICOFCbg=1.47;
 int PICO60Flag=0;
@@ -1025,24 +1008,6 @@ static double DD_factor_(double pval,char**expName)
        if( isfinite(ff_) &&  (ff==0 ||  ff_<ff) ) { ff=ff_; if(expName) *expName="XENON1T_2018";}
      }   
   } 
-
-  dNdE=dNdE_LZ5Tmedian;
-  if(dNdE)
-  { 
-     double Emax=maxRecoil(131);
-     double E2=30;
-     if(Emax>XeEmin)
-     {
-       double C=0;
-       E2=40;
-       if(Emax<E2)E2=Emax;
-       double N=(5500*60*simpson_arg((funcArg)dNdERecoil,dNdE, XeEmin,E2,1E-3,NULL));
-       ff_= -log(pval)/N; 
-       if( isfinite(ff_) &&  (ff==0 ||  ff_<ff) ) { ff=ff_; if(expName) *expName="LZ5Tmedian";}
-     }   
-  } 
-
-
 
   dNdE=dNdE_CRESST_2019;
   
@@ -1155,21 +1120,6 @@ static double DD_pval_(double s, char**expName)
        if(isfinite(pval_) && pval_<pval) { pval=pval_; if(expName) *expName="XENON1T_2018"; }
      }       
   } 
-
-  dNdE=dNdE_LZ5Tmedian;
-  if(dNdE)
-  { 
-     double Emax=maxRecoil(131);
-     double E2=40,nEv;
-     if(Emax>XeEmin)
-     { double nEv=5500*60*simpson_arg((funcArg)dNdERecoil,dNdE, XeEmin,E2,1E-3,NULL); 
-       pval_=exp(- s*nEv); 
-       
-       if(isfinite(pval_) && pval_<pval) { pval=pval_; if(expName) *expName="LZ5Tmedian"; }
-     }       
-  } 
-
-
 
   dNdE=dNdE_CRESST_2019;  
   if(dNdE)
@@ -1340,6 +1290,7 @@ static int  initDDexpCS( unsigned int Experiments, double(*vfv)(double),double c
     
     if(Xe1TnEvents<0) {  printf("Xe1TnEvents flag %d  reset to  0\n", Xe1TnEvents); Xe1TnEvents=0;}
     if(Xe1TnEvents>2) {  printf("Xe1TnEvents flag %d  reset to  2\n", Xe1TnEvents); Xe1TnEvents=2;} 
+
     if((Experiments &XENON1T_2018) && maxRecoil(131)>1.  )
     { 
       nucleusRecoilCS(vfv,131,Z_Xe,J_Xe131,XENON1T_2018_sdXe131,cs_SI_P, cs_SI_N,  cs_SD_P, cs_SD_N,dNdE_); 
@@ -1363,33 +1314,8 @@ static int  initDDexpCS( unsigned int Experiments, double(*vfv)(double),double c
       }     
     }
     if(nEx==nEx_mem && dNdE_XENON1T_2018) { free(dNdE_XENON1T_2018); dNdE_XENON1T_2018=NULL;}
-
-    nEx_mem=nEx;     
-
-    if((Experiments &LZ5Tmedian) && maxRecoil(131)>1.  )
-    { 
-      nucleusRecoilCS(vfv,131,Z_Xe,J_Xe131,XENON1T_2018_sdXe131,cs_SI_P, cs_SI_N,  cs_SD_P, cs_SD_N,dNdE_); 
-      for(int i=0;i<RE_DIM;i++) dNdE[i]=0.218*dNdE_[i];
-      nucleusRecoilCS(vfv,129,Z_Xe,J_Xe129,XENON1T_2018_sdXe129,cs_SI_P, cs_SI_N,  cs_SD_P, cs_SD_N, dNdE_);
-      for(int i=0;i<RE_DIM;i++) dNdE[i]+=0.262*dNdE_[i];
-      nucleusRecoilCS(vfv,132,Z_Xe,0.,NULL,cs_SI_P, cs_SI_N,  cs_SD_P, cs_SD_N, dNdE_);
-      for(int i=0;i<RE_DIM;i++) dNdE[i]+=(1-0.218-0.262)*dNdE_[i];    
-      if(dNdEfact) for(int n=0;n<RE_DIM;n++) dNdE[n]*=dNdEfact(RE_START*pow(RE_STEP,n),130);
-      
-      for(int i=0;i<RE_DIM;i++) { double E=RE_START*pow(RE_STEP,i); if(E>40) dNdE[i]=0; else  dNdE[i]*= LZ5TEff(E+0.5)*(1-E/40); }   
-      
-      for(int k=0;k<RE_DIM;k++) if(dNdE[k]>0)
-      {
-         dNdE_LZ5Tmedian=realloc(dNdE_LZ5Tmedian,sizeof(double)*RE_DIM);
-         for(int i=0;i<RE_DIM;i++) dNdE_LZ5Tmedian[i]=dNdE[i];
-         nEx++;
-         break;
-      }     
-    }
-    if(nEx==nEx_mem && dNdE_LZ5Tmedian) { free(dNdE_LZ5Tmedian); dNdE_LZ5Tmedian=NULL;}
- 
-    nEx_mem=nEx;     
-
+    
+    nEx_mem=nEx;    
     if(Experiments & DarkSide_2018)
     {   
        nucleusRecoilCS(vfv,40,18 ,0,NULL,cs_SI_P, cs_SI_N,  cs_SD_P, cs_SD_N, dNdE);
@@ -1489,6 +1415,7 @@ displayPlot(mess,"E[keV]",0.001,0.1,1,3,"Ca",0,dNdERecoil,dNdECa
       }  
     } 
     if(nEx==nEx_mem && dNdE_CRESST_2019) {free(dNdE_CRESST_2019); dNdE_CRESST_2019=NULL;}  
+    
   return nEx;
 }
 
@@ -1543,26 +1470,6 @@ static int  initDDexp( unsigned int Experiments, double(*vfv)(double))
       
       nEx++;     
     } else  if(dNdE_XENON1T_2018) { free(dNdE_XENON1T_2018); dNdE_XENON1T_2018=NULL;}
-
-
-    if((Experiments &LZ5Tmedian) && maxRecoil(131)>1. )
-    {
-      nucleusRecoil(vfv,131,Z_Xe,J_Xe131,XENON1T_2018_sdXe131,dNdE_); 
-      for(int i=0;i<RE_DIM;i++) dNdE[i]=0.218*dNdE_[i];
-      nucleusRecoil(vfv,129,Z_Xe,J_Xe129,XENON1T_2018_sdXe129,dNdE_);
-      for(int i=0;i<RE_DIM;i++) dNdE[i]+=0.262*dNdE_[i];
-      nucleusRecoil(vfv,132,Z_Xe,0.,NULL,dNdE_);
-      for(int i=0;i<RE_DIM;i++) dNdE[i]+=(1-0.218-0.262)*dNdE_[i];
-
-      
-      for(int i=0;i<RE_DIM;i++) { double E=RE_START*pow(RE_STEP,i);  if(E>40) dNdE[i]=0; else   dNdE[i]*=LZ5TEff(E+0.5)*(1-E/40);}
-
-      dNdE_LZ5Tmedian=realloc(dNdE_LZ5Tmedian,sizeof(double)*RE_DIM);
-      for(int i=0;i<RE_DIM;i++) dNdE_LZ5Tmedian[i]=dNdE[i];
-      
-      nEx++;     
-    } else  if(dNdE_LZ5Tmedian) { free(dNdE_LZ5Tmedian); dNdE_LZ5Tmedian=NULL; }
-
         
     if(Experiments & DarkSide_2018)
     {  
@@ -1640,6 +1547,7 @@ static int  initDDexp( unsigned int Experiments, double(*vfv)(double))
       }  
     } 
     if(nEx==nEx_mem && dNdE_CRESST_2019) {free(dNdE_CRESST_2019); dNdE_CRESST_2019=NULL;}  
+    
   return nEx;
 }
 

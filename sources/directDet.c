@@ -67,6 +67,7 @@ static int  create2_th_model(char * disp,char * pname,char *ProcNameSI, char* Pr
          pInvolved[k].line=line+1;
       }
    }
+
    if(pInvolved[0].num==0)
    { printf("Direct detection module can not work because the model contains a particle\n");
      printf("with zero PDG code %s\n",  pInvolved[i].name);
@@ -409,16 +410,13 @@ static double ScalFermLoop(double sign, double m1,double m2,double M)
 
 static double pdfQnum,p1_p2;
 
-static double parton_x0(int qNum, double scale) { double r=parton_x(qNum,scale); if(r<1E-5) r=1E-5; return r;}
-
 static double twist2FF__(double sgn, double mq,double msq,double mne)
 { 
   double D=(msq*msq-mne*mne -mq*mq);
   double D2=D*D-4*mq*mq*mne*mne;
   
 //return  parton_x(pdfQnum,1.2*(msq-mne*mne/msq))/D2*(D +sgn*2*p1_p2);
-  double r=  parton_x(pdfQnum,msq-mne              )/D2*(D +sgn*2*p1_p2)/parton_x0(pdfQnum,mne);
-  return r;  
+  return  parton_x(pdfQnum,msq-mne              )/D2*(D +sgn*2*p1_p2);
 }
 
 // Twist-2 subtraction
@@ -433,7 +431,6 @@ static double twist2_subtractionFF__(double sgn, double mq,double msq,double mne
 
 int nucleonAmplitudes(char * WIMP, double*pA0,double*pA5,double*nA0,double*nA5) 
 {
-
   double wimpMass; 
   int wimpN,Qnum,aQnum,i,II,sgn,ntot,n;
   double  s,MN=0.939; 
@@ -646,7 +643,7 @@ int nucleonAmplitudes(char * WIMP, double*pA0,double*pA5,double*nA0,double*nA5)
             pvect[3]=pvect[11]=P;
             p1_p2=E*masses[1];
             pdfQnum=aQnum;
-            gp+= (*cc->interface->sqme)(n,GG,pvect,NULL,&err_code)*d4[k];            
+            gp+= (*cc->interface->sqme)(n,GG,pvect,NULL,&err_code)*d4[k];
             if(aQnum==1) 
             { pdfQnum=2;
               gn+= (*cc->interface->sqme)(n,GG,pvect,NULL,&err_code)*d4[k];
@@ -656,12 +653,10 @@ int nucleonAmplitudes(char * WIMP, double*pA0,double*pA5,double*nA0,double*nA5)
               gn+= (*cc->interface->sqme)(n,GG,pvect,NULL,&err_code)*d4[k];
             }
           } 
-          if(aQnum>2) gn=gp;
-          
-          gn*=parton_x0(pdfQnum,masses[1]);
-          gp*=parton_x0(aQnum,masses[1]);                   
+          if(aQnum>2) gn=gp;         
           gp/=pow(h*masses[1],2)*128*masses[0]*masses[1]  * 2 ;
           gn/=pow(h*masses[1],2)*128*masses[0]*masses[1]  * 2 ;
+ 
           pA0[0]+=1.5*gp*masses[1]*MN/2;
           nA0[0]+=1.5*gn*masses[1]*MN/2;   
           loopFF__=NULL;
@@ -682,6 +677,14 @@ int nucleonAmplitudes(char * WIMP, double*pA0,double*pA5,double*nA0,double*nA5)
 
 // SECTION  NUCLEI  
 
+double maxRecoil(double A) 
+{ 
+  double Mdm=0;
+  if(CDM1!=NULL) Mdm=Mcdm1;
+  if(CDM2!=NULL && Mcdm2>Mcdm1) Mdm=Mcdm2;
+  if(Mdm==0) Mdm=Mcdm;        
+  return 1E6*2*A*0.94* pow( Mdm*(vEsc+vEarth)/299792./(A*0.94+Mdm),2);
+}
 
 
 /*===== Intergrands for  Fermi nucleus density =====*/
@@ -822,7 +825,6 @@ static double nucleusRecoil1(char *WINP, double(*fv)(double),
   int i;
   _fv_=fv;
 
-
   M_cdm=pMass(WINP);
   MA=A*0.94;
   DDmomSQ=0; 
@@ -948,19 +950,24 @@ static double nucleusRecoil1(char *WINP, double(*fv)(double),
 
 double nucleusRecoil(double(*fv)(double),
 int A, int Z, double J,
-void (*Sxx)(double,double*,double*,double*), double * dNdE)  
-{  
-   for(int i=0;i<RE_DIM;i++) dNdE[i]=0;
-   double r=0;
-   for(int k=1;k<=Ncdm;k++) if(fracCDM[k]>0) 
-   { double dNdEk[RE_DIM],rk;
-     rk=nucleusRecoil1(CDM[k],fv,A,Z,J,Sxx,dNdEk);
-     r+=rk*fracCDM[k];
-     for(int i=0;i<RE_DIM;i++) dNdE[i]+=fracCDM[k]*dNdEk[i];
+void (*Sxx)(double,double*,double*,double*),
+double * dNdE)  
+{  int i; 
+   if(CDM1  && !CDM2)   return nucleusRecoil1(CDM1,fv,A,Z,J,Sxx,dNdE); 
+   if(!CDM1 &&  CDM2)   return nucleusRecoil1(CDM2,fv,A,Z,J,Sxx,dNdE); 
+   if(CDM1  &&  CDM2) 
+   { double dNdE1[RE_DIM];
+     double r1=0,r2=0;
+     if(fracCDM2!=1) r1= nucleusRecoil1(CDM1,fv,A,Z,J,Sxx,dNdE1); 
+     if(fracCDM2!=0) r2= nucleusRecoil1(CDM2,fv,A,Z,J,Sxx,dNdE);
+     if(fracCDM2==1) {   return r2;}
+     if(fracCDM2==0) { for(i=0;i<RE_DIM;i++) dNdE[i]=dNdE1[i];    return r1;}
+      
+     for(i=0;i<RE_DIM;i++) dNdE[i]=(1-fracCDM2)*dNdE1[i]+ fracCDM2*dNdE[i];
+     return r1*(fracCDM2-1)+r2*fracCDM2;
    }
-   return r;
-}     
-     
+}
+
 double nucleusRecoilCS( 
       double(*fv)(double),
       int A, int Z, double J,

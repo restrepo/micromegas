@@ -32,7 +32,6 @@ typedef struct numout
 extern int VVdecay;
 
 extern int sortOddParticles(char * name);
-extern int sortOddTime; // is increased after each call of sortOddParticles
 
 typedef  struct { double par[43]; }  MOcommonSTR;
 extern   MOcommonSTR  mocommon_;
@@ -79,9 +78,9 @@ extern   MOcommonSTR  mocommon_;
 #define vRot        mocommon_.par[35]
 #define etaSHMpp    mocommon_.par[36]
 #define betaSHMpp   mocommon_.par[37]
-//#define fracCDM2    mocommon_.par[38]
-//#define Mcdm1       mocommon_.par[39]
-//#define Mcdm2       mocommon_.par[40]
+#define fracCDM2    mocommon_.par[38]
+#define Mcdm1       mocommon_.par[39]
+#define Mcdm2       mocommon_.par[40]
 #define Tstart      mocommon_.par[41]
 #define Tend        mocommon_.par[42]
 
@@ -126,7 +125,6 @@ extern void cleanTxtList(txtList L);
 extern double findBr(txtList L, char * pattern);
 extern void printTxtList(txtList L, FILE *f);
 extern void printPartialWidth(double width,txtList l,FILE*f);
-extern int proc2names(char*process, int * in, int * out, ...);
 
 /*=============================
      (1)2->2 matrix elements
@@ -135,7 +133,6 @@ extern double decay2Info(char * pname, FILE* f);
 extern numout *  newProcess(char*Process);
 extern double GGscale;
 extern double cs22(numout * cc, int nsub,double P,  double cos1, double cos2 , int * err);
-extern double cs22Pcm(numout * cc, int nsub,double P,  double cos1, double cos2 , int * err);
 extern int  procInfo1(numout*cc, int *nsub, int * nin, int *nout);
 extern int procInfo2(numout*cc,int nsub,char**name,REAL*mass);
 extern REAL Helicity[2];
@@ -151,13 +148,6 @@ extern double monoJet(void);
 extern double pWidth(char *name, txtList *L);
 
 extern double convStrFun3(double x, double q, int pc1, int pc2, int pp);
-
-extern double cs24Vegas(numout * cc, int nsub, double Pcm, int ii3, int ii4, 
-    int nSess1, int nCall1,  int nSess2, int nCall2, 
-    double*dcs, double *chi2, int * err); 
-
-
-
 
 /*===================
       Variables 
@@ -211,17 +201,10 @@ extern double freeStreaming(double pi, double T1,double T2);
 extern int toFeebleList(char*pname);
 extern int isFeeble(char*name);
 
-extern int nFeeble;
-extern char ** FeebleP;
-extern double *FeebleY;
-
 extern double hEffLnDiff(double T);
-extern double vSigmaA(double T, int Fast, double Beps);
-extern double vSigmaS(double T, int Fast, double Beps);
-extern double  vSigmaPlus23(char* proc22, double T,int *err);
-extern double  vSigmaPlus24(char* proc22, double T,int *err);
+extern double vSigma(double T,double Beps ,int Fast);
 extern double darkOmega(double *Xf,int Fast, double Beps,int *err);
-extern char*ExcludedForNDM;
+extern char*ExcludedFor2DM;
 extern double darkOmega2(double fast, double Beps, int *err);
 extern double darkOmegaExt(double *Xf, double (*f0)(double), double (*f1)(double));
 extern double darkOmegaTR(double TR, double YR, int Fast, double Beps,int *err);
@@ -249,7 +232,7 @@ extern double Y1F(double T);
 extern double Y2F(double T);
 extern double YF(double T);
 
-extern double darkOmegaFO(double *Xf,int fast,double Beps, int *err);
+extern double darkOmegaFO(double *Xf,int fast,double Beps);
 extern double printChannels(double Xf,double cut,double Beps,int prcnt,FILE *f );   
 extern double oneChannel(double Xf,double Beps,char*n1,char*n2,char*n3,char*n4);
 extern void improveCrossSection(long n1,long n2,long n3,long n4,double Pcm, 
@@ -259,49 +242,43 @@ extern double Yeq(double T);
 extern double Yeq1(double T);
 extern double Yeq2(double T);
 
+//extern double Beps;
+extern int Fast_;
+
 // ======= darkOmegaNext
 //                     parameters defined by sordOddParticles
 extern int defThermalSet(int n, char*set);
 extern void printThermalSets(void);
 extern  int     Ncdm;         // number of DM sectors
-extern  double *McdmN;        // array if minimal masses in each sector
-extern  char ** CDM;          // array of cdm  names
-extern  double *fracCDM;      // fraction of CDM[i] in rhoDM 
+extern  double *McdmN;   // array if minimal masses in each sector
+extern  char ** CDM;   // array of cdm  names
 extern  double  YdmNEq(double T, char *ch); // equilibrium abundance : YdmEq(T,"1");
 extern  int deltaYN(double T, double *dY);  // estimates small deviation of solution from equilibrium 
 //                     to solve evolution equation
-extern double cosCut;//  removes  region of  cosine scattering  +/- cosCut  arround pole caused by t-channel particle. 
-extern double w4Omega;
-extern  double     darkOmegaNTR(double TR, double *Y, int fast, double Beps, int * err);  // solves evolution equation in [TR,Tend]. Y- array for initial and final abumdancies. 
-extern  double     darkOmegaN(int fast, double Beps, int*err);                 // finds starting point and calls darkOmegaNTR
-extern  double* Yend;  // contains final Y after darkOmegaN and darkOmegaNTR
+extern  double     darkOmegaNTR(double TR, double *Y, double Beps, int * err);  // solves evolution equation in [TR,Tend]. Y- array for initial and final abumdancies. 
+extern  double     darkOmegaN(double *Y, double Beps, int*err);                 // finds starting point and calls darkOmegaNTR
 //                     to check solution 
 extern  double  YdmN(double T,char* ch);                              // solution of DM evolution equation
 extern  double  vSigmaN(double T,char*code);                         // vSigma for process defined by the code: vSigmaN(T,"1122");
 //extern  double  vSigmaNCh(double T, char*code, int i, char*process); // contribution of i^{th} channel to vSigmaN  
-extern void setFastBeps(int Fast,double Beps);
 
-extern aChannel*vSigmaNCh(double T, char*code, int fast,double Beps, double * vsPb); 
+extern aChannel*vSigmaNCh(double T, char*code, double Beps, double * vsPb); 
 
 // Freeze-in
-extern double  mTcut;
-extern double*Tkappa;
-extern double  YfreezeIn22(char*proc, double T0, double TR, int plot_dYdT,int * err);
-
-extern double  darkOmegaFi22(double TR, char *Proc, char* fiPrtcl,  int *err);
+extern double  tTcut;
+extern double  YfreezeIn22(numout*cc, double T0, double TR, double width, int plot_dYdT);
+extern double  darkOmegaFi22(double TR, char *Proc, int vegas, int plot, int *err);
 extern double  decayAbundance(double TR, double M, double w, int Ndf,double  eta, int plot);
-extern double  darkOmegaFiDecay(double TR, char * pname, char * fiPrtcl);
-extern double  darkOmegaFi(double TR, char* fiPrtcl, int*err);
-extern void printChannelsFi(double cut, int prcn, FILE*f); 
-extern double YFi(double T);
-
+extern double  darkOmegaFiDecay(double TR, char * pname, int KE, int plot);
+extern double  darkOmegaFi(double TR,int*err);
+extern void printChannelsFi(double cut, int prcn, FILE*f);
+extern void sort2FiDm( double * omg1,double * omg2);  
 /*===============================================
     Annihilation spectra
 =================================================*/
 
 #define NZ 250                                                                                
 
-extern int SpectraFlag;
 extern double calcSpectrum(int key, double *Sg, double *Se, double *Sp, double *Sne, double*Snu, double *Snl, int*errcode);
 /*
  calculates the spectra of DM annihilation at rest and returns σv in cm^3/s. The calculated spectra for 
@@ -313,10 +290,7 @@ extern double calcSpectrum(int key, double *Sg, double *Se, double *Sp, double *
  n4=1  prints contribution of different annihilation channels to σv 
 */ 
 
-extern  double  PlanckCMB(double vSigma, double *Sg, double*Se);  // 1506.03811   return 1 if point is closed by Planck and 0 overwize  
-
-extern double calcSpectrumPlus(char*proc22,int outP,double *spect, int*Err);
-extern void  decaySpectrum(char*pName,double M,int outP, double*tabD);
+extern void  decaySpectrum(char*pName,int outP, double*tabD);
 extern  void getSpectrum2(int wPol, double M, char*n1,char*n2,int outP, double *tab);
 
 extern aChannel* vSigmaCh;
@@ -403,6 +377,7 @@ extern double pbarFlux(double ek, double dSigmadE);
 extern char * outNames[6];
 
 extern int basicSpectra(double Mass,int pdgN, int outN, double * tab);
+extern int basicSpectraA(double Mass,int pdgN, int outN, double * tab);
 
 /*=========== Neutrino from Sun and Earth ==================*/
 
@@ -444,6 +419,8 @@ extern double SHMpp(double v);
 #define RE_START   1.E-3  // energy [keV] corresponding to zero element.
 #define RE_STEP    1.08   // factor for  recoil energies grid  E_{n+1}=E_n*RE_STEP 
 
+extern double maxRecoil(double A); // calculate maximal recoil energy using  atomic numner A, Mcdm1,Mcdm2,Mcdm
+
 extern double nucleusRecoil(
 double(*fDv)(double),   /*  f(v)/v where f(v) is velocity distribution, 
                             v in km/s  */
@@ -477,7 +454,7 @@ extern double nucleusRecoil0CS(
 #define DarkSide_2018  2
 #define PICO_2019      4  
 #define CRESST_2019    8 
-#define LZ5Tmedian     16
+
 #define  AllDDexp  0xFFFFFFF
 
 extern double (*dNdEfact)(double Enr_kev,int  A);
@@ -499,9 +476,8 @@ extern double  XENON1T_SDp_90(double M);
 extern double  XENON1T_SDn_90(double M);
 extern double  PandaX4T(double M);
 
-extern double LZ5T(double M);       //2207.03764
-extern double LZ5Tmedian_90(double M);
-extern double LZ5TEff(double M);
+extern double LZ5T(double M);
+extern double LZEff(double M);
 
 
 extern int Xe1TnEvents;

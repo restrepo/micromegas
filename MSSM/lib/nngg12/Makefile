@@ -1,6 +1,6 @@
 .PHONY: clean
 
-LOOPTOOLS = ../../../Packages/LoopTools
+LOOPTOOLS = ../../../Packages/LoopTools_2.12-v0
 
 lGamma.exe: $(LOOPTOOLS)/FlagsForMake $(LOOPTOOLS)/build/libooptools.a
 	$(MAKE)  -f makeCompile

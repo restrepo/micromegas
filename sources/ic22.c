@@ -146,7 +146,7 @@ int IC22histRead(void)
 
    if(IC22chan) return 0;
    
-   sprintf(fname,"%s/sources/data_nu/ic22hist.dat",micrO);
+   sprintf(fname,"%s/Data/data_nu/ic22hist.dat",micrO);
         
    F=fopen(fname,"r");
    if(!F) return 1;
@@ -210,7 +210,7 @@ static    double P(double x)
          double dfi;
          int nch;
          events=malloc(180*sizeof(eventStr));
-         sprintf(fname, "%s/sources/data_nu/IC22_events_25.dat",micrO); 
+         sprintf(fname, "%s/Data/data_nu/IC22_events_25.dat",micrO); 
          FILE*F=fopen(fname,"r");
          cs_=cos(10./180.*M_PI);    
          for(Nev=0; fscanf(F," %lf %lf %d",&cs,&dfi, &nch)==3; ) if(cs>=cs_)
@@ -323,7 +323,7 @@ static int Nev;
          int nch;
           
          events=malloc(1000*sizeof(eventStr));
-         sprintf(fname, "%s/sources/data_nu/IC22_events_25.dat",micrO); 
+         sprintf(fname, "%s/Data/data_nu/IC22_events_25.dat",micrO); 
          FILE*F=fopen(fname,"r");
          for(Nev=0; fscanf(F," %lf %lf %d",&cs,&dfi, &nch)==3; ) //    if(cs>=cs_) // to reproduce  experimental result
          { if(Nev==1000) break;
@@ -428,7 +428,7 @@ int  IC22events(double *nu, double * nuB, double phi_cut, double *Nsig,double *N
   {  FILE*F;                                                          
      char fname[300];                                                 
      int i;                                                           
-     sprintf(fname,"%s/sources/data_nu/IC22_events_25.dat",micrO);    
+     sprintf(fname,"%s/Data/data_nu/IC22_events_25.dat",micrO);    
      F=fopen(fname,"r");                                              
      for(*Nobs=0;fscanf(F," %lf %lf %*d",&cs,&dfi)==2; ) if(cs>=cs_)(*Nobs)++;
      fclose(F);                                                       
@@ -563,7 +563,7 @@ double fluxFactIC22_FC(double cl,double * nu, double*NU)
       double dfi;
       int nch;
       events=malloc(180*sizeof(eventStr));
-      sprintf(fname, "%s/sources/data_nu/IC22_events_25.dat",micrO); 
+      sprintf(fname, "%s/Data/data_nu/IC22_events_25.dat",micrO); 
       FILE*F=fopen(fname,"r");
       cs_=cos(10./180.*M_PI);    
       for(Nev=0; fscanf(F," %lf %lf %d",&cs,&dfi, &nch)==3; ) if(cs>=cs_)

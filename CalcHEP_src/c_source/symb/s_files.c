@@ -93,7 +93,7 @@ int whichArchive(int nFile,int rw)
 
 static pthread_mutex_t keyN=PTHREAD_MUTEX_INITIALIZER;
 
-static int N,Ntot,nFor1,fb,fe,db,de,sn,n_prc;
+static int N,Ntot,nFor1,fb,fe,db,de,sn,n_prc,nPROCSS1;
 
 static void * pCompile_cycle(int * input)
 {  
@@ -145,7 +145,7 @@ static void * pCompile_cycle(int * input)
       sprintf(command,". $CALCHEP/FlagsForSh\n" 
                       "SRC=\"%s\"\n $CC $CFLAGS -c -I$CALCHEP/include $SRC\n rm $SRC",src); system(command); 
       for(c=strstr(src,".c"); c; c=strstr(c,".c")) c[1]='o';
-      for(;;){  sprintf(arname,"ld%d.a",myPrc); if(access(arname,R_OK)) break; else myPrc+=nPROCSS;}      
+      for(;;){  sprintf(arname,"ld%d.a",myPrc); if(access(arname,R_OK)) break; else myPrc+=nPROCSS1;}      
       sprintf(command,". $CALCHEP/FlagsForSh\n" 
                       "SRC=\"%s\"\n ar r %s $SRC\n rm $SRC\n ",src,arname);  system(command);  
     }  else if(fe>=fb)
@@ -157,14 +157,14 @@ static void * pCompile_cycle(int * input)
       pthread_mutex_unlock(&keyN);
       dN=iend-ibeg;
       for(i=ibeg;i<iend;i++) sprintf(src+strlen(src)," f%d.c",i);
-      for(;;){  sprintf(arname,"lf%d.$SO",myPrc); if(access(arname,R_OK)) break; else myPrc+=nPROCSS;}   
+      for(;;){  sprintf(arname,"lf%d.$SO",myPrc); if(access(arname,R_OK)) break; else myPrc+=nPROCSS1;}   
       sprintf(command,". $CALCHEP/FlagsForSh\n" 
                       "SRC=\"%s\"\n"
                       "if(test -z  $SONAME) then extName= ; else extName=\"$SONAME $PWD/%s\"; fi\n"
                       "$CC  $CFLAGS  -I$CALCHEP/include $SHARED  -o $PWD/%s $extName  $SRC\n rm $SRC",src,arname,arname);   system(command); 
     } 
     else { n_prc--;  pthread_mutex_unlock(&keyN); return NULL;}
-    myPrc+=nPROCSS;
+    myPrc+=nPROCSS1;
     pthread_mutex_lock(&keyN);
     N+=dN;
     pthread_mutex_unlock(&keyN);   
@@ -221,19 +221,21 @@ int pCompile(void)
   if(de==0) db=1;
   closedir(dirPtr);
   Ntot=5+de-db+fe-fb;
-  n_prc=nPROCSS;
+  nPROCSS1=nPROCSS;
+  if(!nPROCSS1) nPROCSS1=1;
+  n_prc=nPROCSS1;
   N=0;
 //printf(" sn=%d db=%d de=%d fb=%d fe=%d\n", sn,db,de,fb,fe);   
   if(Ntot)
   { 
-     for(nFor1=Ntot/nPROCSS+1;  nFor1>1500; nFor1/=2)continue;  
-     pthread_t *threads = malloc(nPROCSS*sizeof(pthread_t));
-     int*num=malloc(nPROCSS*sizeof(int));
+     for(nFor1=Ntot/nPROCSS1+1;  nFor1>1500; nFor1/=2)continue;  
+     pthread_t *threads = malloc(nPROCSS1*sizeof(pthread_t));
+     int*num=malloc(nPROCSS1*sizeof(int));
      pthread_t control;  
-     for (k=0;k<nPROCSS;k++) num[k]=k+1;  
-     for (k=0;k<nPROCSS;k++) pthread_create(threads+k,NULL,pCompile_cycle, num+k);
+     for (k=0;k<nPROCSS1;k++) num[k]=k+1;  
+     for (k=0;k<nPROCSS1;k++) pthread_create(threads+k,NULL,pCompile_cycle, num+k);
      err=comp_control(NULL);     
-     for (k=0;k<nPROCSS;k++)   pthread_join(threads[k],NULL);
+     for (k=0;k<nPROCSS1;k++)   pthread_join(threads[k],NULL);
      free(threads);
      free(num);
   }

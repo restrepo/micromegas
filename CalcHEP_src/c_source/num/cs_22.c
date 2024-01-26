@@ -99,7 +99,7 @@ errorexit:
 static void  calcscalars(double  cosf)
 {
    REAL cos_f=cosf;
-   REAL sin_f=Sqrt(fabs((1-cos_f)*(1+cos_f)));
+   REAL sin_f=Sqrt(Fabs((1-cos_f)*(1+cos_f)));
    pvect4[11]=pRestOut*cos_f;
    pvect4[15]=-pvect4[11];
    pvect4[10]=pRestOut*sin_f;

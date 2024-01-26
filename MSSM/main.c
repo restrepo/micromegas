@@ -16,6 +16,7 @@
 //#define SUGRANUH
 //#define AMSB 
 
+
 #define EWSB 
 
 /*====== Modules ===============
@@ -43,7 +44,7 @@
          individual channels 
       */      
       
-#define INDIRECT_DETECTION  
+//#define INDIRECT_DETECTION  
       /* Compute spectra of gamma/positron/neutrinos
          for DM annihilation; calculate <sigma*v> and
          integrate gamma signal over DM galactic squared
@@ -85,7 +86,7 @@
 //#define SHOWPLOTS 
      /* Display  graphical plots on the screen */ 
 
-#define CLEAN    to clean intermediate files
+//#define CLEAN    to clean intermediate files
 
 /*===== End of DEFINE  settings ===== */
 
@@ -111,14 +112,12 @@
  int main(int argc,char** argv)
 {  int err;
    char cdmName[10];
-   int spin2, charge3,cdim;
-
+   int spin2, charge3,cdim;    
 // sysTimeLim=1000; 
    ForceUG=0;   /* to Force Unitary Gauge assign 1 */
-   //useSLHAwidth=0;
+   useSLHAwidth=0;
 //  nPROCSS=0; /* to switch off multiprocessor calculations */
-
-
+   loadHeffGeff("GG.thg");
 /*
    if you would like to work with superIso
     setenv("superIso","./superiso_v3.1",1);  
@@ -265,7 +264,7 @@
           
    if(err==-1)     { printf("Can not open the file\n"); exit(2);}
    else if(err>0)  { printf("Wrong file contents at line %d\n",err);exit(3);}
-
+printf("MW=%E\n", findValW("MW"));
    err=EWSBMODEL(RGE)();
 }
 #else
@@ -300,14 +299,13 @@
   exit(0);  
 */  
 
-  err=sortOddParticles(cdmName);
-
+  err=sortOddParticles(cdmName); 
   if(err) { printf("Can't calculate %s\n",cdmName); return 1;}
 
 //  err=treeMSSM();  
 
 
-  VWdecay=1; VZdecay=1;
+  VWdecay=0; VZdecay=0;
 
 
   qNumbers(cdmName,&spin2, &charge3, &cdim);
@@ -511,17 +509,13 @@
 
 #ifdef OMEGA
 { int fast=0;
-  double Beps=1.E-5, cut=0.01;
-  double Omega,Xf=25;       
-  printf("\n==== Calculation of relic density =====\n");  
-     Omega=darkOmega(&Xf,fast,Beps,&err);
-     displayPlot("Y","T",Mcdm/(Xf+4),Tstart, 0,2,"Y",0,YF,NULL,
-                                                "Yeq",0,Yeq,NULL);                                          
-     printf("Xf=%.2e Omega=%.2e err=%d\n",Xf,Omega,err);
-   if(Omega>0)printChannels(Xf,cut,Beps,1,stdout);
+  double Beps=1E-5, cut=0.01;
+  double Omega,Xf; 
+  printf("\n==== Calculation of relic density =====\n");
 
-    VZdecay=1; VWdecay=1; cleanDecayTable();
-
+  Omega=darkOmega(&Xf,fast,Beps,&err);
+  printf("Xf=%.2e Omega=%.2e err=%d\n",Xf,Omega,err);
+  if(isfinite(Omega) )printChannels(Xf,cut,Beps,1,stdout);
 }
 #endif
  
@@ -654,7 +648,7 @@ printf("\n==== Indirect detection =======\n");
   double csSIp,csSIn,csSDp,csSDn;
   int sI,sD; 
 printf("\n==== Calculation of CDM-nucleons amplitudes  =====\n");   
-#define TEST_Direct_Detection
+//#define TEST_Direct_Detection
 #ifdef TEST_Direct_Detection
 printf("         TREE LEVEL\n");
 
@@ -672,8 +666,8 @@ printf("         BOX DIAGRAMS\n");
     
 #endif
 
-    nucleonAmplitudes(CDM1,pA0,pA5,nA0,nA5);
-    printf("%s-nucleon micrOMEGAs amplitudes:\n",CDM1);
+    nucleonAmplitudes(CDM[1],pA0,pA5,nA0,nA5);
+    printf("%s-nucleon micrOMEGAs amplitudes:\n",CDM[1]);
     printf("proton:  SI  %.3E  SD  %.3E\n",pA0[0],pA5[0]);
     printf("neutron: SI  %.3E  SD  %.3E\n",nA0[0],nA5[0]); 
 
@@ -683,7 +677,7 @@ printf("         BOX DIAGRAMS\n");
     csSIn=  SCcoeff*nA0[0]*nA0[0];  
     csSDn=3*SCcoeff*nA5[0]*nA5[0];  
                     
-    printf("\n==== %s-nucleon cross sections[pb] ====\n",CDM1);
+    printf("\n==== %s-nucleon cross sections[pb] ====\n",CDM[1]);
     printf(" proton  SI %.3E  SD %.3E\n",csSIp,csSDp);
     printf(" neutron SI %.3E  SD %.3E\n",csSIn,csSDn);
 
@@ -702,6 +696,7 @@ printf("         BOX DIAGRAMS\n");
   double pval=DD_pval(AllDDexp, Maxwell, &expName);
        if(pval<0.1 )  printf("Excluded by %s [CDM_NUCLEUS]  %.1f%%\n", expName, 100*(1-pval)); 
   else printf("Not excluded by DD experiments  at 90%% level \n");  
+printf("pval=%e experiment=%s\n", pval,expName);  
 }
 #endif 
 
@@ -751,7 +746,9 @@ if(forSun)printf("IceCube22 exclusion confidence level = %.2E%%\n", 100*exLevIC2
    double width,br;
    char * pname;
    printf("\n================= Decays ==============\n");
-
+printf("deltaMb=%E\n", deltaMb());
+printf("EE=%E\n", findValW("EE"));
+printf("SW=%E tv=%E\n", findValW("SW"), findValW("tB"));
    pname = "h";
    width=pWidth(pname,&L);
    printf("\n%s :   total width=%.2E \n",pname,width);
@@ -811,10 +808,11 @@ if(forSun)printf("IceCube22 exclusion confidence level = %.2E%%\n", 100*exLevIC2
   system("rm -f suspect2_lha.in suspect2_lha.out suspect2.out");
   system("rm -f LesHouches.in Messages.out SPheno.spc");
   system("rm -f LesHin LesHout");
-//  system("rm -f  nngg.*  output.flha ");
-//  system("rm -f HB.* HS.* hb.* hs.*  debug_channels.txt debug_predratio.txt  Key.dat");
+  system("rm -f  nngg.*  output.flha ");
+  system("rm -f HB.* HS.* hb.* hs.*  debug_channels.txt debug_predratio.txt  Key.dat");
   system("rm -f Lilith_*   particles.py*");
-//  system("rm -f  smodels.*");  
+  system("rm -f  smodels.*");
+  system("rm tree.slha");  
 #endif 
 
   killPlots();

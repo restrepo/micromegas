@@ -45,7 +45,7 @@ int loopGamma(double * csAZ, double *csAA)
   err=System(buff);   
   double ee=findValW("EE");
   double aFac=4*M_PI/ee/ee/137.036;
-   
+  aFac=1;   
   if(err>=0) 
   {  err=slhaRead(FOUT,1);
      *csAZ=slhaVal("Lgamma",0.,1,1)*2.9979E-26*aFac;

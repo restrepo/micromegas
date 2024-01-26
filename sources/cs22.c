@@ -8,7 +8,7 @@ int  nsub22=0;
 
 /*===========================================================*/
 static double Q_ren,Q_fact;
-static double totcoef;
+static double totcoef, totcoefPcm;
 static REAL PcmOut;
 static REAL pvect[20]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 static  int PC[5];  
@@ -38,7 +38,8 @@ int  kin22(double PcmIn,REAL * pmass)
    PcmOut = decayPcm(sqrtS,pmass[2],pmass[3]);
 //printf(" PcmOut =%E (%E %E %E) \n", PcmOut,sqrtS,pmass[2],pmass[3] );   
    if(PcmOut<sqrtS*1.E-4) return 1;
-   totcoef = PcmOut /(32.0*M_PI*PcmIn*sqrtS*sqrtS);
+   totcoefPcm=PcmOut /(32.0*M_PI*sqrtS*sqrtS);
+   totcoef = totcoefPcm/PcmIn;
    pvect[3] = PcmIn;
    pvect[7] =-PcmIn;
    pvect[0] = Sqrt(PcmIn*PcmIn   + pmass[0]*pmass[0]);
@@ -49,7 +50,7 @@ int  kin22(double PcmIn,REAL * pmass)
    return 0;
 }
 
-double  dSigma_dCos(double  cos_f)
+double  dSigma_dCosPcm(double  cos_f)
 {
    double  r;
    REAL sin_f=Sqrt(Fabs((1-cos_f)*(1+cos_f)));
@@ -63,8 +64,13 @@ double  dSigma_dCos(double  cos_f)
    r = (*sqme22)(nsub22,sqrt(4*M_PI*alphaQCD(GGscale)),pvect,NULL,&err_code);
     
    err_code=0;
-   return r * totcoef;
+   return r * totcoefPcm;
 }
+
+double  dSigma_dCos(double  cos_f){ return dSigma_dCosPcm(cos_f)/pvect[3];}
+
+
+
 
 static double kinematic_22(double PcmIn, double cs, REAL*pmass, REAL*pvect)
 {  int i;
@@ -88,16 +94,18 @@ static double kinematic_22(double PcmIn, double cs, REAL*pmass, REAL*pvect)
 }
 
 
-double cs22(numout * cc, int nsub, double P, double cos1, double cos2 , int * err) 
+
+
+double cs22Pcm(numout * cc, int nsub, double P, double cos1, double cos2 , int * err) 
 {
   int i,k;
   REAL pmass[4];
 
   passParameters(cc);
   
-  *(cc->interface->gtwidth)=0;
-  *(cc->interface->twidth)=0;
-  *(cc->interface->gswidth)=0;
+//  *(cc->interface->gtwidth)=0;
+//  *(cc->interface->twidth)=0;
+//  *(cc->interface->gswidth)=0;
   
   for(i=0;i<4;i++) cc->interface->pinf(nsub,1+i,pmass+i,NULL);  
   if(err) *err=0;
@@ -109,15 +117,17 @@ double cs22(numout * cc, int nsub, double P, double cos1, double cos2 , int * er
   nsub22=nsub; 
   
   double res=0;
-  if(!kin22(P,pmass)) res= 3.8937966E8*simpson(dSigma_dCos,cos1,cos2,0.3*eps,err);
+  if(!kin22(P,pmass)) res= 3.8937966E8*simpson(dSigma_dCosPcm,cos1,cos2,0.3*eps,err);
   else { if(err) *err=-1; else printf("cs22: incoming momentum P=%.2E is too small\n",P);}  
  
   sqme22=sqme22_mem;
   nsub22=nsub22_mem;
   
   return res;
-  
 }
+
+double cs22(numout * cc, int nsub, double P, double cos1, double cos2 , int * err) { return cs22Pcm(cc, nsub, P, cos1, cos2 ,err)/P;}
+
 
 /*===================  Collider production ==========*/
 
@@ -244,7 +254,7 @@ static double PTarr[3]={5.298317367,5.991464547,6.396929655};
 static double MDarr[5]={3.912023005,4.605170186,6.214608098,6.907755279,8.006367568};
 static double  map_pt2et[8][3][5][4]=
 
-#include "data/et_tab.inc"
+#include "../Data/data/et_tab.inc"
 
 
 static double ParamInterpolation(int iPar, int ch,double PT, double MD)

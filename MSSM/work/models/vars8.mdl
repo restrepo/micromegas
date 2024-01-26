@@ -5,7 +5,7 @@ alfSMZ |0.1184       |alpha_QCD(MZ)
 MZ     |91.3         |Z-boson mass.  PDG value   91.1876 +/- 0.0021
 MW     |80.2         |W-boson mass.  PDG valeu   80.385  +/- 0.015
 Mtp    |173.07       |top quark pole mass
-MbMb   |4.23         |Mb(Mb) running mass
+MbMb   |4.18         |Mb(Mb) running mass
 McMc   |1.27         |Mc(Mc) running mass
 GG     |1.117        |Drived by CalcHEP
 Q      |100          |QCD scale for running quark masses

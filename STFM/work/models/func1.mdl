@@ -1,0 +1,32 @@
+SM + bino&wino
+ Constraints
+ Name  |> Expression                                                                        <|
+CW     |sqrt(1-SW^2) % cos of the Weinberg angle
+GF     |EE^2/(2*SW*MW)^2/Sqrt2 %  experimental value 1.166E-5 [1/GeV^2]
+MZ     |MW/CW % Z boson mass
+LamQCD |initQCD5(alphaSMZ, McMc, MbMb, Mtp)
+Mb     |MbEff(Q)
+Mc     |McEff(Q)
+Ms     |MqEff(0.096, Q) % s-quark effective mass  via 2MeV running one
+MM11   |1*MG1+2/EE^2/LAM*MW^2*SW^2*kappa2
+MM12   |-1/EE^2/LAM*MW^2*SW^2*lmbd
+MM22   |1*MG2+2/EE^2/LAM*MW^2*SW^2*kappa
+hDiag  |rDiagonal(2, MM11, MM12, MM22)
+MNE1   |MassArray(hDiag, 1)
+MNE2   |MassArray(hDiag, 2)
+lnM    |log(MM11)
+lnM2   |lnM*lnM
+mcorr  |-412.2 + 304.7*lnM - 60.71*lnM2 + 5.40*lnM2*lnM - 0.181*lnM2*lnM2
+MC1    |MM22 + mcorr/1000
+Z11    |MixMatrix(hDiag, 1, 1)
+Z12    |MixMatrix(hDiag, 2, 1)
+Z21    |MixMatrix(hDiag, 1, 2)
+Z22    |MixMatrix(hDiag, 2, 2)
+B00000 |1-2*SW^2
+B00001 |Z11^2*kappa2+Z21^2*kappa-Z11*Z21*lmbd
+B00002 |2*Z11*Z12*kappa2-Z11*Z22*lmbd-Z12*Z21*lmbd+2*Z21*Z22*kappa
+B00003 |Z12^2*kappa2+Z22^2*kappa-Z12*Z22*lmbd
+B00004 |1-4*SW^2+4*SW^4
+B00005 |Z11^2*kappa2+Z21^2*kappa+Z11*Z21*lmbd
+B00006 |2*Z11*Z12*kappa2+Z11*Z22*lmbd+Z12*Z21*lmbd+2*Z21*Z22*kappa
+B00007 |Z12^2*kappa2+Z22^2*kappa+Z12*Z22*lmbd

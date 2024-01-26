@@ -1,0 +1,24 @@
+SM + bino&wino
+ Variables
+ Name   | Value       |>  Comment                                   <|
+EE      |0.31333      |Electromagnetic coupling constant (<->1/128)
+GG      |1.117        |Strong coupling constant (Z point)  (PDG-94)
+SW      |0.474        |sin of the Weinberg angle 0.474 - "on-shell",481 - "MS-bar" )
+Q       |100          |Scale of effective running masses
+MW      |80.385       |W boson mass
+Mu      |0.007        |small quark mass to supress ~1+ -> W+(*) ~o2
+Md      |0.007        |small quark mass to supress ~1+ -> W+(*) ~o2
+Mtp     |172.5        |Top quark pole mass
+McMc    |1.23         |Mc(Mc)  MS-BAR
+MbMb    |4.18         |Mb(Mb)  MS-BAR
+alphaSMZ|0.1184       |alpha_strong(MZ)
+Ml      |1.777        |mass of tau-lepton
+Mh      |125          |mass of Higgs
+MG1     |100          |singlet mass parameter m
+MG2     |113          |triplet mass parameter M
+LAM     |10000        |capital Lambda in GeV
+kappa   |0.           |kappa prime
+kappa2  |0.           |kappa 
+lmbd    |1e-3         |small lambda
+fpi     |0.13         |pion decay constant
+Mpi     |0.1396       |mass of charged pion

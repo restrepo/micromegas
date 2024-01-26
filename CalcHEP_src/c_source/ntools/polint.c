@@ -54,12 +54,17 @@ double polint3(double x, int dim, const  double *xa, const double *ya)
   double x1=xa[shift],x2=xa[shift+1],x3=xa[shift+2],x4=xa[shift+3];
   double y1=ya[shift],y2=ya[shift+1],y3=ya[shift+2],y4=ya[shift+3];
   double h=x3-x2;
+  int lg=0;
+  double k=1.4;
+  if( (y1>0  && y2>k*y1 && y3>k*y2 && y4>k*y3) || (y4>0 && y3>k*y4 && y2>k*y3 && y1>k*y2) ) lg=1;
+  if(lg) { y1=log(y1); y2=log(y2); y3=log(y3); y4=log(y4);}
   double res=  y3*(x-x2)/h - y2*(x-x3)/h;
   double d=(y3-y2)/h, 
   d2=y1*(x2-x3)/(x1-x2)/(x1-x3)+y2*(2*x2-x3-x1)/(x2-x1)/(x2-x3)+y3*(x2-x1)/(x3-x1)/(x3-x2),
   d3=y2*(x3-x4)/(x2-x3)/(x2-x4)+y3*(2*x3-x4-x2)/(x3-x2)/(x3-x4)+y4*(x3-x2)/(x4-x2)/(x4-x3);
 
-  return res+(x-x2)*(x-x3)*((d2-d)*(x-x3)+(d3-d)*(x-x2))/h/h;
+   res+=(x-x2)*(x-x3)*((d2-d)*(x-x3)+(d3-d)*(x-x2))/h/h;
+   if(lg) return exp(res); else return res;
 }
 
 
@@ -91,3 +96,6 @@ double polintDiff(int n, const  double *xa, const double *ya, double * dxdy)
            +y2*(x0-x1)       /(x2-x0)/(x2-x1);
   }                   
 }    
+
+
+double polint_arg(double x, void * arg) { polintStr *arg_=arg; return polint3(x, arg_->dim,arg_->x,arg_->y);}

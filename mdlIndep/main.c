@@ -25,58 +25,45 @@
 #include"../include/micromegas.h"
 #include"../include/micromegas_aux.h"
 
+extern double complex HggF(double tau);
+
+double hgg(double tau) { return cabs(HggF(tau));}
+
+
+static double  fe(double E) //  Fig.3   1506.03811
+{
+  double ln10E[40]= { 3.6990, 3.9315, 4.1640, 4.3965, 4.6291, 4.8616, 5.0941, 5.3267, 5.5592, 5.7917, 6.0242, 6.2568, 6.4893, 6.7218, 6.9543, 7.1869, 7.4194, 7.6519, 7.8844, 8.1170, 8.3495, 8.5820, 8.8145, 9.0471, 9.2796, 9.5121, 9.7446, 9.9772, 10.2097, 10.4422, 10.6747, 10.9073, 11.1398, 11.3723, 11.6048, 11.8374, 12.0699, 12.3024, 12.5349, 12.7675};
+  double  e[40]=    { 0.3084, 0.3072, 0.3044, 0.2983, 0.2944, 0.2819, 0.2593, 0.2283, 0.1904, 0.1527, 0.1770, 0.3680, 0.6173, 0.8228, 0.9298, 0.9756, 0.9932, 0.9889, 0.9288, 0.8256, 0.7032, 0.5589, 0.4296, 0.3952, 0.4660, 0.5714, 0.6388, 0.6243,  0.5593,  0.4868,  0.4502,  0.4357,  0.4083,  0.3994,  0.4049,  0.4064,  0.4070,  0.4016,  0.4036,  0.4056};
+  return polint3(log10(E), 40,ln10E,e);
+}
+
+
+static double fA(double E)  //  Fig.3  1506.03811
+{
+  double ln10E[40]= { 3.6990, 3.9315, 4.1640, 4.3965, 4.6291, 4.8616, 5.0941, 5.3267, 5.5592, 5.7917, 6.0242, 6.2568, 6.4893, 6.7218, 6.9543, 7.1869, 7.4194, 7.6519, 7.8844, 8.1170, 8.3495, 8.5820, 8.8145, 9.0471, 9.2796, 9.5121, 9.7446, 9.9772, 10.2097, 10.4422, 10.6747, 10.9073, 11.1398, 11.3723, 11.6048, 11.8374, 12.0699, 12.3024, 12.5349, 12.7675};
+  double A[40]=     { 0.8767, 0.7697, 0.7021, 0.6842, 0.6963, 0.6748, 0.5851, 0.4591, 0.3256, 0.2161, 0.1448, 0.1631, 0.2924, 0.4681, 0.5957, 0.6781, 0.7180, 0.7260, 0.7195, 0.6858, 0.6288, 0.5462, 0.4469, 0.3591, 0.3184, 0.3378, 0.3905, 0.4228,  0.4212,  0.3902,  0.3307,  0.3901,  0.4332,  0.4148,  0.4029,  0.4047,  0.4069,  0.4017,  0.4037,  0.4056};
+  return polint3(log10(E), 40,ln10E,A);
+}
+
+static double intEe(double E, double *tab) { return eSpectdNdE(E,tab)*fe(E*1E9);}
+static double intEA(double E, double *tab) { return eSpectdNdE(E,tab)*fA(E*1E9);} 
+
+
+double   Planck(double vSigma, double *Sg,double*Se)  // 1506.03811
+{ int err;
+  double Egmin=5E-6, Eemin=5E-6; 
+  if(Eemin<1E-7*Se[0]) Eemin=1E-7*Se[0];
+  double r=simpson_arg(intEA,Sg, Egmin,Sg[0],1E-3,NULL)/2 + simpson_arg(intEe,Se,Eemin,Se[0], 1E-3,NULL);
+  double nEff=0;
+  for(int i=1;i<=Ncdm;i++) nEff+=fracCDM[i]/McdmN[i];  
+  r*=vSigma*nEff*nEff;
+  return r/3.2E-28;  
+}
+
+
 
 int main(int argc,char** argv)
 { int err,n,i;
-
-
-{ Mcdm=500;
-  double tabWA[NZ], tabWe[NZ], tabWp[NZ],
-         tabBA[NZ], tabBe[NZ], tabBp[NZ];
-  basicSpectra(Mcdm ,24, 0 , tabWA);
-  basicSpectra(Mcdm ,24, 1 , tabWe);
-  basicSpectra(Mcdm ,24, 2 , tabWp);
-  displayPlot("W->EdN/dE","E",0,Mcdm,0,3,"gamma",0, eSpectdNdE,tabWA
-                                        ,"positron",0,eSpectdNdE,tabWe
-                                   ,"a-proton",0,eSpectdNdE,tabWp);
-
-  basicSpectra(Mcdm ,6, 0 , tabBA);
-  basicSpectra(Mcdm ,6, 1 , tabBe);
-  basicSpectra(Mcdm ,6, 2 , tabBp);
-  displayPlot("b->EdN/dE","E",0,Mcdm,0,3,"gamma",0, eSpectdNdE,tabBA
-                                        ,"positron",0,eSpectdNdE,tabBe
-                                   ,"a-proton",0,eSpectdNdE,tabBp);
-
-
-  exit(0);
-}      
-
-{
-   Mcdm=5;
-   int pdg=13;
-   double tab[10*NZ], tabA[10*NZ] ;
-   double sum=0,sumA=0;
-
-   for(int i=0;i<6;i++)
-   {
-      basicSpectra(Mcdm ,pdg, i , tab);
-      basicSpectraA(Mcdm,pdg, i , tabA);
-      char mess[30];
-      sprintf(mess,"EdNdE for %s", outNames[i]);
-      displayPlot(mess,"E", 1E-3 /*Mcdm/100*/,Mcdm*1.05,1,2
-                                                  ,  "old",0,eSpectdNdE,tab
-                                                    ,"Australia",0,eSpectdNdE,tabA);
-      double dSum=simpson_arg(eSpectdNdE,tabA,1E-4, Mcdm, 1E-3,NULL);
-      dSum/=Mcdm;
-      if(i==0) sumA+=dSum; else sumA+=2*dSum;
-      dSum=simpson_arg(eSpectdNdE,tab,1E-4, Mcdm, 1E-3,NULL);
-      dSum/=Mcdm;
-     if(i==0) sum+=dSum; else sum+=2*dSum;
-  }
-  printf(" Energy conservation sum=%E sumA=%E\n",  sum,sumA);
-
-  exit(0); 
-}
 
 // data corresponding to MSSM/mssmh.dat     
 // cross sections of DM-nucleon interaction 

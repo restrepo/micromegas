@@ -1,52 +1,64 @@
-#define NOSTATISTICS
+//#define NOSTATISTICS
 //#define ONSHELL
 //#define NoWeff
+
 #define e0 1.E-6
 
 #define nGAUSS 4
 
-#define Tzero (1E-7)
 //#define ERROR_PLOT
 
 #include "micromegas.h"
 #include "micromegas_aux.h"
 #include "micromegas_f.h"
 #include "../CalcHEP_src/c_source/ntools/include/vegas.h"
-//#define P_NAME_SIZE 11
 
-#define TMIN 0.001
+static int tGridDim=0;
+static double *ltGrid=NULL,*yfi=NULL;
+double YFi(double T)
+{  
+   if(tGridDim==0) return NAN;
+   double lnT=log(T);      
+   
+   if(lnT<ltGrid[0] || lnT>ltGrid[tGridDim-1]) return NAN;
 
-REAL * Taddress=NULL;
-/*
-double *Tkappa=NULL;
-int initTkappa(void)
-{ 
-  Tkappa=realloc(Tkappa, nModelParticles*sizeof(double);
-// QCD contribution
-  for(int i=0;i<nModelParticles;i++)
-  {
-     switch(ModelPrtcls[k].cdim)
-     { case 0: Tkappa[k]=0; break;
-       case 3:
-       case 6:  
-       case 8: if(ModelPrtcls[k].spin2==1) 
-       default: Tkappa[k]=0; printf("Can not define QCD contribution to thermal mass for %s\n", ModelPrtcls[k].name);
-  }
-// QED contribution
+   if(lnT>ltGrid[tGridDim-2]) return (exp(ltGrid[tGridDim-1])-T)/(exp(ltGrid[tGridDim-1]) - exp(ltGrid[tGridDim-2]))*yfi[tGridDim-2];  
 
-// Weak contribution
-  
-  
-  return 0;
+   return polint3(lnT,tGridDim-1,ltGrid,yfi);  
+} 
+
+void printYFi(void)
+{ for(int i=0;i<tGridDim;i++) printf("T=%E Y=%E\n",exp(ltGrid[i]),yfi[i]); 
 }
 
-*/
+static int makeLnTgrid(double TR)
+{
+//printf("make grid\n");
+  if(Tend>=TR) return 1;
+  if(Tend==0) return 1;
+  tGridDim=5*log(TR/Tend)/log(10)+1;
+  if(tGridDim<10) tGridDim=10;
+  ltGrid=realloc(ltGrid, tGridDim*sizeof(double));
+  yfi=realloc(yfi, tGridDim*sizeof(double));
+  for(int i=0;i<tGridDim;i++) { ltGrid[i]= log( Tend*pow(TR/Tend,(double)i/(tGridDim-1.))); yfi[i]=0;}
+  return 0;
+}  
+   
+char*NAME=NULL,*aNAME=NULL;
 
-double tTcut=0;
+int nFeeble=0;
+char ** FeebleP=NULL;
+double * FeebleY=NULL;
 
-typedef struct { double m1,m2,m3, s1,s2,s3, pcm, e2,e3,e2_,e3_,gamma;}  K1to2_struct;
+REAL * Taddress=NULL;
+
+static double tTcut=0;
+double mTcut=0;
+
 
 //=====================  SECTION:  Function for Statistics.    Stat2,  K1. K2, gammaLor
+
+typedef struct { double m1,m2,m3, s1,s2,s3, pcm, e2,e3,e2_,e3_,gamma;}  K1to2_struct;
 
 
 static double K1to2_int(double x, void * par_)  
@@ -192,8 +204,6 @@ double Stat2(double P, double M, double m1,double m2,double eta1, double eta2)
 }
 
 
-
-
 static double K2_int(double y, void *arg)
 {  double *arg_=arg;
    double mu=arg_[0];
@@ -208,9 +218,8 @@ static double K2_int(double y, void *arg)
 static double K2prime(double mu, double s)
 { double arg[3];
 #ifdef NOSTATISTICS
-   s=0;
+  return bessK2(mu);  
 #endif
-  if(s==0) return bessK2(mu);
   if(mu+1<s) s=mu+0.9999;
   if(-s>exp(mu)*0.999) s=-exp(mu)*0.999;   
   arg[0]=mu,arg[1]=s; arg[2]=0;
@@ -251,34 +260,8 @@ static double gammaLor(double mu, double s)
   return  K2prime(mu,s)/K1to2(mu,0,0,s,0,0);
 }
 
-static double gammaLor_(double mu)
-{  double arg[3];
-   arg[0]=mu;
-   arg[1]=0;
-   arg[2]=1;
-   int err;
-   double num=simpson_arg(K2_int,arg, 0, 1,1E-5,&err);
-   if(err)
-   { printf("Warning from Simpson. Precison is not reached (freezein.c line 235 code=%d)\n",err);
-#ifdef ERROR_PLOT
-     displayPlot("Error in simpson", "x", 0,1,0,1,"K2_int",0,K2_int,arg);
-     exit(0);      
-#endif
-   }
-                  
-   arg[2]=2;
-   double den=simpson_arg(K2_int,arg, 0, 1,1E-5,&err);
-   if(err)
-   { printf("Warning from Simpson. Precison is not reached (freezein.c line 245 code=%d)\n",err);
-#ifdef ERROR_PLOT
-     displayPlot("Error in simpson", "x", 0,1,0,1,"K2_int",0,K2_int,arg);
-     exit(0);      
-#endif
-   }
-   
-   return num/den; 
-}
-//   SECTION DECAY 
+
+//==============================   SECTION DECAY =============================
 
 static double decayIntegrand(double lnT, void *arg_)
 {   
@@ -352,12 +335,11 @@ static int     etaOn;
 static double _p_,T0;
 aChannel*omegaFiCh=NULL;
 
-static int getDecBrKE(double T, txtList L, double eta, double * brTot, double * brBath,  double  *brSig1,double* brSig2,int * nFiCh)
+static int getDecBrKE(double T, txtList L, double eta, double * brTot, double * brBath,  double  *brSig1,int * nFiCh)
 { 
   *brBath=0;
   *brTot=0;
   *brSig1=0;
-  *brSig2=0;
   int nFiCh_;
   if(nFiCh) nFiCh_=*nFiCh;
   int s[5];
@@ -392,13 +374,12 @@ static int getDecBrKE(double T, txtList L, double eta, double * brTot, double * 
        for(int i=1;i<=n;i++) if(s[i]==0)ba=0;
        if(ba) *brBath+=br;
      }  
-     {  double brS1=0,brS2=0;
-        for(int i=1; i<=n;i++) if(s[i]==0 && name[i][0]=='~') { if(name[i][1]=='~') brS2+=br; else brS1+=br; }
+     {  double brS1=0;
+        for(int i=1; i<=n;i++) if(s[i]==0 && (strcmp(name[i],NAME)==0||strcmp(name[i],aNAME)==0)) brS1+=br; 
         *brSig1+=brS1;
-        *brSig2+=brS2;
 
-        if(brS1+brS2>0 && nFiCh)
-        { omegaFiCh[nFiCh_].weight=brS1*Mcdm1+brS2*Mcdm2;
+        if(brS1>0 && nFiCh)
+        { omegaFiCh[nFiCh_].weight=brS1*pMass(NAME);
           omegaFiCh[nFiCh_].err=0;
           omegaFiCh[nFiCh_].nin=1;
           for(int i=0;i<=n;i++) 
@@ -429,8 +410,8 @@ static  void  mediatorDerivs( double lnT, double *Y,double * dY)
    double eta;
   if(etaOn) eta=getEta(*Y,T,medMass,medEta); else eta=medEta;
 
-   double brBath,brTot,brSig1,brSig2;
-   getDecBrKE(T, medDecayList, eta,  &brTot, &brBath, &brSig1,&brSig2,NULL);     
+   double brBath,brTot,brSig1;
+   getDecBrKE(T, medDecayList, eta,  &brTot, &brBath, &brSig1,NULL);     
 
    double H=sqrt(8*M_PI/3.*M_PI*M_PI/30.*gEff(T))*T*T/MPlanck;  //Huble 
    double dtdLnT=(1+hEffLnDiff(T)/3)/H;                             // dt => dlnT
@@ -441,15 +422,13 @@ static  void  mediatorDerivs( double lnT, double *Y,double * dY)
    dY[0]= (alpha*(Y[0]-beta*Yeq_1(T,medMass,eta)));
    double c=medWidth*Y[0]/gammaLor(medMass/T,eta)*dtdLnT;
    dY[1]= -c*brSig1;
-   dY[2]= -c*brSig2;
 }    
 
-static double derEq0(double lnT, void *vi)
+static double derEq0(double lnT)
 {
-   int *i=vi;
    double T=exp(lnT);
-   double brBath,brTot,brSig1,brSig2;
-   getDecBrKE(T,medDecayList,medEta,&brTot,&brBath,&brSig1,&brSig2,NULL);     
+   double brBath,brTot,brSig1;
+   getDecBrKE(T,medDecayList,medEta,&brTot,&brBath,&brSig1,NULL);     
 
    double H=sqrt(8*M_PI/3.*M_PI*M_PI/30.*gEff(T))*T*T/MPlanck;  //Huble 
    double dtdLnT=(1+hEffLnDiff(T)/3)/H;                       // dt => dlnT
@@ -459,199 +438,22 @@ static double derEq0(double lnT, void *vi)
   
    double  Y=Yeq_1(T,medMass,medEta);
    
-//printf("medWidth*...=%E  beta=%E   \n", medWidth*brSig*Y,beta); 
-
-//printf("*i=%d brSig1=%E brSig2=%E \n",*i,brSig1,brSig2);
-// printf("medWidth=%E  brSig1=%E\n",medWidth, brSig1); 
-  
-   if(*i==1) return medWidth*brSig1*Y/gammaLor(medMass/T,medEta)*dtdLnT;
-   else      return medWidth*brSig2*Y/gammaLor(medMass/T,medEta)*dtdLnT;
+   return medWidth*brSig1*Y/gammaLor(medMass/T,medEta)*dtdLnT; 
 }
 
+static int saveMediators=0;
 
-
-static int getDecBr(double T, double P,  txtList L,double * brTot, double * brBath,  double *brSig1, double *brSig2)
+double darkOmegaFiDecay(double TR, char * pname, char* fiPrtcl)
 { 
-  *brBath=0;
-  *brTot=0;
-  *brSig1=0;
-  *brSig2=0;
-  int s[3];
-  double mu[3]; 
+  int plot=0; 
+  int KE=1;
+  int p=pTabPos(fiPrtcl);
+  if(p==0) { printf("darkOmegaFiDecay: unknown particle %s\n", fiPrtcl);  return 0; }
+  if(! isFeeble(fiPrtcl)) { printf("darkOmegaFiDecay: particle %s is not feeble\n", fiPrtcl);  return 0; } 
+  p=abs(p)-1;
+  NAME=ModelPrtcls[p].name; aNAME=ModelPrtcls[p].aname;
 
-  for(txtList l=L; l;l=l->next)
-  {
-    char name[4][20];
-    double br;
-    if(4 < sscanf(l->txt,"%lf %s -> %[^,], %[^,], %[^,]",&br,name[0],name[1],name[2],name[3])) continue;
-    for(int i=0;i<3;i++)mu[i]=pMass(name[i]);
-    for(int i=1;i<3;i++) if(isFeeble(name[i])) s[i]=0; else
-    {  
-       qNumbers(name[i], s+i ,NULL,NULL);
-       if(s[i]&1) s[i]=-1; else s[i]=1;
-    }
-  
-    br*=Stat2(P/T,mu[0]/T,mu[1]/T,mu[2]/T,s[1],s[2]);
-    *brTot+=br;
-    if(s[1] && s[2]) *brBath+=br;
-    else  
-    {  
-        if(s[1]==0 && name[1][0]=='~'){ if(name[1][1]=='~')  *brSig2+=br; else *brSig1+=br;}
-        if(s[2]==0 && name[2][0]=='~'){ if(name[2][1]=='~')  *brSig2+=br; else *brSig1+=br;}   
-    }    
-  }
-  
-//printf(" 1=%e 2=%e\n", brSig1,brSig2);  
-
-  return 0;
-}
-
-
-static void derEst(double T, double *f)
-{
-   double brBath,brTot,brSig1,brSig2;
-   double P=_p_*T/T0*pow(hEff(T)/hEff(T0),1./3.);
-   double E=sqrt(P*P+medMass*medMass);
-   getDecBr(T, P, medDecayList, &brTot, &brBath,  &brSig1,&brSig2);
-   f[0]=medMass/E*medWidth/Hubble(T);
-   f[1]=brBath/(brTot*exp(E/T)-medEta*brBath);
-}
-
-static void  der3(double lnT, double *y, double *dy)
-{  
-   double T=exp(lnT);
-   double brBath,brTot,brSig1,brSig2;
-   double P=_p_*T/T0*pow(hEff(T)/hEff(T0),1./3.);
-
-   getDecBr(T, P, medDecayList, &brTot, &brBath,  &brSig1,&brSig2); 
-   
-   double E=sqrt(P*P+medMass*medMass);
-   double f=y[0];
-   double dlnTdt=(1+hEffLnDiff(T)/3)/Hubble(T);
-   dy[0]=-medMass/E*medWidth*(brBath*exp(-E/T)*(1+medEta*f) -brTot*f)*dlnTdt; 
-   dy[1]=-medMass/E*medWidth*brSig1*f*dlnTdt;
-   dy[2]=-medMass/E*medWidth*brSig2*f*dlnTdt;
-} 
-
-static double  derEq(double lnT,void*ai)
-{  
-   int *i_=ai;
-   double T=exp(lnT);
-   double brBath,brTot,brSig1,brSig2;
-   double P=_p_*T/T0*pow(hEff(T)/hEff(T0),1./3.);
-
-   getDecBr(T, P, medDecayList, &brTot, &brBath,  &brSig1,&brSig2); 
-   
-   double E=sqrt(P*P+medMass*medMass);
-   double feq=brBath/(brTot*exp(E/T)-medEta*brBath);
-   
-   double dlnTdt=(1+hEffLnDiff(T)/3)/Hubble(T);
-   if(*i_==1) return -medMass/E*medWidth*brSig1*feq*dlnTdt;
-   else       return -medMass/E*medWidth*brSig2*feq*dlnTdt; 
-} 
-
-
-static double darkOmegaFiDecayNotKE(double TR,  char * pname,  int nStep, double*Ym,double * Y1, double *Y2)
-{  
-   int N=100;
-   double f[100][3];
-   double * pGrid=malloc(N*sizeof(double)); // momenta
-   double * fMP=malloc(N*sizeof(double));   // mediator momenta distribution 
-   double C=16;   // p scale 
-   for(int i=0;i<N;i++){ pGrid[i]=C*(i+0.5)*T0/N;  for(int j=0;j<3;j++) f[i][j]=0;   }
-   
-   double yDm1=0, yDm2=0,yMed=0;
-   double brTot, brBath, brSig1,brSig2;
-  
-   double step=exp(log(TR/T0)/nStep);
-//   printf("step= %e nStep=%d\n",step,nStep);
-          
-   if(Ym)
-   {  
-      Ym[nStep]=0;
-      Y1[nStep]=0;
-      Y2[nStep]=0;
-   }
-
-   double T=TR;
-   for(int k=0;k<nStep;k++)
-   { double Tnext=T/step;
-
-
-     for(int i=0;i<N;i++)
-     {  double htry=1;
-        _p_= pGrid[i];
-        double df[2];
-        derEst(Tnext,df);
-        if(fabs(df[0])*log(step) <=100) odeint(f[i], 3 ,  log(T),log(Tnext), 1E-3, 1, der3); 
-        else
-        {   int n;
-            n=1; f[i][1]+=gauss_arg(derEq,&n,log(T),log(Tnext),3);
-            n=2; f[i][2]+=gauss_arg(derEq,&n,log(T),log(Tnext),3);  
-            f[i][0]=df[1];
-        } 
-     }
-
-     if(Ym)
-     { int n=nStep-k-1; 
-       Ym[n]=0;
-       Y1[n]=0;
-       Y2[n]=0;
-       for(int i=0;i<N;i++) 
-       { _p_= pGrid[i];
-         Ym[n]+=_p_*_p_*f[i][0];
-         Y1[n]+=_p_*_p_*f[i][1];
-         Y2[n]+=_p_*_p_*f[i][2];
-       }  
-     }
-     T=Tnext;
-   }
-   
-   
-   if(Ym)
-   {  yMed=Ym[0];
-      yDm1=Y1[0];
-      yDm2=Y2[0];
-   } else
-   {  
-      yMed=0;
-      yDm1=0;
-      yDm2=0; 
-      for(int i=0;i<N;i++)
-      {  _p_= pGrid[i];
-         yMed += f[i][0]*_p_*_p_;
-         yDm1 += f[i][1]*_p_*_p_;
-         yDm2 += f[i][2]*_p_*_p_;
-      }
-   }
-
-/*
-{ 
-  double s=0;
-  for(int i=0;i<nStep;i++) s+= dDmt[i];
-  printf("sumDm %E=?= %E\n",sumDm, s*log(step));     
-}
-*/
-   getDecBr(T0, _p_, medDecayList,&brTot,&brBath, &brSig1,&brSig2);
-   yDm1+=yMed*brSig1/brTot;
-   yDm2+=yMed*brSig2/brTot;
-   
-   double coeff=medNDF*2/(2*M_PI)/(2*M_PI)*C/N/hEff(T0)/T0/T0/(2*M_PI*M_PI/45);   
-   if(Ym) for(int k=0;k<=nStep;k++){ Ym[k]*=coeff; Y1[k]*=coeff; Y2[k]*=coeff; }
-   
- 
-   yDm1*=coeff;
-   yDm2*=coeff;
-   free(pGrid);
-         
-   return (yDm1*Mcdm1+yDm2*Mcdm2)*EntropyNow/RhoCrit100; 
-}
-
-
-double darkOmegaFiDecay(double TR, char * pname, int KE, int plot)
-{ 
-
-  if(TR<10*Tzero) { printf("Reheating temperature is  too small\n"); return 0;} 
+  if(TR<=Tend) { printf("Reheating temperature is  too small\n"); return 0;} 
   int tabPos=pTabPos(pname);
   if(tabPos==0) { printf(" '%s' unknown particle\n",pname); return 0; }
   tabPos=abs(tabPos)-1;
@@ -668,28 +470,18 @@ double darkOmegaFiDecay(double TR, char * pname, int KE, int plot)
 
   if(Taddress)     
   { *Taddress=0;
-     calcMainFunc();
-     cleanDecayTable();
+    calcMainFunc();
+    cleanDecayTable();
   }
 
   medMass=pMass(pname);
   medWidth=pWidth(pname,&medDecayList);     
 
-//  T0=sqrt(5E16*medWidth);
-//  if(T0>0.05*medMass) T0=0.05*medMass;
-
-  T0=medMass/100;
-  if(T0<Tzero) T0=Tzero;
-  if(T0>TR/10) T0=TR/10;
-
-  int nStep=10*log(TR/T0)/log(2);
-  if(nStep<10)nStep=10;
-  if(plot&& nStep<100) nStep=100;
-  if(plot&& nStep>299) nStep=299;
-
 
   double  *Y1=NULL,*Y2=NULL, *Ym=NULL;
-  int tGridDim=nStep+1;
+   
+  int nStep=tGridDim-1;   
+  if(!saveMediators) makeLnTgrid(TR);
   
   int mSize=sizeof(double)*tGridDim;
   if(plot)
@@ -698,10 +490,7 @@ double darkOmegaFiDecay(double TR, char * pname, int KE, int plot)
      Ym=malloc(mSize);
   }    
 
-  double step=exp(log(TR/T0)/nStep);
   double omega;    
-  if(isFeeble(pname) && !KE)  omega= darkOmegaFiDecayNotKE(TR, pname,nStep,Ym,Y1,Y2);
-  else
   {
      double eta;
      double T=TR;
@@ -713,26 +502,17 @@ double darkOmegaFiDecay(double TR, char * pname, int KE, int plot)
      { *Taddress=TR;
        calcMainFunc();
        cleanDecayTable();
-       medMass=pMass(pname);
-       medWidth=pWidth(pname,&medDecayList);       
      }
 
      medWidth=pWidth(pname,&medDecayList);
      medMass=pMass(pname);
 
-     if(plot)
-     {
-       Ym[tGridDim-1]=y[0];
-       Y1[tGridDim-1]=y[1];
-       Y2[tGridDim-1]=y[2];
-     }
-
-     double brTot,brBath,brSig1,brSig2;
+     double brTot,brBath,brSig1;
 
      for(nT=tGridDim-2,T=TR;nT>=0;nT--)
-     {  double Tnext=T/step;
+     {  double Tnext=exp(ltGrid[nT]);
 
-        double H=sqrt(8*M_PI/3.*M_PI*M_PI/30.*gEff(Tnext))*Tnext*Tnext/MPlanck;  //Huble
+        double H=sqrt(8*M_PI/3.*M_PI*M_PI/30.*gEff(Tnext))*Tnext*Tnext/MPlanck;  //Hubble
         double dtdLnT=(1+hEffLnDiff(Tnext)/3)/(H);              // dt => dT
 
         if(Taddress)
@@ -743,76 +523,40 @@ double darkOmegaFiDecay(double TR, char * pname, int KE, int plot)
            medMass=pMass(pname);    
         }
 
-        getDecBrKE(Tnext,medDecayList,eta,  &brTot, &brBath, &brSig1,&brSig2,NULL);
-
+        getDecBrKE(Tnext,medDecayList, eta,  &brTot, &brBath, &brSig1,NULL);
         if(s0)                                                                          
         {  int n;
-           eta=s0;                                                                      
+           eta=s0;                              
+                                                   
            y[0]= Yeq_1(Tnext,medMass,s0);                                                  
-           n=1; y[1]+=gauss_arg(derEq0,&n,log(Tnext),log(T),3);
-           n=2; y[2]+=gauss_arg(derEq0,&n,log(Tnext),log(T),3);
+           y[1]+=gauss(derEq0,log(Tnext),log(T),3);
         }                                                                               
         else                                                                            
         {                                                                               
-           double a=log(step)*medWidth*brTot*dtdLnT/gammaLor(medMass/Tnext,eta);        
+           double a=(T-Tnext)*medWidth*brTot*dtdLnT/gammaLor(medMass/Tnext,eta);        
            if(a>100) // Y=Yeq up to beta factor;                                        
            {  int n;                                                                          
               double beta=brBath/brTot;                                                 
-              eta=beta*medEta;                                                          
+              eta=beta*medEta;   
               y[0]= beta*Yeq_1(Tnext,medMass,eta);                                         
-              n=1;y[1]+=gauss_arg(derEq0,&n, log(Tnext),log(T),3);
-              n=2;y[2]+=gauss_arg(derEq0,&n, log(Tnext),log(T),3);
+              y[1]+=gauss(derEq0, log(Tnext),log(T),3);
            }else                                                                        
            {                                                                            
               if(medMass/T<100) etaOn=1; else etaOn=0;                                                                              
-              odeint(y,3, log(T), log(Tnext), 1E-3, log(step), mediatorDerivs);                                              
+              odeint(y,2, log(T), log(Tnext), 1E-3, log(T/Tnext), mediatorDerivs);                                              
               if(etaOn)eta=getEta(y[0],Tnext,medMass,1);                                   
            }                                                                            
         }                                                                               
-        if(plot)
-        { 
-          Ym[nT]=y[0];
-          Y1[nT]=y[1];
-          Y2[nT]=y[2];
-        }
+        yfi[nT]+=y[1]*medNDF;
         T=Tnext;  
       }
-      getDecBrKE(T0,medDecayList,0, &brTot,&brBath,&brSig1,&brSig2,NULL);
-      y[1]+= y[0]*brSig1/brTot;
-      y[2]+= y[0]*brSig2/brTot;
-      omega=medNDF*(y[1]*Mcdm1+y[2]*Mcdm2)*EntropyNow/RhoCrit100;
-      if(plot)for(int i=0;i<tGridDim;i++) { Ym[i]*=medNDF; Y1[i]*=medNDF; Y2[i]*=medNDF; }
+      omega=medNDF*(y[1]*pMass(NAME) )*EntropyNow/RhoCrit100;
    }                                              
    if(VZdecayMem|| VWdecayMem)
    {  cleanDecayTable();
       VZdecay=VZdecayMem, VWdecay=VWdecayMem;
    }
-
-   if(plot)
-   { 
-
-      char mess[100];
-      if(!isFeeble(pname))  sprintf(mess,"Thermal bath %s, mass=%.2E, width=%.2E", pname,pMass(pname),pWidth(pname,NULL));
-      else 
-      {   sprintf(mess,"Feeble %s,  mass=%.2E, width=%.2E", pname,pMass(pname),pWidth(pname,NULL));
-          if(KE) strcat(mess," [kinetic equilibrium]"); else strcat(mess," [ No kin. equilibrium]");
-      }
-      int y1ok=0,y2ok=0;
-      for(int i=0;i<tGridDim;i++) { if(Y1[i]) y1ok=1; if(Y2[i]) y2ok=1;}
-      if(y1ok)  for(int i=0;i<tGridDim;i++) Y1[i]*=Mcdm1*EntropyNow/RhoCrit100;
-      if(y2ok)  for(int i=0;i<tGridDim;i++) Y2[i]*=Mcdm2*EntropyNow/RhoCrit100;
-
-      double T1=T0/sqrt(step), T2=TR*sqrt(step);
-      char Yname[40];
-      sprintf(Yname,"Y(%s)",pname);
-      displayPlot(mess,"T",T1,T2,1,1,Yname,tGridDim,Ym,NULL); 
-      
-      if(y1ok && y2ok) displayPlot(mess,"T",T1,T2,1,2,"Omg1",tGridDim,Y1,NULL,"Omg2",tGridDim,Y2,NULL);
-      else if(y1ok)    displayPlot(mess,"T",T1,T2,1,1,"Omg1",tGridDim,Y1,NULL);
-      else if(y2ok)    displayPlot(mess,"T",T1,T2,1,1,"Omg2",tGridDim,Y2,NULL);
-
-      free(Ym);free(Y1);free(Y2);   
-   }
+   Tstart=TR;
    return omega;
 }
 
@@ -821,8 +565,8 @@ double darkOmegaFiDecay(double TR, char * pname, int KE, int plot)
 static double T;
 
 
-static int tGridDim;
-static double*ltGrid=NULL;
+//static int tGridDim;
+//static double*ltGrid=NULL;
 
 static int nMed=0,nMedMax=0;
 typedef struct { char *name;
@@ -877,12 +621,11 @@ static void cleanMediatorArr(void)
    nMed=0;  
 }
 
-static int saveMediators=0;
 
 
 static void fillMediatorArr(double Tr,par_22 *arg)
-{ double step=2;
-  int mSize; 
+{ 
+  int mSize=tGridDim*sizeof(double);
   int nT;
   double T;
 
@@ -890,14 +633,8 @@ static void fillMediatorArr(double Tr,par_22 *arg)
   int i;
 
   if(nMed)for(i=0;i<nMed;i++) mediatorArr[i].my=0;
-  else
-  {
-     tGridDim=log(Tr/TMIN)/log(step)+1;
-     mSize=sizeof(double)*tGridDim;
-     ltGrid=realloc(ltGrid,mSize); 
-     for(nT=tGridDim-1,T=Tr;nT>=0;nT--,T/=step) ltGrid[nT]=log(T);
-  }
- 
+  double  step= exp(ltGrid[tGridDim-1]-ltGrid[tGridDim-2]);
+//  printf("step=%E\n",step);
   for(int n=1;;n++)
   {  
      int m,w,pnum;
@@ -905,7 +642,7 @@ static void fillMediatorArr(double Tr,par_22 *arg)
      if(!s) break;
      if(s[0]==1 && s[1]==2 && m && w)
      {  char*name=ModelPrtcls[pnum].name;
-          
+
         for(i=0;i<nMed;i++) { if(mediatorArr[i].name==name)  break;}
         if(i<nMed) 
         { mediatorArr[i].widthPos=w;
@@ -934,9 +671,10 @@ static void fillMediatorArr(double Tr,par_22 *arg)
      }
   } 
 
-  
-  for(nT=tGridDim-1,T=Tr;nT>=0;nT--,T/=step)
+  for(nT=tGridDim-1;nT>=0;nT--)   
   {
+     T=exp(ltGrid[nT]);
+     
      if(Taddress) 
      { *Taddress=T;
         calcMainFunc();
@@ -944,7 +682,7 @@ static void fillMediatorArr(double Tr,par_22 *arg)
      }
        
      for(int n=0;n<nMed;n++) if(mediatorArr[n].my==-1)
-     { 
+     {  
         txtList L;
         double Mm=fabs(varValues[mediatorArr[n].massPos]);
         mediatorArr[n].mass[nT]=Mm;
@@ -987,7 +725,6 @@ static void fillMediatorArr(double Tr,par_22 *arg)
           { double mu=Mm/T;
             double alpha=wBath/Hubble(T)/gammaLor(mu ,eta)*log(2),eAlpha;
             double beta=wBath_/wBath;
-
   //printf("T=%.2E wBath=%.2E H=%.2E massPos=%d    Mm=%.2E    mu=%.2E eta=%E  gammaLor=%.2E  alpha=%.2E \n", T, wBath, Hubble(T), mediatorArr[n].massPos,  Mm, mu, eta,gammaLor(mu ,eta),alpha);        
             if(alpha>20) eAlpha=0; else  eAlpha=exp(-alpha);
                  if(mu<0.1) eta=beta*(1-eAlpha)+fabs(eta_)*eAlpha;
@@ -1002,6 +739,8 @@ static void fillMediatorArr(double Tr,par_22 *arg)
         mediatorArr[n].wSig[nT]=wSig;    
         mediatorArr[n].wBath[nT]=wBath;
         mediatorArr[n].eta[nT]=eta;
+        mediatorArr[n].wEff[nT]=wBath;
+        
 if(!isfinite(eta))
 {        
 printf("mediatorArr[%d].eta[%d]=%E\n",n,nT,eta);
@@ -1012,14 +751,17 @@ exit(0);
      }
    }
    
-
+//return;
    int ng=nGAUSS; 
    double *P,*cG;
    getGauss(&ng,&P,&cG);
           
    T=Tr;
     
-   for(nT=tGridDim-1;nT>=0; nT--,T/=2) for(int n=0;n<nMed;n++) if(mediatorArr[n].my)
+  for(nT=tGridDim-1;nT>=0;nT--)   
+  {
+    T=exp(ltGrid[nT]);
+   for(int n=0;n<nMed;n++) if(mediatorArr[n].my)
    { 
       double Mm=mediatorArr[n].mass[nT];
 
@@ -1105,8 +847,10 @@ exit(0);
      mediatorArr[n].wEff[nT]=mediatorArr[n].wBath[nT];
 #endif
      mediatorArr[n].wEff[nT]*=mediatorArr[n].fKK[nT]; 
+//printf(">T=%E eta=%E  wBat=%E  \n",T,mediatorArr[n].eta[nT],mediatorArr[n].wBath[nT]);        
+     
    }    
-
+ }
 }
 
 //======================= Intervals ===================
@@ -1129,6 +873,7 @@ static void printIntervals(void)
 static double sqrtSminT(double m1,double m2, double m3, double m4, double T)
 {
 
+  T=0;
   double smin=m1+m2;
   if(smin< m3+m4) smin=m3+m4;
   if(T<=0) return  smin;
@@ -1169,18 +914,23 @@ static double sIntegrand_y(double y, void*arg_)
   long double z=y*(2-y);
   
   sqrtS=-3*T*logl(z);
+  
+//  y=  1-sqrt(1-exp(-sqrtS/(3*T)));
+  
   J=6*T*(1-y)/z;
 //printf("1-y=%E Tx=%E sqrtS=%E\n", 1-y,Tx,sqrtS);  
   double sqme_Int;
   int err=0;
 
+
   if(Qaddress)
   {  *Qaddress =sqrtS;
      calcMainFunc();  
      passParameters(arg->cc);
-     for(int n=0;n<nMed;n++) arg->cc->interface->va[mediatorArr[n].widthPos]=mediatorArr[n].Twidth;
+     for(int n=0;n<nMed;n++) if(mediatorArr[n].my) arg->cc->interface->va[mediatorArr[n].widthPos]=mediatorArr[n].Twidth;
      mass22_par(arg,T);
   }
+
 
   if(kin22_par(arg,sqrtS, sqrt(4*M_PI*parton_alpha(sqrtS)))){  printf("kin22 problem sqrtS=%e \n",sqrtS); return 0;}
   err=0;
@@ -1188,8 +938,11 @@ static double sIntegrand_y(double y, void*arg_)
   sqme_Int=sqmeIntDel(arg,eps/3);
   
   double res=  sqme_Int/(32*M_PI*sqrtS)*T/(8*M_PI*M_PI*M_PI*M_PI)*arg->PcmIn*arg->PcmOut
-  *K1to2(sqrtS/T,arg->pmass[0]/T,arg->pmass[1]/T,0,arg->eta[0],arg->eta[1])*2*sqrtS*J;
+  *K1to2(sqrtS/T,arg->pmass[0]/T,arg->pmass[1]/T,0,arg->eta[0],arg->eta[1])
+//*bessK1(sqrtS/T)
+*2*sqrtS*J;
 
+  
 
   if((arg->eta[2] || arg->eta[3]) && sqrtS/T<25  ) 
       res*=K1to2(sqrtS/T,arg->pmass[2]/T,arg->pmass[3]/T,0,arg->eta[2],arg->eta[3])/
@@ -1198,8 +951,6 @@ static double sIntegrand_y(double y, void*arg_)
   return res;
  
 }
-
-static double delRes=0;
 
 static double lnTIntegrand(double lnT,void*arg_)
 { 
@@ -1233,18 +984,20 @@ static double lnTIntegrand(double lnT,void*arg_)
   if(mout>sqrtSmin) sqrtSmin=mout;
 */  
   sqrtSmin=sqrtSminT( arg->pmass[0], arg->pmass[1],arg->pmass[2],arg->pmass[3],T*tTcut);
-  sqrtSmin*=1.000001;
 
+//printf("Masses=%e %e %e %e\n", (double)arg->pmass[0], (double)arg->pmass[1],(double)arg->pmass[2],(double)arg->pmass[3]);  
+  
+  sqrtSmin*=1.000001;
   nIntervals=1;
-  intervals=realloc(intervals,2*sizeof(double));
-  intervals[0]=0; intervals[1]=1-sqrt(1-exp(-sqrtSmin/(3*T)));
+  intervals=realloc(intervals,2*sizeof(double)); 
+  intervals[0]=0;  intervals[1]=1-sqrt(1-exp(-sqrtSmin/(3*T)));  intervals[1]=exp(-sqrtSmin/(3*T))/(1+sqrt(1-exp(-sqrtSmin/(3*T))));
+//printf("sqrtSmin=%E  T=%E  intervals[0]=%E  intervals[1]=%E\n", sqrtSmin,T,intervals[0], intervals[1]);
   
-  double sum=0;   
-  
-  for(int n=0;n<nMed;n++)
+  double sum=0;     
+  for(int n=0;n<nMed;n++) if(mediatorArr[n].my)
   { double Mm=varValues[mediatorArr[n].massPos];
-  
-    if(sqrtSmin<=Mm)
+    
+//    if(sqrtSmin<=Mm)
     { 
       double mu1=arg->pmass[0]/T, mu2=arg->pmass[1]/T;
       double wEff,wIwD, eta;
@@ -1261,11 +1014,10 @@ static double lnTIntegrand(double lnT,void*arg_)
 //if(Mm/T <25)   printf("eta=%E K=%e\n",eta,K1to2(Mm/T,mu1,mu2,0,arg->eta[0],arg->eta[1])/K1to2(Mm/T,mu1,mu2,eta,arg->eta[0],arg->eta[1]));      
 //      if(Mm/T <25)  wEff*=K1to2(Mm/T,mu1,mu2,0,arg->eta[0],arg->eta[1])/K1to2(Mm/T,mu1,mu2,eta,arg->eta[0],arg->eta[1]);   
        arg->cc->interface->va[mediatorArr[n].widthPos]=wEff;
+//       printf("T=%E  %s=%E\n", T,   arg->cc->interface->varName[mediatorArr[n].widthPos],wEff);
        mediatorArr[n].Twidth=wEff;
-#ifndef ONSHELL             
-//      if( wEff/Tx < e0 )
-        if(delRes) delInterval( 1-sqrt(1-exp(-(Mm+delRes*wEff)  /(3*T)))  , 1-sqrt(1-exp(-(Mm-delRes*wEff)/(3*T)))  ,&intervals,&nIntervals);
-#endif  
+//printf("T+%E M=%E width=%E eta=%E\n",T,Mm,wEff,eta);
+       
 /*   
       {      
          double d0 = e0>100*wEff/Tx? e0: 100*wEff/Tx; 
@@ -1279,12 +1031,15 @@ static double lnTIntegrand(double lnT,void*arg_)
       }
 */      
     
-    } else mediatorArr[n].Twidth=polint3(lnT,tGridDim,ltGrid,mediatorArr[n].wEff);
+    } 
+//    else 
+//    { mediatorArr[n].Twidth=polint3(lnT,tGridDim,ltGrid,mediatorArr[n].wEff);     
+//    }
   }
   double NdfIn=arg->ndf[0]*arg->ndf[1];
   if(arg->pdg[0]==arg->pdg[1]) NdfIn/=2;
   sum/=NdfIn; 
-  
+//printf("nIntervals=%d\n", nIntervals);  
 #ifndef ONSHELL 
   for(int i=0;i<nIntervals;i++)
   { int err;
@@ -1306,142 +1061,6 @@ static double lnTIntegrand(double lnT,void*arg_)
 }  
 
 
-//============= Vegas integration =========================================
-
-static double TR_stat,Tmin_stat,totOmegaCoeff;
-static par_22 arg_stat;
-static int tPoleDetected=0;
-
-static    double lnsFntegrandForVegas(double lns)
-{ if(tPoleDetected) return 0;
-
-  double sqrtS=exp(lns); 
-
-  if(Qaddress)   
-  {  *Qaddress =sqrtS;
-     calcMainFunc();
-     passParameters(arg_stat.cc);
-     for(int n=0;n<nMed;n++) arg_stat.cc->interface->va[mediatorArr[n].widthPos]=mediatorArr[n].Twidth;
-  }                         
-  mass22_parDel(&arg_stat,T);
-
- 
-  if(kin22_par(&arg_stat, sqrtS, sqrt(4*M_PI*parton_alpha(sqrtS)))) return 0;           
-  if(arg_stat.err==4) { tPoleDetected=1; return 0;}
-  double P=(arg_stat.E-sqrtS)*(arg_stat.E+sqrtS);
-  if(P<=0) return 0;
-  P=sqrt(P);                        
-  double sh=P/sqrtS; 
-  arg_stat.ch=sqrt(1+sh*sh);
-  arg_stat.sh=sh;
-
-  return P*arg_stat.PcmIn*arg_stat.PcmOut*sqmeIntDel(&arg_stat, 0.01);
-}
-
-static double sIntegralForVegas(double T,double sqS1,double sqS2)
-{  if(tPoleDetected) return 0;
-   int err;
-   nIntervals=1;
-   intervals=realloc(intervals,2*sizeof(double));
-   intervals[0]=log(sqS1); intervals[1]= log(sqS2); 
-   double sum=0;   
-  
-   for(int n=0;n<nMed;n++)
-   { double Mm=varValues[mediatorArr[n].massPos];
-     double wEff,wIwD,eta;
-     
-     double lnT=log(T);
-     if(lnT<ltGrid[0])
-     {  wEff=mediatorArr[n].wEff[0];
-        wIwD=mediatorArr[n].wIwD[0];
-//        eta=mediatorArr[n].eta[0];
-     } else 
-     {                   
-        wEff=polint3(lnT,tGridDim,ltGrid,mediatorArr[n].wEff);
-        wIwD=polint3(lnT,tGridDim,ltGrid,mediatorArr[n].wIwD); 
-//        eta =polint3(lnT,tGridDim,ltGrid,mediatorArr[n].eta);
-     }
-
-     double mu1=arg_stat.pmass[0]/T, mu2=arg_stat.pmass[1]/T;
-//     if(Mm/T <25)  wEff*=K1to2(Mm/T,mu1,mu2,0,arg_stat.eta[0],arg_stat.eta[1])/K1to2(Mm/T,mu1,mu2,eta,arg_stat.eta[0],arg_stat.eta[1]);   
-     arg_stat.cc->interface->va[mediatorArr[n].widthPos]=wEff;
-     mediatorArr[n].Twidth=wEff;
-#ifndef ONSHELL
-     if(wEff/Mm<e0)
-#endif      
-     {  double d0=100*wEff/Mm; if(e0>d0) d0=e0;
-     
-       if(sqS1< Mm*(1+d0) && sqS2>Mm*(1-d0) ) delInterval( log(Mm) -d0  ,log(Mm)+d0,&intervals,&nIntervals);
-       if(sqS1< Mm  && sqS2>Mm)
-       {  double P=(arg_stat.E-Mm)*(arg_stat.E+Mm);
-          if(P>0)
-          { P=sqrt(P);  
-            sum+=P*(mediatorArr[n].spin2+1)*Mm*wIwD*64*M_PI*M_PI*M_PI/wEff
-                *Stat2(P/T,Mm/T,arg_stat.pmass[0]/T,arg_stat.pmass[1]/T,arg_stat.eta[0],arg_stat.eta[1])
-                *Stat2(P/T,Mm/T,arg_stat.pmass[2]/T,arg_stat.pmass[3]/T,arg_stat.eta[2],arg_stat.eta[3])
-                ;
-          }       
-       }
-     }      
-   }
-
-  double NdfIn=arg_stat.ndf[0]*arg_stat.ndf[1];
-  if(arg_stat.pdg[0]==arg_stat.pdg[1]) NdfIn/=2;
-  sum/=NdfIn; 
-
-#ifndef ONSHELL 
-  for(int i=0;i<nIntervals;i++)
-  { int err;
-    sum+= simpson(lnsFntegrandForVegas,intervals[2*i],intervals[2*i+1],1E-2,&err);
-    if(err)
-    {   printf("Warning from simpson. Precison is not reached (freezein.c line 1327 code=%d [%e,%e])\n",err,intervals[2*i],intervals[2*i+1] );
-#ifdef ERROR_PLOT
-       displayPlot(" Error code gauss345","x",intervals[2*i], intervals[2*i+1],0,1,"lnsFntegrandForVegas", 0,lnsFntegrandForVegas,NULL);  
-       exit(0);
-#endif      
-    
-    }
-  }
-#endif
-
-   return  sum;
-}
-
-static double vegas22FIintegrand(double*x,double w)
-{
-   if(tPoleDetected) return 0;
-   double sqrtSmin=arg_stat.sqrtSmin;
-   double lnT=log(Tmin_stat)+x[0]*(log(TR_stat)-log(Tmin_stat));
-   double T=exp(lnT);
-   double J=(log(TR_stat)-log(Tmin_stat))*(1+hEffLnDiff(T)/3)/Hubble(T);   //  dT/H/T  = J* dx[0] 
-   double E=sqrtSmin-T*log(x[1]);                
-          J*=T*exp(-sqrtSmin/T);             // dEexp(-E/T) = J*dx[1]
-#ifndef ONSHELL          
-   double cs=2*(x[2]-0.5), sn=sqrt(1-cs*cs), fi=M_PI*2*(x[3]-1);
-#endif
-   arg_stat.T=T;
-#ifdef NOSTATISTICS
-   arg_stat.T=0;
-#endif
-#ifdef ONSHELL
-  arg_stat.n[0]=0;
-  arg_stat.n[1]=0;
-  arg_stat.n[2]=0;
-  arg_stat.T=0;
-#else   
-   arg_stat.n[0]=cs;
-   arg_stat.n[1]=sn*sin(fi);
-   arg_stat.n[2]=sn*cos(fi);
-#endif   
-   double S=2*M_PI*M_PI/45*T*T*T*hEff(T); // entropy 
-//printf("T=%E\n",T);   
-   arg_stat.E=E;
-//printf("  sqrtSmin=%e, T=%E x1=%e E=%E\n",sqrtSmin,T,x[1], E);   
-   int err;
-   double sI=2*sIntegralForVegas(T,sqrtSmin,E);
-   return totOmegaCoeff*J*sI/256/pow(M_PI,5)/S;                  
-}
-
 
 static int printFi22Error(FILE*f, int err)
 {
@@ -1450,34 +1069,36 @@ static int printFi22Error(FILE*f, int err)
        case  1: fprintf(f,"process  is absent\n"); break;
        case  2: fprintf(f,"2->2 type process is expected\n");break;
        case  3: fprintf(f,"can not calculate local parameters\n");break;
-       case  4: fprintf(f,"reheating temperature is too small\n");break;       
+       case  4: fprintf(f,"reheating temperature is smaler than Tend  too or Tend=0\n");break;       
        case  5: fprintf(f,"there are incoming feeble particles\n"); break;
        case  6: fprintf(f,"there is no odd  feeble particles among outgoing ones\n");break;
 
        case   7: fprintf(f,"Lost of precision in  temperature integrand\n");break;
        case   8: fprintf(f,"Pole in temperature integrand\n");break;
        case   9: fprintf(f,"NaN in temperature intergrand\n");break;
-       case  10: fprintf(f,"Lost of precision in  sqrt(s) integrand\n");break;
+       case  10: fprintf(f,"Loss of precision in  sqrt(s) integrand\n");break;
        case  11: fprintf(f,"Pole in sqrt(s) integrand\n");break;
        case  12: fprintf(f,"NaN  in sqrt(s) intergrand\n");break;
        case  13: fprintf(f,"Lost of precision in angle integration\n");break;
        case  14: fprintf(f,"Pole in angle  integrand\n");break;
        case  15: fprintf(f,"NaN  in angle  intergrand\n");break;
-       case  16: fprintf(f,"lost of precision caused by diagramm cancelation\n");
+       case  16: fprintf(f,"loss of precision caused by diagramm cancelation\n");
      }
 }
 
+static double totOmegaCoeff;
 
-double  darkOmegaFi22(double Tr, char *Proc, int nWidth,  int plot, int *err_)
-{  int err=0, intErr=0;
+double  darkOmegaFi22(double Tr, char *Proc, char * fiPrtcl,  int *err_)
+{  
+   int plot=0;
+   int err=0, intErr=0;
    double omega=0; 
-   double  MDM=0; // summary mass of  odd outgoing  feeble particles
+   int  NDM=0; // number of "fiPrtcl"-type particles anong outgoing ones
    int NConj=1;
    double Cin;
    par_22 arg;
-   double Tmin;
+   double Tmin=Tend;
 
-   delRes=nWidth;
    if(err_) *err_=0;   
    numout*cc=newProcess(Proc);
    if(cc->interface->nvar==0) return 0;
@@ -1496,61 +1117,50 @@ double  darkOmegaFi22(double Tr, char *Proc, int nWidth,  int plot, int *err_)
       }
       if(passParameters(cc)) err=3; // Can not calculate local parameters for process 
    }
-   if(!err)   
-   {  if(Tr<=10*Tzero) err=4; else 
-      {  mass22_par(&arg,Tzero);
-         Tmin=(arg.pmass[2]+arg.pmass[3])/15;
-         if(Tmin<(arg.pmass[0]+arg.pmass[1])/15) Tmin=(arg.pmass[0]+arg.pmass[1])/15;
-         if(Tmin>Tr/10) Tmin=Tr/10;
-         if(Tmin<Tzero) Tmin=Tzero;
-      }
-   }
+     
    if(!err)   
    { 
-      for(int i=0;i<4;i++) if(isFeeble(cc->interface->pinf(1,1+i,NULL,NULL))) arg.eta[i]=0; else arg.eta[i]=1-2*(arg.spin2[i]&1);
+      for(int i=0;i<4;i++) if(isFeeble(cc->interface->pinf(1,1+i,arg.pmass+i,NULL))) arg.eta[i]=0; else arg.eta[i]=1-2*(arg.spin2[i]&1);
       if(arg.eta[0]==0 || arg.eta[1]==0)  err=5; //  There are incoming feeble particles
-      for(int i=2;i<4;i++) if(arg.eta[i]==0 && cc->interface->pinf(1,1+i,NULL,NULL)[0]=='~'  )
-                          { if(cc->interface->pinf(1,1+i,NULL,NULL)[1]=='~') MDM+=Mcdm2; else MDM+=Mcdm1;}
-      if(MDM==0) err=6;  // There is no odd  feeble particles among outgoing ones
+      for(int i=2;i<4;i++) 
+      { char*p=cc->interface->pinf(1,1+i,NULL,NULL);
+        if(strcmp(p,fiPrtcl)==0) NDM++;
+        else 
+        {
+           char*ap=antiParticle(p);
+           if(strcmp(ap,fiPrtcl)==0) NDM++;
+        }        
+      } 
+      if(NDM==0) err=6;  // There is no odd  feeble particles among outgoing ones   
    }
 
+   if(!err)  if(!saveMediators && makeLnTgrid(Tr)) err=4;
+
    if(!err)
-   { *(cc->interface->BWrange)=1000;  //!!!    
+   { *(cc->interface->BWrange)=1000;  //!!!         
      fillMediatorArr(Tr,&arg);
      int neutral[4];
      for(i=0;i<4;i++) cc->interface->pinfAux(1,1+i,NULL,NULL,neutral+i,NULL);
      if( arg.pdg[0]+arg.pdg[1]!=0 && (!neutral[0] || !neutral[1]))NConj=2;
-     if( arg.pdg[2]+arg.pdg[3]!=0 && (!neutral[2] || !neutral[3]))NConj=2;
+     if( arg.pdg[2]+arg.pdg[3]!=0 && (!neutral[2] || !neutral[3]))NConj=2;  //??
      
      Cin=1;
      if(arg.pdg[0]==arg.pdg[1]) Cin=0.5;
-     totOmegaCoeff=Cin*arg.ndf[0]*arg.ndf[1]*NConj*MDM*EntropyNow/RhoCrit100;
+     totOmegaCoeff=Cin*arg.ndf[0]*arg.ndf[1]*NConj*NDM;
    }
-
    if(!err)
    {   
-       {                                                                                                                                                                                      
-        if(plot)                                                                                                                                                                             
-        {                                                                                                                                                                                    
-          mass22_par(&arg,Tmin);
-          if(arg.err==0)                                                                                                                                                                     
-          {                                                                                                                                                                                  
-            double arr[100];
-            arr[99]=0;                                                                                                                                                                 
-            for(int i=98;i>=0;i--)                                                                                                                                                           
-            { double T1=Tmin*pow(Tr/Tmin,(i+0.5)/100),T2=Tmin*pow(Tr/Tmin,(i+1.5)/100);
-              arr[i]=arr[i+1]+gauss_arg(lnTIntegrand,&arg,log(T1),log(T2),3)*totOmegaCoeff;                                                                                                                                        
-            }                                                                                                                                                                                
-            char txt[60];                                                                                                                                                                    
-            sprintf(txt,"Freeze-in relic generated by %s",Proc);                                                                                                                               
-            displayPlot(txt,"T",Tmin,Tr,1,1,"Omega(T)",100,arr,NULL);                                                                                                                    
-          }                                                                                                                                                                                  
-        }      
-        arg.err=0; 
-mass22_par(&arg,Tmin);
-//printf("mass[0]=%E\n", (double) (arg.pmass[0]));
-        omega= totOmegaCoeff*simpson_arg(lnTIntegrand,&arg,log(Tmin),log(Tr),0.001,&err);
-        if(err) arg.err=arg.err|(2*8*8*err);
+//displayPlot("lnTIntegrand", "log(T)",1.,7.,0,1,"integrand", 0, lnTIntegrand,&arg);        
+       double Y=0;
+       for(int nT=tGridDim-2;nT>=0;nT--)  
+       {  double lnT1= ltGrid[nT+1], lnT2=ltGrid[nT];
+          if(nT==tGridDim-2) Y+=simpson_arg(lnTIntegrand,&arg,lnT2,lnT1,1E-3,NULL);  
+          else              Y+=gauss_arg(lnTIntegrand,&arg,lnT2,lnT1,4);
+          yfi[nT]+=Y*totOmegaCoeff;                                                                                                                                                                            
+       }      
+       arg.err=0; 
+       omega= pMass(fiPrtcl)*EntropyNow/RhoCrit100*totOmegaCoeff*Y;
+       if(err) arg.err=arg.err|(2*8*8*err);
              if(arg.err & 2*8*8*4)  err=7; 
         else if(arg.err & 2*8*8*2)  err=8;
         else if(arg.err & 2*8*8*1)  err=9;
@@ -1560,11 +1170,11 @@ mass22_par(&arg,Tmin);
         else if(arg.err & 2*    4)  err=13;
         else if(arg.err & 2*    2)  err=14;
         else if(arg.err & 2*    1)  err=15;
-        else if(arg.err &       1)  err=16;                                                                                              
-      }                                                                                                                                                                                      
+        else if(arg.err &       1)  err=16;                                                                                                                                                                                                                                                                                    
    }
    if(!saveMediators) cleanMediatorArr();
    if(err_)  *err_=err; else  printFi22Error(stdout,err);
+   Tstart=Tr;
    return omega;
 }
 //===================== Summation =====================
@@ -1580,27 +1190,32 @@ static void addPrtcl(char **all, int n)
 }       
 
 
-double darkOmegaFi(double TR,int *err)
+
+double darkOmegaFi(double TR,char* fiPrtcl,   int *err)
 {  
+
+  int p=pTabPos(fiPrtcl);
+  if(p==0) { printf("darkOmegaFi: unknown particle %s\n", fiPrtcl); if(err) *err=20; return 0; }
+  if(! isFeeble(fiPrtcl)) { printf("darkOmegaFi: particle %s is not feeble\n", fiPrtcl); if(err) *err=21; return 0; } 
+  p=abs(p)-1;
+  NAME=ModelPrtcls[p].name; aNAME=ModelPrtcls[p].aname;
+
   char * feebleDm=malloc(1);
-  char * bath=malloc(1);
   feebleDm[0]=0;
+  addPrtcl(&feebleDm,p);
+  double minFeebleMass=pMass(fiPrtcl);
+  
+  char * bath=malloc(1);
   bath[0]=0;
   double omega=0,dOmega;
-  double minFeebleMass=-1;
+  
   int nFiCh=0;
   omegaFiCh=realloc(omegaFiCh,sizeof(aChannel));
   
   int VZdecayMem=VZdecay, VWdecayMem=VWdecay;  VZdecay=0;VWdecay=0;
   if(VZdecayMem|| VWdecayMem) cleanDecayTable();
 
-  for(int n=0;n<nModelParticles;n++) if(isFeeble(ModelPrtcls[n].name) && ModelPrtcls[n].name[0]=='~')
-  { addPrtcl(&feebleDm,n);
-    double m=pMass(ModelPrtcls[n].name);
-    if(minFeebleMass<0) minFeebleMass=m;
-    else if(m<minFeebleMass) minFeebleMass=m;   
-  }
-
+  
  
   if(minFeebleMass<0) 
   { printf("Feeble particles are not detected\n"); 
@@ -1611,17 +1226,19 @@ double darkOmegaFi(double TR,int *err)
   }
   *err=0;
   
+  makeLnTgrid(TR); 
+  
   for(int n=0;n<nModelParticles;n++) if(!isFeeble(ModelPrtcls[n].name))
   { double m=pMass(ModelPrtcls[n].name);
     if(m>minFeebleMass) 
-    {  double  brTot, brBath, brSig1,brSig2;
+    {  double  brTot, brBath, brSig1;
        txtList L;
        pWidth(ModelPrtcls[n].name,&L);
        int nFiCh_=nFiCh;
-       getDecBrKE(m/3, L, 1, &brTot, &brBath,&brSig1,&brSig2,&nFiCh);
-       if(brBath==0 && brSig1+brSig2>0)
+       getDecBrKE(m/3, L, 1, &brTot, &brBath,&brSig1,&nFiCh);
+       if(brBath==0 && brSig1>0)
        {
-         dOmega=darkOmegaFiDecay(TR,ModelPrtcls[n].name,1,0);
+         dOmega=darkOmegaFiDecay(TR,ModelPrtcls[n].name,NAME);
          omega+=dOmega;         
          if(dOmega) for(int i=nFiCh_;i<nFiCh;i++) omegaFiCh[i].weight*=dOmega; else nFiCh=nFiCh_;
        }  else { addPrtcl(&bath,n); nFiCh=nFiCh_;}
@@ -1643,17 +1260,21 @@ double darkOmegaFi(double TR,int *err)
             compDir,calchepDir,bath+1,feebleDm+1,libDir);
   system(command); 
   free(command);
-//  saveMediators=1;
+//printf("allBath=%s\n", bath+1);  
   if(delWorkDir) cleanWorkPlace(); 
 
   char*fname0=malloc(strlen(libDir)+50);   
   sprintf(fname0,"%s/list_prc.txt",libDir);
   FILE*f0=fopen(fname0,"r");
   free(fname0);
+  saveMediators=1;
+  
   if(f0)
-  { char p[4][P_NAME_SIZE+1];
+  { 
+    char p[4][P_NAME_SIZE+1];
     while(4==fscanf(f0," %[^ ,] , %s -> %[^ ,] , %s",p[0],p[1],p[2],p[3]))
     {  int i,err; 
+//printf(" %s %s -> %s %s\n", p[0],p[1],p[2],p[3]);
        if(strcmp(p[0],p[1])>0) continue;   
        int n[4],n_[4];
        for(i=0;i<4;i++)
@@ -1670,7 +1291,7 @@ double darkOmegaFi(double TR,int *err)
        char proc[100];
        sprintf(proc,"%s,%s->%s,%s", p[0],p[1],p[2],p[3]);
        
-       dOmega=darkOmegaFi22(TR,proc,0,0,&err);
+       dOmega=darkOmegaFi22(TR,proc,NAME,&err);
        
        if(dOmega||err)
        {         
@@ -1683,7 +1304,7 @@ double darkOmegaFi(double TR,int *err)
 
          nFiCh++;
          omegaFiCh=realloc(omegaFiCh,(nFiCh+1)*sizeof(aChannel));
-          omega+=dOmega;
+                  omega+=dOmega;
 
        } 
     }
@@ -1706,9 +1327,7 @@ double darkOmegaFi(double TR,int *err)
      
   if(err)*err=0;      
   saveMediators=0;
-  double omg1,omg2;
-    sort2FiDm(&omg1,&omg2);
-    fracCDM2=omg2/(omg1+omg2);
+  Tstart=TR;
   return omega;
 }
 
@@ -1751,23 +1370,10 @@ void printChannelsFi(double cut, int prcn, FILE * f)
   }  
 }
 
-void sort2FiDm( double * omg1,double * omg2)
-{
-  *omg1=0;
-  *omg2=0;
-
-  for(int i=0; omegaFiCh[i].prtcl[0];i++)
-  { int n,d1=0,d2=0;
-    if(omegaFiCh[i].prtcl[3]==NULL) n=1; else n=2;
-    for(int k=n;k<n+2;k++) if(omegaFiCh[i].prtcl[k][0]=='~') { if(omegaFiCh[i].prtcl[k][1]=='~') d2+=1; else d1+=1;}   
-    *omg1+=d1*Mcdm1/(d1*Mcdm1+d2*Mcdm2)*omegaFiCh[i].weight; 
-    *omg2+=d2*Mcdm2/(d1*Mcdm1+d2*Mcdm2)*omegaFiCh[i].weight;
-  }   
-}
 
 //================================= testing 22 ==================
 
-typedef struct{ numout*cc; REAL m[4]; double sqrtSmin; double C; double nWidth; double T;}  frin22Par;
+typedef struct{ numout*cc; REAL m[4]; double eta[4], sqrtSmin, C, nWidth, T;}  frin22Par;
 
 
 static double NabDmDmInt(double x, frin22Par* arg)
@@ -1782,19 +1388,29 @@ static double NabDmDmInt(double x, frin22Par* arg)
    
    double J=6*T*(1-x)/z;
    double pcm=decayPcm(sqrtS,arg->m[0],arg->m[1]);
-      
+   double M[4];
+   for(int i=0;i<4;i++) M[i]=arg->m[i];
+   double Kout=1;
+   if(mTcut>0)
+   { double dm2=pow(mTcut*T,2);
+     for(int i=0;i<4;i++) if(arg->eta[i]) M[i]=sqrt(M[i]*M[i]+dm2);
+     Kout=decayPcm(sqrtS,M[2],M[3])/decayPcm(sqrtS,arg->m[2],arg->m[3]);
+   }  
+   double Pcm=decayPcm(sqrtS,M[0],M[1]); 
    double cos1=-1,cos2=1;
    double pp;
    if(tTcut>0)
    { pp=2*pcm*decayPcm(sqrtS,arg->m[2],arg->m[3]);
-     double cos0=1-T*T*tTcut*tTcut/pp; 
      
      for(int n=1;;n++)
      {  
         int m,w,pnum;
         char*s=arg->cc->interface->den_info(1,n,&m,&w,&pnum);
         if(!s) break;
-        if(!m) continue;
+//        if(!m) continue;
+        double kappa=Tkappa[pnum]*T;
+        if(kappa==0) continue;
+         double cos0=1-kappa*kappa/pp; 
         if(s[0]==1 && s[1]==3)
         {
           if(cos2>cos0) cos2=cos0;       
@@ -1811,7 +1427,17 @@ static double NabDmDmInt(double x, frin22Par* arg)
    if(cos1>=cos2) return 0;
 //   if(cos1>0.999 || cos2<-0.999) return 0;  
    GGscale=sqrtS;
-   return J*pcm*pcm*sqrtS*sqrtS*bessK1(sqrtS/T)*cs22(arg->cc,1,pcm, cos1, cos2, NULL)/3.8937966E8/(cos2-cos1)*2;
+   double K1=K1to2(sqrtS/T,M[0]/T,M[1]/T,0,arg->eta[0],arg->eta[1]);
+//double K1=bessK1(sqrtS/T);
+   double  res= J*pcm*Pcm*sqrtS*sqrtS*K1*cs22(arg->cc,1,pcm, cos1, cos2, NULL)*Kout/3.8937966E8/(cos2-cos1)*2;
+
+#ifndef NOSTISTICS
+   if((arg->eta[2] || arg->eta[3]) && sqrtS/T<5  ) 
+      res*=K1to2(sqrtS/T,M[2]/T,M[3]/T,0,arg->eta[2],arg->eta[3])/
+           K1to2(sqrtS/T,M[2]/T,M[3]/T,0,0,0);
+#endif 
+
+   return res;
 }
 
 
@@ -1834,7 +1460,12 @@ static double TdYdTfreezeIn(double T, frin22Par*arg)      // integration over s
       passParameters(arg->cc); 
       for(int i=0;i<4;i++) { arg->cc->interface->pinf(1,i+1,arg->m+i,NULL); arg->m[i]=Fabs(arg->m[i]);}
    }  
-   arg-> sqrtSmin=sqrtSminT( arg->m[0], arg->m[1], arg->m[2], arg->m[3],T*tTcut);  
+   arg->sqrtSmin=sqrtSminT( arg->m[0], arg->m[1], arg->m[2], arg->m[3],T*tTcut);  
+   if(mTcut>0)
+   {  double dm2=pow(mTcut*T,2);
+      double sqrtS0=sqrt( pow(arg->m[0],2)+dm2) + sqrt(pow(arg->m[1],2)+dm2);
+      if(sqrtS0>arg->sqrtSmin) arg->sqrtSmin=sqrtS0;
+   } 
    
 //printf("T=%E sqrtSmin/T=%E\n",T, arg-> sqrtSmin/T);   
    arg->T=T;
@@ -1878,20 +1509,33 @@ static double TdYdTfreezeIn(double T, frin22Par*arg)      // integration over s
 static double TdYdTfreezeInLn(double lnT, frin22Par*arg){   double T=exp(lnT);   return  TdYdTfreezeIn(T, arg);}
 static double dYfreezeIn10(double T, frin22Par*arg) { return  log(10)*TdYdTfreezeIn(T, arg);}
 
-double  YfreezeIn22(numout*cc, double T0, double TR, double nWidth, int plot)
-{  
+
+double  YfreezeIn22(char*proc, double T0, double TR, int plot, int * err)
+{
+   numout*cc=newProcess(proc); 
+   if(cc==NULL)                                          { printf("YfreezeIn22: no such process '%s'\n",proc);          if(err)*err=1;  return 0;}
+   if(cc->interface->nprc!=1)                            { printf("YfreezeIn22 does not work with multiple process\n"); if(err)*err=2;  return 0;} 
+   if(cc->interface->nin!=2 || cc->interface->nout!=2)   { printf("YfreezeIn22  works only with 2->2 processes\n");     if(err)*err=3;  return 0;}  
+   if(isFeeble(cc->interface->pinf(1,1,NULL,NULL)) 
+    ||isFeeble(cc->interface->pinf(1,2,NULL,NULL)))      { printf("freezeIn22: incoming particles can not be feeble\n");if(err)*err=4;  return 0;}
+      
    frin22Par par;
    par.cc=cc;
-   if(par.cc==NULL) { printf("cc=NULL \n"); return 0;}
    double Tmem;
    Taddress=varAddress("T");
    if(!Taddress)  printf(" 'T' variable is absent\n");  
-   Tmem=*Taddress; 
+   else Tmem=*Taddress; 
    passParameters(par.cc);
-   par.nWidth=nWidth;       
+   par.nWidth=0;       
    int pdg[4];
    char*name[4];
-   for(int i=0;i<4;i++) { name[i]=par.cc->interface->pinf(1,i+1,par.m+i,pdg+i); par.m[i]=Fabs(par.m[i]);}
+   for(int i=0;i<4;i++) 
+   {  name[i]=par.cc->interface->pinf(1,i+1,par.m+i,pdg+i); 
+      par.m[i]=Fabs(par.m[i]);
+      int spin2;
+      qNumbers(name[i], &spin2,NULL, NULL);
+      if(isFeeble(name[i])) par.eta[i]=0; else par.eta[i]=1-2*(spin2&1);
+   }
    
    int ndf[2];
    for(int i=0;i<2;i++)  par.cc->interface->pinfAux(1, i+1,NULL,NULL,NULL,ndf+i);
@@ -1906,36 +1550,4 @@ double  YfreezeIn22(numout*cc, double T0, double TR, double nWidth, int plot)
    if(Taddress) { *Taddress=Tmem;  calcMainFunc(); cleanDecayTable(); } 
    return res;
 }
-
-/*
-int initFrinArg(char * process,  frin22Par*arg)
-{
-   int Ton=1;
-   arg->cc=newProcess(process);
-   if(arg->cc==NULL) { printf("Can not compile process %s\n", process); return 1;}
-   arg->Ton=0;
-   if(Ton)
-   { Taddress=varAddress("T");
-     if(!Taddress) 
-     {  printf("YfreezeIn22 can not work with parameter Ton because variable 'T' is absent\n"); 
-     }
-     arg->Ton=1; 
-   }     
-   passParameters(arg->cc);
-      
-   int pdg[4];
-   char*name[4];
-   for(int i=0;i<4;i++) { name[i]=arg->cc->interface->pinf(1,i+1,arg->m+i,pdg+i); arg->m[i]=Fabs(arg->m[i]);}
-   
-   int ndf[2];
-   for(int i=0;i<2;i++)  arg->cc->interface->pinfAux(1, i+1,NULL,NULL,NULL,ndf+i);
-   arg->C=ndf[0]*ndf[1];
-   if(pdg[0]==pdg[1]) arg->C/=2;
-   int ndm=0;
-   for(int i=2;i<4;i++) if(name[i][0]=='~') ndm++;
-   arg->C*=ndm;
-   return 0;
-
-} 
-*/
  

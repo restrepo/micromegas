@@ -3,9 +3,9 @@
 all:lGamma.exe
 
 CHEP   =  ../../../CalcHEP_src
-LOOPTOOLS = ../../../Packages/LoopTools/
+LOOPTOOLS = ../../../Packages/LoopTools_2.12-v0
 
-include   $(LOOPTOOLS)FlagsForMake
+include   $(LOOPTOOLS)/FlagsForMake
 
 .PHONY: force squared_me_gg squared_me_gz  renconst util
 
@@ -26,7 +26,7 @@ export FFLAGS
 
 
 lGamma.exe : main.f   nngg.a util.a
-	$(FC) $(FFLAGS) -o lGamma.exe $^ $(LOOPTOOLS)build/libooptools.a  $(CHEP)/lib/libSLHAplus.a $(CHEP)/c_source/SLHAplus/faux.f $(LDFLAGS)
+	$(FC) $(FFLAGS) -o lGamma.exe $^ $(LOOPTOOLS)/build/libooptools.a  $(CHEP)/lib/libSLHAplus.a $(CHEP)/c_source/SLHAplus/faux.f $(LDFLAGS)
 
 utileOBJ = $(subst .F,.o,$(wildcard util/univariate/*.F util/kin/*.F)) $(subst .f,.o,$(wildcard  util/kin/*.f  ))
 util.a: util.a($(utileOBJ))

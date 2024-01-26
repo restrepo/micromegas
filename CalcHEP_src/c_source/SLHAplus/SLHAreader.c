@@ -573,6 +573,7 @@ int slhaRead(char *fname, int mode)
 { int err, anydate=0;
   _f_=fopen(fname,"r"); 
   if(_f_==NULL) { FError=1; return -1;}
+
   err=slhaBasicReader(mode,getLnC,&anydate,NULL);
   fclose(_f_);
   
@@ -788,7 +789,6 @@ int   slhaSTRFormat(char * Block, char * format, char *txt)
        char body_[StrLn+3];
        char buff[StrLn];
        strcpy(body_,dr->body);  strcat(body_," #");
-//printf("body_=%s\n", body_);       
        err=sscanf(body_+i1,format_+i2,txt,buff);
        if(err==2 && strcmp(buff,"#")==0) {return 0; }
      }  

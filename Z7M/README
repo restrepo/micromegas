@@ -1,0 +1,31 @@
+Installation of a new model.
+
+The model of particle interaction has to be defined in the    
+CalcHEP format,   Comput.Phys.Commun. 184 (2013) 1729-1769 //arXiv:arXiv:1207.6082[hep-ph] 
+
+1. Define the model  by writing the
+  extlib1.mdl  func1.mdl  lgrng1.mdl  prtcls1.mdl  vars1.mdl 
+ model files and put these files in the  directory work/models/.
+   LanHEP program  (as well as FeynRules with UFO output) can help  you to generate model files. 
+   The names of all particles in the dark sectors that can potentially be a dark matter candidate  should  start with "~". 
+
+2. To check your model, go to work/  and launch 
+   ./calchep 
+Use "Check Model"  to get  information  about   model inconsistencies. 
+  
+3. External constraints. 
+If your model has external functions  they have to be realized 
+as a  library in lib/aLib.a. If your external functions do not need other 
+libraries and are written in C, then put this code in the lib/
+subdirectory. The library will be compiled automatically.  In more complicated case,
+improve  lib/Makefile
+ 
+4. We provide the  user with  two examples of main programs: 
+main.c and main.F
+
+Compilation of executable is launched by 
+
+    gmake  main=<name of your main file>
+
+if gmake is absent, use make. We assume that in such case make works like 
+gmake.

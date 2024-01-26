@@ -1022,7 +1022,8 @@ u    |~o4  |~UR  |     |-EE*Sqrt2/(6*S2W*MW*sb)                                 
 ~o1  |~o1  |H3   |     |-i*EE/(MW*SW*cb*sb)                                         |B00546*G5
 ~o1  |~o1  |Z    |     |EE/S2W                                                      |B00547*G(m3)*G5
 ~o1  |~o1  |Z.f  |     |i*EE/(MW*SW)                                                |B00548*G5
-~o1  |~o1  |h    |     |-EE/(MW*SW*cb*sb)                                           |B00549
+%~o1  |~o1  |h    |     |-EE/(MW*SW*cb*sb)                                           |B00549
+~o1  |~o1  |h    |     |EE/(CW*SW)                                                  |-CW*Zh21*Zn12*Zn13 + SW*Zh21*Zn11*Zn13 +CW*Zh22*Zn12*Zn14 -SW*Zh22*Zn11*Zn14
 ~o1  |~o2  |H    |     |-EE/(2*MW*SW*cb*sb)                                         |B00551
 ~o1  |~o2  |H3   |     |-i*EE/(2*MW*SW*cb*sb)                                       |B00553*G5
 ~o1  |~o2  |Z    |     |EE/S2W                                                      |B00554*G(m3)*G5

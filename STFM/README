@@ -1,0 +1,34 @@
+Model with bino-wino-like Z2-odd singlet and triplet fermions as used in 
+"Coscattering in micrOMEGAs: a case study for the singlet-triplet dark matter model" 
+by G. Alguero, G. Belanger, S. Kraml, A. Pukov, arXiv:2207.nnnnn 
+
+Model input parameters are:
+- MG1 : singlet mass parameter m, see eq.(1), in GeV 
+- MG2 : triplet mass parameter M, see eq.(1), in GeV
+- LAM    : capital Lambda in dim-5 Lagragian, eq.(2), in GeV 
+- lmbd   : small lambda in dim-5 Lagragian, eq.(2) 
+- kappa  : kappa^\prime in dim-5 Lagragian, eq.(2) 
+- kappa2 : kappa in dim-5 Lagragian, eq.(2) 
+
+Default values are LAM=10000, kappa=kappa2=0, lmbd=1e-3 
+
+Additional relevant parameters are (see work/models/vars1.mdl for full list)
+fpi     |0.13         |pion decay constant
+Mpi     |0.1396       |mass of charged pion
+A mass of 7 MeV is introduced for the light quarks (u,d) 
+to prevent ~1+ decays into ~o2 plus free quarks instead of pions.
+
+Two sample input files are provided, one for the co-annihilation region (param_coann.par)
+and one for the co-scattering region (param_cosc.par).
+
+In addition to the usual example main program (main.c), we provide the user with 
+a demo program (demo.c) which shows more of the functionality relevant for 
+co-scattering scenarios, i.e. very small DM couplings such that chemical 
+equilibrium might not be maintained.
+
+Compilation of executable is launched by 
+
+    gmake  main=<name of your main file>
+
+if gmake is absent, use make. We assume that in such case make works like 
+gmake.

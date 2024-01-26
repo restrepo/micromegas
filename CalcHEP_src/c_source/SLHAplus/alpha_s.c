@@ -35,14 +35,20 @@ static double alpha3(double Q, double lambda, int nf)
   double   b0=  (11-(2./3.)*nf)/4,
            b1=  (102-(38./3.)*nf)/16,
            b2=  (2857./2. -5033./18.*nf +325./54.*nf*nf)/64,
-           b3=   114.23-27.1339+1.58238*nf*nf+0.0058567*nf*nf*nf; 
+           b3=   114.23-27.1339*nf+1.58238*nf*nf+0.0058567*nf*nf*nf,
+           b4=  524.56 -181.8*nf+17.16*nf*nf -  0.22586*nf*nf*nf-0.0017993*nf*nf*nf*nf; // 1606.08659
 //  b_i  RG coefficients for  a=alpha/pi  b_i=beta_i*pi^{i+1}             
   double t=2*log(Q/lambda), Lt=log(t), b0t=b0*t;
-  double d1=b1/(b0*b0t), d2=b2/(b0*b0t*b0t), d3=b3/(b0*b0t*b0t*b0*t);
+  double d1=b1/(b0*b0t), d2=b2/(b0*b0t*b0t), d3=b3/(b0*b0t*b0t*b0t);
 
-// http://pdg.lbl.gov/2016/reviews/rpp2016-rev-qcd.pdf
-  return  (M_PI/b0t)*(1-d1*Lt+ d1*d1*( Lt*Lt-Lt-1) +d2 
-   - d1*d1*d1*(Lt*Lt*Lt-2.5*Lt*Lt-2*Lt+0.5) -3*d1*d2*Lt +0.5*d3);   
+// http://pdg.lbl.gov/2023/reviews/rpp2022-rev-qcd.pdf
+  double res=  (M_PI/b0t)*(1-d1*Lt+ d1*d1*( Lt*Lt-Lt-1) +d2 
+   - d1*d1*d1*(Lt*Lt*Lt-2.5*Lt*Lt-2*Lt+0.5) -3*d1*d2*Lt +0.5*d3   
+   +( 18*b0*b1*b1*b2*(2*Lt*Lt-Lt-1)+ pow(b1,4)*(6*pow(Lt,4)-26*pow(Lt,3)-9*Lt*Lt+24*Lt+7) - b0*b0*b3*b1*(12*Lt+1)+2*b0*b0*(5*b2*b2+b0*b4))/(6*pow(b0*b0t,4))
+   );
+   
+  if(!isfinite(res)) return 0;
+  else return res;
 }
 
 
@@ -138,24 +144,35 @@ double alphaQCD(double Q)
 { 
   if(notInitialized) initQCD(0.1184,1.2,4.23,173.07);
   if(Q<qLim) Q=qLim;
+//  if(Q<qMin) printf("alpha(%E)= 1",Q); else printf("alpha(%E)=%E\n",Q,alpha3(Q,lambda[NF(Q)],NF(Q)));
   if(Q<qMin) return 1; return alpha3(Q,lambda[NF(Q)],NF(Q));
 }
 
 
 
 static double m_fact(int nf, double alpha1, double alpha2)
-{  double k,c1,c2;
-
+{  double k,c1,c2,c3;
+/*
    switch(nf)
    { case 3: k=4./9;   c1=0.895; c2=1.371; break;
      case 4: k=12./25; c1=1.014; c2=1.389; break;
      case 5: k=12./23; c1=1.175; c2=1.501; break;
      case 6: k=4./7;   c1=1.398; c2=1.793; break;
    }
+*/   
+   switch(nf)
+   {
+     case 3 : k=4./9;    c1=8.950617E-01;   c2=1.371433E+00;   c3= 1.951696E+00;  break;
+     case 4 : k=12./25;  c1=1.014133E+00;   c2=1.389207E+00;   c3= 1.090554E+00;  break;
+     case 5 : k=12./23;  c1=1.175488E+00;   c2=1.500707E+00;   c3= 1.724858E-01;  break;
+     case 6 : k=4./7;    c1=1.397959E+00;   c2=1.793479E+00;   c3=-6.834291E-01;  break;
+   }
+
+
 
   { double xx=
-           pow(2*alpha2/k,k)*(1+alpha2*(c1+alpha2*c2))/
-           (pow(2*alpha1/k,k)*(1+alpha1*(c1+alpha1*c2)));
+           pow(alpha2,k)*(1+alpha2*(c1+alpha2*(c2+c3*alpha2)))/
+          (pow(alpha1,k)*(1+alpha1*(c1+alpha1*(c2+c3*alpha1))));
     return xx;
   }          
 }
@@ -214,8 +231,11 @@ static double DeltaQCD(double Q)   // M. Spira, Fortsch. Phys. 46 (1998) 203 [ar
  int nf=NF(Q);
  double res, res1;
 
- return  a*( 5.67 + a*( (35.94-1.36*nf) + a*(164.14-nf*(25.77-nf*0.259) )));
+ return  a*( 5.67 + a*( (35.94-1.36*nf) + a*(164.14-nf*(25.77-nf*0.259) 
+ + a*(39.34 -nf*(220.9 -nf*(9.685 -nf*0.0205)))    //Baikov, Chetyrkin, Kuhn  arxiv.org/pdf/hep-ph/0511063.pdf
+ )));
 }
+
 
 double MqEff(double mass2GeV, double Q) { return MqRun(mass2GeV,Q)*sqrt(1+DeltaQCD(Q));}
 

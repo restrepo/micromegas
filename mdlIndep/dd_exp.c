@@ -3,7 +3,7 @@
    various modules of micrOMEGAs  
 ================================*/
 
-#define XENON1T
+//#define XENON1T
 //#define DS_50
 //#define PICO
 //#define CRESST_III
@@ -12,7 +12,9 @@
 //#define VELOCITY
 //#define SD_LIMITS
 //#define Xenon1tFit
+#define LZ
 
+#define FIT
 /*===== End of DEFINE  settings ===== */
 
 #include"../include/micromegas.h"
@@ -303,7 +305,7 @@ int main(int argc,char** argv)
 {
 
 displayPlot("Xenon/Panda","M", 6,1000, 1,2,"Xenon",0, XENON1T_90, NULL, "PandaX", 0, PandaX4T,NULL);
-exit(0); 
+
 
 displayPlot("XENON", "E", 1,20,0,4,"Detection",0, pXe1T_D,NULL,"Selection",0, pXe1T,NULL,"down",0,XenonEff1,NULL,"up",0, XenonEff2,NULL); 
 
@@ -464,6 +466,12 @@ DS_neStart=4;
       csTab2[i]=1E-36*f*csTest;    
   } 
 
+
+  displayPlot("PICO-60  90% exclusion","M[GeV]", mMin,mMax,1,2  //Fig.8
+                 ,"PICO_SI",0, PICO60_90,NULL
+                 ,"PICO_SDp",0, PICO60_SDp_90,NULL
+               );
+
                       
   displayPlot("PICO-60-Spin Independent 90%% exclusion","M[GeV]", mMin,mMax,1,3  //Fig.8
                  ,"PICO60_SI_new",0, PICO60_90,NULL
@@ -495,6 +503,11 @@ DS_neStart=4;
 #ifdef CRESST_III
 {
    mMin=0.140;mMax=30;
+
+displayPlot("CRESST-III  90% exclusion","M[GeV]", mMin,mMax,1,2
+                 ,"CRESST_III  SI   ",0, CRESST_III_90,NULL
+                 ,"CRESST_III SDn",0, CRESST_III_SDn_90,NULL
+           );      
    
 
   for(int i=0;i<100;i++)
@@ -1052,7 +1065,14 @@ double vSurface(double vD, double l)
                  ,"MO (FF=Klos et.al.)", 100, csTab1,NULL
                  ,"MO (FF=Klos^{min} et.al.)", 100, csTab2,NULL
                  ,"MO (FF=Fitzpatrick et.al.)", 100, csTab3,NULL 
+                                               );
+
+  displayPlot("Xenon1T-Spin Dependent   90%% exclusion","M[GeV]", mMin,mMax,1,2
+                 ,"SD_p",0, XENON1T_SDp_90,NULL
+                 ,"SD_n",0, XENON1T_SDn_90,NULL
                                                 );  
+
+
 
   mMin=6; mMax=1000;
   for(int i=0;i<100;i++)
@@ -1140,12 +1160,49 @@ int     nCall=1000;
 }
 #endif 
 
+
+
+
+#ifdef LZ
+
+double LZ5Tmedian(double M)
+{
+   double MA[40]={    9.0     ,    11.0   ,    13.0   ,    16.0   ,   17.0   ,     19.0   ,    21.0   ,   23.0   ,     26.0   ,    29.0   ,    30.0   ,    32.0   , 36.0      , 40.0      , 43.0      ,  46.0    ,   55.0    ,    65.0    ,   78.0    ,     91.0  ,    110.0  ,    129.0  ,    155.0  ,    182.0  ,   219.0  ,     256.0  ,   308.0  ,     361.0  ,    434.0  ,   508.0  ,     612.0  ,    716.0  ,    862.0  ,    1008.0 ,  1214.0 ,      1420.0 ,    1710.0 ,   2000.0 ,     5000.0 , 10000.0   };   
+   double cs[40]={4.69686e-46,1.52889e-46 ,7.44346e-47,4.09400e-47,3.52884e-47,2.77503e-47,2.42580e-47,2.21701e-47,1.98015e-47,1.85997e-47,1.82956e-47,1.78874e-47,1.80092e-47,1.75504e-47,1.83114e-47,1.85193e-47,1.92722e-47,2.08789e-47,2.32229e-47,2.58468e-47,2.96733e-47,3.41794e-47,4.00856e-47,4.62483e-47,5.42319e-47,6.31839e-47,7.50248e-47,8.78203e-47,1.04532e-46,1.18862e-46,1.41232e-46,1.65414e-46,2.01995e-46,2.34070e-46,2.86025e-46,3.35725e-46,4.02718e-46,4.62836e-46,1.17119e-45,2.31635e-45};
+   return polint3(M,40,MA,cs);
+}
+
+
+
+{
+ vRot=238;
+ vEsc=10000;
+// displayPlot("LZeff","E",  0,5,0,1,"LZEff",0,LZEff,NULL);
+
+
+  double dNdE[RE_DIM];
+
+  dNdE_fact=LZEff;
+  for(Mcdm=9; Mcdm<1000; Mcdm*=1.2)
+  {  
+     double cs=LZ5T(Mcdm)*1E36;
+     double Emax=1E6*2*0.94*125*pow( (vEsc+vEarth)/299792.*Mcdm/(Mcdm+0.94*132),2) ;    
+     if(Emax>80) Emax=80;
+     nucleusRecoilCS(Maxwell,130,Z_Xe,0*J_Xe131,SxxXe131,cs,cs,0,0,dNdE);
+     double nEvents=60*5500*simpson_arg(recoilSignal,dNdE,0.075, Emax, 1E-3,NULL);
+     double cs_m=LZ5Tmedian(Mcdm)*1E36;
+     printf(" %.2E %.2E %.2E \n",Mcdm, nEvents, nEvents*cs_m/cs);
+  }
+
+  printf("signal=%E\n", FeldmanCousins( 0, 1.2, 0.9));
+
+
+}
+#endif
  
 
   killPlots();
 
   return 0;
 }
-  
 
-        

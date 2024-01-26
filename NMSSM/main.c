@@ -358,7 +358,7 @@ int main(int argc,char** argv)
   VWdecay=1; VZdecay=0; cleanDecayTable();  
   
   Omega=darkOmega(&Xf,fast,Beps,&err);
-// Omega=darkOmega2(fast,Beps);
+// Omega=darkOmega2(fast,Beps,&err);
   
   printf("Xf=%.2e Omega=%.2e\n",Xf,Omega);
   if(Omega>0)printChannels(Xf,cut,Beps,1,stdout);

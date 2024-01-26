@@ -402,7 +402,6 @@ double sqmeIntDel(par_22*arg, double eps)
     sum+=dSum; 
   }      
   free(intervals);
-  if(arg->pdg[0]==arg->pdg[1]) sum*=2;
    if(!isfinite(sum)) arg->err=arg->err|2;
   return sum;
 } 

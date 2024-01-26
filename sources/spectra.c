@@ -2,15 +2,15 @@
 #include"micromegas_aux.h"
 #include"micromegas_f.h"
 
-#define NEn 28  /* Number of Energy points for interpolation */
-#define Nin 16 
-#define Nout 7
+#define NEn 36  /* Number of Energy points for interpolation */
+#define Nin 18 
+#define Nout 6
 #define QCUT 25 //2.5
 #define X1CUT (2.E-2)
 
-#define V0 (vRot/299792.*1.5957691)  /* 2*sqrt(2/PI).  10^(-6)*Mslp < Width */
+#define V0 (vRot/299792.*1.732)  /*  1.732=sqrt(3)  */
 
-//#define V0 1E-3
+//#define V0 1E-2
  
 //#define DISPLAY_SPECTRA 
 /*#define ECTEST*/
@@ -24,6 +24,7 @@ static char* errMess=NULL;
 aChannel* vSigmaCh=NULL;
 static int nAnCh=0;
 static double GG=1.23;
+
 
 static float phidiff[Nin][Nout][NEn][NZ];
 
@@ -428,7 +429,8 @@ static int readSpectra(void)
   char *fnames[Nin]={"gg.dat","dd.dat","uu.dat","ss.dat","cc.dat",
                      "bb.dat","tt.dat","ee.dat","mm.dat","ll.dat",
                      "zz.dat","zz_t.dat","zz_l.dat",
-                     "ww.dat","ww_t.dat","ww_l.dat"};
+                     "ww.dat","ww_t.dat","ww_l.dat",
+                     "pi0pi0.dat","pippim.dat"};
 
   if(rdOk) return 0;
   buff=malloc(strlen(micrO)+100);
@@ -436,13 +438,12 @@ static int readSpectra(void)
   for(n=0;n<Nin;n++)
   {  sprintf(buff,"%s/sources/data/%s",micrO,fnames[n]);
      f=  fopen(buff,"r");
-//     printf("f=%p\n",f);       
 //     fclose(f); f=NULL;
      
-     if(f==NULL) { free(buff);return 1;} 
-//printf("%s\n", buff);        
+     if(f==NULL) { free(buff);return 1;}    
      for(i=0;i<6;i++)
-     { fscanf(f,"%*s"); 
+     { char ppp[20];
+       fscanf(f,"%s",ppp);
        for(k=0;k<NEn;k++)
        {
          for(l=0;l<NZ;l++) if(1!=fscanf(f,"%f",phidiff[n][i][k]+l)) break;
@@ -461,7 +462,7 @@ static int readSpectra(void)
 printf("Energy conservation test\n");
 for(n=0;n<Nin;n++) for(k=0;k<NEn;k++)
 {
-    double mi[NEn]={2,5,10,25,50,80.3,85,91.2,92,95,100,110,120,125,130,140,150,176,200,250,350,500,750,1000,1500,2000,3000,5000};
+    double mi[NEn]={0.1,0.15,0.2,0.3,0.5,0.8,1.1,1.5,2,5,10,25,50,80.3,85,91.2,92,95,100,110,120,125,130,140,150,176,200,250,350,500,750,1000,1500,2000,3000,5000};
 
   double x[6];
   for(n=0;n<Nin;n++) for(k=0;k<NEn;k++)
@@ -510,25 +511,28 @@ double zInterp(double zz, double * tab)
    return r; 
 }
 
-
+//char *fnames[Nin]={"gg.dat","dd.dat","uu.dat","ss.dat","cc.dat","bb.dat","tt.dat","ee.dat","mm.dat","ll.dat","zz.dat","zz_t.dat","zz_l.dat","ww.dat","ww_t.dat","ww_l.dat"};
+//                      0        1        2        3        4        5        6        7        8        9        10         11         12       13         14         15
 
 static void mInterp(double Nmass,  int  CHin,int  CHout, double*tab)
 {  
-//  float mi[NEn]={10,25,50,80.3,91.2,100,150,176,200,250,350,500,750,1000,1500,2000,3000,5000};
-   double mi[NEn]={2,5,10,25,50,80.3,85,91.2,92,95,100,110,120,125,130,140,150,176,200,250,350,500,750,1000,1500,2000,3000,5000};
+   double mi[NEn]={0.1,0.15,0.2,0.3,0.5,0.8,1.1,1.5,2,5,10,25,50,80.3,85,91.2,92,95,100,110,120,125,130,140,150,176,200,250,350,500,750,1000,1500,2000,3000,5000};
    int l,i0;
    double c0,c1;
    float *p0,*p1;
    for(i0=0; i0<NEn && Nmass>=mi[i0] ;i0++);
    if(i0) i0--;
 
-   switch(CHin)
+   int i00=-1;
+   switch(CHin)  /* below pole mass */
    { 
-     case 14: case 15: case 16: case 17: if(i0<5)
-      { i0=6; for(l=1;l<NZ;l++) tab[l]=phidiff[CHin][CHout][i0][l-1]; tab[0]=Nmass; return; }
-     case 10: case 11: case 12: case 13: if(i0<7)
-      { i0=9; for(l=1;l<NZ;l++) tab[l]=phidiff[CHin][CHout][i0][l-1]; tab[0]=Nmass; return; }
+     case  6:                      if(i0<17) i00=17; /* t m<17   */
+     case 13: case 14: case 15:    if(i0<5)  i00=6;  /* W m<80.3 */
+     case 10: case 11: case 12:    if(i0<7)  i00=8;  /* Z m<91.2 */
    } 
+
+   if(i00>=0) {for(l=1;l<NZ;l++) tab[l]=phidiff[CHin][CHout][i00][l-1]; tab[0]=Nmass; return; }
+
    p0=phidiff[CHin][CHout][i0];
    p1=phidiff[CHin][CHout][i0+1];
    if(i0==NEn-1 || Nmass<=2) for(l=1;l<NZ;l++) tab[l]= p0[l-1];
@@ -629,11 +633,14 @@ void boost(double Y, double M0, double mx, double*tab)
 { double chY=cosh(Y), shY=sinh(Y);
   int l,k;
   double tab_out[NZ];  
-
   boostParStr  par;
   par.m=mx;
   par.tab=tab;
-  
+/*
+static int N=0;
+N++;  
+if(N==11) displayPlot("boost","e",tab[0]/1E7, tab[0],1,1,"",0,SpectdNdE,tab);
+*/
   if(Y<0.01) return;
   
 //m12=1.073733E-03 pcm=5.249327e-02 Y=4.582795e+00  tab[0]=5.368667e-04 cosh(Y)*tab[0]=2.625212E-02   M0=5.250000E-02 M=7.046556E-02
@@ -666,7 +673,6 @@ void boost(double Y, double M0, double mx, double*tab)
         e2=chY*(e+mx)+shY*p-mx;
       }
     }
-//printf("l=%d e=%E e1=%E e2=%E\n",l,e,e1,e2);    
     if(e1>=tab[0]) {tab_out[l]=0; continue;}
     if(e2>tab[0]) e2=tab[0];
     
@@ -676,7 +682,25 @@ void boost(double Y, double M0, double mx, double*tab)
         
     if(e1>=tab[0]) {tab_out[l]=0; continue;}    
     if(e2>tab[0]) e2=tab[0];
-    if (e1>=e2) tab_out[l]=0; else tab_out[l]=e*simpson_arg(FUNB,&par, e1,e2,1.E-3,NULL)/2/shY;
+
+    int err=0;
+    if (e1>=e2) tab_out[l]=0; else tab_out[l]=e*simpson_arg(FUNB,&par, e1,e2,1.E-3,&err)/2/shY;
+    if(err && l && tab_out[l-1]==0) err=0;
+    if(err) 
+    { printf("problem in simpson file spectra.c line 685\n"); 
+      displayPlot("boost??? ","e",6.904344E-03,9.981607E-03,0,1,"FUNB",0, FUNB,&par);  
+      displayPlot("boost??? ","e",e1,e2,0,1,"FUNB",0, FUNB,&par);
+      extern void*funcAddress;
+      funcAddress=FUNB;
+        simpson_arg(FUNB,&par, e1,e2,1.E-3,NULL);
+      exit(0);
+    }
+/*
+    if(err&& N==11)
+    { printf("Y=%E\n",Y);
+      displayPlot("FUNB", "e", e1,e2,0,1,"",0,FUNB,&par);
+    }
+*/                
   }
   
   for(l=1;l<NZ;l++) tab[l]=tab_out[l];
@@ -684,8 +708,9 @@ void boost(double Y, double M0, double mx, double*tab)
 //  printf("tab[0]=%E M0=%E\n",tab[0],M0);
 }
 
-static double outMass[6]= {0.,0.511E-3,0.939,0.,0.,0.};
-char* outNames[6]={"gamma","e+","p-","nu_e","nu_mu","nu_tau"};
+
+static double outMass[Nout]= {0.,0.511E-3,0.939,0.,0.,0.};
+char* outNames[Nout]={"gamma","e+","p-","nu_e","nu_mu","nu_tau"};
 
 int basicSpectra(double Mass, int pdgN, int outN, double * tab)
 { 
@@ -707,6 +732,8 @@ int basicSpectra(double Mass, int pdgN, int outN, double * tab)
     case 24:    inP=13; break;  /*w*/
     case 24+'T':inP=14; break;
     case 24+'L':inP=15; break;
+    case 111   :inP=16; break;
+    case 211   :inP=17; break;
     case 12:case 14: case 16: case 22:
     {  if( (N==22 && outN==0) ||  (N-12 == 2*(outN-3)))
        {
@@ -736,6 +763,85 @@ int basicSpectra(double Mass, int pdgN, int outN, double * tab)
   }    
   return 0;
 }
+
+
+#define Nch   14
+#define NM    60
+#define NX    180   
+
+
+int basicSpectraA(double Mass, int pdgN, int outN, double * tab)
+{
+
+   tab[0]=Mass;
+   for(int i=1;i<NZ;i++) tab[i]=0;
+   static int init=0;
+   static double dmMass[NM], x[NX];
+
+   static float phidiffA[Nch][Nout][NM][NX]; 
+
+   if(init==0)
+   {
+//printf("READ\n");
+      char* src[Nout]={"AtProduction-Ga.dat",  "AtProduction-Positrons.dat", "AtProduction-AntiP.dat",  
+                    "AtProduction-Nuel.dat","AtProduction-Numu.dat",      "AtProduction-Nuta.dat"};
+      for(int i=0;i<Nch;i++) for(int j=0;j<Nout;j++) for(int k=0;k<NM;k++) for(int l=0;l<NX;l++) phidiffA[i][j][k][l]=0;
+
+      char* buff;
+      buff=malloc(strlen(micrO)+100);
+
+      for(int k=0;k<Nout;k++) 
+      { 
+         sprintf(buff,"%s/sources/data/woUncertainty/%s",micrO,src[k]); 
+         FILE*F=fopen(buff,"r"); 
+
+//printf("F=%p\n",F);
+         fscanf(F,"%*[^\n]\n");
+         for(int m=0;m<NM;m++) for(int ix=0;ix<NX;ix++)
+         {  fscanf(F,"%lf %lf",dmMass+m,x+ix); /*printf("M=%E x=%E\n",dmMass[m],x[ix]);*/     for(int ich=0;ich<Nch;ich++){    fscanf(F,"%f",&(phidiffA[ich][k][m][ix]));
+               }}
+            for(int m=0;m<NM;m++) for(int ix=0;ix<NX;ix++)for(int ich=0;ich<Nch;ich++) phidiffA[ich][k][m][ix]/=log(10);
+      }
+      free(buff);
+      init=1;
+   } 
+
+  int ch=-1;
+  switch(pdgN) 
+  { case 1  : ch=4 ; break;
+    case 2  : ch=3 ; break;
+    case 3  : ch=5 ; break;
+    case 4  : ch=6 ; break;
+    case 5  : ch=7 ; break;
+    case 6  : ch=8 ; break;
+    case 11 : ch=0 ; break;
+    case 13 : ch=1 ; break;
+    case 15 : ch=2 ; break;
+    case 21 : ch=12; break;
+    case 22 : ch=9 ; break;
+    case 23 : ch=11; break;
+    case 24 : ch=10; break;
+    case 25 : ch=14; break;
+  }
+  if(ch<0) return 1;
+  int m;
+  for(m=0;m<NM && Mass>dmMass[m];m++) continue;
+  m--;
+  double stab[NX];
+  if(m==NM-1) for(int ix=0;ix<NX;ix++) stab[ix]=phidiffA[ch][outN][m][ix]; 
+  else
+  {  double a=(Mass-dmMass[m])/(dmMass[m+1]-dmMass[m]);
+     for(int ix=0;ix<NX;ix++)  stab[ix]=(1-a)*phidiffA[ch][outN][m][ix]+a*phidiffA[ch][outN][m+1][ix];   
+  }
+
+  for(int i=1;i<NZ;i++) tab[i]=polint3(exp(Zi(i)), NX, x, stab);
+  return 0;
+}
+
+#undef Nch  // 14
+#undef NM   // 60
+#undef NX   // 180   
+
 
 /*static*/ void getSpectrum2(int wPol, double M, char*n1,char*n2,int outP, double *tab);
 
@@ -830,12 +936,10 @@ void  decaySpectrum(char*pName,int outP, double*tabD)
    
          double Y=asinh(pcm/m12);
          boost(Y, M/2, outMass[outP], tab12);
-         if(isSMP(pNum(p[i3])))
-         {  double m=arg13.mass[i3];
-            double e=sqrt(pcm*pcm+m*m);  
-            basicSpectra(e,abs(pNum(p[i3])),outP,tabD);
-            for(int i=1;i<NZ;i++) tabD[i]/=2;
-         } 
+
+         double m=arg13.mass[i3];
+         double e=sqrt(pcm*pcm+m*m);
+         if(0==basicSpectra(e,abs(pNum(p[i3])),outP,tabD)) for(int i=1;i<NZ;i++) tabD[i]/=2; 
          else 
          {  
             decaySpectrum(p[i3],outP, tabD);
@@ -880,12 +984,12 @@ void getSpectrum2(int pol, double M,char*n1,char*n2,int outP, double *tab)
   tab[0]=M/2;
   for(i=1;i<NZ;i++) tab[i]=0;
    
-  if( (isSMP(N1) &&  N1+N2==0 ) || (N1==21 && N2==21) || (N1==22 && N2==22) ||  (N1==23 && N2==23)   )
-  {   N=abs(N1);
-      if(N==23 || N==24)  N+=pol;    
-      basicSpectra(M/2, N, outP, tab);
-      return;
-  }     
+  if(abs(N1)==abs(N2)) 
+  {    
+     N=abs(N1);
+     if(N==23 || N==24)  N+=pol;    
+     if(0==basicSpectra(M/2, N, outP, tab)) return;
+  }  
          
     char* nn[2];
     double mm[2];
@@ -914,11 +1018,11 @@ void getSpectrum2(int pol, double M,char*n1,char*n2,int outP, double *tab)
     
     for(k=0;k<2;k++)
     { N=pNum(nn[k]);
-      if(isSMP(N))
-      {  if(N==23||N==24) N+=pol;
-         basicSpectra(E[k],N,outP,tabAux);
+      if(N==23||N==24) N+=pol;
+      if(0==basicSpectra(E[k],N,outP,tabAux))  
+      { 
          for(int i=1;i<NZ-1;i++) tabAux[i]/=2;
-         addSpectrum(tab, tabAux);
+          addSpectrum(tab, tabAux);
       }     
       else 
       {  if(mm[k]==0)
@@ -1049,7 +1153,6 @@ for(int K=0;K<K_max;K++)
     char *N[4];
     int pdg[4];
     int l,l_;
-    
     for(i=0;i<4;i++) N[i]=libPtr->interface->pinf(k+1,i+1,m+i,pdg+i);
     cc23=NULL;
     v_cs[k]=0;
@@ -1091,11 +1194,21 @@ for(int K=0;K<K_max;K++)
     }
     else  if(m[2]+m[3]< m[0]+m[1])
     {  err=0;
-#ifdef V0    
-      v_cs[k]=V0*cs22(libPtr,k+1,V0*m[0]*m[1]/(m[0]+m[1]),-1.,1.,&err); 
+#ifdef V0
+      double pcm=V0*m[0]*m[1]/(m[0]+m[1]);
+      double csGeV=cs22(libPtr,k+1,pcm,-1.,1.,&err)/3.8937966E8;
+      improveCrossSection(pdg[0],pdg[1],pdg[2],pdg[3],pcm,&csGeV);    
+      v_cs[k]=V0*csGeV*3.8937966E8;  
 #else 
       v_cs[k]= vcs22(libPtr,k+1,&err);
 #endif 
+/*
+printf("%s %s => %s %s  %E \n", libPtr->interface->pinf(k+1,1,NULL,NULL)
+                              , libPtr->interface->pinf(k+1,2,NULL,NULL)
+                              , libPtr->interface->pinf(k+1,3,NULL,NULL)
+                              , libPtr->interface->pinf(k+1,4,NULL,NULL)
+                              , v_cs[k]    );
+*/
      if(v_cs[k]<0) v_cs[k]=0; 
       vcsSum+=v_cs[k];
     } else v_cs[k]=-1;
@@ -1394,6 +1507,13 @@ double SpectdNdE(double E, double *tab){
   if(E>tab[0]) return 0;
   z=log(E/tab[0]); 
   return 1/E*zInterp(z,tab); 
+}
+
+double eSpectdNdE(double E, double *tab){
+  double z;
+  if(E>tab[0]) return 0;
+  z=log(E/tab[0]); 
+  return  zInterp(z,tab); 
 }
 
 

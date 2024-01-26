@@ -1,4 +1,4 @@
-SM(+hgg+h4G)
+IDM
  Particles 
 Full   Name     | P | aP|  number  |spin2|mass|width|color|aux| LaTeX(A)       |  LateX(A+)         |
 photon          |A  |A  |22        |2    |0   |0    |1    |G  |A               |A                   |
@@ -18,6 +18,6 @@ s-quark         |s  |S  |3         |1    |Ms  |0    |3    |   |s               |
 t-quark         |t  |T  |6         |1    |Mtp |!wt  |3    |   |t               |\bar{t}             |
 b-quark         |b  |B  |5         |1    |Mb  |0    |3    |   |b               |\bar{b}             |
 Higgs           |h  |h  |25        |0    |Mh  |!wh  |1    |   |h               |h                   |
-G1T             |G1t|G1T|          |2    |Maux|0    |8    |!* |G1t             |G1T                 |
-G2T             |G2t|G2T|          |2    |Maux|0    |8    |!* |G2t             |G2T                 |
-x1              |x1 |X1 |          |0    |Maux|0    |1    |!* |x1              |X1                  |
+odd Higgs       |~H3|~H3|36        |0    |MH3 |!wH3 |1    |   |(H3)            |(H3)                |
+Charged Higgs   |~H+|~H-|37        |0    |MHC |!wHC |1    |   |(H+)            |(H-)                |
+second Higgs    |~X |~X |35        |0    |MHX |!wHX |1    |   |(X)             |(X)                 |

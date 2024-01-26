@@ -22,7 +22,7 @@ static double RS=6.96E10;   /* cm */
 
 static double (*fvStat)(double)=NULL;
 static double v_stat,MA, muX, FFalpha;
-static char*CDM;
+static char*CDM_;
 /*
 double Tcapture(double T, double w, double v)
 { double mu=M_cdm/MA;
@@ -56,17 +56,34 @@ static double r3Integrand(double r3)
   else  return  rhoGeVcm3*mfrac*(1+muX)*( exp(-v_stat*v_stat*FFalpha) - exp(-(v_stat*v_stat+vescQ)*FFalpha/(1+muX)))/FFalpha;
 }
 
+
+static double rIntegrand(double r)
+{
+  double  vescQ,rhoGeVcm3,mfrac,w2rate;
+  vescQ=2*polint1(r/Rcm,nTab,rTab,phiTab);
+  w2rate= vescQ-v_stat*v_stat*muX;
+  if(w2rate<=0) return 0;
+  rhoGeVcm3=polint1(r/Rcm,nTab,rTab,rhoTab)/mp_g;   // in proton mass units
+  mfrac=polint1(r/Rcm,nTab,rTab,aFraction);
+  if(FFalpha==0) return rhoGeVcm3*mfrac*w2rate; 
+  else  return  3*r*r*rhoGeVcm3*mfrac*(1+muX)*( exp(-v_stat*v_stat*FFalpha) - exp(-(v_stat*v_stat+vescQ)*FFalpha/(1+muX)))/FFalpha;
+}
+
+
+
 static double vIntegrand(double v)
 { double u=fvStat(v); 
   double phiv,Rmax;
   if(!u)return 0;
-
+  int err;
   v_stat=v*1.E3/Vlight;  // km -> c units 
   phiv=muX*v_stat*v_stat/2;
 
   if(phiv> phiTab[0]) return 0;
   if(phiv <= phiTab[nTab-1]) Rmax=Rcm; else   Rmax=Rcm*polint1(phiv,nTab,phiTab,rTab); 
-  return u*(4*M_PI/3.)*simpson(r3Integrand,0,Rmax*Rmax*Rmax,1.E-4,NULL)*Vlight*Vlight*1.E-1; // in cm
+  double res= u*(4*M_PI/3.)*simpson(rIntegrand,0,Rmax,1.E-4,&err)*Vlight*Vlight*1.E-1; // in cm
+  if(err) { printf(" error in simpson neutrino.c like 87 \n"); } 
+  return res;
 }
 
 
@@ -725,7 +742,7 @@ static void getSpectrum(int forSun, double M, double m1,double m2,char*n1,char*n
         }
         if(Qaddress){ *Qaddress=Qstat; calcMainFunc();}
           
-        if(w==0) { if(abs(pdg[k])!= abs(pNum(CDM)))   fprintf(stderr,"Can't find decays for  %s\n",nn[k]);
+        if(w==0) { if(abs(pdg[k])!= abs(pNum(CDM_)))   fprintf(stderr,"Can't find decays for  %s\n",nn[k]);
                    continue;
                  }
                  
@@ -886,9 +903,9 @@ int neutrinoFlux(double (* fvf)(double), int forSun, double* nu, double * Nu)
   
   if(CDM1&&CDM2) { printf(" The 'neutrinoFlux' code is still not upgrated for 2DM case\n");  return 1;}
 
-  if(CDM1) CDM=CDM1; else CDM=CDM2;
+  if(CDM1) CDM_=CDM1; else CDM_=CDM2;
 
-  double M_cdm=pMass(CDM);
+  double M_cdm=pMass(CDM_);
      
   if(nu)nu[0]=M_cdm;
   if(Nu)Nu[0]=M_cdm;
@@ -898,7 +915,7 @@ int neutrinoFlux(double (* fvf)(double), int forSun, double* nu, double * Nu)
   if(err) return err;
 
   
-  err=nucleonAmplitudes(CDM,pA0,pA5,nA0,nA5);
+  err=nucleonAmplitudes(CDM_,pA0,pA5,nA0,nA5);
   if(err) return err;
   
   Cr0=forSun? captureSun(fvf,M_cdm,pA0[0],nA0[0],pA5[0],nA5[0]):captureEarth(fvf,M_cdm, pA0[0],nA0[0],pA5[0],nA5[0]); 
@@ -906,8 +923,8 @@ int neutrinoFlux(double (* fvf)(double), int forSun, double* nu, double * Nu)
   if(pA0[0]==pA0[1] && nA0[0]==nA0[1] &&pA5[0]==pA5[1]&&nA5[0]==nA5[1]) Cr1=Cr0; else
   Cr1=forSun? captureSun(fvf,M_cdm,pA0[1],nA0[1],pA5[1],nA5[1]):captureEarth(fvf,M_cdm,pA0[1],nA0[1],pA5[1],nA5[1]);  
                          
-  name=CDM;
-  aname=pdg2name(-pNum(CDM));
+  name=CDM_;
+  aname=pdg2name(-pNum(CDM_));
   if(!aname) aname=name;
   if(forSun) R=150E6;  else R=6378.1; /* Distance to Sun/Earth in [km] */  
   Prop=31556925.2/(4*M_PI*R*R);       /* for Year*km^2 */

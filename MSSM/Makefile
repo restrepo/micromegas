@@ -1,3 +1,7 @@
+ifeq ($(FC),)
+$(warning  Fortran Compiler is not detected. Use softSusy for spectrum calculation.)    
+endif
+
 
 include ../include/modelMakefile
 

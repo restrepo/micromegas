@@ -218,54 +218,10 @@ int main(int argc,char** argv)
   double Omega;  
   int i,err; 
   printf("\n==== Calculation of relic density =====\n");   
-
-//toFeebleList("~x1");
-
-//  ExcludedFor2DM="1120 2200 1100 1210 1122 2211 1110 2220 1110 1222 1220 2210 2221 1211 1211"; 
   
-//    ExcludedFor2DM="1120      1100 1210 1122 2211 1110 2220 1110 1222 1220      2221 1211 1211";  
-  
-//    ExcludedFor2DM="1120    1210 1122 2211 1110 2220 1110 1222 1220      2221 1211 1211";  
-    
-  
-  if(CDM1 && CDM2) 
-  {
-  Beps=0;
-     Omega=darkOmega2(fast,Beps);  
+    Omega=darkOmega2(fast,Beps,&err);  
     printf("Omega_1h^2=%.2E\n", Omega*(1-fracCDM2));
     printf("Omega_2h^2=%.2E\n", Omega*fracCDM2);
-
-#ifdef SHOWPLOTS
-   displayPlot("vsXX00F","T", Tend, Tstart,0,2
-        , "vs1100F", 0,vs1100F,NULL
-        , "vs2200F", 0,vs2200F,NULL);
-        
-   displayPlot("vsXYZ0F","T", Tend, Tstart,0,3     
-        , "vs1210F", 0,vs1210F,NULL
-        , "vs1220F", 0,vs1220F,NULL
-        , "vs2210F", 0,vs2210F,NULL
-         );
-
-   if(Mcdm1>=Mcdm2)   
-    displayPlot("vsXYZWF","T", Tend, Tstart,0,3
-     , "vs1122F", 0,vs1122F,NULL
-     , "vs1222F", 0,vs1222F,NULL
-     , "vs1112F", 0,vs1112F,NULL
-     ); else 
-    displayPlot("vsXYZWF","T", Tend, Tstart,0,3
-     , "vs2211F", 0,vs2211F,NULL
-     , "vs2221F", 0,vs2221F,NULL
-     , "vs1211F", 0,vs1211F,NULL
-     );   
-#endif
-
-
-  } else
-  {  double Xf;
-     Omega=darkOmega(&Xf,fast,Beps,&err);
-     printf("Xf=%.2e Omega=%.2e\n",Xf,Omega);
-     if(Omega>0)printChannels(Xf,cut,Beps,1,stdout);
-  }
 }
 
 #endif

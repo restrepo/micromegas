@@ -1,6 +1,7 @@
-IDM
+IDM(+hgg)
  Lagrangian 
 P1   |P2   |P3   |P4   |>   Factor                                       <|> dLagrangian/ dA(p1) dA(p2) dA(p3)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <|
+A    |A    |h    |     |-4*LAAh                                           |p1.p2*m1.m2-m2.p1*m1.p2
 A    |W+   |W-   |     |EE                                                |m3.p2*m1.m2-m1.p2*m2.m3-m2.p3*m1.m3+m1.p3*m2.m3+m2.p1*m1.m3-m3.p1*m1.m2
 A    |W+   |W-.f |     |-i*EE*MW                                          |m1.m2
 A    |W+.f |W-   |     |i*EE*MW                                           |m1.m3
@@ -30,6 +31,7 @@ E    |e    |A    |     |-EE                                               |G(m3)
 E    |e    |Z    |     |EE/(4*CW*SW)                                      |4*SW^2*G(m3)-G(m3)*(1-G5)
 E    |ne   |W-   |     |EE*Sqrt2/(4*SW)                                   |G(m3)*(1-G5)
 G    |G    |G    |     |GG                                                |m2.p3*m1.m3-m1.p3*m2.m3+m3.p1*m1.m2-m2.p1*m1.m3-m3.p2*m1.m2+m1.p2*m2.m3
+G    |G    |h    |     |-4*LGGh*RQCDh                                     |p1.p2*m1.m2-m2.p1*m1.p2
 G.C  |G.c  |G    |     |GG                                                |m3.p2
 L    |l    |A    |     |-EE                                               |G(m3)
 L    |l    |Z    |     |EE/(4*CW*SW)                                      |4*SW^2*G(m3)-G(m3)*(1-G5)
@@ -115,7 +117,9 @@ h    |~H+  |~H-  |     |-2*MW*SW*la3/EE                                   |1
 h    |~H3  |~H3  |     |-2*MW*SW/EE                                       |B00003
 h    |~X   |~X   |     |-2*MW*SW/EE                                       |B00004
 A    |A    |W+   |W-   |-EE^2                                             |2*m1.m2*m3.m4-m1.m3*m2.m4-m1.m4*m2.m3
-A    |A    |W+.f |W-.f |2*EE^2                                            |m1.m2
+A    |A    |W+.f |W-.f |2*EE/(MW*SW)                                      |EE*MW*SW*m1.m2-LAAh*p1.p2*m1.m2+LAAh*m2.p1*m1.p2
+A    |A    |Z.f  |Z.f  |-2*EE*LAAh/(MW*SW)                                |p1.p2*m1.m2-m2.p1*m1.p2
+A    |A    |h    |h    |-2*EE*LAAh/(MW*SW)                                |p1.p2*m1.m2-m2.p1*m1.p2
 A    |A    |~H+  |~H-  |2*EE^2                                            |m1.m2
 A    |W+   |W-   |Z    |-CW*EE^2/SW                                       |2*m1.m4*m2.m3-m1.m2*m3.m4-m1.m3*m2.m4
 A    |W+   |W-.f |Z.f  |-EE^2/(2*SW)                                      |m1.m2
@@ -129,6 +133,9 @@ A    |W-   |~H+  |~H3  |-EE^2/(2*SW)                                      |m1.m2
 A    |W-   |~H+  |~X   |-i*EE^2/(2*SW)                                    |m1.m2
 A    |Z    |~H+  |~H-  |-EE^2/(CW*SW)                                     |-B00000*m1.m2
 G    |G    |G.t  |     |GG*Sqrt2/2                                        |m1.m3*m2.M3-m1.M3*m2.m3
+G    |G    |W+.f |W-.f |-2*EE*LGGh*RQCDh/(MW*SW)                          |p1.p2*m1.m2-m2.p1*m1.p2
+G    |G    |Z.f  |Z.f  |-2*EE*LGGh*RQCDh/(MW*SW)                          |p1.p2*m1.m2-m2.p1*m1.p2
+G    |G    |h    |h    |-2*EE*LGGh*RQCDh/(MW*SW)                          |p1.p2*m1.m2-m2.p1*m1.p2
 W+   |W+   |W-   |W-   |EE^2/SW^2                                         |2*m1.m2*m3.m4-m1.m4*m2.m3-m1.m3*m2.m4
 W+   |W+.f |W-   |W-.f |EE^2/(2*SW^2)                                     |m1.m3
 W+   |W-   |Z    |Z    |-CW^2*EE^2/SW^2                                   |2*m1.m2*m3.m4-m1.m3*m2.m4-m1.m4*m2.m3

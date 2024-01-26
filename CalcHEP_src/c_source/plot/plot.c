@@ -1346,7 +1346,8 @@ int  plot_Nar( char*file, char*  title, char*xName, double xMin, double xMax,  i
    ymax=grafminmax.ymax;
    
    logX=xScale;
-   logY=(ymin >0 && grafminmax.ymax/grafminmax.ymin >100);   
+   logY=(ymin >0 && grafminmax.ymax/grafminmax.ymin >100 );   
+   if(logY && grafminmax.ymin < grafminmax.ymax*1E-100) logY=0; 
    k = 0;      
 REDRAW:
    nCol0=maxCol();
@@ -1526,8 +1527,8 @@ contin:
                 logY = 0;
              }
                  
-             if(logY && (grafminmax.ymin <=0)) grafminmax.ymin=grafminmax.ymax*1E-4;
-             
+         //    if(logY && (grafminmax.ymin <=0)) grafminmax.ymin=grafminmax.ymax*1E-4;
+             if(logY && (grafminmax.ymin <= grafminmax.ymax*1E-100 )) grafminmax.ymin=grafminmax.ymax*1E-100;
               
              if(logY &&  grafminmax.ymax/grafminmax.ymin <=10 ) grafminmax.ymin=grafminmax.ymax/10.;
                             

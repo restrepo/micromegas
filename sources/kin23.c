@@ -103,7 +103,7 @@ static double Idfi(double cs2, arg23str* arg)
 //     printf("Pcm=%E M45=%E cs1=%e cs2=%e  i3=%d\n", Pcm,arg->M45, arg->cs1, cs2,arg->i3);
      if(factor==0.) return 0;   
      ds=factor*(arg->cc->interface->sqme)(arg->nsub,arg->GG, pvect,NULL,&err);
-     s+=ds;
+/*if(ds>0) */     s+=ds;
   } 
   return 2*M_PI*s/Np;  
 }

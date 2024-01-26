@@ -1,4 +1,4 @@
-SM(+hgg+h4G)
+IDM
  Variables 
  Name   | Value       |>  Comment                                   <|
 EE      |0.31333      |Electromagnetic coupling constant (<->1/128)
@@ -12,4 +12,8 @@ MbMb    |4.25         |Mb(Mb)  MS-BAR
 alphaSMZ|0.1184       |Srtong alpha(MZ)
 Ml      |1.777        |mass of tau-lepton
 Mh      |125          |mass of Higgs
-Maux    |1            |
+MHX     |111          |
+MH3     |222          |
+MHC     |333          |
+laL     |0.01         |
+la2     |0.01         |

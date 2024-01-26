@@ -106,7 +106,7 @@ void antiparticle_(char*aname,char*name,int alen,int len)
                                                                                                    
 double darkomega_(double * Xf,int*Fast,double *Beps,int*err){return darkOmega(Xf,*Fast,*Beps,err);}
 double darkomegafo_(double*Xf,int*fast,double*Beps){return darkOmegaFO(Xf,*fast,*Beps);}
-double darkomega2_(int*Fast,double *Beps){return darkOmega2(*Fast,*Beps);}
+double darkomega2_(int*Fast,double *Beps, int*err ){return darkOmega2(*Fast,*Beps,err);}
 
  double  vs1120f_(double *T){ return  vs1120F(*T);}
  double  vs2200f_(double *T){ return  vs2200F(*T);}

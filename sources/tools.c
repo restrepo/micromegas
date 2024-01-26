@@ -384,7 +384,6 @@ int readTable(char * fileName, int *Ncolumn, double **tab)
 
    f=fopen(fileName,"r");
    
-   
    if(!f) return 0;
 
    while(fgets(buff,BUFFSIZE,f))

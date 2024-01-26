@@ -191,6 +191,28 @@ int main(int argc,char** argv)
 }   
 #endif 
 
+#ifdef OMEGA
+{ int fast=1;
+  double Beps=1.E-5, cut=0.01;
+  double Omega,Xf;   
+  int i;
+ 
+// to exclude processes with virtual W/Z in DM   annihilation      
+    VZdecay=0; VWdecay=0; cleanDecayTable();
+
+// to include processes with virtual W/Z  also  in co-annihilation
+//   VZdecay=2; VWdecay=2; cleanDecayTable();
+ 
+  printf("\n==== Calculation of relic density =====\n");  
+  Omega=darkOmega(&Xf,fast,Beps,&err);
+  printf("Xf=%.2e Omega=%.2e\n",Xf,Omega);
+  if(Omega>0)printChannels(Xf,cut,Beps,1,stdout);   
+
+//   VZdecay=1; VWdecay=1; cleanDecayTable();  // restore default
+
+}
+#endif
+
 
 #ifdef OMEGA
 { int fast=1;
@@ -207,16 +229,16 @@ int main(int argc,char** argv)
   printf("\n==== Calculation of relic density =====\n");  
   Omega=darkOmega(&Xf,fast,Beps,&err);
   
-  printf("Xf=%.2e Omega=%.2e\n",Xf,Omega);  
+  printf("Xf=%.2e Tf=%E  Omega=%.2e\n",Xf,Mcdm/Xf,  Omega);  
 /*  
-  Omega=darkOmega2(fast,Beps);
+  Omega=darkOmega2(fast,Beps,&err);
   printf(" Omega2=%.2e\n",Omega); 
 */  
   if(Omega>0)printChannels(Xf,cut,Beps,1,stdout);   
 //   VZdecay=1; VWdecay=1; cleanDecayTable();  // restore default
 
 //  double Y;
-//  darkOmegaN(&Y,Beps);   
+//  darkOmegaN(&Y,Beps,&err);   
 //   Omega=Y*McdmN[1]*2.742E8;
 //   printf("OmegaN=%E\n", Omega);
 }

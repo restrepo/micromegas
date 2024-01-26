@@ -18,4 +18,4 @@ s-quark         |s   |S   |3         |1    |Ms  |0    |3    |   |s              
 t-quark         |t   |T   |6         |1    |Mt  |wtop |3    |   |t                 |\bar{t}                 |
 b-quark         |b   |B   |5         |1    |Mb  |0    |3    |   |b                 |\bar{b}                 |
 Higgs           |h   |h   |25        |0    |Mh  |!wh  |1    |   |h                 |h                       |
-first Singlet   |~x1 |~x1 |35        |0    |Mdm1|!wX1 |1    |0  |(x1)              |(x1)                    |
+first Singlet   |~x1 |~x1 |35        |0    |Mdm1|0    |1    |0  |(x1)              |(x1)                    |

@@ -1,28 +1,32 @@
 #include "micromegas.h"
 #include "micromegas_aux.h"
 
+//xVtoxll(int Nin,int Nout,char**name,int *pdg, int lV, double *wV,  double *br)
+
 int vPolar( char**N,  double*lng)
 { 
   char process[50];
   sprintf(process,"%s,%s->",N[0],N[1]);
 
+
+printf("Wpolar %s %s -> %s %s\n", N[0],N[1],N[2],N[3]);
+
+
   int v;   // position of vector particle W,or Z
-  int pdg; // of vector
+  int pdg[4]; // of vector
     
-  for(v=2;v<4;v++) { pdg=pNum(N[v]); if(pdg==23 || abs(pdg)==24) break;}
+  for(v=0;v<4;v++)  pdg[v]=pNum(N[v]); 
+  for(v=2;v<4;v++)  if(pdg[v]==23 || abs(pdg[v])==24) break;
+  
   if(v==4) return 1;
   double Mv=pMass(N[v]);
 
   int v_=5-v; // other outgoing particle
-  strcat(process,N[v_]);   
-  switch(pdg)
-  { case 23: sprintf(process+strlen(process),",%s,%s", pdg2name(12), pdg2name(-12)); break;
-    case 24: sprintf(process+strlen(process),",%s,%s", pdg2name(12), pdg2name(-11)); break;
-    case-24: sprintf(process+strlen(process),",%s,%s", pdg2name(11), pdg2name(-12)); break;
-  } 
-
-//printf("process=%s\n", process);    
-  numout*cc = newProcess(process);
+  
+  double wV,br;
+  
+  numout*cc=xVtoxll(2,2,N,pdg, v, &wV,  &br);
+  
   if(!cc) return 2;
   if(passParameters(cc)) return 3;
 
@@ -81,5 +85,6 @@ int vPolar( char**N,  double*lng)
   double  s=r[0]+r[1]+r[2];                 
   *lng=r[1]/s;  //    *left=r[2]/s;  *right=r[0]/s;
   if(*lng<0) *lng=0;
+ printf("       lng=%E\n",*lng); 
   return 0;
 }  

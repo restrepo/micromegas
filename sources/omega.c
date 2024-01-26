@@ -130,6 +130,7 @@ static double sigma23(double PcmIn)
    int err;
    brV1=AUX[nsub22].br;   
    r=cs23(cc23,1,PcmIn,AUX[nsub22].i3,&err)/brV1/3.8937966E8;
+//printf("PcmIn=%e r=%e\n",PcmIn,r);   
    if(err) do_err=do_err|err;
    l=AUX[nsub22].virt;
    l_=5-l;  
@@ -185,6 +186,8 @@ static  double sigma(double PcmIn)
 #ifdef IMPROVE
   improveCrossSection(pdg[0],pdg[1],pdg[2],pdg[3],PcmIn,&r);
 #endif  
+
+//printf("sigma(%E)=%E   nsub22=%d  nTab=%d   \n", PcmIn, r, nsub22,  AUX[nsub22].nTab);      
   return r;
 }  
 
@@ -228,10 +231,17 @@ static double weight(double y)
   double w;
   for(i=0;i<inBuff;i++) if(y==weightBuff_x[i]) { return weightBuff_y[i]; }
   y_pass=y;
-  { int err;
-    w=  simpson(weight_integrand,0.,s3f_,0.3*eps,&err);
-    if(err) {do_err=do_err|err; printf("error in simpson omega.c line 198\n");}
-  }  
+  int err=0;
+    w=  simpson(weight_integrand,s3_T(Tend),s3f_,0.3*eps,&err);
+    if(err)
+    {
+//    extern void* funcAddress;
+//    funcAddress=weight_integrand;    
+//     displayPlot("weight_integrand","s3", s3_T(Tend),s3f_,  0,1,"int",0, weight_integrand,NULL);    
+//     w=  simpson(weight_integrand,s3_T(Tend),s3f_,0.3*eps,NULL);
+//     exit(0); }
+      do_err=do_err|err; printf("error in simpson omega.c line 198\n");
+  }    
   if(inBuff<1000){weightBuff_x[inBuff]=y; weightBuff_y[inBuff++]=w;}
   return w;
 }
@@ -613,7 +623,7 @@ double aWidth(char * pName)
 
 int Ncdm=0; 
 double *McdmN=NULL;
-
+char  **CDM=NULL;
 static void defaultThermalMap(void);
 
   
@@ -703,12 +713,15 @@ int sortOddParticles(char * lsp)
 //printf("Ncdm=%d\n",Ncdm);
 //printThermalSets();  
   McdmN=realloc(McdmN,(Ncdm+1)*sizeof(double)); 
-  McdmN[0]=0;  
+  CDM=realloc(CDM,(Ncdm+1)*sizeof(char*));
+  McdmN[0]=0;
+  CDM[0]=NULL;  
   for(int k=1; k<=Ncdm;k++)
-  { McdmN[k]=-1; 
+  { McdmN[k]=-1;
+    CDM[k]=NULL; 
     for(int i=0;i<nModelParticles;i++) if(ThermalMap[i]==k)
     { double m= pMass(ModelPrtcls[i].name); 
-      if(McdmN[k]<0 || McdmN[k]>m) McdmN[k]=m;
+      if(McdmN[k]<0 || McdmN[k]>m) { McdmN[k]=m; CDM[k]=ModelPrtcls[i].name;}
 //      printf("  %d %s %e %e \n", k,ModelPrtcls[i].name, m,  McdmN[k]);
     }
     if(McdmN[k]<0) McdmN[k]=0; 
@@ -878,6 +891,7 @@ static void gaussC2(double * c, double * x, double * f)
 
 
 
+
 static double aRate(double X, int average,int Fast, double * alpha, aChannel ** wPrc,int *NPrc)
 {
   double Sum=0.;
@@ -1013,8 +1027,18 @@ static double aRate(double X, int average,int Fast, double * alpha, aChannel ** 
                     PcmMax=decayPcm(pmass[2]+pmass[3]+10*AUX[nsub22].w[l-2], pmass[0],pmass[1]);
                     if( pmass[0]+pmass[1]>=pmass[l_]) Pcm0=(pmass[0]+pmass[1])*0.001; else 
                     Pcm0=decayPcm(pmass[l_]+1E-3, pmass[0],pmass[1]);
+//        printf("%e -> %e %e => %e\n", (double)pmass[l_], (double)pmass[0],(double)pmass[1], (double)Pcm0);            
                     for(double csTest=sigma23(Pcm0); !isfinite(csTest); Pcm0*=1.01); 
                     buildInterpolation(sigma23, Pcm0,PcmMax, eps,delta, &(AUX[nsub22].nTab), &(AUX[nsub22].pcmTab), &(AUX[nsub22].csTab));
+//#define TEST23
+#ifdef TEST23
+                   char proc[100];
+                   sprintf(proc,"Log(sigma23) for %s,%s -> %s,%s; TabDim=%d", pname[0], pname[1],pname[2],pname[3],AUX[nsub22].nTab);
+                   polintStr Arg;
+                   Arg.dim=AUX[nsub22].nTab; Arg.x=AUX[nsub22].pcmTab; Arg.y=AUX[nsub22].csTab;
+                //    displayPlot(proc,"Pcm[GeV]", Pcm0,PcmMax,0,3,"orig.",0,sigma23,NULL,"interpol.",0,polint_arg,&Arg,"22",0, Logvcs22, code22_0[k1*NC+k2]);
+                   displayPlot(proc,"Pcm[GeV]", 0.39,0.44,0,2,"orig.",0,sigma23,NULL,"interpol.",0,polint_arg,&Arg);
+#endif
                  }
               }    
               if(cc23){ smin=pmass[l_]+0.1;}
@@ -1497,10 +1521,11 @@ double darkOmega(double * Xf, int Fast, double Beps,int *err)
   int i;
   int Nt=25;
   if(err) *err=0;
+  simpson_err=0;
+  
   if(CDM1==NULL)  fracCDM2=1; else
   if(CDM2==NULL)  fracCDM2=0; else 
   if(Mcdm1<Mcdm2) fracCDM2=0; else fracCDM2=1;
-
 
   fillCDMmem();
   if(Mcdm<=0) { printf(" There are no  Dark Matter particles\n"); restoreCDMmem(); return 0;} 
@@ -1520,9 +1545,10 @@ double darkOmega(double * Xf, int Fast, double Beps,int *err)
 
   if(Yt<0||FError) 
   {  restoreCDMmem();
-     if(err) *err=1; else printf("Temperature of thermal  equilibrium is too large\n");
-     if(Xf) *Xf=0;   
-     return -1;
+     if(err) *err=64; else printf("Temperature of thermal  equilibrium is too large\n");
+     if(Xf) *Xf=0; 
+     if(err)  *err=64|simpson_err;  
+     return NAN;
   }
   
   Tstart=Mcdm/Xt;
@@ -1532,6 +1558,7 @@ double darkOmega(double * Xf, int Fast, double Beps,int *err)
      if(deltaY>0) dmAsymm=1;  else dmAsymm=-1;
      if(Xf) *Xf=Xt;
      restoreCDMmem();
+     if(err) *err=simpson_err;
      return 2.742E8*Mcdm*deltaY;
   }   
   
@@ -1557,7 +1584,11 @@ double darkOmega(double * Xf, int Fast, double Beps,int *err)
     s3_t=s3_T(Mcdm/Xt);
     s3_2=s3_T(Mcdm/X2); 
 //    if(odeint(&y,1 ,Mcdm/Xt , Mcdm/X2 , 1.E-3, (Mcdm/Xt-Mcdm/X2 )/2, &XderivLn)){ printf("problem in solving diff.equation\n"); return -1;}   
-    if(odeint(&Yt,1 ,s3_t , s3_2 , 1.E-3, (s3_2-s3_t)/2, &XderivLn)){ printf("problem in solving diff.equation\n"); return -1;}
+    if(odeint(&Yt,1 ,s3_t , s3_2 , 1.E-3, (s3_2-s3_t)/2, &XderivLn))
+    { printf("problem in solving diff.equation\n");
+      if(err) *err=128|simpson_err;
+      return NAN;
+    }
     if(Ntab>=Nt)
     { Nt+=20;
       lYtab=realloc(lYtab,sizeof(double)*Nt);
@@ -1602,16 +1633,18 @@ double darkOmega(double * Xf, int Fast, double Beps,int *err)
   {  
       if(deltaY>0) dmAsymm=1; else dmAsymm=-1;
       restoreCDMmem();
+      if(err) *err=simpson_err;
       return 2.742E8*Mcdm*deltaY;
   }  
 
 
   double iColl=( (Mcdm/Xt)*sqrt(M_PI/45)*MPlanck*aRate(Xt,1,Fast,NULL,NULL,NULL));
   restoreCDMmem();
-  if(FError) { if(err) *err=8;  if(Xf) *Xf=0;     return -1;}
+  if(FError) { if(err) *err=8;  if(Xf) *Xf=0;     return NAN;}
   
   if(deltaY==0)
   { dmAsymm=0;
+    if(err) *err=simpson_err;
     return  2.742E8*Mcdm/(1/Yt  + iColl); /* 2.828-old 2.755-new,2.742 -newnew */
   } else
   {  double a,f,z0,Y0;
@@ -1621,6 +1654,7 @@ double darkOmega(double * Xf, int Fast, double Beps,int *err)
      z0=sqrt(f)*2*a/(1-f);
      Y0=sqrt(z0*z0+a*a);
      dmAsymm=deltaY/Y0;
+     if(err) *err=simpson_err;
      return 2.742E8*Mcdm*Y0;
   }    
 }
@@ -1630,6 +1664,7 @@ double darkOmegaTR(double Tr, double Yr,  int Fast, double Beps,int *err)
   double Yt;
   int i;
   if(err) *err=0;
+  simpson_err=0;
   if(CDM1==NULL)  fracCDM2=1; else
   if(CDM2==NULL)  fracCDM2=0; else 
   if(Mcdm1<Mcdm2) fracCDM2=0; else fracCDM2=1;
@@ -1666,7 +1701,9 @@ double darkOmegaTR(double Tr, double Yr,  int Fast, double Beps,int *err)
 
 //    alpha=vSigmaGrid.alpha[i];    
 
-    if(odeint(&Yt,1 ,s3_t , s3_2 , 1.E-3, (s3_2-s3_t)/2, &XderivLn)){ printf("problem in solving diff.equation\n"); return -1;}
+    if(odeint(&Yt,1 ,s3_t , s3_2 , 1.E-3, (s3_2-s3_t)/2, &XderivLn))
+    { printf("problem in solving diff.equation\n"); 
+      if(err) *err=128|simpson_err;  return NAN;}
 //    printf("Y=%E\n",Yt);
     lYtab[i]=log(Yt);
   }
@@ -1676,7 +1713,8 @@ double darkOmegaTR(double Tr, double Yr,  int Fast, double Beps,int *err)
   lYtab[Ntab-1]=log(Yt);
   restoreCDMmem();
   dmAsymm=0;
-  if(FError) { if(err) *err=8;  return -1;}  
+  if(FError) { if(err) *err=8|simpson_err ;  return NAN;}
+  if(err) *err=simpson_err;  
   return  2.742E8*Mcdm*Yt;
 }     
 
@@ -2838,7 +2876,7 @@ C[0]=0;
 }
 
 
-double darkOmega2TR( double TR, double Y1R,double Y2R, double fast, double Beps0)
+double darkOmega2TR( double TR, double Y1R,double Y2R, double fast, double Beps0, int *err_)
 {
   Fast_=fast;
   Beps_=Beps0;
@@ -2846,6 +2884,8 @@ double darkOmega2TR( double TR, double Y1R,double Y2R, double fast, double Beps0
   double step=1.1;
   double ips=0.01,ips_=0.005;  
   int i,err,N; 
+  if(err_) *err_=0;
+  simpson_err=0;
 
   fillCDMmem();
   
@@ -2876,13 +2916,15 @@ double darkOmega2TR( double TR, double Y1R,double Y2R, double fast, double Beps0
     { double T2=T/step;
       if(T2<Tend) T2=Tend;
       err=odeint(Y+1,1 , T ,T2 , 1.E-3, (T-T2) , &TderivZ4tab2);
-      if(err) { printf(" error in odeint\n");  return  -1;}
+      if(err) { printf(" error in odeint\n");
+                if(err_) *err_=128|simpson_err;  return  NAN;}
       Y1T[i]=Y1T[0];      
       Y2T[i]=Y[1];
       T=T2;
     }
     fracCDM2=1;
     restoreCDMmem();
+    if(err_) *err_=simpson_err;
     return (Y[1]+Yeq2(Tend))*2.742E8*Mcdm2; 
   } else if(!CDM2) 
   { 
@@ -2890,13 +2932,17 @@ double darkOmega2TR( double TR, double Y1R,double Y2R, double fast, double Beps0
     { double T2=T/step;
       if(T2<Tend) T2=Tend;
       err=odeint(Y,1 , T ,T2 , 1.E-4, (T-T2) , &TderivZ4tab1);
-      if(err) { printf(" error in odeint\n");  return  -1;}
+      if(err) { printf(" error in odeint\n");  
+                if(err_) *err_=128|simpson_err; 
+                return  NAN;
+                }
       Y1T[i]=Y[0];      
       Y2T[i]=Y2T[0];
       T=T2;
     }
     fracCDM2=0;
     restoreCDMmem();
+    if(err_) *err_=simpson_err;
     return (Y[0]/*+Yeq1(Tend)*/)*2.742E8*Mcdm1;
   }  else  
   { double h=0.01*Tstart*(1-1/step); 
@@ -2916,7 +2962,12 @@ double darkOmega2TR( double TR, double Y1R,double Y2R, double fast, double Beps0
 
 //      err=odeint(Y,2 , T ,T2 , 1.E-3, (T-T2) , odeintDerives);
       
-      if(err) { printf(" error in stiff at T=[%.2E, %.2E]\n",T2,T);  return  -1;}
+      if(err) 
+      { 
+         printf(" error in stiff at T=[%.2E, %.2E]\n",T2,T);
+         if(err_) *err_=128|simpson_err;  
+         return NAN;
+      }
       Y1T[i]=Y[0];      
       Y2T[i]=Y[1];      
       T=T2;
@@ -2927,13 +2978,14 @@ double darkOmega2TR( double TR, double Y1R,double Y2R, double fast, double Beps0
     restoreCDMmem();    
 
     fracCDM2=(Y[1]+Yeq2(Tend))*Mcdm2/( (Y[0]+Yeq1(Tend))*Mcdm1 +(Y[1]+Yeq2(Tend))*Mcdm2);
+    if(err_) *err_=simpson_err;
     return  (Y[0]+Yeq1(Tend)) *2.742E8*Mcdm1 + (Y[1]+Yeq2(Tend))*2.742E8*Mcdm2;
   }
 }
 
 
 
-double darkOmega2( double fast, double Beps0)
+double darkOmega2( double fast, double Beps0,int * err_)
 {
   Fast_=fast;
   Beps_=Beps0;
@@ -2942,6 +2994,8 @@ double darkOmega2( double fast, double Beps0)
   double step=1.1;
   double ips=0.01,ips_=0.005;  
   int i,err,N; 
+  if(err_) *err_=0;  
+  simpson_err=0;
   
 
   fillCDMmem();
@@ -2963,7 +3017,12 @@ double darkOmega2( double fast, double Beps0)
   {     
      while( !isfinite(Y[1])  ||  fabs(Y[1])>0.01 *Yeq2(Tstart)) 
      { Tstart*=1.05; 
-       if(Tstart>Mcdm2) { printf(" darkOmega2 can not find a starting point with DM in thermal equilibrium with SM\n");   restoreCDMmem();  return 0;}
+       if(Tstart>Mcdm2) 
+       { printf(" darkOmega2 can not find a starting point with DM in thermal equilibrium with SM\n");   
+         restoreCDMmem();
+         if(err_) *err_=64|simpson_err;  
+         return NAN;
+       }
        dYstart(Tstart,Y,&Lmin,&Lmax);
      }
      while(  isfinite(Y[1])  &&  fabs(Y[1])<0.005*Yeq2(Tstart)) { Tstart/=1.05; dYstart(Tstart,Y,&Lmin,&Lmax);}
@@ -2971,7 +3030,12 @@ double darkOmega2( double fast, double Beps0)
   {
      while( !isfinite(Y[0])  ||  fabs(Y[0])>0.01 *Yeq1(Tstart)) 
      { Tstart*=1.05; 
-       if(Tstart>Mcdm1) { printf(" darkOmega2 can not find a starting point with DM in thermal equilibrium with SM\n");   restoreCDMmem();  return 0;} 
+       if(Tstart>Mcdm1) 
+       { printf(" darkOmega2 can not find a starting point with DM in thermal equilibrium with SM\n");   
+         restoreCDMmem();
+         if(err_) *err_=64|simpson_err;  
+         return NAN;
+       } 
        dYstart(Tstart,Y,&Lmin,&Lmax);
      }
      while(  isfinite(Y[0])  &&  fabs(Y[0])<0.005*Yeq1(Tstart)) { Tstart/=1.05; dYstart(Tstart,Y,&Lmin,&Lmax);} 
@@ -2979,13 +3043,20 @@ double darkOmega2( double fast, double Beps0)
   {
      while( Lmin<100/Tstart  ) 
      { Tstart*=1.05;
-       if(Tstart>Mcdm1 && Tstart>Mcdm2) { printf(" darkOmega2 can not find a starting point with DM in thermal equilibrium with SM\n");   restoreCDMmem();  return 0;} 
+       if(Tstart>Mcdm1 && Tstart>Mcdm2) 
+       { printf(" darkOmega2 can not find a starting point with DM in thermal equilibrium with SM\n");
+         if(err_) *err_=64|simpson_err;   
+         restoreCDMmem();  
+         return NAN;
+       } 
        dYstart(Tstart,Y,&Lmin,&Lmax);
      } 
      while( Lmin>200/Tstart  ) { Tstart/=1.05; dYstart(Tstart,Y,&Lmin,&Lmax);} 
   }
   restoreCDMmem();    
-  return darkOmega2TR(Tstart, Y[0]+Yeq1(Tstart),Y[1]+Yeq2(Tstart), fast, Beps0);
+  double omega=darkOmega2TR(Tstart, Y[0]+Yeq1(Tstart),Y[1]+Yeq2(Tstart), fast, Beps0,&err);
+  if(err_) *err_=err;
+  return omega;
 }
 
 
@@ -3355,7 +3426,7 @@ static double pin2Sigma22(REAL sqrtS, cs22IntSt* arg)  //  sqme intergated over 
   char*name[4];
   int pdg[4];
   int err=0;
-  for(int i=0;i<4;i++) name[i]=arg->cc->interface->pinf(1,i+1,mass+i,NULL);
+  for(int i=0;i<4;i++) name[i]=arg->cc->interface->pinf(1,i+1,mass+i,pdg+i);
 
 //double resMem=-1000;
   if(arg->cL->vP>=0)
@@ -3432,13 +3503,11 @@ static double pin2Sigma22(REAL sqrtS, cs22IntSt* arg)  //  sqme intergated over 
      }           
 //     printf(" %d %d    %s %e %e \n",  s[0],s[1],  ModelPrtcls[pnum].name, (double)cc->interface->va[m], (double)cc->interface->va[w]);
    }
-
-
-
+   
   double sum=0;
   for(int i=0;i<nIn;i++)
   {  double dSum;
-     dSum=simpson_arg(dSdC,arg, intervals[2*i], intervals[2*i+1],1E-3,&err)*arg->Pout*arg->Pin/(32.0*M_PI*sqrtS*sqrtS);
+     dSum=simpson_arg(dSdC,arg, intervals[2*i], intervals[2*i+1],1E-3,&err)*arg->Pout/arg->Pin/(32.0*M_PI*sqrtS*sqrtS);
      if(err) arg->simpsonErr=arg->simpsonErr|err;
    //   pIn^2*cs  removing t-/u- channels poles 
     // if(err) 
@@ -3448,8 +3517,10 @@ static double pin2Sigma22(REAL sqrtS, cs22IntSt* arg)  //  sqme intergated over 
 //       dSum=peterson21_arg(dSdC,arg, intervals[2*i], intervals[2*i+1],NULL)*arg->Pout*arg->Pin/(32.0*M_PI*sqrtS*sqrtS);
      }  
      sum+=dSum;
-  }
-  free(intervals);  
+  }  
+  free(intervals);
+  improveCrossSection(pdg[0],pdg[1],pdg[2],pdg[3],arg->Pin,&sum);
+  sum*=arg->Pin*arg->Pin;  
 //printf("       sum=%E resMem=%E \n", sum,resMem);
 //if(resMem>-1000 )  return resMem;    
 
@@ -4441,11 +4512,12 @@ static double darkOmegaNTR_(double TR, double *Y,int *err)
     for(int i=1;i<Ncdm;i++) if(Yscal[i]>Ymax) Ymax=Yscal[i];
     for(int i=0;i<Ncdm;i++) if(Yscal[i]<Ymax*1E-4) Yscal[i]=1E-4*Ymax;
     int errStiff; 
-#ifdef doStiff
+#ifdef doStiff   
     errStiff=stiff(first,T,T2,Ncdm, Y, Yscal,1.E-3, &h, stiffDerivesN);
+    
     if(errStiff) for(int i=0;i<4;i++)
     {
-       errStiff=stiff(first,T+i*(T2-T)/4,T+(i+1)*(T2-T)/4,Ncdm, Y, Yscal,1.E-3, &h, stiffDerivesN);
+       errStiff=stiff(first,T+i*(T2-T)/4,T+(i+1)*(T2-T)/4,Ncdm, Y, Yscal,1.E-3, &h, stiffDerivesN);       
        if(errStiff)
        {  printf("error in solution of DM evolution equations at T in [%.2E,%.2E]\n",T+i*(T2-T)/4,T+(i+1)*(T2-T)/4 ); 
           if(err) *err=(*err)|128;

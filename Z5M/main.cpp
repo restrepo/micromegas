@@ -217,7 +217,7 @@ int main(int argc,char** argv)
   if(CDM1 && CDM2) 
   {
   
-    Omega= darkOmega2(fast,Beps);
+    Omega= darkOmega2(fast,Beps,&err);
   /*
     displayPlot("vs1120F","T", Tend, Tstart,1,1,"vs1120F", 0,vs1120F,NULL);
     displayPlot("vs2200F","T", Tend, Tstart,1,1,"vs2200F", 0,vs2200F,NULL);

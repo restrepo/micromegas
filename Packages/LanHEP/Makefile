@@ -1,8 +1,10 @@
-LOPT = 
-CFLAGS =  -O2
-CC = gcc
-LD = gcc
+
+include ../../CalcHEP_src/FlagsForMake
+LD = $(CC)
 LIB =  -lm -ldl
+
+LOPT = 
+
 Output = OutputNotSet
 
 FTERM = data.o atoms.o lexic.o write.o lists.o ops.o parse.o itrio.o

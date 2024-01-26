@@ -39,6 +39,13 @@ int  IC22events(double *nu, double * nuB, double phi_cut, double *Nsig, double *
 extern void  getdNSdCos( double *nu,double *nu_);
 extern double dNSdCos(double cs);
 
+// ==============  DeepCore 
+
+extern double icDCnuAr(double E);
+extern double icDCnuBarAr(double E);
+
+
+
 #ifdef __cplusplus
 }
 #endif 

@@ -29,6 +29,55 @@
 int main(int argc,char** argv)
 { int err,n,i;
 
+
+{ Mcdm=500;
+  double tabWA[NZ], tabWe[NZ], tabWp[NZ],
+         tabBA[NZ], tabBe[NZ], tabBp[NZ];
+  basicSpectra(Mcdm ,24, 0 , tabWA);
+  basicSpectra(Mcdm ,24, 1 , tabWe);
+  basicSpectra(Mcdm ,24, 2 , tabWp);
+  displayPlot("W->EdN/dE","E",0,Mcdm,0,3,"gamma",0, eSpectdNdE,tabWA
+                                        ,"positron",0,eSpectdNdE,tabWe
+                                   ,"a-proton",0,eSpectdNdE,tabWp);
+
+  basicSpectra(Mcdm ,6, 0 , tabBA);
+  basicSpectra(Mcdm ,6, 1 , tabBe);
+  basicSpectra(Mcdm ,6, 2 , tabBp);
+  displayPlot("b->EdN/dE","E",0,Mcdm,0,3,"gamma",0, eSpectdNdE,tabBA
+                                        ,"positron",0,eSpectdNdE,tabBe
+                                   ,"a-proton",0,eSpectdNdE,tabBp);
+
+
+  exit(0);
+}      
+
+{
+   Mcdm=5;
+   int pdg=13;
+   double tab[10*NZ], tabA[10*NZ] ;
+   double sum=0,sumA=0;
+
+   for(int i=0;i<6;i++)
+   {
+      basicSpectra(Mcdm ,pdg, i , tab);
+      basicSpectraA(Mcdm,pdg, i , tabA);
+      char mess[30];
+      sprintf(mess,"EdNdE for %s", outNames[i]);
+      displayPlot(mess,"E", 1E-3 /*Mcdm/100*/,Mcdm*1.05,1,2
+                                                  ,  "old",0,eSpectdNdE,tab
+                                                    ,"Australia",0,eSpectdNdE,tabA);
+      double dSum=simpson_arg(eSpectdNdE,tabA,1E-4, Mcdm, 1E-3,NULL);
+      dSum/=Mcdm;
+      if(i==0) sumA+=dSum; else sumA+=2*dSum;
+      dSum=simpson_arg(eSpectdNdE,tab,1E-4, Mcdm, 1E-3,NULL);
+      dSum/=Mcdm;
+     if(i==0) sum+=dSum; else sum+=2*dSum;
+  }
+  printf(" Energy conservation sum=%E sumA=%E\n",  sum,sumA);
+
+  exit(0); 
+}
+
 // data corresponding to MSSM/mssmh.dat     
 // cross sections of DM-nucleon interaction 
    double csSIp=5.489E-09,  csSIn=5.758E-09, csSDp=5.807E-05, csSDn=-4.503E-05;  //[pb] 

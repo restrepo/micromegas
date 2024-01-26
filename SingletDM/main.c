@@ -17,8 +17,7 @@
 #define OMEGA  /* Calculate relic density and display contribution of  individual channels */
 //#define FREEZEIN      /*  Calculate relic density in Freeze-in scenario  */
 
-
-//#define INDIRECT_DETECTION
+#define INDIRECT_DETECTION
   /* Compute spectra of gamma/positron/antiprotons/neutrinos for DM annihilation;
      Calculate <sigma*v>;
      Integrate gamma signal over DM galactic squared density for given line
@@ -64,7 +63,7 @@ int main(int argc,char** argv)
 
   ForceUG=1;  /* to Force Unitary Gauge assign 1 */
   //useSLHAwidth=0;
-  VZdecay=0; VWdecay=0;
+  VZdecay=1; VWdecay=1;
 
   if(argc==1)
   {
@@ -222,7 +221,7 @@ int main(int argc,char** argv)
   if(CDM1 && CDM2) 
   {
   
-    Omega= darkOmega2(fast,Beps);
+    Omega= darkOmega2(fast,Beps,&err);
     printf("Omega_1h^2=%.2E\n", Omega*(1-fracCDM2));
     printf("Omega_2h^2=%.2E\n", Omega*fracCDM2);
   } else
@@ -246,8 +245,8 @@ int main(int argc,char** argv)
   double TR=1E6;
   toFeebleList("~x1");
   
-//  darkOmegaFiDecay(TR, "h", 1, 1);
-
+  omegaFi=darkOmegaFiDecay(TR, "h", 1, 1);
+  printf("omegaFiDecay=%.3E\n", omegaFi);
 
   omegaFi=darkOmegaFi(TR,&err);
   
@@ -383,6 +382,7 @@ printf("\n==== Calculation of CDM-nucleons amplitudes  =====\n");
 }
 
 #endif
+
 
 #ifdef NEUTRINO
 if(!CDM1 || !CDM2)

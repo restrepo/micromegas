@@ -4,7 +4,7 @@
 
 typedef struct{ double r;  double i; } my_complex;
 
-const my_complex icomp;
+extern const my_complex icomp;
 
 extern void affichec(my_complex a);
 

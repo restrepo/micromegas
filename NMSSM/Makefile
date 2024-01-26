@@ -1,3 +1,6 @@
+ifeq ($(FC),)
+$(error  This model needs Fortan compiler. Please install Fortan.)    
+endif
 
 include ../include/modelMakefile
 

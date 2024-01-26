@@ -32,7 +32,7 @@
     DM velocity distribution,
     A-dependence of Fermi-dencity
   */
-#define CDM_NUCLEON
+//#define CDM_NUCLEON
   /* Calculate amplitudes and cross-sections for  CDM-mucleon collisions */
 
 //#define CDM_NUCLEUS
@@ -220,7 +220,7 @@ int main(int argc,char** argv)
   if(CDM1 && CDM2) 
   {
   
-    Omega= darkOmega2(fast,Beps);
+    Omega= darkOmega2(fast,Beps,&err);
     printf("Omega_1h^2=%.2E\n", Omega*(1-fracCDM2));
     printf("Omega_2h^2=%.2E\n", Omega*fracCDM2);
   } else

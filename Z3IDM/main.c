@@ -10,11 +10,14 @@
 
 //#define HIGGSBOUNDS
 //#define HIGGSSIGNALS 
-#define LILITH
+//#define LILITH
 //#define SMODELS
 
 #define OMEGA            
   /* Calculate relic density and display contribution of  individual channels */
+
+//#define FREEZEIN      /*  Calculate relic density in Freeze-in scenario  */
+  
 #define INDIRECT_DETECTION  
   /* Compute spectra of gamma/positron/antiprotons/neutrinos for DM annihilation; 
      Calculate <sigma*v>;
@@ -207,6 +210,21 @@ int main(int argc,char** argv)
   if(Omega>0)printChannels(Xf,cut,Beps,1,stdout);   
 
   VZdecay=1; VWdecay=1; cleanDecayTable();  // restore default
+}
+#endif
+
+#ifdef FREEZEIN
+{
+  double TR=3E7;
+  double omegaFi;
+  toFeebleList(CDM1);
+
+  VWdecay=0; VZdecay=0;
+
+  omegaFi=darkOmegaFi(TR,&err);
+  printf("Omega freeze-in=%.3E\n", omegaFi);
+  printChannelsFi(0,0,stdout);
+
 }
 #endif
 

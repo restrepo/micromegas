@@ -33,7 +33,7 @@
 //#define HIGGSBOUNDS 
 //#define HIGGSSIGNALS
 //#define SUPERISO
-//#define LILITH
+#define LILITH
 //#define SMODELS
 //#define MONOJET       
 
@@ -59,7 +59,7 @@
          DM velocity distribution,
          A-dependence of Fermi-dencity
       */     
-//#define CDM_NUCLEON 
+#define CDM_NUCLEON 
       /* Calculate amplitudes and cross-sections for 
          CDM-mucleon collisions 
       */  
@@ -108,9 +108,7 @@
 #define PRINTRGE_(A) printf(" Spectrum calculator is %s\n", #A)
 #define PRINTRGE(A)  PRINTRGE_(A)
 
-
-
-int main(int argc,char** argv)
+ int main(int argc,char** argv)
 {  int err;
    char cdmName[10];
    int spin2, charge3,cdim;
@@ -512,20 +510,14 @@ int main(int argc,char** argv)
 
 
 #ifdef OMEGA
-{ int fast=-1;
+{ int fast=0;
   double Beps=1.E-5, cut=0.01;
-  double Omega,Xf=25; 
-  
-// to exclude processes with virtual W/Z in DM   annihilation      
-    VZdecay=1; VWdecay=1; cleanDecayTable(); 
-    
-// to include processes with virtual W/Z  also  in co-annihilation 
-//   VZdecay=2; VWdecay=2; cleanDecayTable(); 
-    
+  double Omega,Xf=25;       
   printf("\n==== Calculation of relic density =====\n");  
      Omega=darkOmega(&Xf,fast,Beps,&err);
-     
-     printf("Xf=%.2e Omega=%.2e\n",Xf,Omega);
+     displayPlot("Y","T",Mcdm/(Xf+4),Tstart, 0,2,"Y",0,YF,NULL,
+                                                "Yeq",0,Yeq,NULL);                                          
+     printf("Xf=%.2e Omega=%.2e err=%d\n",Xf,Omega,err);
    if(Omega>0)printChannels(Xf,cut,Beps,1,stdout);
 
     VZdecay=1; VWdecay=1; cleanDecayTable();
@@ -722,8 +714,8 @@ WIMPSIM=0;
  
   printf("\n===============Neutrino Telescope=======  for  "); 
   if(forSun) printf("Sun\n"); else printf("Earth\n");  
-
   err=neutrinoFlux(Maxwell,forSun, nu,nu_bar);
+  
 #ifdef SHOWPLOTS
   displayPlot("neutrino fluxes [1/Year/km^2/GeV]","E[GeV]",Emin,Mcdm,0, 2,"dnu/dE",0,SpectdNdE,nu,"dnu_bar/dE",0,SpectdNdE,nu_bar);
 #endif

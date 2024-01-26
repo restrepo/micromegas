@@ -187,13 +187,17 @@ extern double vSigmaCC(double T,numout* cc,int mode);
 extern int loadHeffGeff(char*fname);
 extern double  hEff(double T);
 extern double  gEff(double T);
+extern double  gEff2(double T); // gEff restored from hEff via diff. equation. 
 extern double T_s3(double s3);
 extern double s3_T(double T);
 
 extern double  h1eff(double x, int eta);
 extern double  g1eff(double x, int eta);
 extern double Hubble(double T);
-
+extern double HubbleTime(double T1, double T2);
+extern double freeStreaming(double pi, double T1,double T2);
+#define  T2_73K 2.349E-13   // in GeV 
+#define  Tmreq  0.807E-9    // in GeV 
 extern int toFeebleList(char*pname);
 extern int isFeeble(char*name);
 
@@ -201,10 +205,10 @@ extern double hEffLnDiff(double T);
 extern double vSigma(double T,double Beps ,int Fast);
 extern double darkOmega(double *Xf,int Fast, double Beps,int *err);
 extern char*ExcludedFor2DM;
-extern double darkOmega2(double fast, double Beps);
+extern double darkOmega2(double fast, double Beps, int *err);
 extern double darkOmegaExt(double *Xf, double (*f0)(double), double (*f1)(double));
 extern double darkOmegaTR(double TR, double YR, int Fast, double Beps,int *err);
-extern double darkOmega2TR(double TR, double Y1R, double Y2R,double fast, double Beps);
+extern double darkOmega2TR(double TR, double Y1R, double Y2R,double fast, double Beps, int *err);
 extern double checkTE(int  n, double T, int mode, double Besp);
 extern double collisionWidth(numout*cc, double Beps,double T);
 
@@ -247,7 +251,7 @@ extern int defThermalSet(int n, char*set);
 extern void printThermalSets(void);
 extern  int     Ncdm;         // number of DM sectors
 extern  double *McdmN;   // array if minimal masses in each sector
-
+extern  char ** CDM;   // array of cdm  names
 extern  double  YdmNEq(double T, char *ch); // equilibrium abundance : YdmEq(T,"1");
 extern  int deltaYN(double T, double *dY);  // estimates small deviation of solution from equilibrium 
 //                     to solve evolution equation
@@ -304,6 +308,7 @@ extern double Zi(int i);
 */
 
 extern double SpectdNdE(double E, double * tab);
+extern double eSpectdNdE(double E, double *tab);  // E*SpectdNdE
 extern void  fillSpect(double (*dNdE)(double ), double Emax, double * SpectAr);
 extern void   addSpectrum(double*Spect,double*toAdd);
 extern double   spectrInfo(double Emin,double*tab , double*Etot);
@@ -317,8 +322,9 @@ extern double   spectrInfo(double Emin,double*tab , double*Etot);
 extern double spectrInt(double Emin,double Emax, double * tab);
 extern void  spectrMult( double *spect, double(*func)(double));
 
-
 extern void boost(double Y, double M0, double mx, double*tab);
+
+extern  double  Sommerfeld(double a, double b);
 
 extern void setHaloProfile( double (*haloProfile)(double));
 extern void setClumpConst(double f,double rho);
@@ -371,7 +377,7 @@ extern double pbarFlux(double ek, double dSigmadE);
 extern char * outNames[6];
 
 extern int basicSpectra(double Mass,int pdgN, int outN, double * tab);
-
+extern int basicSpectraA(double Mass,int pdgN, int outN, double * tab);
 
 /*=========== Neutrino from Sun and Earth ==================*/
 
@@ -469,6 +475,10 @@ extern double  PICO60_SDp_90(double M);
 extern double  XENON1T_SDp_90(double M);
 extern double  XENON1T_SDn_90(double M);
 extern double  PandaX4T(double M);
+
+extern double LZ5T(double M);
+extern double LZEff(double M);
+
 
 extern int Xe1TnEvents;
 extern double Xe1TpEff0(double E);

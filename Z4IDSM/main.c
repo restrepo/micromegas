@@ -204,7 +204,7 @@ int main(int argc,char** argv)
   double omegaFi;
   toFeebleList("~sc");
   pWidthPref("~~H3",1);
-  sortOddParticles(NULL);  
+  sortOddParticles(NULL); 
   omegaFi=darkOmegaFi(TR,&err);
   printf("omega freeze-in=%.3E\n", omegaFi);
   printf("   omega1=%.3E omega2= %.3E fracCDM2=%.3E\n",omegaFi*(1-fracCDM2), omegaFi*fracCDM2,fracCDM2); //The output is: fracCDM2=0, i.e omegaFi=Omega(~sc).
@@ -220,10 +220,11 @@ int main(int argc,char** argv)
   double Omega,Xf;  
   int i,err; 
   printf("\n==== Calculation of relic density =====\n");   
+printf("CDM %s %s     %s %s\n", CDM1,CDM[1], CDM2, CDM[2]); 
 
 //ExcludedFor2DM="2010";
 
-  Omega= darkOmega2(fast,Beps);
+  Omega= darkOmega2(fast,Beps,&err);
 
   printf("Tstart=%E\n", Tstart);
   printf("omega1=%.2E\n", Omega*(1-fracCDM2));
@@ -250,28 +251,6 @@ int main(int argc,char** argv)
    , "Y2eq",0,Yeq2,NULL
    );  
 */  
-  displayPlot("vs1100","T", Tend,Tstart,0,2,"dO2",0,vs1100F,NULL,"doN",0, vSigmaN,"1100");
-  displayPlot("vs2200","T", Tend,Tstart,0,2,"dO2",0,vs2200F,NULL,"doN",0, vSigmaN,"2200");
-  displayPlot("vs1122","T", Tend,Tstart,0,2,"dO2",0,vs1122F,NULL,"doN",0, vSigmaN,"1122");
-  displayPlot("vs2110","T", Tend,Tstart,0,3,"dO2",0,vs1210F,NULL,"doN",0, vSigmaN,"2110","doN!",0, vSigmaN,"!2110" );
-  displayPlot("vs1120","T", Tend,Tstart,0,2,"dO2",0,vs1120F,NULL,"doN",0, vSigmaN,"1120");     
-
-
-//  displayPlot("vs1120","T", Tend,Tstart,0,1,"doN",0, vSigmaN,"1120", "doN!",0, vSigmaN,"!1120"); 
-     for(int i=0;;i++)
-     { char process[100];
-       double r=vSigmaNCh(3.4,  "1120",i, process);
-       if(process[0]==0) break;
-       printf("r=%E %s\n",r,process);
-     }
-/*     
-     for(int i=0;;i++)
-     { char process[100];
-       double r=vSigmaNCh(3.55,  "2110",i, process);
-       if(process[0]==0) break;
-       printf("r=%E %s\n",r,process);
-     }
-*/                                         
 #endif            
 }
 

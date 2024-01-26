@@ -171,7 +171,9 @@ static int findNextFont(char * fontName, int dir)
        {
          if(w==wc && strcmp(currentFont,allFonts[n]))  
          { strcpy(fontName,allFonts[n]); 
-           printf("= Font n=%d :%s: width=%d/%d height=%d \n",n,currentFont,w,w_,h); 
+           static int newFont=0;
+           if(newFont>1) printf("= Font n=%d :%s: width=%d/%d height=%d \n",n,currentFont,w,w_,h); 
+           newFont++;
            nCurF=n;
            XFreeFontInfo(allFonts, info, nFonts); 
            return 0;
@@ -225,8 +227,9 @@ static int findFont(char * fontName,int dir)
     if(dir && strcmp(currentFont,allFonts[n0])==0) return 1;
     if(dir>0) printf("> ");
     if(dir<0) printf("< ");
-    printf("Font n=%d :%s: width=%d/%d height=%d \n",n0,fontName,info[n0].max_bounds.width , info[n0].min_bounds.width ,info[n0].ascent+info[n0].descent); 
-
+    static int newFont=0;
+    if(newFont)printf("Font n=%d :%s: width=%d/%d height=%d \n",n0,fontName,info[n0].max_bounds.width , info[n0].min_bounds.width ,info[n0].ascent+info[n0].descent); 
+    newFont++;
     XFreeFontInfo(allFonts, info, nFonts);
     
     return 0; 

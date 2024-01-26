@@ -9,7 +9,7 @@
   fi 
   
   rm -rf Packages/higgsbounds*  Packages/higgssignals* Packages/smodels-* Packages/softsusy* Packages/SPheno-* Packages/superiso_v*
-  
+  rm Packages/LanHEP/*.o Packages/LanHEP/*.o  Packages/LanHEP/SLHAplus/*.o Packages/LanHEP/SLHAplus/*.a
   if(test -x "`which gmake`") then
      MAKE=gmake
   else
